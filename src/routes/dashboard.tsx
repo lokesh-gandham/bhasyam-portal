@@ -42,8 +42,24 @@ const nav = [
 ];
 
 
+function PlaceholderView({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+      <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-3">
+        <Settings className="size-5 text-muted-foreground" />
+      </div>
+      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+      <p className="text-sm text-muted-foreground mt-1 max-w-sm">{description}</p>
+    </div>
+  );
+}
+
 function DashboardScreen() {
   const [active, setActive] = useState("dashboard");
+  const [initialGradeNav, setInitialGradeNav] = useState<
+    { gradeId: string; subjectId: string; lessonId: string; mode: "read" | "quiz" } | undefined
+  >(undefined);
+  const [gradesKey, setGradesKey] = useState(0);
   const navigate = useNavigate();
 
   return (
