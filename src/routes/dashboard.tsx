@@ -32,28 +32,15 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 const nav = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: null },
-  { id: "subjects", label: "Subjects", icon: BookOpen, badge: "24" },
-  { id: "grades", label: "Grades", icon: GraduationCap, badge: null },
-  { id: "lessons", label: "Lessons", icon: FileText, badge: "128" },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: null as string | null },
+  { id: "subjects", label: "Subjects", icon: BookOpen, badge: String(allSubjects.length) },
+  { id: "grades", label: "Grades", icon: GraduationCap, badge: String(grades.length) },
+  { id: "lessons", label: "Lessons", icon: FileText, badge: String(allLessons.length) },
   { id: "students", label: "Students", icon: Users, badge: null },
   { id: "reports", label: "Reports", icon: BarChart3, badge: null },
   { id: "settings", label: "Settings", icon: Settings, badge: null },
 ];
 
-const stats = [
-  { label: "Active Subjects", value: "24", delta: "+3", tone: "text-emerald-600" },
-  { label: "Total Lessons", value: "128", delta: "+12", tone: "text-emerald-600" },
-  { label: "Assessments Pending", value: "7", delta: "-2", tone: "text-amber-600" },
-  { label: "Enrolled Students", value: "1,842", delta: "+56", tone: "text-emerald-600" },
-];
-
-const recent = [
-  { title: "Class X · Physics · Chapter 4", meta: "Updated 12 min ago", by: "R. Menon" },
-  { title: "Class IX · Mathematics · Algebra", meta: "Updated 34 min ago", by: "S. Iyer" },
-  { title: "Class VIII · English · Poetry", meta: "Updated 1 hr ago", by: "A. Rao" },
-  { title: "Class VII · Social · Civics", meta: "Updated 3 hr ago", by: "K. Bhaskar" },
-];
 
 function DashboardScreen() {
   const [active, setActive] = useState("dashboard");
