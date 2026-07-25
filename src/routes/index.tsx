@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import bhasyamLogo from "../assets/bhasyam-logo.png.asset.json";
+import wisewingsLogo from "../assets/wisewings-logo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   component: LoginScreen,
@@ -9,6 +11,7 @@ export const Route = createFileRoute("/")({
 function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="fixed inset-0 bg-background grid-bg flex flex-col text-foreground selection:bg-primary/20">
@@ -36,13 +39,14 @@ function LoginScreen() {
       {/* Main */}
       <main className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-[440px] animate-entrance bg-card rounded-xl shadow-[0_32px_64px_-16px_rgba(15,23,42,0.14)] border border-border overflow-hidden">
-          {/* Bhasyam brand */}
-          <div className="pt-12 pb-8 px-10 text-center">
-            <div className="inline-flex flex-col items-center mb-6">
-              <span className="text-2xl font-bold tracking-tighter text-foreground uppercase">
-                Bhasyam
-              </span>
-              <div className="h-1 w-12 bg-primary mt-1 rounded-full" />
+          {/* Bhasyam brand — logo at top */}
+          <div className="pt-10 pb-6 px-10 text-center">
+            <div className="inline-flex items-center justify-center mb-4">
+              <img
+                src={bhasyamLogo.url}
+                alt="Bhasyam"
+                className="h-20 w-auto object-contain"
+              />
             </div>
             <h1 className="text-lg font-semibold tracking-tight">Assessment CMS</h1>
             <p className="text-sm text-muted-foreground mt-1">
@@ -53,7 +57,10 @@ function LoginScreen() {
           {/* Form */}
           <form
             className="px-10 pb-10 space-y-5"
-            onSubmit={(e) => e.preventDefault()}
+            onSubmit={(e) => {
+              e.preventDefault();
+              navigate({ to: "/dashboard" });
+            }}
           >
             <div className="space-y-1.5">
               <label
@@ -141,30 +148,16 @@ function LoginScreen() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-4 z-10">
-        <div className="flex items-center gap-2">
-          <span className="font-mono-ui text-[10px] text-muted-foreground tracking-tight uppercase">
-            &copy; 2026 Assessment CMS · All rights reserved by
+      <footer className="w-full px-8 py-5 flex items-center justify-center gap-2 z-10">
+        <span className="font-mono-ui text-[10px] text-muted-foreground tracking-tight uppercase">
+          &copy; 2026 Assessment CMS · All rights reserved by
+        </span>
+        <div className="flex items-center gap-1.5">
+          <img src={wisewingsLogo.url} alt="Wise Wings" className="h-4 w-4 rounded-sm object-contain" />
+          <span className="font-bold text-[11px] tracking-tighter text-foreground uppercase">
+            wise wings
           </span>
-          <div className="flex items-center gap-1.5">
-            <span className="size-3 bg-foreground rounded-sm rotate-45" aria-hidden />
-            <span className="font-bold text-[11px] tracking-tighter text-foreground uppercase">
-              wise wings
-            </span>
-          </div>
         </div>
-
-        <nav className="flex gap-6">
-          <a href="#" className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
-            Legal
-          </a>
-          <a href="#" className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
-            Privacy
-          </a>
-          <a href="#" className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
-            Support
-          </a>
-        </nav>
       </footer>
     </div>
   );
