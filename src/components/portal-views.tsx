@@ -258,8 +258,8 @@ function GradeCard({ grade, onOpen }: { grade: Grade; onOpen: () => void }) {
   );
 }
 
-export function GradesView() {
-  const [nav, setNav] = useState<Nav>({});
+export function GradesView({ initialNav }: { initialNav?: Nav } = {}) {
+  const [nav, setNav] = useState<Nav>(initialNav ?? {});
 
   const grade = grades.find((g) => g.id === nav.gradeId);
   const subject = grade?.subjects.find((s) => s.id === nav.subjectId);
