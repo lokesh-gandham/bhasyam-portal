@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import bhasyamLogo from "../assets/bhasyam-logo.png.asset.json";
 import wisewingsLogo from "../assets/wisewings-logo.png.asset.json";
+import { GradesView, SubjectsView, LessonsView, OverviewView } from "@/components/portal-views";
+import { grades, allSubjects, allLessons } from "@/lib/curriculum";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -30,31 +32,34 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 const nav = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: null },
-  { id: "subjects", label: "Subjects", icon: BookOpen, badge: "24" },
-  { id: "grades", label: "Grades", icon: GraduationCap, badge: null },
-  { id: "lessons", label: "Lessons", icon: FileText, badge: "128" },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: null as string | null },
+  { id: "subjects", label: "Subjects", icon: BookOpen, badge: String(allSubjects.length) },
+  { id: "grades", label: "Grades", icon: GraduationCap, badge: String(grades.length) },
+  { id: "lessons", label: "Lessons", icon: FileText, badge: String(allLessons.length) },
   { id: "students", label: "Students", icon: Users, badge: null },
   { id: "reports", label: "Reports", icon: BarChart3, badge: null },
   { id: "settings", label: "Settings", icon: Settings, badge: null },
 ];
 
-const stats = [
-  { label: "Active Subjects", value: "24", delta: "+3", tone: "text-emerald-600" },
-  { label: "Total Lessons", value: "128", delta: "+12", tone: "text-emerald-600" },
-  { label: "Assessments Pending", value: "7", delta: "-2", tone: "text-amber-600" },
-  { label: "Enrolled Students", value: "1,842", delta: "+56", tone: "text-emerald-600" },
-];
 
-const recent = [
-  { title: "Class X · Physics · Chapter 4", meta: "Updated 12 min ago", by: "R. Menon" },
-  { title: "Class IX · Mathematics · Algebra", meta: "Updated 34 min ago", by: "S. Iyer" },
-  { title: "Class VIII · English · Poetry", meta: "Updated 1 hr ago", by: "A. Rao" },
-  { title: "Class VII · Social · Civics", meta: "Updated 3 hr ago", by: "K. Bhaskar" },
-];
+function PlaceholderView({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+      <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-3">
+        <Settings className="size-5 text-muted-foreground" />
+      </div>
+      <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+      <p className="text-sm text-muted-foreground mt-1 max-w-sm">{description}</p>
+    </div>
+  );
+}
 
 function DashboardScreen() {
   const [active, setActive] = useState("dashboard");
+  const [initialGradeNav, setInitialGradeNav] = useState<
+    { gradeId: string; subjectId: string; lessonId: string; mode: "read" | "quiz" } | undefined
+  >(undefined);
+  const [gradesKey, setGradesKey] = useState(0);
   const navigate = useNavigate();
 
   return (
@@ -124,7 +129,13 @@ function DashboardScreen() {
                 return (
                   <li key={item.id}>
                     <button
-                      onClick={() => setActive(item.id)}
+                      onClick={() => {
+                        if (item.id === "grades") {
+                          setInitialGradeNav(undefined);
+                          setGradesKey((k) => k + 1);
+                        }
+                        setActive(item.id);
+                      }}
                       className={`w-full h-9 px-2.5 rounded-md flex items-center gap-2.5 text-sm transition-colors ${
                         isActive
                           ? "bg-primary/10 text-primary font-medium"
@@ -190,80 +201,40 @@ function DashboardScreen() {
           </div>
 
           {/* Content body */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Welcome back, Admin</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Here's what's happening across the Bhasyam assessment workspace today.
-              </p>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              {stats.map((s) => (
-                <div
-                  key={s.label}
-                  className="bg-card border border-border rounded-lg p-4 hover:shadow-sm transition-shadow"
-                >
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {s.label}
-                  </div>
-                  <div className="mt-2 flex items-baseline gap-2">
-                    <div className="text-2xl font-semibold tracking-tight">{s.value}</div>
-                    <div className={`font-mono-ui text-[11px] ${s.tone}`}>{s.delta}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Recent + panel */}
-            <div className="grid lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 bg-card border border-border rounded-lg overflow-hidden">
-                <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-                  <div className="text-sm font-semibold">Recent updates</div>
-                  <button className="text-[11px] text-primary hover:underline">View all</button>
-                </div>
-                <ul className="divide-y divide-border">
-                  {recent.map((r) => (
-                    <li
-                      key={r.title}
-                      className="px-4 py-3 flex items-center justify-between hover:bg-muted/40 transition-colors"
-                    >
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium truncate">{r.title}</div>
-                        <div className="text-[11px] text-muted-foreground">{r.meta}</div>
-                      </div>
-                      <div className="font-mono-ui text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {r.by}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="bg-card border border-border rounded-lg p-4">
-                <div className="text-sm font-semibold">System status</div>
-                <div className="mt-3 space-y-2.5 text-xs">
-                  {[
-                    { l: "API Gateway", v: "Operational", ok: true },
-                    { l: "Database", v: "Operational", ok: true },
-                    { l: "Media Storage", v: "Operational", ok: true },
-                    { l: "Auth Service", v: "Operational", ok: true },
-                  ].map((s) => (
-                    <div key={s.l} className="flex items-center justify-between">
-                      <span className="text-muted-foreground">{s.l}</span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="size-1.5 rounded-full bg-emerald-500" />
-                        <span className="font-mono-ui text-[10px] uppercase tracking-wider text-emerald-700">
-                          {s.v}
-                        </span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+          <div className="flex-1 overflow-y-auto p-6">
+            {active === "dashboard" && <OverviewView />}
+            {active === "grades" && (
+              <GradesView key={gradesKey} initialNav={initialGradeNav} />
+            )}
+            {active === "subjects" && (
+              <SubjectsView
+                onOpenLesson={(p) => {
+                  setInitialGradeNav({ ...p, mode: "read" });
+                  setGradesKey((k) => k + 1);
+                  setActive("grades");
+                }}
+              />
+            )}
+            {active === "lessons" && (
+              <LessonsView
+                onOpenLesson={(p) => {
+                  setInitialGradeNav({ ...p, mode: "read" });
+                  setGradesKey((k) => k + 1);
+                  setActive("grades");
+                }}
+              />
+            )}
+            {active === "students" && (
+              <PlaceholderView title="Students" description="Student roster management is coming soon." />
+            )}
+            {active === "reports" && (
+              <PlaceholderView title="Reports" description="Assessment reports and analytics are coming soon." />
+            )}
+            {active === "settings" && (
+              <PlaceholderView title="Settings" description="Workspace preferences are coming soon." />
+            )}
           </div>
+
 
           {/* Footer */}
           <footer className="h-10 border-t border-border bg-card px-6 flex items-center justify-center gap-2 shrink-0">
