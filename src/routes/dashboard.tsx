@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import bhasyamLogo from "../assets/bhasyam-logo.png.asset.json";
 import wisewingsLogo from "../assets/wisewings-logo.png.asset.json";
+import { GradesView, SubjectsView, LessonsView, OverviewView } from "@/components/portal-views";
+import { grades, allSubjects, allLessons } from "@/lib/curriculum";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
