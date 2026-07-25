@@ -129,7 +129,13 @@ function DashboardScreen() {
                 return (
                   <li key={item.id}>
                     <button
-                      onClick={() => setActive(item.id)}
+                      onClick={() => {
+                        if (item.id === "grades") {
+                          setInitialGradeNav(undefined);
+                          setGradesKey((k) => k + 1);
+                        }
+                        setActive(item.id);
+                      }}
                       className={`w-full h-9 px-2.5 rounded-md flex items-center gap-2.5 text-sm transition-colors ${
                         isActive
                           ? "bg-primary/10 text-primary font-medium"
