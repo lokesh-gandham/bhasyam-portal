@@ -41,22 +41,32 @@ function LoginScreen() {
         <div className="w-full max-w-[440px] animate-entrance bg-card rounded-xl shadow-[0_32px_64px_-16px_rgba(15,23,42,0.14)] border border-border overflow-hidden">
           {/* Bhasyam brand — logo at top */}
           <div className="pt-10 pb-6 px-10 text-center">
-            <div className="inline-flex items-center justify-center mb-4">
+            <div className="inline-flex items-center justify-center mb-4 transition-transform duration-300 hover:scale-[1.03]">
               <img
                 src={bhasyamLogo.url}
                 alt="Bhasyam"
-                className="h-20 w-auto object-contain"
+                className="h-20 w-auto object-contain drop-shadow-sm"
               />
             </div>
-            <h1 className="text-lg font-semibold tracking-tight">Assessment CMS</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Enter your administrative credentials
+            <h1 className="text-xl font-semibold tracking-tight leading-snug">
+              Assessment Content
+              <br />
+              Management System
+            </h1>
+            <p className="text-sm text-muted-foreground mt-2">
+              Secure. Reliable. Built for Education.
             </p>
+            <div className="mt-5 pt-4 border-t border-border">
+              <h2 className="text-base font-semibold tracking-tight">Portal Login</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Please sign in to continue
+              </p>
+            </div>
           </div>
 
           {/* Form */}
           <form
-            className="px-10 pb-10 space-y-5"
+            className="px-10 pb-10 space-y-5 stagger"
             onSubmit={(e) => {
               e.preventDefault();
               navigate({ to: "/dashboard" });
@@ -132,10 +142,10 @@ function LoginScreen() {
 
             <button
               type="submit"
-              className="w-full h-11 bg-foreground text-white rounded-lg text-sm font-semibold tracking-wide transition-all hover:bg-black/90 active:scale-[0.98] shadow-lg shadow-black/10 mt-2 inline-flex items-center justify-center gap-2"
+              className="btn-shine group w-full h-11 bg-foreground text-white rounded-lg text-sm font-semibold tracking-wide transition-all hover:bg-black/90 active:scale-[0.98] shadow-lg shadow-black/10 mt-2 inline-flex items-center justify-center gap-2"
             >
               Sign In to Portal
-              <ArrowRight className="size-4" />
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
             </button>
           </form>
 
@@ -147,8 +157,8 @@ function LoginScreen() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="w-full px-8 py-5 flex items-center justify-center gap-2 z-10">
+      {/* Footer — matches dashboard */}
+      <footer className="h-10 border-t border-border bg-card px-6 flex items-center justify-center gap-2 shrink-0">
         <span className="font-mono-ui text-[10px] text-muted-foreground tracking-tight uppercase">
           &copy; 2026 Assessment CMS · All rights reserved by
         </span>
