@@ -58,6 +58,7 @@ function PlaceholderView({ title, description }: { title: string; description: s
 
 function DashboardScreen() {
   const [active, setActive] = useState("dashboard");
+  const [collapsed, setCollapsed] = useState(false);
   const [initialGradeNav, setInitialGradeNav] = useState<
     { gradeId: string; subjectId: string; lessonId: string; mode: "read" | "quiz" } | undefined
   >(undefined);
