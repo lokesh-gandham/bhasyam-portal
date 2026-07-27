@@ -238,7 +238,7 @@ function DashboardScreen() {
 
 
           {/* Content body */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div key={active} className="flex-1 overflow-y-auto p-6 animate-fade-in-up">
             {active === "dashboard" && <OverviewView />}
             {active === "grades" && (
               <GradesView key={gradesKey} initialNav={initialGradeNav} />
