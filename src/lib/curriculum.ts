@@ -15,7 +15,9 @@ export type Lesson = {
 export type Subject = {
   id: string;
   name: string;
-  icon: string; // emoji
+  description?: string;
+  icon: string; // emoji or image path
+  iconImage?: string; // optional image path for subject icons
   color: string; // tailwind bg class
   lessons: Lesson[];
 };
@@ -55,50 +57,11 @@ const mkLesson = (id: string, title: string, summary: string, points: string[]):
 
 const subjectsFor = (grade: number): Subject[] => [
   {
-    id: "math",
-    name: "Mathematics",
-    icon: "➗",
-    color: "bg-blue-500/10 text-blue-700",
-    lessons: [
-      mkLesson(`g${grade}-math-1`, `Numbers up to ${grade * 100}`, "Reading, writing and comparing numbers.", [
-        "Place value of digits",
-        "Comparing two numbers",
-        "Ascending and descending order",
-      ]),
-      mkLesson(`g${grade}-math-2`, "Addition & Subtraction", "Everyday word problems and mental math.", [
-        "Regrouping while adding",
-        "Borrowing while subtracting",
-        "Story sums",
-      ]),
-      mkLesson(`g${grade}-math-3`, "Shapes & Patterns", "Recognise 2D and 3D shapes around us.", [
-        "Circles, squares, triangles",
-        "Cubes, spheres, cones",
-        "Repeating patterns",
-      ]),
-    ],
-  },
-  {
-    id: "english",
-    name: "English",
-    icon: "📖",
-    color: "bg-rose-500/10 text-rose-700",
-    lessons: [
-      mkLesson(`g${grade}-eng-1`, "Nouns and Pronouns", "Naming people, places and things.", [
-        "Common vs proper nouns",
-        "He, she, it, they",
-        "Using pronouns in sentences",
-      ]),
-      mkLesson(`g${grade}-eng-2`, "Reading Comprehension", "Read a short story and answer questions.", [
-        "Skim for the main idea",
-        "Find details in the passage",
-        "Guess word meanings",
-      ]),
-    ],
-  },
-  {
     id: "science",
     name: "Science",
+    description: "Explore & experiment",
     icon: "🔬",
+    iconImage: "/images/scicon.png",
     color: "bg-emerald-500/10 text-emerald-700",
     lessons: [
       mkLesson(`g${grade}-sci-1`, "Living & Non-living", "What makes something alive?", [
@@ -111,31 +74,105 @@ const subjectsFor = (grade: number): Subject[] => [
         "Healthy habits",
         "Food we eat",
       ]),
+      mkLesson(`g${grade}-sci-3`, "Plants & Animals", "Types of plants and animals around us.", [
+        "Parts of a plant",
+        "Herbivores and carnivores",
+        "Domestic vs wild animals",
+      ]),
+      mkLesson(`g${grade}-sci-4`, "Weather & Seasons", "Understanding weather patterns.", [
+        "Types of weather",
+        "Seasons of the year",
+        "How weather affects daily life",
+      ]),
     ],
   },
   {
-    id: "evs",
-    name: "EVS",
-    icon: "🌱",
-    color: "bg-amber-500/10 text-amber-700",
+    id: "hindi",
+    name: "Hindi",
+    description: "अक्षर और कहानियाँ",
+    icon: "📝",
+    iconImage: "/images/hicon.png",
+    color: "bg-orange-500/10 text-orange-700",
     lessons: [
-      mkLesson(`g${grade}-evs-1`, "My Family & Neighbourhood", "People and places around us.", [
-        "Family members",
-        "Helpers in our locality",
-        "Being a good neighbour",
+      mkLesson(`g${grade}-hin-1`, "वर्ण और शब्द", "हिंदी वर्णमाला और शब्दों का परिचय।", [
+        "स्वर और व्यंजन",
+        "शब्दों का निर्माण",
+        "वाक्य बनाना",
+      ]),
+      mkLesson(`g${grade}-hin-2`, "सरल गद्यांश", "छोटे गद्यांश पढ़कर प्रश्नों के उत्तर देना।", [
+        "मुख्य विचार पहचानना",
+        "विवरण खोजना",
+        "शब्दों के अर्थ समझना",
+      ]),
+      mkLesson(`g${grade}-hin-3`, "कहानी पढ़ना", "छोटी कहानियाँ पढ़ना और समझना।", [
+        "कहानी के पात्र",
+        "घटनाओं का क्रम",
+        "कहानी से सीख",
+      ]),
+      mkLesson(`g${grade}-hin-4`, "सरल कविता", "सरल कविताएँ पढ़ना और उनका आनंद लेना।", [
+        "कविता की लय",
+        "शब्दों का चयन",
+        "कविता का भाव",
       ]),
     ],
   },
   {
     id: "social",
     name: "Social Studies",
+    description: "People & places",
     icon: "🌏",
+    iconImage: "/images/sicon.png",
     color: "bg-indigo-500/10 text-indigo-700",
     lessons: [
       mkLesson(`g${grade}-soc-1`, "Our Country India", "States, capitals and symbols.", [
         "National symbols",
         "Major states",
         "Festivals of India",
+      ]),
+      mkLesson(`g${grade}-soc-2`, "Our Families", "Understanding family and community.", [
+        "Types of families",
+        "Roles in a family",
+        "Community helpers",
+      ]),
+      mkLesson(`g${grade}-soc-3`, "Maps & Directions", "Basic map reading skills.", [
+        "Cardinal directions",
+        "Reading simple maps",
+        "Landmarks and locations",
+      ]),
+      mkLesson(`g${grade}-soc-4`, "Our Helpers", "People who help us in the community.", [
+        "Doctors and teachers",
+        "Police and firefighters",
+        "Farmers and shopkeepers",
+      ]),
+    ],
+  },
+  {
+    id: "english",
+    name: "English",
+    description: "Words & stories",
+    icon: "📖",
+    iconImage: "/images/englishicon1.png",
+    color: "bg-rose-500/10 text-rose-700",
+    lessons: [
+      mkLesson(`g${grade}-eng-1`, "Nouns and Pronouns", "Naming people, places and things.", [
+        "Common vs proper nouns",
+        "He, she, it, they",
+        "Using pronouns in sentences",
+      ]),
+      mkLesson(`g${grade}-eng-2`, "Reading Comprehension", "Read a short story and answer questions.", [
+        "Skim for the main idea",
+        "Find details in the passage",
+        "Guess word meanings",
+      ]),
+      mkLesson(`g${grade}-eng-3`, "Verbs and Sentences", "Action words and building sentences.", [
+        "Action verbs",
+        "Simple vs compound sentences",
+        "Punctuation basics",
+      ]),
+      mkLesson(`g${grade}-eng-4`, "Writing Practice", "Basic writing skills and creativity.", [
+        "Writing a paragraph",
+        "Describing a picture",
+        "Letter writing basics",
       ]),
     ],
   },

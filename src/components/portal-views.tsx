@@ -1,12 +1,12 @@
-import { useMemo, useState } from "react";
-import { ChevronRight, ArrowLeft, BookOpen, GraduationCap, FileText, CheckCircle2, XCircle, Play } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronRight, ArrowLeft, GraduationCap, BookOpen, FileText } from "lucide-react";
 import { grades, allSubjects, allLessons, type Lesson, type Subject, type Grade } from "@/lib/curriculum";
 
 type Nav = {
   gradeId?: string;
   subjectId?: string;
   lessonId?: string;
-  mode?: "read" | "quiz";
+  mode?: "read";
 };
 
 function Crumbs({ items }: { items: { label: string; onClick?: () => void }[] }) {
@@ -28,7 +28,7 @@ function Crumbs({ items }: { items: { label: string; onClick?: () => void }[] })
   );
 }
 
-function LessonReader({ lesson, onStartQuiz, onBack }: { lesson: Lesson; onStartQuiz: () => void; onBack: () => void }) {
+function LessonReader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="px-6 py-4 border-b border-border flex items-center justify-between">
@@ -56,153 +56,11 @@ function LessonReader({ lesson, onStartQuiz, onBack }: { lesson: Lesson; onStart
             ))}
           </ul>
         </div>
-        <div className="pt-2 border-t border-border flex items-center justify-between">
-          <div className="text-xs text-muted-foreground">
-            {lesson.quiz.length} question quiz • Test your understanding
-          </div>
-          <button
-            onClick={onStartQuiz}
-            className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 inline-flex items-center gap-2"
-          >
-            <Play className="size-3.5" /> Start Quiz
-          </button>
-        </div>
       </div>
     </div>
   );
 }
 
-function Quiz({ lesson, onExit }: { lesson: Lesson; onExit: () => void }) {
-  const [answers, setAnswers] = useState<(number | null)[]>(() => lesson.quiz.map(() => null));
-  const [submitted, setSubmitted] = useState(false);
-
-  const score = useMemo<number>(
-    () => answers.reduce<number>((acc, a, i) => acc + (a === lesson.quiz[i].answer ? 1 : 0), 0),
-    [answers, lesson.quiz],
-  );
-
-  const done = answers.every((a) => a !== null);
-
-  return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
-      <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-        <div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground font-mono-ui">Quiz</div>
-          <h2 className="text-lg font-semibold tracking-tight mt-0.5">{lesson.title}</h2>
-        </div>
-        <button
-          onClick={onExit}
-          className="h-8 px-3 rounded-md border border-border text-xs hover:bg-muted inline-flex items-center gap-1.5"
-        >
-          <ArrowLeft className="size-3.5" /> Exit
-        </button>
-      </div>
-
-      {submitted ? (
-        <div className="p-6 space-y-4">
-          <div className="rounded-lg border border-border bg-muted/40 p-4 flex items-center justify-between">
-            <div>
-              <div className="text-xs uppercase tracking-widest text-muted-foreground font-mono-ui">Score</div>
-              <div className="text-2xl font-semibold">
-                {score} <span className="text-muted-foreground text-base">/ {lesson.quiz.length}</span>
-              </div>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {score === lesson.quiz.length ? "Excellent! 🎉" : score >= lesson.quiz.length / 2 ? "Good try!" : "Keep practicing!"}
-            </div>
-          </div>
-          <div className="space-y-3">
-            {lesson.quiz.map((q, i) => {
-              const correct = answers[i] === q.answer;
-              return (
-                <div key={i} className="rounded-lg border border-border p-3">
-                  <div className="flex items-start gap-2">
-                    {correct ? (
-                      <CheckCircle2 className="size-4 text-emerald-600 mt-0.5 shrink-0" />
-                    ) : (
-                      <XCircle className="size-4 text-destructive mt-0.5 shrink-0" />
-                    )}
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{q.q}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Correct answer: <span className="text-foreground">{q.options[q.answer]}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                setAnswers(lesson.quiz.map(() => null));
-                setSubmitted(false);
-              }}
-              className="h-9 px-4 rounded-md border border-border text-sm hover:bg-muted"
-            >
-              Retake
-            </button>
-            <button
-              onClick={onExit}
-              className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90"
-            >
-              Finish
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="p-6 space-y-5">
-          {lesson.quiz.map((q, i) => (
-            <div key={i} className="space-y-2">
-              <div className="text-sm font-medium">
-                <span className="text-muted-foreground font-mono-ui text-xs mr-2">Q{i + 1}</span>
-                {q.q}
-              </div>
-              <div className="grid sm:grid-cols-2 gap-2">
-                {q.options.map((opt, oi) => {
-                  const selected = answers[i] === oi;
-                  return (
-                    <button
-                      key={oi}
-                      onClick={() => {
-                        const next = [...answers];
-                        next[i] = oi;
-                        setAnswers(next);
-                      }}
-                      className={`h-10 px-3 rounded-md border text-sm text-left transition-colors ${
-                        selected
-                          ? "border-primary bg-primary/5 text-foreground"
-                          : "border-border hover:bg-muted"
-                      }`}
-                    >
-                      <span className="font-mono-ui text-[10px] text-muted-foreground mr-2">
-                        {String.fromCharCode(65 + oi)}
-                      </span>
-                      {opt}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-          <div className="pt-3 border-t border-border flex items-center justify-between">
-            <div className="text-xs text-muted-foreground">
-              {answers.filter((a) => a !== null).length} of {lesson.quiz.length} answered
-            </div>
-            <button
-              disabled={!done}
-              onClick={() => setSubmitted(true)}
-              className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Submit Quiz
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function SubjectCard({ subject, onOpen, gradeLabel }: { subject: Subject; onOpen: () => void; gradeLabel?: string }) {
   return (
@@ -211,9 +69,13 @@ function SubjectCard({ subject, onOpen, gradeLabel }: { subject: Subject; onOpen
       className="text-left bg-card border border-border rounded-lg p-4 hover:shadow-sm hover:border-primary/40 transition-all group"
     >
       <div className={`inline-flex items-center justify-center size-10 rounded-lg ${subject.color} text-lg`}>
-        {subject.icon}
+        {subject.iconImage ? (
+          <img src={subject.iconImage} alt={subject.name} className="size-7 object-contain" />
+        ) : (
+          subject.icon
+        )}
       </div>
-      <div className="mt-3 text-sm font-semibold">{subject.name}</div>
+      <div className="mt-3 text-sm">{subject.name}</div>
       {gradeLabel && (
         <div className="font-mono-ui text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">
           {gradeLabel}
@@ -241,7 +103,7 @@ function GradeCard({ grade, onOpen }: { grade: Grade; onOpen: () => void }) {
           Level 0{grade.level}
         </span>
       </div>
-      <div className="mt-3 text-base font-semibold">{grade.label}</div>
+      <div className="mt-3 text-base">{grade.label}</div>
       <div className="text-xs text-muted-foreground mt-0.5">{grade.subjects.length} subjects available</div>
       <div className="mt-3 flex -space-x-1">
         {grade.subjects.slice(0, 5).map((s) => (
@@ -258,45 +120,36 @@ function GradeCard({ grade, onOpen }: { grade: Grade; onOpen: () => void }) {
   );
 }
 
-export function GradesView({ initialNav }: { initialNav?: Nav } = {}) {
+export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNavChange?: (nav: Nav) => void } = {}) {
   const [nav, setNav] = useState<Nav>(initialNav ?? {});
+
+  const setNavTracked = (next: Nav) => {
+    setNav(next);
+    onNavChange?.(next);
+  };
+
+  useEffect(() => {
+    onNavChange?.(initialNav ?? {});
+  }, []);
 
   const grade = grades.find((g) => g.id === nav.gradeId);
   const subject = grade?.subjects.find((s) => s.id === nav.subjectId);
   const lesson = subject?.lessons.find((l) => l.id === nav.lessonId);
 
-  if (lesson && nav.mode === "quiz") {
-    return (
-      <div className="space-y-4">
-        <Crumbs
-          items={[
-            { label: "Grades", onClick: () => setNav({}) },
-            { label: grade!.label, onClick: () => setNav({ gradeId: grade!.id }) },
-            { label: subject!.name, onClick: () => setNav({ gradeId: grade!.id, subjectId: subject!.id }) },
-            { label: lesson.title, onClick: () => setNav({ gradeId: grade!.id, subjectId: subject!.id, lessonId: lesson.id, mode: "read" }) },
-            { label: "Quiz" },
-          ]}
-        />
-        <Quiz lesson={lesson} onExit={() => setNav({ gradeId: grade!.id, subjectId: subject!.id, lessonId: lesson.id, mode: "read" })} />
-      </div>
-    );
-  }
-
   if (lesson) {
     return (
-      <div className="space-y-4">
+      <div key={`lesson-${lesson.id}`} className="space-y-4 animate-view-in">
         <Crumbs
           items={[
-            { label: "Grades", onClick: () => setNav({}) },
-            { label: grade!.label, onClick: () => setNav({ gradeId: grade!.id }) },
-            { label: subject!.name, onClick: () => setNav({ gradeId: grade!.id, subjectId: subject!.id }) },
+            { label: "Grades", onClick: () => setNavTracked({}) },
+            { label: grade!.label, onClick: () => setNavTracked({ gradeId: grade!.id }) },
+            { label: subject!.name, onClick: () => setNavTracked({ gradeId: grade!.id, subjectId: subject!.id }) },
             { label: lesson.title },
           ]}
         />
         <LessonReader
           lesson={lesson}
-          onStartQuiz={() => setNav({ ...nav, mode: "quiz" })}
-          onBack={() => setNav({ gradeId: grade!.id, subjectId: subject!.id })}
+          onBack={() => setNavTracked({ gradeId: grade!.id, subjectId: subject!.id })}
         />
       </div>
     );
@@ -304,27 +157,44 @@ export function GradesView({ initialNav }: { initialNav?: Nav } = {}) {
 
   if (subject) {
     return (
-      <div className="space-y-4">
-        <Crumbs
-          items={[
-            { label: "Grades", onClick: () => setNav({}) },
-            { label: grade!.label, onClick: () => setNav({ gradeId: grade!.id }) },
-            { label: subject.name },
-          ]}
-        />
-        <div className="flex items-center gap-3">
-          <div className={`inline-flex items-center justify-center size-12 rounded-lg ${subject.color} text-2xl`}>
-            {subject.icon}
+      <div key={`subject-${subject.id}`} className="space-y-6 pt-8 animate-view-in">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center size-20 mb-4">
+            {subject.iconImage ? (
+              <img src={subject.iconImage} alt={subject.name} className="size-20 object-contain" />
+            ) : (
+              <span className="text-6xl">{subject.icon}</span>
+            )}
           </div>
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">{subject.name}</h2>
-            <p className="text-sm text-muted-foreground">{grade!.label} · {subject.lessons.length} lessons</p>
-          </div>
+          <h2 className="text-3xl tracking-tight">{grade!.label} - {subject.name}</h2>
+          <p className="text-sm text-muted-foreground mt-2">Complete all lessons to master this subject</p>
+          <p className="text-sm text-muted-foreground mt-1">{subject.lessons.length} Total Lessons</p>
         </div>
-        <LessonList
-          lessons={subject.lessons}
-          onOpen={(l) => setNav({ gradeId: grade!.id, subjectId: subject.id, lessonId: l.id, mode: "read" })}
-        />
+        <div>
+          <button
+            onClick={() => setNavTracked({ gradeId: grade!.id })}
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors"
+          >
+            <ArrowLeft className="size-4" /> Back
+          </button>
+        </div>
+        <div className="space-y-4">
+          {subject.lessons.map((l, i) => (
+            <button
+              key={l.id}
+              onClick={() => setNavTracked({ gradeId: grade!.id, subjectId: subject.id, lessonId: l.id })}
+              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
+            >
+              <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="text-base font-medium flex-1 text-left">Lesson {i + 1}</span>
+              <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
+                Open <ChevronRight className="size-4" />
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
     );
   }
@@ -332,14 +202,41 @@ export function GradesView({ initialNav }: { initialNav?: Nav } = {}) {
   if (grade) {
     return (
       <div className="space-y-4">
-        <Crumbs items={[{ label: "Grades", onClick: () => setNav({}) }, { label: grade.label }]} />
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">{grade.label} · Subjects</h2>
-          <p className="text-sm text-muted-foreground">Pick a subject to see its lessons.</p>
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center size-16 mb-3 bg-primary/10 rounded-full">
+            <GraduationCap className="size-8 text-primary" />
+          </div>
+          <h2 className="text-2xl tracking-tight">{grade.label} - Subjects</h2>
+          <p className="text-sm text-muted-foreground mt-1">Choose a subject to explore lessons</p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {grade.subjects.map((s) => (
-            <SubjectCard key={s.id} subject={s} onOpen={() => setNav({ gradeId: grade.id, subjectId: s.id })} />
+        <div>
+          <button
+            onClick={() => setNavTracked({})}
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors"
+          >
+            <ArrowLeft className="size-4" /> Back
+          </button>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {grade.subjects.filter((s) => allowedSubjectIds.includes(s.id)).map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setNavTracked({ gradeId: grade.id, subjectId: s.id })}
+              className="bg-card border border-border rounded-xl p-6 text-left hover:shadow-sm hover:border-primary/40 transition-all group"
+            >
+              <div className="size-16 flex items-center justify-center mb-4">
+                {s.iconImage ? (
+                  <img src={s.iconImage} alt={s.name} className="size-16 object-contain" />
+                ) : (
+                  <span className="text-4xl">{s.icon}</span>
+                )}
+              </div>
+              <div className="text-lg">{s.name}</div>
+              <div className="text-sm text-muted-foreground mt-1">{s.description}</div>
+              <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-4 group-hover:gap-2 transition-all">
+                Explore <ChevronRight className="size-3" />
+              </div>
+            </button>
           ))}
         </div>
       </div>
@@ -347,14 +244,28 @@ export function GradesView({ initialNav }: { initialNav?: Nav } = {}) {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-xl font-semibold tracking-tight">Grades 1 – 5</h2>
-        <p className="text-sm text-muted-foreground">Select a grade to explore its subjects and lessons.</p>
+    <div className="space-y-6 pt-8">
+      <div className="text-center">
+        <div className="inline-flex items-center justify-center size-20 mb-4">
+          <GraduationCap className="size-12 text-primary" />
+        </div>
+        <h2 className="text-3xl tracking-tight">Grades</h2>
+        <p className="text-sm text-muted-foreground mt-2">Select a grade to explore its subjects and lessons</p>
+        <p className="text-sm text-muted-foreground mt-1">{grades.length} Total Grades</p>
       </div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-5 gap-4">
         {grades.map((g) => (
-          <GradeCard key={g.id} grade={g} onOpen={() => setNav({ gradeId: g.id })} />
+          <button
+            key={g.id}
+            onClick={() => setNavTracked({ gradeId: g.id })}
+            className="bg-card border border-border rounded-xl p-6 text-left hover:shadow-sm hover:border-primary/40 transition-all group"
+          >
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Grade</div>
+            <div className="text-3xl tracking-tight mt-2">{g.level}</div>
+            <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-3 group-hover:gap-2 transition-all">
+              Open <ChevronRight className="size-3" />
+            </div>
+          </button>
         ))}
       </div>
     </div>
@@ -363,78 +274,155 @@ export function GradesView({ initialNav }: { initialNav?: Nav } = {}) {
 
 function LessonList({ lessons, onOpen }: { lessons: Lesson[]; onOpen: (l: Lesson) => void }) {
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
-      <ul className="divide-y divide-border">
-        {lessons.map((l, i) => (
-          <li key={l.id}>
-            <button
-              onClick={() => onOpen(l)}
-              className="w-full px-4 py-3 flex items-center gap-4 hover:bg-muted/50 transition-colors text-left"
-            >
-              <span className="font-mono-ui text-xs text-muted-foreground w-8 shrink-0">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">{l.title}</div>
-                <div className="text-xs text-muted-foreground truncate">{l.summary}</div>
-              </div>
-              <span className="font-mono-ui text-[10px] uppercase tracking-wider text-muted-foreground shrink-0">
-                {l.quiz.length} Q
-              </span>
-              <ChevronRight className="size-4 text-muted-foreground shrink-0" />
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="space-y-4">
+      {lessons.map((l, i) => (
+        <button
+          key={l.id}
+          onClick={() => onOpen(l)}
+          className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
+        >
+          <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
+            {String(i + 1).padStart(2, "0")}
+          </span>
+          <span className="text-base font-medium flex-1 text-left">Lesson {i + 1}</span>
+          <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
+            Open <ChevronRight className="size-4" />
+          </span>
+        </button>
+      ))}
     </div>
   );
 }
 
+const allowedSubjectIds = ["english", "hindi", "science", "social"];
+
 export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: string; subjectId: string; lessonId: string }) => void }) {
-  const [gradeFilter, setGradeFilter] = useState<string>("all");
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
 
-  const filtered = gradeFilter === "all" ? allSubjects : allSubjects.filter((s) => s.gradeId === gradeFilter);
+  const subject = allSubjects.find((s) => s.id === selectedSubject && s.gradeId === selectedGrade);
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-end justify-between flex-wrap gap-3">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">Subjects</h2>
-          <p className="text-sm text-muted-foreground">All subjects across Grades 1 – 5.</p>
+  // Step 3: Show lessons
+  if (subject) {
+    const gradeLabel = grades.find((g) => g.id === selectedGrade)?.label;
+    return (
+    <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center size-20 mb-4">
+            {subject.iconImage ? (
+              <img src={subject.iconImage} alt={subject.name} className="size-20 object-contain" />
+            ) : (
+              <span className="text-6xl">{subject.icon}</span>
+            )}
+          </div>
+          <h2 className="text-3xl tracking-tight">{gradeLabel} - {subject.name}</h2>
+          <p className="text-sm text-muted-foreground mt-2">Complete all lessons to master this subject</p>
+          <p className="text-sm text-muted-foreground mt-1">{subject.lessons.length} Total Lessons</p>
         </div>
-        <div className="flex items-center gap-1 p-1 bg-muted rounded-md">
+        <div>
           <button
-            onClick={() => setGradeFilter("all")}
-            className={`px-3 h-7 rounded text-xs font-medium ${
-              gradeFilter === "all" ? "bg-card shadow-sm" : "text-muted-foreground"
-            }`}
+            onClick={() => setSelectedGrade(null)}
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors"
           >
-            All
+            <ArrowLeft className="size-4" /> Back
           </button>
-          {grades.map((g) => (
+        </div>
+        <div className="space-y-4">
+          {subject.lessons.map((l, i) => (
             <button
-              key={g.id}
-              onClick={() => setGradeFilter(g.id)}
-              className={`px-3 h-7 rounded text-xs font-medium ${
-                gradeFilter === g.id ? "bg-card shadow-sm" : "text-muted-foreground"
-              }`}
+              key={l.id}
+              onClick={() => onOpenLesson({ gradeId: subject.gradeId, subjectId: subject.id, lessonId: l.id })}
+              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
             >
-              G{g.level}
+              <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="text-base font-medium flex-1 text-left">Lesson {i + 1}</span>
+              <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
+                Open <ChevronRight className="size-4" />
+              </span>
             </button>
           ))}
         </div>
       </div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-        {filtered.map((s) => (
-          <SubjectCard
-            key={`${s.gradeId}-${s.id}`}
-            subject={s}
-            gradeLabel={s.gradeLabel}
-            onOpen={() => {
-              const first = s.lessons[0];
-              if (first) onOpenLesson({ gradeId: s.gradeId, subjectId: s.id, lessonId: first.id });
-            }}
-          />
+    );
+  }
+
+  // Step 2: Show grades for selected subject
+  if (selectedSubject) {
+    const subjectData = allSubjects.find((s) => s.id === selectedSubject);
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center size-16 mb-3">
+            {subjectData?.iconImage ? (
+              <img src={subjectData.iconImage} alt={subjectData.name} className="size-16 object-contain" />
+            ) : (
+              <span className="text-5xl">{subjectData?.icon}</span>
+            )}
+          </div>
+          <h2 className="text-2xl tracking-tight">{subjectData?.name} - Grades</h2>
+          <p className="text-sm text-muted-foreground mt-1">Choose a grade to explore subjects and lessons</p>
+          <p className="text-sm text-muted-foreground mt-1">5 Total Grades</p>
+        </div>
+        <div>
+          <button
+            onClick={() => setSelectedSubject(null)}
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors"
+          >
+            <ArrowLeft className="size-4" /> Back
+          </button>
+        </div>
+        <div className="grid grid-cols-5 gap-4">
+          {grades.map((g) => (
+            <button
+              key={g.id}
+              onClick={() => setSelectedGrade(g.id)}
+              className="bg-card border border-border rounded-xl p-6 text-left hover:shadow-sm hover:border-primary/40 transition-all group"
+            >
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Grade</div>
+            <div className="text-3xl tracking-tight mt-2">{g.level}</div>
+              <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-3 group-hover:gap-2 transition-all">
+                Open <ChevronRight className="size-3" />
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Step 1: Show subject cards
+  const uniqueSubjects = allSubjects
+    .filter((s) => allowedSubjectIds.includes(s.id))
+    .filter((s, i, arr) => arr.findIndex((x) => x.id === s.id) === i);
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+          <h2 className="text-xl tracking-tight">Subjects</h2>
+        <p className="text-sm text-muted-foreground">Select a subject to explore its grades and lessons.</p>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {uniqueSubjects.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => setSelectedSubject(s.id)}
+            className="text-left bg-card border border-border rounded-xl p-6 hover:shadow-md hover:border-primary/40 transition-all group"
+          >
+            <div className="size-16 flex items-center justify-center mb-4">
+              {s.iconImage ? (
+                <img src={s.iconImage} alt={s.name} className="size-16 object-contain" />
+              ) : (
+                <span className="text-5xl">{s.icon}</span>
+              )}
+            </div>
+            <div className="text-lg">{s.name}</div>
+            <div className="text-sm text-muted-foreground mt-1">{s.description}</div>
+            <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-4 group-hover:gap-2 transition-all">
+              Explore <ChevronRight className="size-3" />
+            </div>
+          </button>
         ))}
       </div>
     </div>
@@ -502,65 +490,67 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
   );
 }
 
-export function OverviewView() {
-  const totalLessons = allLessons.length;
-  const totalSubjects = allSubjects.length;
+export function OverviewView({ onOpenSubject }: { onOpenSubject?: (subjectId: string) => void } = {}) {
+  const totalSubjects = allSubjects.filter((s) => allowedSubjectIds.includes(s.id)).length / 5;
   const stats = [
-    { label: "Grade Levels", value: "5", delta: "1 – 5", tone: "text-emerald-600" },
-    { label: "Subjects", value: String(totalSubjects), delta: "5 per grade", tone: "text-emerald-600" },
-    { label: "Lessons", value: String(totalLessons), delta: "with quizzes", tone: "text-emerald-600" },
-    { label: "Enrolled Students", value: "1,842", delta: "+56", tone: "text-emerald-600" },
+    { label: "Grades", value: "5", delta: "1 – 5", icon: GraduationCap, iconBg: "bg-primary/10 text-primary" },
+    { label: "Subjects", value: String(totalSubjects), delta: "per grade", icon: BookOpen, iconBg: "bg-violet-500/10 text-violet-600" },
   ];
+
+  const uniqueSubjects = allSubjects
+    .filter((s) => allowedSubjectIds.includes(s.id))
+    .filter((s, i, arr) => arr.findIndex((x) => x.id === s.id) === i);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome back, Admin</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Bhasyam Assessment CMS · Curriculum for Grades 1 – 5.
-        </p>
+        <h1 className="text-2xl tracking-tight">Welcome back, Admin</h1>
+        <p className="text-sm text-muted-foreground mt-1">Bhasyam Assessment CMS — Curriculum for Grades 1 – 5</p>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-card border border-border rounded-lg p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <div className="text-2xl font-semibold tracking-tight">{s.value}</div>
-              <div className={`font-mono-ui text-[11px] ${s.tone}`}>{s.delta}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="grid lg:grid-cols-2 gap-4">
-        <div className="bg-card border border-border rounded-lg p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <GraduationCap className="size-4 text-primary" />
-            <div className="text-sm font-semibold">Jump into a grade</div>
-          </div>
-          <div className="grid grid-cols-5 gap-2">
-            {grades.map((g) => (
-              <div key={g.id} className="rounded-md border border-border p-2 text-center">
-                <div className="text-lg font-semibold">{g.level}</div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Grade</div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {stats.map((s) => {
+          const Icon = s.icon;
+          return (
+            <div key={s.label} className="bg-card border border-border rounded-xl p-5 flex items-start justify-between">
+              <div>
+                <div className="text-sm text-muted-foreground">{s.label}</div>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <div className="text-4xl tracking-tight">{s.value}</div>
+                  <div className="text-sm text-muted-foreground">{s.delta}</div>
+                </div>
               </div>
-            ))}
+              <div className={`size-10 rounded-lg ${s.iconBg} flex items-center justify-center shrink-0`}>
+                <Icon className="size-5" />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="bg-card border border-border rounded-xl p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <BookOpen className="size-4" />
           </div>
+          <div className="text-base">Jump into a subject</div>
         </div>
-        <div className="bg-card border border-border rounded-lg p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <BookOpen className="size-4 text-primary" />
-            <div className="text-sm font-semibold">Popular subjects</div>
-          </div>
-          <ul className="space-y-2">
-            {grades[0].subjects.map((s) => (
-              <li key={s.id} className="flex items-center gap-2 text-sm">
-                <span className={`size-6 rounded ${s.color} inline-flex items-center justify-center text-xs`}>
-                  {s.icon}
-                </span>
-                {s.name}
-              </li>
-            ))}
-          </ul>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {uniqueSubjects.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => onOpenSubject?.(s.id)}
+              className="rounded-xl border border-border p-5 flex flex-col items-center gap-3 hover:shadow-sm hover:border-primary/40 transition-all cursor-pointer group"
+            >
+              <div className="size-16 flex items-center justify-center">
+                {s.iconImage ? (
+                  <img src={s.iconImage} alt={s.name} className="size-16 object-contain" />
+                ) : (
+                  <span className="text-4xl">{s.icon}</span>
+                )}
+              </div>
+              <div className="text-sm text-center">{s.name}</div>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">5 grades</span>
+            </button>
+          ))}
         </div>
       </div>
     </div>
