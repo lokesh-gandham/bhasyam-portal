@@ -76,6 +76,37 @@ const scienceHtmlPath = (grade: number, lesson: number): string => {
   return `/subjects/science/${g}/${g}_chapter${l}/${g}_Lesson${l}.html`;
 };
 
+const socialHtmlPath = (grade: number, lesson: number): string | undefined => {
+  if (grade === 1 || grade === 2) return undefined;
+  if (grade === 3) {
+    const paths: Record<number, string> = {
+      1: "/subjects/social/Grade3/Grade3_Lesson1/grade3_lesson1.html",
+      2: "/subjects/social/Grade3/Grade3_Lesson2/grade3_lesson2.html",
+      3: "/subjects/social/Grade3/Grade3_Lesson3/grade3_lesson3.html",
+      4: "/subjects/social/Grade3/Grade3_Lesson4/grade3_chapter4.html",
+    };
+    return paths[lesson];
+  }
+  if (grade === 4) {
+    const paths: Record<number, string> = {
+      1: "/subjects/social/Grade4/Grade4_chapter1/Grade4_lesson1.html",
+      2: "/subjects/social/Grade4/Grade4_chapter2/Grade4_Lesson2.html",
+      3: "/subjects/social/Grade4/Grade4_chapter3/Grade4_Lesson3.html",
+    };
+    return paths[lesson];
+  }
+  if (grade === 5) {
+    const paths: Record<number, string> = {
+      1: "/subjects/social/Grade5/Grade5_chapter1/grade5_lesson1.html",
+      2: "/subjects/social/Grade5/Grade5_chapter2/grade5_lesson2.html",
+      3: "/subjects/social/Grade5/Grade5_chapter3/Grade5_chapter3.html",
+      4: "/subjects/social/Grade5/Grade5_chapter4/Grade5_lesson4.html",
+    };
+    return paths[lesson];
+  }
+  return undefined;
+};
+
 const subjectsFor = (grade: number): Subject[] => [
   {
     id: "science",
@@ -149,22 +180,22 @@ const subjectsFor = (grade: number): Subject[] => [
         "National symbols",
         "Major states",
         "Festivals of India",
-      ]),
+      ], socialHtmlPath(grade, 1)),
       mkLesson(`g${grade}-soc-2`, "Our Families", "Understanding family and community.", [
         "Types of families",
         "Roles in a family",
         "Community helpers",
-      ]),
+      ], socialHtmlPath(grade, 2)),
       mkLesson(`g${grade}-soc-3`, "Maps & Directions", "Basic map reading skills.", [
         "Cardinal directions",
         "Reading simple maps",
         "Landmarks and locations",
-      ]),
+      ], socialHtmlPath(grade, 3)),
       mkLesson(`g${grade}-soc-4`, "Our Helpers", "People who help us in the community.", [
         "Doctors and teachers",
         "Police and firefighters",
         "Farmers and shopkeepers",
-      ]),
+      ], socialHtmlPath(grade, 4)),
     ],
   },
   {
