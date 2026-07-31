@@ -182,7 +182,13 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
           {subject.lessons.map((l, i) => (
             <button
               key={l.id}
-              onClick={() => setNavTracked({ gradeId: grade!.id, subjectId: subject.id, lessonId: l.id })}
+              onClick={() => {
+                if (l.htmlPath) {
+                  window.open(l.htmlPath, "_blank");
+                } else {
+                  setNavTracked({ gradeId: grade!.id, subjectId: subject.id, lessonId: l.id });
+                }
+              }}
               className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
             >
               <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
@@ -278,7 +284,13 @@ function LessonList({ lessons, onOpen }: { lessons: Lesson[]; onOpen: (l: Lesson
       {lessons.map((l, i) => (
         <button
           key={l.id}
-          onClick={() => onOpen(l)}
+          onClick={() => {
+            if (l.htmlPath) {
+              window.open(l.htmlPath, "_blank");
+            } else {
+              onOpen(l);
+            }
+          }}
           className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
         >
           <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
@@ -331,7 +343,13 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
           {subject.lessons.map((l, i) => (
             <button
               key={l.id}
-              onClick={() => onOpenLesson({ gradeId: subject.gradeId, subjectId: subject.id, lessonId: l.id })}
+              onClick={() => {
+                if (l.htmlPath) {
+                  window.open(l.htmlPath, "_blank");
+                } else {
+                  onOpenLesson({ gradeId: subject.gradeId, subjectId: subject.id, lessonId: l.id });
+                }
+              }}
               className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
             >
               <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
@@ -463,7 +481,13 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
           {filtered.map((l) => (
             <li key={`${l.gradeId}-${l.subjectId}-${l.id}`}>
               <button
-                onClick={() => onOpenLesson({ gradeId: l.gradeId, subjectId: l.subjectId, lessonId: l.id })}
+                onClick={() => {
+                  if (l.htmlPath) {
+                    window.open(l.htmlPath, "_blank");
+                  } else {
+                    onOpenLesson({ gradeId: l.gradeId, subjectId: l.subjectId, lessonId: l.id });
+                  }
+                }}
                 className="w-full grid grid-cols-12 px-4 py-3 hover:bg-muted/40 transition-colors text-left items-center"
               >
                 <div className="col-span-6 min-w-0">

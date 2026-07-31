@@ -10,6 +10,7 @@ export type Lesson = {
   summary: string;
   content: string[];
   quiz: QuizQuestion[];
+  htmlPath?: string;
 };
 
 export type Subject = {
@@ -47,13 +48,33 @@ const mkQuiz = (topic: string): QuizQuestion[] => [
   },
 ];
 
-const mkLesson = (id: string, title: string, summary: string, points: string[]): Lesson => ({
+const mkLesson = (id: string, title: string, summary: string, points: string[], htmlPath?: string): Lesson => ({
   id,
   title,
   summary,
   content: points,
   quiz: mkQuiz(title),
+  htmlPath,
 });
+
+const scienceHtmlPath = (grade: number, lesson: number): string => {
+  const g = `Grade${grade}`;
+  const l = lesson;
+  if (grade === 1) return `/subjects/science/${g}/${g}_chapter${l}/${g}_Lesson${l}.html`;
+  if (grade === 2) {
+    if (l === 1) return `/subjects/science/${g}/grade${g.toLowerCase().replace('grade', '')}_chapter${l}/${g}_lesson${l}.html`;
+    if (l === 2) return `/subjects/science/${g}/${g}_chapter${l}/${g}_lesson${l}.html`;
+    if (l === 3) return `/subjects/science/${g}/grade${g.toLowerCase().replace('grade', '')}_chapter${l}/${g}_chapter${l}.html`;
+    return `/subjects/science/${g}/${g}_chapter${l}/${g}_lesson${l}.html`;
+  }
+  if (grade === 3) {
+    if (l === 3) return `/subjects/science/${g}/${g}_chapter${l}/${g}_lesson${l}.html`;
+    return `/subjects/science/${g}/${g}_chapter${l}/${g}_Lesson${l}.html`;
+  }
+  if (grade === 4) return `/subjects/science/${g}/${g}_lesson${l}/grade${l < 10 ? '4' : '4'}_lesson${l}.html`;
+  if (grade === 5) return `/subjects/science/${g}/${g}_chapter${l}/${g}_lesson${l}.html`;
+  return `/subjects/science/${g}/${g}_chapter${l}/${g}_Lesson${l}.html`;
+};
 
 const subjectsFor = (grade: number): Subject[] => [
   {
@@ -68,22 +89,22 @@ const subjectsFor = (grade: number): Subject[] => [
         "Features of living things",
         "Examples of non-living things",
         "Plants and animals around us",
-      ]),
+      ], scienceHtmlPath(grade, 1)),
       mkLesson(`g${grade}-sci-2`, "Our Body", "Parts of the body and their work.", [
         "Sense organs",
         "Healthy habits",
         "Food we eat",
-      ]),
+      ], scienceHtmlPath(grade, 2)),
       mkLesson(`g${grade}-sci-3`, "Plants & Animals", "Types of plants and animals around us.", [
         "Parts of a plant",
         "Herbivores and carnivores",
         "Domestic vs wild animals",
-      ]),
+      ], scienceHtmlPath(grade, 3)),
       mkLesson(`g${grade}-sci-4`, "Weather & Seasons", "Understanding weather patterns.", [
         "Types of weather",
         "Seasons of the year",
         "How weather affects daily life",
-      ]),
+      ], scienceHtmlPath(grade, 4)),
     ],
   },
   {
