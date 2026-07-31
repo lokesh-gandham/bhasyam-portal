@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Livvic';
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* MAIN */
+    .main {
+
+      width: 100%;
+      max-width: 1200px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      gap: 18px;
+
+      padding: 20px;
+
+    }
+
+    /* QUESTION */
+    .question-text {
+
+      text-align: center;
+
+      font-size: clamp(22px, 3vw, 34px);
+
+      color: #2f4f4f;
+
+      line-height: 1.4;
+
+      min-height: 90px;
+
+    }
+
+    /* IMAGE */
+    .image img {
+
+      width: 320px;
+      height: 190px;
+
+      object-fit: contain;
+
+    }
+
+    /* ANSWER AREA */
+    .answer-box {
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      gap: 18px;
+
+      flex-wrap: wrap;
+
+      margin-top: 10px;
+
+    }
+
+    #answerInput {
+
+      width: 430px;
+      max-width: 90vw;
+
+      height: 70px;
+
+      padding: 0 28px;
+
+      font-size: 25px;
+      font-weight: 500;
+
+      border-radius: 24px;
+
+       border: 3px solid #83c8d4;
+
+      background: #f8fbff;
+
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 0 0 5px rgba(159, 211, 199, 0.14);
+
+      color: #2f4f4f;
+
+      outline: none;
+
+      transition: all 0.25s ease;
+
+      text-align: center;
+    }
+
+    #answerInput:focus {
+
+      border-color: #ffc478;
+
+      background: #fff6de;
+
+      transform: translateY(-4px);
+
+      box-shadow:
+        0 0 0 5px rgba(211, 201, 159, 0.14);
+
+    }
+
+    #answerInput.correct {
+
+      background: #ffffff;
+
+      border: 3px solid #8ecf9b;
+
+      box-shadow:
+        0 6px 18px rgba(142, 207, 155, 0.18);
+
+    }
+
+    #answerInput.wrong {
+
+      background: #ffffff;
+
+      border: 3px solid #efb0b0;
+
+      box-shadow:
+        0 6px 18px rgba(239, 176, 176, 0.16);
+
+    }
+
+    #submitBtn {
+
+      height: 60px;
+
+      padding: 0 34px;
+
+      border: none;
+
+      border-radius: 16px;
+
+      font-size: 22px;
+      font-weight: 600;
+
+      cursor: pointer;
+
+      color: white;
+
+      background:
+        linear-gradient(135deg, #83c8d4, #9fd3c7);
+
+      transition: all 0.25s ease;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      box-shadow:
+        0 8px 20px rgba(131, 200, 212, 0.22);
+
+    }
+
+    #submitBtn:hover:not(:disabled) {
+
+      transform: translateY(-3px);
+
+      box-shadow:
+        0 12px 24px rgba(131, 200, 212, 0.28);
+
+    }
+
+    /* CLICK */
+    /* #submitBtn:active:not(:disabled) {
+
+      transform:
+        translateY(4px);
+
+      box-shadow:
+        0 2px 0 #e63973;
+
+    } */
+
+    /* DISABLED */
+    #submitBtn:disabled {
+
+      opacity: .45;
+
+      cursor: not-allowed;
+
+      box-shadow: none;
+
+    }
+
+    /* MOBILE */
+    @media(max-width:600px) {
+
+      #submitBtn {
+
+        height: 58px;
+
+        font-size: 18px;
+
+        padding: 0 24px;
+
+        border-radius: 30px;
+
+      }
+
+    }
+
+    /* NAV */
+    .nav-buttons {
+
+      display: flex;
+
+      gap: 18px;
+
+      margin-top: 10px;
+
+    }
+
+    /* BUTTON */
+    button {
+
+      padding: 12px 25px;
+
+      font-size: 18px;
+
+      border: none;
+
+      border-radius: 35px;
+
+      cursor: pointer;
+
+      font-weight: 600;
+
+      transition: .3s;
+
+    }
+
+    .prev {
+      background: #83c8d4;
+      color: white;
+      /* box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); */
+    }
+
+    .next {
+      background: #ffcc3f;
+      color: white;
+      /* box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); */
+    }
+
+    button:disabled {
+
+      opacity: 0.5;
+
+      cursor: not-allowed;
+
+      transform: none !important;
+
+    }
+
+    /* POPUP */
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.5);
+      padding: 40px;
+      border-radius: 30px;
+      display: none;
+      animation: pop 0.4s forwards;
+      z-index: 100;
+    }
+
+    @keyframes pop {
+      to {
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    .correct-popup {
+      background: #edfced;
+      border: 2px solid #a8ddb5;
+      box-shadow: 0 10px 25px rgba(168, 221, 181, 0.25);
+    }
+
+    .wrong-popup {
+      background: #fff0f0;
+      border: 2px solid #efb0b0;
+      box-shadow: 0 10px 25px rgba(239, 176, 176, 0.2);
+      animation:
+        pop 0.25s forwards,
+        shake 0.3s 0.25s;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translate(-50%, -50%)
+      }
+
+      25% {
+        transform: translate(-50%, -50%) translateX(-10px)
+      }
+
+      50% {
+        transform: translate(-50%, -50%) translateX(10px)
+      }
+
+      75% {
+        transform: translate(-50%, -50%) translateX(-10px)
+      }
+    }
+
+    .final-popup {
+      background: #fff7ca;
+      border: 3px solid #ffbe0b;
+      box-shadow: 0 0 30px #c8c6c240;
+      padding: 50px;
+      font-size: 26px;
+    }
+
+    .play-again {
+      margin-top: 20px;
+
+      /* ✅ CENTER FIX */
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+
+      padding: 14px 30px;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #06d6a0, #1b9aaa);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .play-again:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #finalText {
+      font-weight: 600;
+    }
+
+    /* MOBILE */
+    @media(max-width:600px) {
+
+      .main {
+
+        padding: 15px;
+
+        gap: 14px;
+
+      }
+
+      .question-text {
+
+        font-size: 22px;
+
+        min-height: auto;
+
+      }
+
+      .image img {
+
+        width: 220px;
+        height: auto;
+
+      }
+
+      .answer-box {
+
+        gap: 12px;
+
+      }
+
+      #answerInput {
+
+        height: 58px;
+
+        font-size: 20px;
+
+        padding: 0 18px;
+
+      }
+
+      #submitBtn {
+
+        height: 58px;
+
+        font-size: 18px;
+
+        padding: 0 22px;
+
+      }
+
+      .nav-buttons {
+
+        gap: 10px;
+
+      }
+
+      button {
+
+        padding: 10px 18px;
+
+        font-size: 16px;
+
+      }
+
+      .popup {
+
+        width: 85%;
+
+        padding: 20px;
+
+      }
+
+      .final-popup {
+
+        padding: 25px;
+
+        font-size: 20px;
+
+      }
+
+    }
+
+
+    /* =========================
+   📲 TABLET (601px–900px)
+========================= */
+    @media (min-width:601px) and (max-width:900px) {
+
+      .main {
+        width: 100%;
+      }
+
+      /* IMAGE MEDIUM */
+      .image img {
+        width: 250px;
+        height: 150px;
+      }
+
+      /* 🔥 ALLOW WRAP */
+      .slot-container {
+        flex-wrap: wrap;
+      }
+
+      /* SLOT MEDIUM */
+      .slot {
+        width: 45px;
+        height: 55px;
+        font-size: 22px;
+      }
+
+      .letter {
+        width: 45px;
+        height: 50px;
+        font-size: 20px;
+      }
+
+      /* BUTTON FIX */
+      button {
+        padding: 12px 22px;
+        font-size: 16px;
+      }
+    }
+
+    /* ============================= */
+    /* 💻 Desktop (1025px - 1440px) */
+    /* ============================= */
+    @media screen and (min-width:1025px) and (max-width:1440px) {
+
+      .main {
+        max-width: 1200px;
+      }
+
+      .question-text {
+        font-size: 32px;
+      }
+
+    }
+
+
+    /* ============================= */
+    /* 🖥 Large Monitor (1441px - 1920px) */
+    /* ============================= */
+    @media screen and (min-width:1441px) and (max-width:1920px) {
+
+      .main {
+        max-width: 1500px;
+        /* 🔥 bigger */
+      }
+
+      .question-text {
+        font-size: 45px;
+        max-width: 1300px;
+      }
+
+      .image img {
+        width: 380px;
+        height: auto;
+      }
+
+      .slot {
+        width: 70px;
+        height: 80px;
+        font-size: 32px;
+      }
+
+      .letter {
+        width: 70px;
+        height: 70px;
+        font-size: 28px;
+      }
+
+
+      button {
+        font-size: 22px;
+        padding: 20px 36px;
+      }
+
+      .popup {
+        padding: 50px;
+      }
+
+      .final-popup {
+        font-size: 30px;
+        padding: 60px;
+      }
+
+      .popup {
+        padding: 70px;
+      }
+
+      .final-popup {
+        font-size: 40px;
+        padding: 70px;
+      }
+
+      .play-again {
+
+        font-size: 22px;
+
+        padding: 18px 34px;
+
+        margin-top: 25px;
+
+        border-radius: 40px;
+
+      }
+
+    }
+
+    /* LARGE MONITOR */
+    @media screen and (min-width:1441px) {
+
+      #answerInput {
+
+        width: 760px;
+
+        height: 100px;
+
+        font-size: 40px;
+
+        border-radius: 60px;
+
+        padding: 0 40px;
+
+      }
+
+    }
+
+    /* 4K */
+    @media screen and (min-width:1921px) {
+
+      #answerInput {
+
+        width: 900px;
+
+        height: 120px;
+
+        font-size: 48px;
+
+        border-radius: 70px;
+
+        padding: 0 50px;
+
+      }
+
+    }
+
+    /* MOBILE */
+    @media(max-width:600px) {
+
+      #answerInput {
+
+        width: 95%;
+
+        height: 60px;
+
+        font-size: 20px;
+
+        padding: 0 18px;
+
+        border-radius: 30px;
+
+      }
+
+    }
+
+
+    /* LARGE MONITOR */
+    @media screen and (min-width:1441px) {
+
+      #submitBtn {
+
+        height: 100px;
+
+        padding: 0 60px;
+
+        font-size: 38px;
+
+        border-radius: 60px;
+
+      }
+
+    }
+
+    /* 4K */
+    @media screen and (min-width:1921px) {
+
+      #submitBtn {
+
+        height: 120px;
+
+        padding: 0 70px;
+
+        font-size: 46px;
+
+        border-radius: 70px;
+
+      }
+
+    }
+
+    /* MOBILE */
+    @media(max-width:600px) {
+
+      #submitBtn {
+
+        height: 58px;
+
+        padding: 0 24px;
+
+        font-size: 18px;
+
+        border-radius: 30px;
+
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="main">
+
+    <!-- QUESTION -->
+    <div class="question-text" id="questionText">
+    </div>
+
+    <!-- IMAGE -->
+    <div class="image">
+
+      <img id="questionImage">
+
+    </div>
+
+    <!-- ANSWER -->
+    <div class="answer-box">
+
+      <input type="text" id="answerInput" placeholder="Type your answer here..." autocomplete="off">
+
+      <button id="submitBtn" disabled>
+        Submit
+      </button>
+
+    </div>
+
+    <!-- NAV -->
+    <div class="nav-buttons">
+
+      <button class="prev" onclick="prevQ()">
+
+        ← Prev
+
+      </button>
+
+      <button class="next" id="nextBtn" onclick="nextQ()" disabled>
+
+        Next →
+
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- POPUP -->
+  <div class="popup" id="popup">
+  </div>
+
+  <!-- FINAL -->
+  <div class="popup final-popup" id="finalPopup">
+
+    <h2 id="finalText">
+    </h2>
+
+    <button class="play-again" onclick="restartQuiz()">
+
+      🔄 Play Again
+
+    </button>
+
+  </div>
+
+  <script>
+
+    /* QUESTIONS */
+    const questions = [
+
+      {
+        q: "Q1. The ___ are sharp and pointed teeth which help in tearing food.",
+        a: ["canines"],
+        img: "../images/ftb1.png"
+      },
+
+      {
+        q: "Q2. The ___ have a flat surface and ridges on top. These help to crush food.",
+        a: ["premolars"],
+        img: "../images/ftb2.png"
+      },
+
+      {
+        q: "Q3. The ___ is the innermost part of the tooth and it lies below the dentine.",
+        a: ["pulp"],
+        img: "../images/ftb3.png"
+      },
+
+      {
+        q: "Q4. The germs cause the tooth to ___.",
+        a: ["decay"],
+        img: "../images/ftb4.png"
+      },
+
+      {
+        q: "Q5. The swallowed food from the mouth enters a hollow, tube-like organ called the ___.",
+        a: ["foodpipe", "oesophagus"],
+        img: "../images/ftb5.png"
+      }
+
+    ];
+
+    let index = 0;
+    let score = 0;
+
+    let userAnswers =
+      new Array(questions.length)
+        .fill(null);
+
+    function speak(text) {
+      let msg = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(msg);
+    }
+
+
+    /* LOAD */
+    function renderQuestion() {
+
+      let q =
+        questions[index];
+
+      questionImage.src =
+        q.img;
+
+      questionText.innerHTML =
+        q.q.replace(
+          "___",
+          "<span style='display:inline-block;border-bottom:3px dashed #2f4f4f;width:120px;height:20px;vertical-align:middle;margin:0 10px;'></span>"
+        );
+
+      answerInput.value = "";
+
+      answerInput.classList.remove(
+        "correct",
+        "wrong"
+      );
+
+      /* RESTORE */
+ if (userAnswers[index]) {
+
+  answerInput.value = userAnswers[index];
+
+  answerInput.disabled = true;
+
+  answerInput.classList.add("correct");
+
+  submitBtn.disabled = true;
+
+  // allow navigation
+  nextBtn.disabled = false;
+
+} else {
+
+  answerInput.value = "";
+
+  answerInput.disabled = false;
+
+  answerInput.classList.remove("correct", "wrong");
+
+  submitBtn.disabled = true;
+
+  nextBtn.disabled = true;
+}
+
+      /* ENABLE */
+      answerInput.oninput = () => {
+
+        submitBtn.disabled =
+          answerInput.value.trim() === "";
+
+      };
+
+      document.querySelector(".prev").disabled = index === 0;
+
+    }
+
+    /* DISABLE DRAG & DROP */
+    ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+
+      answerInput.addEventListener(eventName, e => {
+
+        e.preventDefault();
+        e.stopPropagation();
+
+      });
+
+    });
+
+    /* CHECK */
+    function checkAnswer() {
+
+      let word =
+        answerInput.value
+          .trim()
+          .toLowerCase();
+
+      let answers =
+        questions[index].a.map(
+          a => a.toLowerCase()
+        );
+
+      /* CORRECT */
+      if (answers.includes(word)) {
+
+        answerInput.classList.add(
+          "correct"
+        );
+
+        answerInput.disabled = true;
+
+        submitBtn.disabled = true;
+
+        userAnswers[index] =
+  word.charAt(0).toUpperCase() +
+  word.slice(1).toLowerCase();
+
+        score++;
+
+        confetti();
+
+        showPopup("🎉 Correct!");
+
+        speak("Correct");
+
+        nextBtn.disabled = false;
+
+        /* FINAL */
+        if (index === questions.length - 1) {
+
+          setTimeout(
+            showFinal,
+            1000
+          );
+
+        }
+
+      }
+
+      /* WRONG */
+      else {
+
+        answerInput.classList.add(
+          "wrong"
+        );
+
+        showPopup("❌ Try again!");
+
+        speak("Try again");
+
+        setTimeout(() => {
+
+          answerInput.value = "";
+
+          answerInput.classList.remove(
+            "wrong"
+          );
+
+          submitBtn.disabled = true;
+
+          answerInput.focus();
+
+        }, 800);
+
+      }
+
+    }
+
+    /* SUBMIT */
+    submitBtn.onclick =
+      checkAnswer;
+
+    /* ENTER */
+    answerInput.addEventListener(
+      "keydown",
+      e => {
+
+        if (
+          e.key === "Enter" &&
+          !submitBtn.disabled
+        ) {
+
+          checkAnswer();
+
+        }
+
+      });
+
+    /* POPUP */
+    function showPopup(text) {
+
+      popup.innerHTML =
+
+        `<h4 style="
+font-size:34px;
+font-weight:600;
+">
+${text}
+</h4>`;
+
+      popup.className =
+        "popup " +
+        (text.includes("Correct")
+          ? "correct-popup"
+          : "wrong-popup");
+
+      popup.style.display =
+        "block";
+
+      setTimeout(() => {
+
+        popup.style.display =
+          "none";
+
+      }, 2000);
+
+    }
+
+    /* NEXT */
+    function nextQ() {
+
+      if (index < questions.length - 1) {
+
+        index++;
+
+        renderQuestion();
+
+      }
+
+      else {
+
+        showFinal();
+
+      }
+
+    }
+
+    /* PREV */
+    function prevQ() {
+
+      if (index > 0) {
+
+        index--;
+
+        renderQuestion();
+
+      }
+
+    }
+
+    /* FINAL */
+    function showFinal() {
+
+      document
+        .getElementById(
+          "finalText"
+        ).innerHTML =
+
+        `🏆 Score: ${score}/${questions.length}`;
+
+      finalPopup.style.display =
+        "block";
+
+      confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+
+    }
+
+    /* RESET */
+    function restartQuiz() {
+
+      index = 0;
+
+      score = 0;
+
+      userAnswers.fill(null);
+
+      finalPopup.style.display =
+        "none";
+
+      renderQuestion();
+
+    }
+
+    /* START */
+    renderQuestion();
+
+  </script>
+
+
+</body>
+</html>

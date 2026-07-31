@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+  <meta charset="UTF-8">
+  <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Livvic';
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .main {
+      width: 1000px;
+      margin-top: -80px;
+    }
+
+    .question {
+      max-width: 900px;
+      margin: auto;
+      padding: 0 20px;
+      font-size: clamp(22px, 2.8vw, 32px);
+      color: #136113;
+      text-align: left;
+    }
+
+    /* IMAGE */
+    .image-box {
+      display: flex;
+      justify-content: center;
+      margin: 20px;
+    }
+
+    .image-box img {
+      width: 220px;
+      height: 150px;
+    }
+
+    /* 🌈 CONTAINER */
+    .answer-container {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    /* CLEAN INPUT CONTAINER */
+    .answer-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+
+      width: 500px;
+      padding: 10px 14px;
+
+      background: #fffdf4;
+      border: 2px solid #136113;;
+
+      border-radius: 50px;
+
+      box-shadow:
+        0 4px 8px rgba(3, 133, 62, 0.034),
+        inset 0 2px 4px rgba(255, 255, 255, 0.8);
+
+      transition: 0.3s;
+    }
+
+    /* INPUT */
+    /* INPUT */
+    .answer-box input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+
+      font-size: 22px;
+      font-weight: 600;
+      text-align: center;
+      color: #445;
+    }
+
+    .answer-box:focus-within {
+      border: 2px solid #fdb388;
+      box-shadow:
+        0 4px 8px #fdb388 inset 0 2px 4px rgba(255, 255, 255, 0.8);
+    }
+
+    /* ✅ CORRECT ANSWER BOX */
+    .answer-box.correct-box {
+      background: #ecfdf3;
+      border: 2px solid #86efac;
+      box-shadow:
+        0 0 12px rgba(134, 239, 172, 0.35),
+        inset 0 2px 4px rgba(255, 255, 255, 0.8);
+    }
+
+    /* ✅ CORRECT INPUT */
+    .answer-box input.correct {
+      color: #166534;
+      text-transform: capitalize;
+    }
+
+    /* SUBMIT BUTTON */
+    .answer-box button {
+
+      flex-shrink: 0;
+
+      height: 42px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 0 25px;
+
+      border-radius: 25px;
+
+      border: none;
+
+      background: #adecb1;
+      color: #2f4f4f;
+
+      font-weight: 600;
+      font-size: 16px;
+
+      cursor: pointer;
+
+      transition: 0.25s;
+
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.158);
+    }
+
+    .answer-box button:hover {
+      transform: scale(1.02);
+      background: #a5ecaa;
+    }
+
+    .answer-box button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* NAV */
+    .nav {
+      position: absolute;
+      top: 85%;
+      /* 🔥 vertical middle */
+      left: 0;
+      width: 100%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      /* allow only buttons clickable */
+    }
+
+    .prev {
+      position: absolute;
+      left: 0px;
+      /* 🔥 left side */
+      pointer-events: auto;
+    }
+
+    .next {
+      position: absolute;
+      right: 0px;
+      /* 🔥 right side */
+      pointer-events: auto;
+    }
+
+    button {
+      padding: 10px 28px;
+      border: none;
+      border-radius: 50px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      color: #333;
+    }
+
+    .prev {
+      background: #95d5b2;
+    }
+
+    .next {
+      background: #ffb4a2;
+    }
+
+    /* DISABLED */
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* 🌟 OVERLAY */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    /* 🎮 MAIN POPUP BOX */
+    .popup-box {
+      width: 320px;
+      max-width: 90%;
+      padding: 30px;
+      border-radius: 30px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 800;
+      animation: popScale 0.4s ease;
+    }
+
+    .popup-correct {
+      background: linear-gradient(135deg, #ffffff, #ffffff);
+      border: 3px solid #5ed164;
+      color: #14532d;
+    }
+
+    .popup-wrong {
+      background: linear-gradient(135deg, #ffffff, #ffffff);
+      border: 3px solid #ffa1a1;
+      color: #7f1d1d;
+      animation: shake 0.4s, popScale 0.4s;
+    }
+
+    .popup-final {
+      background: linear-gradient(135deg, #ffefb0, #ffefb0);
+      border: 3px solid #ffbe0b;
+      color: #7a5c00;
+    }
+
+
+    /* 🎮 PLAY AGAIN */
+    .play-btn {
+      margin-top: 20px;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
+      background: #02be8c;
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.1);
+    }
+
+    /* ✨ ANIMATION */
+    @keyframes popScale {
+      0% {
+        transform: scale(0.5);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @media (max-width:600px) {
+
+      body {
+        padding: 10px;
+        align-items: center;
+        overflow: auto;
+      }
+
+      .main {
+        width: 100%;
+      }
+
+      /* QUESTION */
+      .question {
+        font-size: 20px;
+        text-align: center;
+        padding: 0 10px;
+      }
+
+      /* IMAGE */
+      .image-box img {
+        width: 160px;
+        height: 110px;
+      }
+
+      /* INPUT BOX */
+      .answer-box {
+        width: 100%;
+        padding: 8px 12px;
+        gap: 8px;
+      }
+
+      .answer-box input {
+        font-size: 16px;
+      }
+
+      .answer-box button {
+        height: 36px;
+        padding: 0 14px;
+        font-size: 14px;
+      }
+
+      /* NAV BUTTONS */
+      button {
+        font-size: 14px;
+        padding: 8px 16px;
+      }
+
+      .nav {
+        gap: 12px;
+      }
+
+      /* POPUP */
+      .popup-box {
+        width: 200px;
+        padding: 20px;
+        font-size: 18px;
+        border-radius: 20px;
+      }
+
+      .play-btn {
+        font-size: 14px;
+        padding: 8px 16px;
+      }
+    }
+
+    @media (max-width:600px) {
+
+      .nav {
+        position: static;
+        /* 🔥 reset */
+        transform: none;
+        /* 🔥 remove translate */
+
+        display: flex;
+        justify-content: center;
+        /* center bottom */
+        gap: 15px;
+        padding: 15px 10px;
+        margin-top: 20px;
+      }
+
+      .prev,
+      .next {
+        position: static;
+        /* 🔥 reset side positioning */
+      }
+
+    }
+
+    @media (min-width:601px) and (max-width:1024px) {
+
+      .main {
+        width: 90%;
+      }
+
+      .question {
+        font-size: 24px;
+      }
+
+      .image-box img {
+        width: 200px;
+        height: 130px;
+      }
+
+      .answer-box {
+        width: 80%;
+      }
+
+      .answer-box input {
+        font-size: 18px;
+      }
+    }
+
+    @media (min-width:1225px) and (max-width:1440px) {
+
+      .main {
+        width: 1100px;
+      }
+
+      .question {
+        font-size: 40px;
+      }
+
+      .image-box img {
+        width: 360px;
+        height: 200px;
+      }
+
+      .answer-box {
+        width: 420px;
+        height: 80px;
+      }
+
+      .answer-box input {
+        font-size: 25px;
+      }
+
+      button {
+        font-size: 22px;
+        padding: 18px 36px;
+      }
+    }
+
+
+    @media (min-width:1441px) and (max-width:1920px) {
+
+      .main {
+        width: 1300px;
+      }
+
+      .question {
+        font-size: 34px;
+      }
+
+      .image-box img {
+        width: 280px;
+        height: 180px;
+      }
+
+      .answer-box {
+        width: 420px;
+
+      }
+
+      button {
+        font-size: 20px;
+        padding: 12px 30px;
+      }
+    }
+
+    /* ============================= */
+    /* 🖥 MONITOR POPUP BIGGER */
+    /* ============================= */
+
+    @media (min-width:1225px) and (max-width:1440px) {
+
+      /* 🔥 NORMAL POPUP */
+
+      .popup-box {
+
+        width: 420px;
+
+        padding: 50px 40px;
+
+        border-radius: 38px;
+
+        font-size: 38px;
+
+      }
+
+      /* 🔥 FINAL POPUP */
+
+      .popup-final {
+
+        width: 520px;
+
+        padding: 60px 45px;
+
+        font-size: 40px;
+
+      }
+
+      /* 🔥 PLAY AGAIN BUTTON */
+
+      .play-btn {
+
+        font-size: 24px;
+
+        padding: 16px 32px;
+
+        border-radius: 35px;
+
+        margin-top: 25px;
+
+      }
+
+    }
+
+    .answer-box input::placeholder {
+  color: #999;
+  font-size: 18px;
+  font-weight: 500;
+  opacity: 1;
+}
+@media (max-width:600px) {
+  .answer-box input::placeholder {
+    font-size: 14px;
+  }
+}
+  </style>
+</head>
+
+<body>
+
+  <div class="main">
+
+    <div class="question" id="question"></div>
+
+    <div class="image-box">
+      <img id="image">
+    </div>
+
+    <div class="answer-container" id="letters" ></div>
+
+    <div class="nav">
+      <button class="prev" id="prevBtn">← Prev</button>
+      <button class="next" id="nextBtn" disabled>Next →</button>
+    </div>
+
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "Q1. The ____ are thick-walled blood vessels that carry blood from the heart to the different parts of the body.",
+        a: ["arteries"],
+        img: "../images/ftb1.png"
+      },
+      {
+        q: "Q2. The ____ is in the size of one's own fist protected by the rib cage.",
+        a: ["heart"],
+        img: "../images/spinebone.webp"
+      },
+      {
+        q: "Q3. The ____ takes air down to the lungs from the nose.",
+        a: ["windpipe"],
+        img: "../images/ftb3.png"
+      },
+      {
+        q: "Q4. The lower two chambers of the heart are the ____.",
+        a: ["ventricles"],
+        img: "../images/ftb4.png"
+      },
+      {
+        q: "Q5. The air that we breathe out also contains ____ and ____.",
+        a: ["water vapour", "germs"],
+        img: "../images/ftb5.png"
+      }
+    ];
+
+    let index = 0;
+    let score = 0;
+
+    /* track each blank separately */
+    let answered = questions.map(q => new Array(q.a.length).fill(false));
+
+    /* ================= ELEMENTS ================= */
+    const qEl = document.getElementById("question");
+    const img = document.getElementById("image");
+    const letters = document.getElementById("letters");
+    const nextBtn = document.getElementById("nextBtn");
+    const prevBtn = document.getElementById("prevBtn");
+
+    /* ================= NORMALIZE ================= */
+    function normalize(text) {
+      return text.toLowerCase().trim().replace(/\s+/g, " ");
+    }
+
+    function speak(text) {
+      let msg = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(msg);
+    }
+
+    /* 🚫 Disable drag & drop everywhere */
+    document.addEventListener("dragover", e => e.preventDefault());
+    document.addEventListener("drop", e => e.preventDefault());
+    /* ================= LOAD ================= */
+    function load() {
+
+      let q = questions[index];
+      prevBtn.disabled = index === 0;
+      qEl.textContent = q.q;
+      img.src = q.img;
+
+      letters.innerHTML = "";
+
+      for (let i = 0; i < q.a.length; i++) {
+
+        let box = document.createElement("div");
+        box.className = "answer-box";
+
+        let input = document.createElement("input");
+input.placeholder = "Type your answer";
+        /* 🚫 Stop drag into input */
+        input.addEventListener("dragover", e => e.preventDefault());
+        input.addEventListener("drop", e => e.preventDefault());
+
+        /* 🚫 Optional (recommended) */
+        input.addEventListener("paste", e => e.preventDefault());
+        let btn = document.createElement("button");
+
+        btn.textContent = "Submit";
+        btn.disabled = true;
+
+        /* enable button */
+        input.addEventListener("input", () => {
+          btn.disabled = input.value.trim() === "";
+        });
+
+        /* 🔥 CHECK ONLY THIS INPUT */
+        btn.onclick = () => {
+
+          let user = normalize(input.value);
+          let correct = normalize(q.a[i]);
+
+        if (user === correct) {
+
+    answered[index][i] = true;
+
+   input.value =
+  q.a[i].charAt(0).toUpperCase() +
+  q.a[i].slice(1).toLowerCase();
+
+    input.readOnly = true;
+    input.classList.add("correct");
+    box.classList.add("correct-box");
+    btn.disabled = true;
+            confetti();
+            showPopup("🎉 Correct!", "correct");
+            speak("Correct");
+            /* check if all blanks correct */
+            let allDone = answered[index].every(v => v === true);
+
+            if (allDone) {
+              score++;
+              nextBtn.disabled = false;
+
+              /* final */
+              if (index === questions.length - 1) {
+                setTimeout(showFinal, 1200);
+              }
+            }
+
+          } else {
+
+            showPopup("❌ Try again", "wrong");
+            speak("Try again");
+            input.value = "";
+            btn.disabled = true;
+          }
+        };
+
+        box.appendChild(input);
+        box.appendChild(btn);
+        letters.appendChild(box);
+      }
+
+      /* restore answers */
+      let inputs = letters.querySelectorAll("input");
+      let buttons = letters.querySelectorAll("button");
+
+      inputs.forEach((inp, i) => {
+
+        if (answered[index][i]) {
+          inp.value = questions[index].a[i];
+          inp.readOnly = true;
+          inp.classList.add("correct");
+          /* 🔥 RESTORE GREEN BOX */
+          inp.parentElement.classList.add("correct-box");
+          buttons[i].disabled = true;
+        }
+
+      });
+
+      /* enable next only if all answered */
+      nextBtn.disabled = !answered[index].every(v => v === true);
+
+      /* 🔥 LAST QUESTION DISABLE */
+      if (
+        index === questions.length - 1 &&
+        answered[index].every(v => v === true)
+      ) {
+        nextBtn.disabled = true;
+      }
+    }
+
+    /* ================= POPUP ================= */
+    function showPopup(text, type) {
+      let overlay = document.createElement("div");
+      overlay.className = "popup-overlay";
+
+      let box = document.createElement("div");
+      box.className = "popup-box " + (type === "correct" ? "popup-correct" : "popup-wrong");
+      box.innerHTML = text;
+
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+
+      setTimeout(() => overlay.remove(), 1200);
+    }
+
+    /* ================= FINAL ================= */
+    function showFinal() {
+      let overlay = document.createElement("div");
+      overlay.className = "popup-overlay";
+
+      let box = document.createElement("div");
+      box.className = "popup-box popup-final";
+
+      box.innerHTML = `🎉 Score: ${score}/${questions.length}<br>
+                <button class="play-btn" onclick="location.reload()">Play Again</button>`;
+
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+      confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+    }
+
+    /* ================= NAV ================= */
+    nextBtn.onclick = () => {
+      if (index < questions.length - 1) {
+        index++;
+        load();
+      }
+    };
+
+    prevBtn.onclick = () => {
+      if (index > 0) {
+        index--;
+        load();
+      }
+    };
+
+    /* ================= START ================= */
+    load();
+  </script>
+
+
+</body>
+</html>

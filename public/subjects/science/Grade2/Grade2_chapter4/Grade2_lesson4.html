@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="/auth-guard.js"></script>
+<meta charset="UTF-8">
+<title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Livvic', sans-serif;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    /* background: linear-gradient(145deg, #eef2f9 0%, #e0e9f5 100%); */
+    background-image: url("assets/images/bgg.png");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    backdrop-filter: blur(2px); 
+    position: relative;
+    overflow: hidden !important;
+}
+
+/* body::before {
+    content: '';
+    position: fixed;
+    top: -20%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,180,214,0.3) 0%, rgba(255,200,230,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+} */
+
+body::after {
+    content: '';
+    position: fixed;
+    bottom: -15%;
+    left: -5%;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(100,180,250,0.2) 0%, rgba(100,180,250,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.25s ease;
+    z-index: 1500;
+    backdrop-filter: blur(3px);
+}
+
+.overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1600;
+    background: linear-gradient(135deg, #1f3c5b, #2c4e72);
+    color: white;
+    border: none;
+    font-size: 26px;
+    padding: 12px 18px;
+    border-radius: 40px;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    transition: all 0.2s ease;
+}
+
+.menu-toggle:hover {
+    transform: scale(1.02);
+    background: linear-gradient(135deg, #2c4e72, #1f3c5b);
+}
+
+.sidebar {
+    width: 320px;
+    /* backdrop-filter: blur(16px); */
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+    padding: 40px 20px;
+    transition: 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    z-index: 1600;
+    height: 100vh;
+    position: relative;
+    overflow-y: auto;
+}
+
+.brand {
+    text-align: center;
+    margin-bottom: 48px;
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #1F3C5B, #4A6F8F);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    display: none;
+}
+
+.brand i {
+    font-size: 38px;
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    color: #ff9f6e;
+}
+
+.sidebar ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    margin-top: 30px;
+}
+
+.sidebar ul li a {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 24px;
+    text-decoration: none;
+    color: #1f2e3a;
+    font-size: 20px;
+    font-weight: 600;
+    border-radius: 60px;
+    background: rgba(250, 250, 255, 0.7);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(255,255,240,0.8);
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.sidebar ul li a .sticker {
+    font-size: 28px;
+    transition: transform 0.2s;
+}
+
+.sidebar ul li a:hover {
+    background: white;
+    transform: translateX(8px) scale(1.02);
+    box-shadow: 0 15px 25px -12px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255,180,200,0.6);
+}
+
+.sidebar ul li a:hover .sticker {
+    transform: rotate(5deg) scale(1.1);
+}
+
+.sidebar ul li a.active {
+    background: linear-gradient(120deg, #FFE5B4, #FFD6A5);
+    color: #2d3e50;
+    border-left: 5px solid #FF8C42;
+    box-shadow: 0 12px 18px -8px rgba(0,0,0,0.15);
+    font-weight: 700;
+    transform: scale(1.02);
+}
+
+.sidebar ul li:nth-child(1) a.active {
+    background: linear-gradient(120deg, #c9e9ff, #b0dcff);
+    border-left-color: #3a86ff;
+}
+
+.sidebar ul li:nth-child(2) a.active {
+    background: linear-gradient(120deg, #d9f0e1, #c2e0cf);
+    border-left-color: #2a9d8f;
+}
+
+.sidebar ul li:nth-child(3) a.active {
+    background: linear-gradient(120deg, #ffecb3, #ffe2a4);
+    border-left-color: #e9c46a;
+}
+
+.sidebar ul li:nth-child(4) a.active {
+    background: linear-gradient(120deg, #f8d7e6, #f5c4db);
+    border-left-color: #e76f51;
+}
+
+.content {
+    flex: 1;
+    height: 100vh;
+    position: relative;
+    background: transparent;
+    padding: 16px;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+}
+
+@media (max-width: 1100px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -340px;
+        top: 0;
+        height: 100vh;
+        width: 280px;
+        border-radius: 0 28px 28px 0;
+        background: rgba(255, 248, 240, 0.96);
+        backdrop-filter: blur(20px);
+        box-shadow: 12px 0 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    body {
+        flex-direction: column;
+    }
+
+    .content {
+        padding: 12px;
+        height: 100vh;
+    }
+
+    iframe {
+        border-radius: 28px;
+    }
+
+    .brand {
+        margin-top: 20px;
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 600px) {
+    .sidebar {
+        width: 260px;
+    }
+    .sidebar ul li a {
+        padding: 14px 20px;
+        font-size: 18px;
+    }
+    .brand i {
+        font-size: 28px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .sidebar {
+        width: 380px;
+        padding: 50px 28px;
+    }
+    .brand {
+        font-size: 34px;
+        margin-bottom: 60px;
+    }
+    .sidebar ul {
+        gap: 28px;
+    }
+    .sidebar ul li a {
+        padding: 22px 28px;
+        font-size: 24px;
+        gap: 22px;
+    }
+    .sidebar ul li a .sticker {
+        font-size: 32px;
+    }
+    .content {
+        padding: 24px;
+    }
+    iframe {
+        border-radius: 44px;
+    }
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+<div class="overlay"></div>
+<button class="menu-toggle"><i class="fas fa-bars"></i></button>
+
+<nav class="sidebar">
+    <div class="brand">
+        <i class="fas fa-brain"></i>
+        <span>Human Body Hub</span>
+    </div>
+
+    <ul>
+        <li><a href="exercises/mcq.html" target="quiz-frame" data-page="mcq.html"><span class="sticker">✅</span> Correct Option</a></li>
+        <li><a href="exercises/two_example.html" target="quiz-frame" data-page="two_example.html"><span class="sticker">💡</span> One Examples</a></li>
+        <li><a href="exercises/matching.html" target="quiz-frame" data-page="matching.html"><span class="sticker">🔗</span> Matching</a></li>
+        <li><a href="exercises/fillblanks.html" target="quiz-frame" data-page="fillblanks.html"><span class="sticker">✏️</span> Fill The Blanks</a></li>
+    </ul>
+</nav>
+
+<main class="content">
+    <iframe name="quiz-frame" src="exercises/mcq.html" title="Interactive Quiz"></iframe>
+</main>
+
+<script>
+    (function() {
+        const toggleBtn = document.querySelector('.menu-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.overlay');
+        const navLinks = document.querySelectorAll('.sidebar ul li a');
+        const iframe = document.querySelector('iframe[name="quiz-frame"]');
+        
+        let currentActivePage = localStorage.getItem('activeQuizPage') || 'mcq.html';
+
+        function removeActiveClass() {
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+        }
+
+        function setActiveLinkByPage(pageName) {
+            removeActiveClass();
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href.includes(pageName)) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        function setActiveLink(clickedLink) {
+            removeActiveClass();
+            clickedLink.classList.add('active');
+            
+            const href = clickedLink.getAttribute('href');
+            if (href) {
+                const pageName = href.split('/').pop();
+                currentActivePage = pageName;
+                localStorage.setItem('activeQuizPage', currentActivePage);
+            }
+        }
+
+        function setInitialActiveState() {
+            if (iframe && iframe.src) {
+                const currentSrc = iframe.src;
+                let matched = false;
+                
+                navLinks.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href && currentSrc.includes(href)) {
+                        setActiveLink(link);
+                        matched = true;
+                    }
+                });
+                
+                if (!matched) {
+                    setActiveLinkByPage(currentActivePage);
+                }
+            } else {
+                setActiveLinkByPage(currentActivePage);
+            }
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                setActiveLink(this);
+                
+                const href = this.getAttribute('href');
+                if (href) {
+                    const pageName = href.split('/').pop();
+                    localStorage.setItem('activeQuizPage', pageName);
+                }
+                
+                if (window.innerWidth <= 1100) {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+
+        if (iframe) {
+            iframe.addEventListener('load', function() {
+                try {
+                    const currentSrc = iframe.contentWindow.location.href;
+                    let matched = false;
+                    
+                    navLinks.forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (href && currentSrc.includes(href)) {
+                            setActiveLink(link);
+                            matched = true;
+                            const pageName = href.split('/').pop();
+                            localStorage.setItem('activeQuizPage', pageName);
+                        }
+                    });
+                    
+                    if (!matched) {
+                        setActiveLinkByPage(localStorage.getItem('activeQuizPage') || 'mcq.html');
+                    }
+                } catch(err) {
+                    setActiveLinkByPage(localStorage.getItem('activeQuizPage') || 'mcq.html');
+                }
+            });
+        }
+
+        window.addEventListener("message", (e) => {
+            if (e.data && e.data.action === "nextSection") {
+                const target = e.data.target;
+                if (target && iframe) {
+                    iframe.src = "exercises/" + target;
+                    
+                    navLinks.forEach(link => {
+                        const hrefValue = link.getAttribute("href");
+                        if (hrefValue && hrefValue.includes(target)) {
+                            setActiveLink(link);
+                            localStorage.setItem('activeQuizPage', target);
+                        }
+                    });
+                }
+            }
+        });
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('open');
+                overlay.classList.toggle('active');
+            });
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+            });
+        }
+
+        setInitialActiveState();
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 1100 && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+            }
+        });
+    })();
+</script>
+
+
+
+
+</body>
+</html>

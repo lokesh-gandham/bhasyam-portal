@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Livvic';
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 10px;
+
+        }
+
+        /* 🔥 MAIN CENTER FIX */
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* vertical center */
+            overflow: hidden;
+            /* allow zoom scroll */
+        }
+
+        /* 🔥 WRAPPER */
+        .main-container {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: -80px;
+
+        }
+
+        .question {
+            height: 60px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* center the container */
+
+            width: 100%;
+
+        }
+
+        /* 🔥 TEXT CONTROL (IMPORTANT) */
+        .question {
+            max-width: 1400px;
+            /* fixed width = no shifting */
+            margin: auto;
+
+            text-align: left;
+            /* same starting point always */
+            padding: 0 20px;
+
+            font-size: clamp(22px, 2.8vw, 32px);
+            color: #136113;
+
+        }
+
+        .question-img {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            margin: 10px 0;
+
+            /* ❌ remove fixed height */
+        }
+
+        .question-img img {
+            max-height: 160px;
+            /* 🔥 control size */
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* OPTIONS CONTAINER */
+        .options {
+            display: flex;
+            justify-content: center;
+            /* center instead of spread */
+            gap: 15px;
+
+            flex-wrap: wrap;
+            /* allows better spacing */
+        }
+
+        /* 🎈 OPTION CARD */
+        .option {
+            width: 220px;
+            /* 🔥 CONTROL WIDTH */
+            max-width: 240px;
+            height: 130px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+
+            cursor: pointer;
+            transition: 0.3s ease;
+
+            border-radius: 25px;
+
+            /* background: linear-gradient(#f1edc1, #f1edc1); */
+                          background: linear-gradient(#f1edc1, #f1edc1);
+
+            box-shadow:
+                0 8px 20px rgba(0, 0, 0, 0.15),
+                inset -6px -6px 10px rgba(0, 0, 0, 0.05);
+
+            position: relative;
+            overflow: hidden;
+        }
+
+
+        /* 🎉 hover bounce */
+        .option:hover {
+            transform: translateY(-1px) scale(1.01);
+            /* background: linear-gradient(#f1ecb6, #f1ecb3); */
+            background-color: white;
+        }
+
+        /* .option:hover .opt-text {
+            transform: scale(1.1);
+            transition: 0.3s;
+        } */
+
+        /* click */
+        .option:active {
+            transform: scale(0.95);
+        }
+
+        /* 🖼 IMAGE */
+        .opt-img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            z-index: 2;
+        }
+
+        /* 🧸 NEW CARTOON TEXT STYLE */
+        .opt-text {
+
+            padding: 4px 16px;
+            border-radius: 40px;
+
+            font-size: clamp(15px, 1.8vw, 20px);
+            font-weight: 500;
+            color: #136113;
+            ;
+            letter-spacing: 0.5px;
+
+            /* cartoon effect */
+
+            z-index: 2;
+        }
+
+        /* STATES */
+        .selected {
+            outline: 3px dashed #444;
+        }
+
+        .correct {
+            /* background: #d4ffd8 !important; */
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.116);
+            border: 3px solid #38b000;
+        }
+
+        .wrong {
+            background: #ffdede !important;
+            /* border: 3px solid #ffa0a0; */
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            50% {
+                transform: translateX(5px);
+            }
+
+            75% {
+                transform: translateX(-5px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        /* NAV */
+        .nav-buttons {
+            position: absolute;
+            top: 100%;
+            /* 🔥 vertical middle */
+            left: 0;
+            width: 100%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            /* allow only buttons clickable */
+        }
+
+        .prev {
+            position: absolute;
+            left: -40px;
+            /* 🔥 left side */
+            pointer-events: auto;
+        }
+
+        .next {
+            position: absolute;
+            right: -40px;
+            /* 🔥 right side */
+            pointer-events: auto;
+        }
+
+        /* COMMON */
+        button {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #333;
+        }
+
+        .prev {
+            background: #95d5b2;
+        }
+
+        .next {
+            background: #ffb4a2;
+        }
+
+        /* ✨ HOVER */
+        button:hover {
+            transform: scale(1.08);
+            filter: brightness(1.05);
+        }
+
+        /* CLICK */
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* 🌟 OVERLAY */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        /* 🎮 MAIN POPUP BOX */
+        .popup-box {
+            width: 320px;
+            max-width: 90%;
+            padding: 30px;
+            border-radius: 30px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            animation: popScale 0.4s ease;
+        }
+
+        /* 🎉 CORRECT */
+        .popup-correct {
+            background: linear-gradient(135deg, #ffffff, #ffffff);
+            border: 3px solid #5ed164;
+            color: #14532d;
+        }
+
+        /* ❌ WRONG */
+        .popup-wrong {
+            background: linear-gradient(135deg, #ffffff, #ffffff);
+            border: 3px solid #ffa1a1;
+            color: #7f1d1d;
+            animation: shake 0.4s, popScale 0.4s;
+        }
+
+        .popup-final {
+            background: linear-gradient(135deg, #ffefb0, #ffefb0);
+            border: 3px solid #ffbe0b;
+            color: #7a5c00;
+        }
+
+        /* 🎮 PLAY AGAIN */
+        .play-btn {
+            margin-top: 20px;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            background: #02be8c;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* ✨ ANIMATION */
+        @keyframes popScale {
+            0% {
+                transform: scale(0.5);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+
+        /* 🔥 BASE (Laptop default design) */
+        .main-container {
+            width: 100%;
+            max-width: 1100px;
+            padding: 20px;
+        }
+
+        /* ============================= */
+        /* 🖥 Desktop (1225px – 1440px) */
+        /* ============================= */
+        @media (min-width:1225px) and (max-width:1440px) {
+
+            /* 🔥 CONTAINER */
+            .main-container {
+                max-width: 1400px;
+                padding: 25px;
+            }
+
+            /* 🔥 QUESTION TEXT */
+            .question {
+                font-size: 40px;
+                max-width: 1100px;
+            }
+
+            /* 🔥 QUESTION IMAGE */
+            .question-img img {
+                max-height: 220px;
+                /* ✅ correct way */
+            }
+
+            /* 🔥 OPTIONS LAYOUT */
+            .options {
+                gap: 35px;
+            }
+
+            /* 🔥 OPTION BOX */
+            .option {
+                width: 280px;
+                height: 180px;
+                border-radius: 28px;
+            }
+
+            /* 🔥 OPTION IMAGE */
+            .opt-img {
+                width: 80px;
+                height: 80px;
+            }
+
+            /* 🔥 OPTION TEXT */
+            .opt-text {
+                font-size: 22px;
+                padding: 6px 18px;
+            }
+
+            /* 🔥 BUTTONS */
+            button {
+                font-size: 22px;
+                padding: 18px 36px;
+            }
+
+            /* 🔥 NAV SPACING */
+            .nav-buttons {
+                gap: 30px;
+                padding: 20px;
+            }
+
+            .prev {
+                position: absolute;
+                left: -5px;
+                /* 🔥 left side */
+                pointer-events: auto;
+            }
+
+            .next {
+                position: absolute;
+                right: -5px;
+                /* 🔥 right side */
+                pointer-events: auto;
+
+
+            }
+        }
+
+        /* ============================= */
+        /* 🖥 MONITOR POPUP BIGGER */
+        /* ============================= */
+
+        @media (min-width:1225px) and (max-width:1440px) {
+
+            /* 🔥 NORMAL POPUP */
+
+            .popup-box {
+
+                width: 420px;
+
+                padding: 50px 40px;
+
+                border-radius: 38px;
+
+                font-size: 38px;
+
+            }
+
+            /* 🔥 FINAL POPUP */
+
+            .popup-final {
+
+                width: 520px;
+
+                padding: 60px 45px;
+
+                font-size: 40px;
+
+            }
+
+            /* 🔥 PLAY AGAIN BUTTON */
+
+            .play-btn {
+
+                font-size: 24px;
+
+                padding: 16px 32px;
+
+                border-radius: 35px;
+
+                margin-top: 25px;
+
+            }
+
+        }
+
+        /* ============================= */
+        /* 🖥 Large Monitor (1441px – 1920px) */
+        /* ============================= */
+        @media (min-width:1441px) and (max-width:1920px) {
+
+            .main-container {
+                max-width: 1400px;
+                /* 🔥 expand container */
+            }
+
+            .options {
+                gap: 40px;
+            }
+
+            .option {
+                width: 260px;
+                height: 160px;
+            }
+
+            .opt-img {
+                width: 70px;
+                height: 70px;
+            }
+
+            .question {
+                font-size: 32px;
+            }
+        }
+
+        /* ============================= */
+        /* 🖥 4K / Extra Large (1921px+) */
+        /* ============================= */
+        @media (min-width:1921px) {
+
+            .main-container {
+                max-width: 1700px;
+                /* 🔥 big scaling */
+            }
+
+            .options {
+                gap: 50px;
+            }
+
+            .option {
+                width: 300px;
+                height: 180px;
+                border-radius: 30px;
+            }
+
+            .opt-img {
+                width: 80px;
+                height: 80px;
+            }
+
+            .opt-text {
+                font-size: 20px;
+            }
+
+            .question {
+                font-size: 36px;
+            }
+
+            button {
+                font-size: 20px;
+                padding: 14px 32px;
+            }
+        }
+
+        /* ============================= */
+        /* 📱 MOBILE (≤ 600px) */
+        /* ============================= */
+        @media (max-width:600px) {
+
+            /* 🔥 BODY FIX */
+            body {
+                padding: 5px;
+                overflow: auto;
+                align-items: flex-start;
+            }
+
+            /* 🔥 CONTAINER */
+            .main-container {
+                max-width: 100%;
+                padding: 10px;
+            }
+
+            /* 🔥 QUESTION */
+            .question {
+                font-size: 18px;
+                max-width: 100%;
+                padding: 0 10px;
+                text-align: center;
+            }
+
+            /* 🔥 QUESTION IMAGE */
+            .question-img img {
+                max-height: 120px;
+            }
+
+            /* 🔥 2×2 GRID (IMPORTANT) */
+            .options {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                /* ✅ 2 columns */
+                gap: 12px;
+            }
+
+            /* 🔥 OPTION BOX */
+            .option {
+                width: 100%;
+                height: 110px;
+                border-radius: 18px;
+                gap: 6px;
+            }
+
+            /* 🔥 OPTION IMAGE */
+            .opt-img {
+                width: 40px;
+                height: 40px;
+            }
+
+            /* 🔥 OPTION TEXT */
+            .opt-text {
+                font-size: 12px;
+                padding: 3px 10px;
+            }
+
+            /* 🔥 BUTTONS */
+            button {
+                font-size: 14px;
+                padding: 8px 18px;
+            }
+
+            .nav-buttons {
+                gap: 15px;
+                padding: 10px;
+            }
+
+            /* 🔥 POPUP SMALL */
+            .popup-box {
+                width: 200px;
+                padding: 20px;
+                font-size: 18px;
+                border-radius: 20px;
+            }
+
+            /* 🔥 PLAY BUTTON */
+            .play-btn {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+        }
+
+        @media (max-width:600px) {
+
+            .nav-buttons {
+                position: static;
+                /* 🔥 reset */
+                transform: none;
+                /* 🔥 remove translate */
+
+                display: flex;
+                justify-content: center;
+                /* center bottom */
+                gap: 15px;
+                padding: 15px 10px;
+                margin-top: 20px;
+            }
+
+            .prev,
+            .next {
+                position: static;
+                /* 🔥 reset side positioning */
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="question" id="question"></div>
+
+        <div class="question-img">
+            <img id="qImage">
+        </div>
+
+        <div class="options">
+
+            <div class="option" onclick="selectOption(0)">
+                <img class="opt-img">
+                <div class="opt-text"></div>
+            </div>
+
+            <div class="option" onclick="selectOption(1)">
+                <img class="opt-img">
+                <div class="opt-text"></div>
+            </div>
+
+            <div class="option" onclick="selectOption(2)">
+                <img class="opt-img">
+                <div class="opt-text"></div>
+            </div>
+
+            <div class="option" onclick="selectOption(3)">
+                <img class="opt-img">
+                <div class="opt-text"></div>
+            </div>
+
+        </div>
+        <div class="nav-buttons">
+            <button class="prev" onclick="prevQuestion()">← Prev</button>
+            <button class="next" onclick="nextQuestion()">Next →</button>
+        </div>
+    </div>
+    <script>
+
+        let questions = [
+            {
+                q: "Q1. The ______ is not a part of the respiratory system.",
+                qImg: "../images/mcq1.png",
+                options: ["Heart", "Windpipe", "Lungs", "Nose"],
+                imgOptions: [
+                    "../images/heart.png",
+                    "../images/windpipe.png",
+                    "../images/lungs.png",
+                    "../images/nose.png"
+                ],
+                correct: 0
+            },
+            {
+                q: "Q2. The dome-shaped muscular organ is the ______.",
+                qImg: "../images/mcq2.png",
+                options: ["Heart", "Diaphragm", "Lungs", "Windpipe"],
+                imgOptions: [
+                    "../images/heart.png",
+                    "../images/diaphragm.png",
+                    "../images/lungs.png",
+                    "../images/windpipe.png"
+                ],
+                correct: 1
+            },
+            {
+                q: "Q3. Blood is a red liquid ______.",
+                qImg: "../images/mcq3.png",
+                options: ["Tissue", "Organ", "Organ system", "Cell"],
+                imgOptions: [
+                    "../images/tissue.png",
+                    "../images/organ.png",
+                    "../images/system.png",
+                    "../images/cell.png"
+                ],
+                correct: 0
+            },
+            {
+                q: "Q4. The ______ carries blood back from the different parts of the body to the heart.",
+                qImg: "../images/mcq4.png",
+                options: ["Arteries", "Veins", "Capillaries", "All of these"],
+                imgOptions: [
+                    "../images/arteries.png",
+                    "../images/veins.png",
+                    "../images/capillaries.png",
+                    "../images/All.png"
+                ],
+                correct: 1
+            },
+            {
+                q: "Q5. The breathing in of air is called ______.",
+                qImg: "../images/mcq5.png",
+                options: ["Inhalation", "Exhalation", "Circulation", "Respiration"],
+                imgOptions: [
+                    "../images/inhalation.png",
+                    "../images/exhalation.png",
+                    "../images/circulation.png",
+                    "../images/respiration.png"
+                ],
+                correct: 0
+            }
+        ];
+
+        let current = 0;
+        let answers = new Array(questions.length).fill(null);
+        let score = 0;
+
+        const prevBtn = document.querySelector(".prev");
+        const nextBtn = document.querySelector(".next");
+
+        function speak(text) {
+            let msg = new SpeechSynthesisUtterance(text);
+            speechSynthesis.speak(msg);
+        }
+
+        /* 🎉 BIG POPUP */
+        function showPopup(text, type) {
+
+            let overlay = document.createElement("div");
+            overlay.className = "popup-overlay";
+
+            let box = document.createElement("div");
+            box.className = "popup-box " + (type === "correct" ? "popup-correct" : "popup-wrong");
+
+            box.innerHTML = text;
+
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+
+            /* auto close */
+            setTimeout(() => {
+                overlay.remove();
+            }, 1500);
+        }
+
+        /* 🏁 FINAL BIG POPUP */
+        function showFinal() {
+
+            let overlay = document.createElement("div");
+            overlay.className = "popup-overlay";
+
+            let box = document.createElement("div");
+            box.className = "popup-box popup-final";
+
+            box.innerHTML = `
+                🎉 Score: ${score}/${questions.length}<br>
+                <button class="play-btn" onclick="location.reload()">🔄 Play Again</button>
+                `;
+
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+            confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+        }
+
+        function loadQuestion() {
+
+            let q = questions[current];
+            prevBtn.disabled = current === 0;
+
+            document.getElementById("question").innerText = q.q;
+
+            /* ✅ QUESTION IMAGE */
+            let qImg = document.getElementById("qImage");
+            qImg.src = q.qImg;
+            qImg.style.display = "block";
+
+            let options = document.querySelectorAll(".option");
+
+            options.forEach((btn, i) => {
+                btn.querySelector(".opt-text").innerText = q.options[i];
+
+                /* ✅ OPTION IMAGE */
+                let img = btn.querySelector(".opt-img");
+                img.src = q.imgOptions[i];
+                img.style.display = "block";
+
+                btn.classList.remove("correct", "wrong");
+                btn.style.pointerEvents = "auto";
+                btn.style.opacity = "1";
+            });
+
+            /* restore */
+            if (answers[current] !== null) {
+
+                let sel = answers[current];
+
+                options[sel].classList.add(
+                    sel === q.correct ? "correct" : "wrong"
+                );
+
+                if (sel === q.correct) {
+
+                    options.forEach((o, index) => {
+
+                        o.style.pointerEvents = "none";
+
+                        /* 🔥 keep wrong options faded */
+                        if (index !== q.correct) {
+                            o.style.opacity = "0.5";
+                        }
+
+                    });
+
+                    nextBtn.disabled = false;
+                } else {
+                    nextBtn.disabled = true;
+                }
+
+            } else {
+                nextBtn.disabled = true;
+            }
+
+            if (current === questions.length - 1 && answers[current] === questions[current].correct) {
+                nextBtn.disabled = true;
+            }
+        }
+
+        /* SELECT */
+        function selectOption(i) {
+
+            let q = questions[current];
+            let options = document.querySelectorAll(".option");
+
+            /* stop if already correct */
+            if (answers[current] === q.correct) return;
+
+            /* ✅ CORRECT ANSWER */
+            if (i === q.correct) {
+
+                options[i].classList.add("correct");
+                answers[current] = i;
+                score++;
+
+                /* 🔥 make wrong options fade */
+                options.forEach((o, index) => {
+
+                    if (index !== q.correct) {
+                        o.style.opacity = "0.5";
+                    }
+
+                    o.style.pointerEvents = "none";
+                });
+
+                confetti();
+
+                showPopup("🎉 Correct!", "correct");
+                speak("Correct");
+
+                nextBtn.disabled = false;
+
+                /* FINAL AUTO */
+                if (current === questions.length - 1) {
+                    setTimeout(() => showFinal(), 1200);
+                }
+
+            }
+
+            /* ❌ WRONG ANSWER */
+            else {
+
+                options[i].classList.add("wrong");
+
+                showPopup("❌ Try again!", "wrong");
+                speak("Try again");
+
+                /* 🔥 remove wrong color after 600ms */
+                setTimeout(() => {
+                    options[i].classList.remove("wrong");
+                }, 600);
+
+                answers[current] = null;
+                nextBtn.disabled = true;
+            }
+        }
+
+        /* NAV */
+        function nextQuestion() {
+            if (current < questions.length - 1) {
+                current++;
+                loadQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (current > 0) {
+                current--;
+                loadQuestion();
+            }
+        }
+
+        loadQuestion();
+
+    </script>
+
+</body>
+</html>

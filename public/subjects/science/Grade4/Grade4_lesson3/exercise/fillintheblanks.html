@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      font-family: 'Livvic';
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+
+    body {
+      font-family: 'Livvic';
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    /* MAIN */
+    .quiz-box {
+      width: 100%;
+      max-width: 1400px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      /* height:70%; */
+    }
+
+    /* QUESTION */
+    .question {
+      font-size: 30px;
+      color: #2f4f4f;
+    }
+
+    .question-img {
+      width: 300px;
+      height: 220px;
+      object-fit: contain;
+      margin: 20px auto;
+    }
+
+    /* 🎁 LETTER BOXES */
+    .letter-container {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    /* 🎁 PLAYFUL LETTER BOX */
+    .letter-box {
+      width: 60px;
+      height: 75px;
+
+      border-radius: 18px;
+
+      /* 🌈 soft candy gradient */
+      background: linear-gradient(135deg, #ffffff, #ffffff, #ffffff);
+
+      /* 🎯 remove dashed border */
+      border: 3px solid transparent;
+
+      font-size: 28px;
+      font-weight: 800;
+      color: #2f4f4f;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      /* ✨ 3D shadow */
+      box-shadow:
+        0 10px 12px rgba(0, 0, 0, .2),
+        inset 0 4px 8px rgba(255, 255, 255, .8);
+
+      transition: .25s;
+    }
+
+    /* ✨ ACTIVE BOX */
+    /* ✨ ACTIVE BOX */
+
+    .letter-box.active {
+
+      /* REMOVE TRANSLATE */
+
+      transform: none;
+
+      /* ONLY GLOW */
+
+      box-shadow:
+        0 0 0 4px #d0f4ff,
+        0 0 14px #4cc9f0,
+        0 10px 12px rgba(0, 0, 0, .2),
+        inset 0 4px 8px rgba(255, 255, 255, .8);
+
+    }
+
+    .letter-box.correct {
+      background: linear-gradient(135deg, #ddffe2, #d4fff2);
+      color: #2f4f4f;
+
+
+    }
+
+    /* ❌ WRONG */
+    .letter-box.wrong {
+      background: linear-gradient(135deg, #ffcdcd, #ffcece);
+      color: white;
+
+      /* box-shadow:
+    0 0 18px #ff6b6b; */
+    }
+
+    /* .letter-box:not(:empty) {
+      animation: pop .2s ease;
+    } */
+
+    .letter-box {
+  cursor: pointer;
+}
+
+    @keyframes pop {
+      0% {
+        transform: scale(0.7)
+      }
+
+      100% {
+        transform: scale(1)
+      }
+    }
+
+    /* NAV */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    button {
+      border: none;
+      padding: clamp(12px, 1.3vw, 15px) clamp(20px, 3vw, 32px);
+      font-size: clamp(15px, 1.4vw + 0.6vh, 20px);
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all .3s ease;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      min-width: clamp(80px, 12vw, 130px);
+    }
+
+    .prev {
+      background: linear-gradient(45deg, #ff7a7a, #ffb199);
+      color: white;
+    }
+
+    .next {
+      background: linear-gradient(45deg, #00c6ff, #0072ff);
+      color: white;
+    }
+
+    button:disabled {
+      background: #dcdcdc;
+      color: #888;
+      cursor: not-allowed;
+    }
+
+    .kid-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+    }
+
+    .kid-card {
+      background: #fff;
+      width: clamp(260px, 50vw, 320px);
+      padding: clamp(15px, 2vw, 25px);
+      border-radius: 30px;
+      text-align: center;
+    }
+
+    .kid-icon {
+      font-size: clamp(3em, 6vw, 4.5em);
+      margin-bottom: 10px;
+    }
+
+    .kid-card h3 {
+      font-size: clamp(1.4em, 2.5vw, 2em);
+      margin-bottom: 8px;
+    }
+
+    .kid-card p {
+      font-size: clamp(1em, 1.5vw, 1.2em);
+    }
+
+    .kid-correct .kid-card {
+      background: #ffffff;
+      border: 6px solid #38d9a9;
+    }
+
+    .kid-wrong .kid-card {
+      background: #ffffff;
+      border: 6px solid #ffa8a8;
+    }
+
+    /* FINAL POPUP */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+    }
+
+    .final-kid-box {
+      background: linear-gradient(135deg, #fff7d6, #e6fff5);
+      padding: clamp(20px, 3vw, 35px);
+      border-radius: 35px;
+      text-align: center;
+      width: clamp(280px, 60vw, 420px);
+    }
+
+    .final-kid-box h2 {
+      font-size: clamp(1.6em, 3vw, 2.2em);
+      color: #2f9e44;
+      margin-bottom: 10px;
+    }
+
+    .final-kid-box p {
+      font-size: clamp(1.1em, 2vw, 1.3em);
+      font-weight: 600;
+    }
+
+    #stars {
+      font-size: clamp(1.5em, 3vw, 2.3em);
+      margin: 12px 0;
+    }
+
+    .playAgain-btn {
+      background: #ffac30;
+      color: #fff;
+      border: none;
+      padding: clamp(10px, 1.5vw, 14px) clamp(20px, 3vw, 34px);
+      border-radius: 30px;
+      font-size: clamp(1em, 1.5vw, 1.1em);
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    /* POP ANIMATION */
+    @keyframes pop {
+      0% {
+        transform: translate(-50%, -50%) scale(.4)
+      }
+
+      70% {
+        transform: translate(-50%, -50%) scale(1.1)
+      }
+
+      100% {
+        transform: translate(-50%, -50%) scale(1)
+      }
+    }
+
+
+    /* ========================= */
+    /* 📱 MOBILE (≤ 600px) */
+    /* ========================= */
+    @media screen and (max-width:600px) {
+
+      body {
+        height: auto;
+        padding: 10px;
+        align-items: flex-start;
+        overflow: auto;
+      }
+
+      /* container */
+      .quiz-box {
+        height: auto;
+        gap: 15px;
+      }
+
+      /* question */
+      .question {
+        font-size: 20px;
+      }
+
+      /* image */
+      .question-img {
+        width: 150px;
+        height: 100px;
+      }
+
+      /* letter boxes */
+      .letter-container {
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .letter-box {
+        width: 40px;
+        height: 55px;
+        font-size: 20px;
+        border-radius: 14px;
+        cursor: pointer;
+      }
+
+      /* nav */
+      .nav {
+        margin-top: 15px;
+      }
+
+      button {
+        padding: 10px 18px;
+        font-size: 16px;
+      }
+
+      .kid-card {
+        width: 180px;
+        /* smaller width */
+        padding: 15px;
+        /* less padding */
+        border-radius: 20px;
+      }
+
+      /* icon smaller */
+      .kid-icon {
+        font-size: 2.5em;
+        margin-bottom: 6px;
+      }
+
+      /* title */
+      .kid-card h3 {
+        font-size: 1.2em;
+        margin-bottom: 4px;
+      }
+
+      /* message */
+      .kid-card p {
+        font-size: 0.9em;
+      }
+
+      /* final popup */
+      .final-kid-box {
+        width: 200px;
+        padding: 18px;
+        border-radius: 25px;
+      }
+
+      /* final text */
+      .final-kid-box h2 {
+        font-size: 1.4em;
+      }
+
+      .final-kid-box p {
+        font-size: 1em;
+      }
+
+      /* stars */
+      #stars {
+        font-size: 1.4em;
+      }
+
+      /* play again */
+      .playAgain-btn {
+        padding: 8px 16px;
+        font-size: 0.9em;
+      }
+
+
+    }
+
+    /* ========================= */
+    /* 📱 TABLET (601px–1024px) */
+    /* ========================= */
+    @media screen and (min-width:601px) and (max-width:800px) {
+
+      body {
+        height: auto;
+        padding: 15px;
+        overflow: auto;
+      }
+
+      /* container */
+      .quiz-box {
+        height: auto;
+      }
+
+      /* question */
+      .question {
+        font-size: 26px;
+        margin-top: 60px;
+      }
+
+      /* image */
+      .question-img {
+        width: 300px;
+        height: 230px;
+      }
+
+      /* letter boxes */
+      .letter-container {
+        gap: 10px;
+      }
+
+      .letter-box {
+        width: 55px;
+        height: 70px;
+        font-size: 24px;
+      }
+
+      /* buttons */
+      button {
+        padding: 12px 24px;
+        font-size: 16px;
+        margin-top: 40px;
+      }
+
+    }
+
+    /* ========================= */
+    /* 💻 Desktop / Monitor */
+    /* ========================= */
+    @media screen and (min-width:1225px) and (max-width:1440px) {
+
+      .quiz-box {
+        max-width: 1300px;
+        height: 90%;
+      }
+
+      .question {
+        font-size: 40px;
+      }
+
+      .question-img {
+        width: 400px;
+        height: 300px;
+      }
+
+      .letter-box {
+        width: 80px;
+        height: 90px;
+        font-size: 30px;
+      }
+
+      button {
+        padding: 16px 40px;
+        font-size: 22px;
+      }
+
+    }
+
+    /* ========================= */
+    /* 🖥 Large Monitors */
+    /* ========================= */
+    @media screen and (min-width:1441px) and (max-width:1920px) {
+
+      .quiz-box {
+        max-width: 1500px;
+        height: 80%;
+      }
+
+      .question {
+        font-size: 36px;
+      }
+
+      .question-img {
+        width: 360px;
+        height: 260px;
+      }
+
+      .letter-box {
+        width: 75px;
+        height: 90px;
+        font-size: 30px;
+      }
+
+      button {
+        padding: 16px 45px;
+        font-size: 22px;
+      }
+
+    }
+
+    /* ========================= */
+    /* 🖥 4K Screens */
+    /* ========================= */
+    @media screen and (min-width:1921px) {
+
+      .quiz-box {
+        max-width: 1800px;
+        height: 85%;
+      }
+
+      .question {
+        font-size: 46px;
+      }
+
+      .question-img {
+        width: 420px;
+        height: 300px;
+      }
+
+      .letter-box {
+        width: 90px;
+        height: 110px;
+        font-size: 36px;
+      }
+
+      button {
+        padding: 20px 55px;
+        font-size: 26px;
+      }
+
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="quiz-box">
+
+    <div class="question" id="question"></div>
+    <img id="img" class="question-img">
+
+    <div id="letterBoxes" class="letter-container"></div>
+
+    <div class="nav">
+      <button class="prev" id="prev" onclick="prevQ()" disabled>← Prev</button>
+      <button class="next" id="next" onclick="nextQ()" disabled>Next →</button>
+    </div>
+
+  </div>
+
+  <!-- POPUP -->
+
+  <div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+      <div class="kid-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <!-- FINAL -->
+
+  <div id="finalPopup">
+    <div class="final-kid-box">
+      <h2>🎉 Congratulations!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div>
+      <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const quiz = [
+      { q: "Q1. Kwashiorkor can be cured by adding ______ rich food in the diet.", img: "../images/ftb1.png", a: "protein" },
+      { q: "Q2. Anaemia occurs due to deficiency of ______ in one's diet.", img: "../images/ftb2.png", a: "iron" },
+      { q: "Q3. ______ are germinating seeds that are eaten raw.", img: "../images/ftb3.png", a: "sprouts" },
+      { q: "Q4. ______ helps to remove waste materials from our body.", img: "../images/ftb4.png", a: "water" },
+      { q: "Q5. The food that we eat contains useful substances called ______.", img: "../images/ftb5.png", a: "nutrients" }
+    ];
+
+    let current = 0;
+    let score = 0;
+
+    /* 🔥 STORE ANSWERS */
+    let userAnswers = new Array(quiz.length).fill(null);
+
+    let answered = false;
+    let userInput = "";
+
+    /* 🔊 Speech */
+    // function speakText(text){
+    // let s=new SpeechSynthesisUtterance(text);
+    // s.lang="en-GB";
+    // speechSynthesis.speak(s);
+    // }
+    function speakText(text) {
+      let msg = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(msg);
+    }
+
+    /* 🎉 Popup */
+    function showPopup(c) {
+      let p = document.getElementById("answerPopup");
+      p.className = "kid-popup " + (c ? "kid-correct" : "kid-wrong");
+      p.style.display = "flex";
+
+      popupIcon.textContent = c ? "🎉😊" : "😭";
+      popupTitle.textContent = c ? "Great Job!" : "Oops!";
+      popupMsg.textContent = c ? "You got it right!" : "Try again!";
+
+      setTimeout(() => p.style.display = "none", 1200);
+    }
+
+    /* LOAD */
+    function loadQ() {
+
+      question.innerText = quiz[current].q;
+      img.src = quiz[current].img;
+
+      prev.disabled = current === 0;
+
+      letterBoxes.innerHTML = "";
+
+      const answer = quiz[current].a;
+
+      /* 🔁 RESTORE */
+      if (userAnswers[current]) {
+
+        userInput = userAnswers[current];
+        answered = true;
+        next.disabled = false;
+
+      } else {
+        userInput = "";
+        answered = false;
+        next.disabled = true;
+      }
+
+      /* CREATE BOXES */
+      for (let i = 0; i < answer.length; i++) {
+        let box = document.createElement("div");
+        box.className = "letter-box";
+        letterBoxes.appendChild(box);
+      }
+
+      /* 🔁 FILL RESTORED ANSWER */
+      const boxes = document.querySelectorAll(".letter-box");
+
+      if (!answered && boxes.length) {
+  boxes[0].classList.add("active");
+}
+      if (userAnswers[current]) {
+        boxes.forEach((b, i) => {
+          b.textContent = userInput[i].toUpperCase();
+          b.classList.add("correct");
+        });
+      }
+    }
+
+    /* TYPE */
+    document.addEventListener("keydown", (e) => {
+
+      if (answered) return; /* 🔒 LOCK AFTER CORRECT */
+
+      const answer = quiz[current].a;
+      const boxes = document.querySelectorAll(".letter-box");
+
+      if (e.key === "Backspace") {
+        userInput = userInput.slice(0, -1);
+      } else if (/^[a-zA-Z]$/.test(e.key) && userInput.length < answer.length) {
+        userInput += e.key.toLowerCase();
+      }
+
+    boxes.forEach((b, i) => {
+  b.textContent = userInput[i] ? userInput[i].toUpperCase() : "";
+  b.classList.remove("active");
+});
+
+if (userInput.length < boxes.length) {
+  boxes[userInput.length].classList.add("active");
+}
+
+      /* AUTO CHECK */
+      if (userInput.length === answer.length) {
+        checkAnswer();
+      }
+
+    });
+
+    /* CHECK */
+    function checkAnswer() {
+
+      const boxes = document.querySelectorAll(".letter-box");
+
+      if (userInput === quiz[current].a) {
+
+        answered = true;
+        score++;
+
+        /* 🔥 SAVE ANSWER */
+        userAnswers[current] = userInput;
+
+        boxes.forEach(b => b.classList.add("correct"));
+
+        showPopup(true);
+        speakText("Correct");
+
+        next.disabled = false;
+
+        /* FINAL */
+        if (current === quiz.length - 1) {
+          setTimeout(showResult, 1200);
+        }
+
+      } else {
+
+        boxes.forEach(b => b.classList.add("wrong"));
+
+        showPopup(false);
+        speakText("wrong");
+
+        setTimeout(() => {
+          userInput = "";
+          boxes.forEach(b => {
+            b.textContent = "";
+            b.classList.remove("wrong");
+          });
+        }, 800);
+      }
+    }
+
+    /* NAV */
+    function nextQ() {
+      if (!answered) return;
+      current++;
+      loadQ();
+    }
+
+    function prevQ() {
+      current--;
+      loadQ();
+    }
+
+    /* RESULT */
+    function showResult() {
+      finalPopup.style.display = "flex";
+      finalScore.innerText = "Your Score: " + score + " / " + quiz.length;
+      stars.innerText = "⭐".repeat(score);
+
+      confetti({
+        particleCount: 120,
+        spread: 120,
+        origin: { y: 0.6 }
+      });
+    }
+
+    loadQ();
+
+  </script>
+
+
+</body>
+</html>

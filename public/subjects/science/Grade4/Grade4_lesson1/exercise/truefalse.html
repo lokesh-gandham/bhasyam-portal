@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="/auth-guard.js"></script>
+  <meta charset="UTF-8">
+  <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Livvic';
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 10px;
+    }
+
+    /* QUIZ */
+    .quiz {
+      width: 100%;
+      max-width: 1000px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ✅ UPDATED MAIN (STACK LAYOUT) */
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .left {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .right-wrapper {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    /* QUESTION BOX */
+    .question {
+      position: relative;
+      width: 100%;
+      max-width: 1400px;
+
+      /* 🎯 FIXED HEIGHT */
+      min-height: 120px;
+      height: 90px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: left;
+
+      font-size: clamp(22px, 3vw, 34px);
+
+      line-height: 1.3;
+      color: #2f4f4f;
+
+      padding: 10px 20px;
+
+
+      overflow: hidden;
+      /* prevent jumping */
+    }
+
+
+    /* IMAGE */
+    .image img {
+      max-height: 200px;
+      margin-top: -40px;
+    }
+
+    /* TRUE FALSE */
+    .right {
+      display: flex;
+      gap: 60px;
+      justify-content: center;
+    }
+
+    .house {
+      width: 200px;
+      height: 90px;
+
+      border-radius: 30px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      cursor: pointer;
+
+      transition: all 0.25s ease;
+
+      backdrop-filter: blur(10px);
+
+      border: 5px solid rgb(255, 255, 255);
+
+      /* box-shadow:
+        4px 4px 8px rgba(0, 0, 0, 0.212); */
+
+        box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.11) 0px -3px 6px;
+
+      margin-top: 20px;
+    }
+
+    .house-body {
+      width: 100%;
+      height: 100%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 22px;
+      font-weight: 700;
+
+      border-radius: 24px;
+    }
+
+    .true .house-body {
+      background: #a5ffb6;
+      color: #2c833d;
+    }
+
+    .false .house-body {
+      background: #ffb8b8;
+      color: #c04a4a;
+    }
+
+    .house:hover {
+      transform: translateY(-4px);
+      box-shadow:
+        0 12px 24px rgba(0, 0, 0, 0.10);
+    }
+
+    .correct {
+
+      background: white !important;
+
+      border: 5px solid #8ecf9b !important;
+
+      box-shadow:
+        0 8px 20px rgba(142, 207, 155, 0.15);
+
+      transform: scale(1.02);
+    }
+
+    .correct .house-body {
+
+      background: rgb(227, 255, 248) !important;
+
+    }
+
+    .wrong {
+
+      background: rgb(255, 235, 235) !important;
+
+      border: 5px solid #ef9a9a !important;
+
+      animation:
+        shake 0.3s,
+        wrongBlink 0.5s 2;
+    }
+
+    .wrong .house-body {
+
+      background: white !important;
+
+      color: #d46a6a !important;
+
+    }
+
+    @keyframes wrongBlink {
+
+      0% {
+        border-color: #ef9a9a;
+      }
+
+      50% {
+        border-color: transparent;
+      }
+
+      100% {
+        border-color: #ef9a9a;
+      }
+    }
+
+    @keyframes shake {
+      0% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      50% {
+        transform: translateX(5px);
+      }
+
+      75% {
+        transform: translateX(-5px);
+      }
+
+      100% {
+        transform: translateX(0);
+      }
+    }
+
+    /* ✅ NAV BELOW BUTTONS */
+    .nav {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 12px 25px;
+      /* 🔥 bigger */
+      font-size: 18px;
+      /* 🔥 bigger text */
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    #prev {
+      background: #83c8d4;
+      color: white;
+      /* box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); */
+    }
+
+    #next {
+      background: #ffcc3f;
+      color: white;
+      /* box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); */
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* POPUP */
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 40px;
+      border-radius: 30px;
+      display: none;
+      z-index: 100;
+      text-align: center;
+    }
+
+    .correct-popup {
+      background: #edfced;
+      border: 2px solid #a8ddb5;
+      box-shadow: 0 10px 25px rgba(168, 221, 181, 0.25);
+    }
+
+    .wrong-popup {
+      background: #fff0f0;
+      border: 2px solid #efb0b0;
+      box-shadow: 0 10px 25px rgba(239, 176, 176, 0.2);
+      animation: shake 0.3s;
+    }
+
+    .final-popup {
+      background: #fff7ca;
+      border: 3px solid #ffbe0b;
+      box-shadow: 0 0 30px #c8c6c240;
+      padding: 50px;
+      font-size: 26px;
+    }
+
+    .play-again {
+      margin-top: 20px;
+      padding: 14px 30px;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #06d6a0, #1b9aaa);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .play-again:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #finalText {
+      font-weight: 600;
+    }
+
+    /* =========================
+   📱 MOBILE (0–600px)
+========================= */
+    @media (max-width:600px) {
+
+      body {
+        align-items: center;
+      }
+
+      /* QUESTION */
+      .question {
+        font-size: 20px;
+        padding: 15px;
+      }
+
+      /* IMAGE SMALL */
+      .image img {
+        max-height: 130px;
+        margin-top: -20px;
+      }
+
+      /* TRUE/FALSE BUTTONS SMALL */
+      .right {
+        gap: 20px;
+      }
+
+      .house {
+        width: 140px;
+        height: 80px;
+      }
+
+      .house::before {
+        border-left: 45px solid transparent;
+        border-right: 45px solid transparent;
+        top: -22px;
+      }
+
+      .house-body {
+        font-size: 14px;
+      }
+
+      /* NAV SMALL */
+      .nav {
+        gap: 10px;
+      }
+
+      button {
+        padding: 10px 18px;
+        font-size: 15px;
+      }
+
+      .popup {
+        width: 50%;
+        max-width: 260px;
+        padding: 18px;
+        border-radius: 20px;
+      }
+
+      /* TEXT SIZE SMALL */
+      .popup h4 {
+        font-size: 20px !important;
+      }
+
+      /* FINAL POPUP */
+      .final-popup {
+        width: 85%;
+        max-width: 280px;
+        padding: 20px;
+        font-size: 18px;
+      }
+
+      /* PLAY AGAIN BUTTON */
+      .play-again {
+        padding: 10px 18px;
+        font-size: 14px;
+      }
+    }
+
+
+    /* =========================
+   📲 TABLET (601px–900px)
+========================= */
+    @media (min-width:601px) and (max-width:900px) {
+
+      .question {
+        font-size: 26px;
+      }
+
+      /* IMAGE BALANCED */
+      .image img {
+        max-height: 160px;
+        margin-top: -25px;
+      }
+
+      /* BUTTONS MEDIUM */
+      .house {
+        width: 160px;
+        height: 90px;
+      }
+
+      .house::before {
+        border-left: 50px solid transparent;
+        border-right: 50px solid transparent;
+      }
+
+      /* NAV FIX (NOT TOO BIG) */
+      .nav {
+        justify-content: center;
+        gap: 15px;
+      }
+
+      button {
+        padding: 12px 22px;
+        font-size: 16px;
+      }
+    }
+
+    /* ============================= */
+    /* 💻 Desktop / Laptop (1025px - 1440px) */
+    /* ============================= */
+    @media screen and (min-width: 1025px) and (max-width: 1440px) {
+
+      .quiz {
+        max-width: 1400px;
+      }
+
+      .house {
+        width: 260px;
+        height: 100px;
+      }
+
+      .house::before {
+        border-left: 60px solid transparent;
+        border-right: 60px solid transparent;
+      }
+
+      .house-body {
+        font-size: 22px;
+      }
+
+    }
+
+
+    /* ============================= */
+    /* 🖥 Large Monitors (1441px - 1920px) */
+    /* ============================= */
+    @media screen and (min-width: 1441px) and (max-width: 1920px) {
+
+      .quiz {
+        max-width: 1400px;
+        /* 🔥 bigger layout */
+      }
+
+      .question {
+        font-size: 45px;
+        padding: 30px;
+      }
+
+      .image img {
+        max-height: 300px;
+      }
+
+      .house {
+        width: 300px;
+        height: 130px;
+      }
+
+      .house::before {
+        border-left: 80px solid transparent;
+        border-right: 80px solid transparent;
+        top: -35px;
+      }
+
+      .house-body {
+        font-size: 22px;
+      }
+
+      button {
+        font-size: 22px;
+        padding: 20px 36px;
+      }
+
+      .popup {
+        padding: 70px;
+      }
+
+      .final-popup {
+        font-size: 40px;
+        padding: 70px;
+      }
+
+      .play-again {
+
+        font-size: 22px;
+
+        padding: 18px 34px;
+
+        margin-top: 25px;
+
+        border-radius: 40px;
+
+      }
+
+    }
+
+
+    /* ============================= */
+    /* 🧠 4K / Ultra Screens (1921px+) */
+    /* ============================= */
+    @media screen and (min-width: 1921px) {
+
+      .quiz {
+        max-width: 1700px;
+        /* 🔥 very big */
+      }
+
+      .question {
+        font-size: 46px;
+        padding: 35px;
+      }
+
+      .image img {
+        max-height: 320px;
+      }
+
+      .house {
+        width: 400px;
+        height: 160px;
+      }
+
+      .house::before {
+        border-left: 100px solid transparent;
+        border-right: 100px solid transparent;
+        top: -45px;
+      }
+
+      .house-body {
+        font-size: 26px;
+      }
+
+      button {
+        font-size: 24px;
+        padding: 22px 40px;
+      }
+
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="quiz">
+    <div class="main">
+
+      <div class="left">
+        <div class="question" id="question"></div>
+        <div class="image"><img id="img"></div>
+      </div>
+
+      <div class="right-wrapper">
+        <div class="right">
+          <div class="house true" onclick="selectAnswer('T')" id="trueBtn">
+            <div class="house-body" id="trueText">🤨 TRUE</div>
+          </div>
+
+          <div class="house false" onclick="selectAnswer('F')" id="falseBtn">
+            <div class="house-body" id="falseText">🤨 FALSE</div>
+          </div>
+        </div>
+
+        <div class="nav">
+          <button id="prev">← Prev</button>
+          <button id="next" disabled>Next →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- POPUP -->
+  <div class="popup" id="popup"></div>
+  <div class="popup final-popup" id="finalPopup">
+    <h2 id="finalText"></h2>
+    <button class="play-again" onclick="restartQuiz()">🔄 Play Again</button>
+  </div>
+
+  <script>
+    const questions = [
+      { q: "Q1. The canines are used for cutting food.", img: "../images/tf1.png", correct: "F" },
+      { q: "Q2. The saliva in the mouth converts the starch in the food into sugar.", img: "../images/tf2.png", correct: "T" },
+      { q: "Q3. Babies are born with teeth.", img: "../images/tf3.png", correct: "F" },
+      { q: "Q4. The Undigested food is thrown out of the body through an opening called the anus.", img: "../images/tf4.png", correct: "T" },
+      { q: "Q5. Food passes into the stomach directly from the mouth.", img: "../images/tf5.png", correct: "F" }
+    ];
+
+    let current = 0, score = 0;
+    let userAnswers = new Array(questions.length).fill(null);
+    let locked = new Array(questions.length).fill(false);
+
+    const qEl = document.getElementById("question");
+    const imgEl = document.getElementById("img");
+    const next = document.getElementById("next");
+    const prev = document.getElementById("prev");
+    const trueBtn = document.getElementById("trueBtn");
+    const falseBtn = document.getElementById("falseBtn");
+    const trueText = document.getElementById("trueText");
+    const falseText = document.getElementById("falseText");
+    function speak(text) {
+      let msg = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(msg);
+    }
+
+    function loadQ() {
+      let q = questions[current];
+      qEl.textContent = q.q;
+      imgEl.src = q.img;
+
+      trueBtn.classList.remove("correct", "wrong");
+      falseBtn.classList.remove("correct", "wrong");
+      trueBtn.style.opacity = "1";
+      falseBtn.style.opacity = "1";
+      trueText.innerHTML = "🤨 TRUE";
+      falseText.innerHTML = "🤨 FALSE";
+
+      if (userAnswers[current] !== null) {
+
+        let ans = userAnswers[current];
+
+        if (ans === "T") {
+
+          trueBtn.classList.add("correct");
+
+          trueText.innerHTML = "👍 TRUE";
+
+          falseBtn.classList.add("wrong");
+          falseBtn.style.opacity = "0.35";
+
+          falseText.innerHTML = "👎 FALSE";
+
+        } else {
+
+          falseBtn.classList.add("correct");
+
+          falseText.innerHTML = "👍 FALSE";
+
+          trueBtn.classList.add("wrong");
+          trueBtn.style.opacity = "0.35";
+
+          trueText.innerHTML = "👎 TRUE";
+        }
+
+        next.disabled = false;
+
+        trueBtn.style.pointerEvents = "none";
+        falseBtn.style.pointerEvents = "none";
+
+      } else {
+        next.disabled = true;
+        trueBtn.style.pointerEvents = "auto";
+        falseBtn.style.pointerEvents = "auto";
+      }
+
+      prev.disabled = current === 0;
+    }
+
+
+    let popupTimer = null;
+
+    function showPopup(text) {
+
+      let popup = document.getElementById("popup");
+
+      if (popupTimer) clearTimeout(popupTimer);
+
+      popup.style.display = "none";
+      popup.className = "popup";
+
+      popup.innerHTML = `<h4 style="font-size:34px;font-weight:600;">${text}</h4>`;
+
+      popup.classList.add(text.includes("Correct") ? "correct-popup" : "wrong-popup");
+
+      popup.style.display = "block";
+
+      popupTimer = setTimeout(() => {
+        popup.style.display = "none";
+      }, 1000);
+    }
+
+    function selectAnswer(choice) {
+      if (locked[current]) return;
+
+      let q = questions[current];
+      // userAnswers[current] = choice;
+
+      /* ❌ REMOVE THIS FROM TOP */
+      /*
+      if(q.correct==="T") trueBtn.classList.add("correct");
+      else falseBtn.classList.add("correct");
+      */
+
+      if (choice === q.correct) {
+
+        userAnswers[current] = choice;
+        if (q.correct === "T") {
+
+          trueBtn.classList.add("correct");
+
+          trueText.innerHTML = "👍 TRUE";
+
+          falseBtn.classList.add("wrong");
+          falseBtn.style.opacity = "1";
+
+          falseText.innerHTML = "👎 FALSE";
+
+        } else {
+
+          falseBtn.classList.add("correct");
+
+          falseText.innerHTML = "👍 FALSE";
+
+          trueBtn.classList.add("wrong");
+          trueBtn.style.opacity = "0.35";
+
+          trueText.innerHTML = "👎 TRUE";
+        }
+        confetti();
+        showPopup("🎉 Correct!");
+        speak("Correct");
+
+        locked[current] = true;
+
+        trueBtn.style.pointerEvents = "none";
+        falseBtn.style.pointerEvents = "none";
+
+        trueBtn.style.opacity = q.correct === "T" ? "1" : "0.35";
+        falseBtn.style.opacity = q.correct === "F" ? "1" : "0.35";
+
+        score++;
+        next.disabled = false;
+
+        if (current === questions.length - 1) {
+          setTimeout(showFinal, 1000);
+        }
+
+      } else {
+
+        /* ❌ ONLY WRONG RED */
+        let wrongBtn = (choice === "T" ? trueBtn : falseBtn);
+
+        wrongBtn.classList.add("wrong");
+        // wrongBtn.style.opacity = "0.5";
+
+        // wrongBtn.style.opacity = "0.4";
+
+        /* remove border after blink */
+        setTimeout(() => {
+
+          wrongBtn.classList.remove("wrong");
+
+        }, 1000);
+
+        showPopup("❌ Try again!");
+        speak("Try again");
+
+        next.disabled = true;
+      }
+    }
+    next.onclick = () => {
+      if (current < questions.length - 1) { current++; loadQ(); }
+      else showFinal();
+    };
+
+    prev.onclick = () => {
+      if (current > 0) { current--; loadQ(); }
+    };
+
+    function showFinal() {
+      document.getElementById("finalText").innerHTML = `🏆 Score: ${score}/${questions.length}`;
+      document.getElementById("finalPopup").style.display = "block";
+      confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+    }
+
+    function restartQuiz() {
+      current = 0; score = 0;
+      userAnswers.fill(null);
+      locked.fill(false);
+      document.getElementById("finalPopup").style.display = "none";
+      loadQ();
+    }
+
+    loadQ();
+  </script>
+
+
+</body>
+</html>

@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <script src="/auth-guard.js"></script>
+  <meta charset="UTF-8">
+  <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Livvic';
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      padding: 20px;
+    }
+
+    /* MAIN */
+    .quiz {
+      width: 100%;
+      max-width: 1400px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 80%;
+    }
+
+    /* QUESTION */
+    .question {
+      font-size: clamp(20px, 2.5vw + 1vh, 30px);
+      color: #2f4f4f;
+      line-height: 1.3;
+      color: #2f4f4f;
+
+    }
+
+    /* IMAGE */
+    .image img {
+      max-height: 190px;
+      margin: 10px auto;
+    }
+
+    /* OPTIONS - REPLACED FLOWERS WITH SIMPLE BUTTONS */
+    .options {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+    }
+
+    /* 🌸 FLOWER BASE REMOVED - NEW BUTTON STYLES */
+    .option-btn {
+      width: 180px;
+      padding: 18px 10px;
+      font-size: 28px;
+      font-weight: 700;
+      border: none;
+      border-radius: 60px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: white;
+    }
+
+    .option-btn:hover:not(:disabled) {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 18px 28px rgba(0, 0, 0, 0.25);
+    }
+
+    /* TRUE BUTTON (fresh green) */
+    .option-true {
+      background: linear-gradient(135deg, #8ce99a, #38d9a9);
+      color: #1e3a2f;
+      border-bottom: 4px solid #2b8a5e;
+    }
+
+    /* FALSE BUTTON (soft red/pink) */
+    .option-false {
+      background: linear-gradient(135deg, #ffa8a8, #ff6b6b);
+      color: #5c2e2e;
+      border-bottom: 4px solid #c92a2a;
+    }
+
+    /* ACTIVE STATE (highlight when selected) */
+    .option-btn.active {
+      /* box-shadow: 0 0 0 6px #d3f9d8, 0 0 22px #69db7c; */
+      transform: scale(1.02);
+      border-bottom-width: 2px;
+    }
+
+    .option-true.active {
+      background: linear-gradient(135deg, #69db7e, #20c997);
+      color: white;
+    }
+
+    .option-false.active {
+      background: linear-gradient(135deg, #ff8787, #fa5252);
+      color: white;
+    }
+
+    /* Wrong answer button gets hidden after correct answer */
+    .option-btn.hide-wrong {
+      display: none;
+    }
+
+    /* Correct answer button stays visible and enabled */
+    .option-btn.correct-keep {
+      /* No special styling needed, just remains visible */
+      cursor: default;
+    }
+
+    /* EMOJI inside buttons */
+    .btn-emoji {
+      font-size: 34px;
+      filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.2));
+    }
+
+    /* ANSWER BOX - REMOVED COMPLETELY */
+
+    .nav {
+      margin-top: clamp(10px, 2vh, 25px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      padding: clamp(10px, 1.2vw, 14px) clamp(20px, 3vw, 32px);
+      font-size: clamp(15px, 1.4vw + 0.6vh, 20px);
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all .3s ease;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      min-width: clamp(100px, 14vw, 150px);
+    }
+
+    /* PREV - Original gradient colors */
+    #prev {
+      background: linear-gradient(45deg, #ff7a7a, #ffb199);
+      color: white;
+    }
+
+    #prev:hover:not(:disabled) {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    /* NEXT - Original gradient colors */
+    #next {
+      background: linear-gradient(45deg, #00c6ff, #0072ff);
+      color: white;
+    }
+
+    #next:hover:not(:disabled) {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    /* DISABLED state for prev/next buttons */
+    button:disabled {
+      background: #dcdcdc !important;
+      color: #888 !important;
+      box-shadow: none !important;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* Ensure enabled buttons keep their original gradients */
+    button:not(:disabled)#prev {
+      background: linear-gradient(45deg, #ff7a7a, #ffb199);
+      color: white;
+    }
+
+    button:not(:disabled)#next {
+      background: linear-gradient(45deg, #00c6ff, #0072ff);
+      color: white;
+    }
+
+    /* POPUP */
+    .kid-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+    }
+
+    .kid-card {
+      background: #fff;
+      width: clamp(300px, 55vw, 360px);
+      padding: clamp(20px, 2.5vw, 30px);
+      border-radius: 30px;
+      text-align: center;
+    }
+
+    .kid-icon {
+      font-size: clamp(3em, 6vw, 4.5em);
+      margin-bottom: 10px;
+    }
+
+    .kid-card h3 {
+      font-size: clamp(1.4em, 2.5vw, 2em);
+      margin-bottom: 8px;
+    }
+
+    .kid-card p {
+      font-size: clamp(1em, 1.5vw, 1.2em);
+    }
+
+    .kid-correct .kid-card {
+      background: #ffffff;
+      border: 6px solid #38d9a9;
+    }
+
+    .kid-wrong .kid-card {
+      background: #ffffff;
+      border: 6px solid #ffa8a8;
+    }
+
+    /* FINAL POPUP */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+    }
+
+    .final-kid-box {
+      background: linear-gradient(135deg, #fff7d6, #e6fff5);
+      padding: clamp(20px, 3vw, 35px);
+      border-radius: 35px;
+      text-align: center;
+      width: clamp(280px, 60vw, 420px);
+    }
+
+    .final-kid-box h2 {
+      font-size: clamp(1.6em, 3vw, 2.2em);
+      color: #2f9e44;
+      margin-bottom: 10px;
+    }
+
+    .final-kid-box p {
+      font-size: clamp(1.1em, 2vw, 1.3em);
+      font-weight: 600;
+    }
+
+    #stars {
+      font-size: clamp(1.5em, 3vw, 2.3em);
+      margin: 12px 0;
+    }
+
+    .playAgain-btn {
+      background: #ffac30;
+      color: #fff;
+      border: none;
+      padding: clamp(10px, 1.5vw, 14px) clamp(20px, 3vw, 34px);
+      border-radius: 30px;
+      font-size: clamp(1em, 1.5vw, 1.1em);
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    /* RESPONSIVE: adjust buttons on smaller screens */
+    @media screen and (max-width:800px) {
+      body {
+        height: auto;
+        padding: 10px;
+        align-items: flex-start;
+        overflow: hidden;
+      }
+
+      .quiz {
+        height: auto;
+        gap: 20px;
+      }
+
+      .question {
+        font-size: 26px;
+        margin-top: 70px;
+      }
+
+      .image img {
+        max-height: 160px;
+      }
+
+      .options {
+        flex-direction: row;
+        gap: 30px;
+      }
+
+      .option-btn {
+        width: 140px;
+        padding: 14px 8px;
+        font-size: 22px;
+      }
+
+      .btn-emoji {
+        font-size: 28px;
+      }
+
+      button {
+        padding: 12px 24px;
+        font-size: 16px;
+      }
+
+      .kid-card {
+        width: 220px;
+        padding: 15px;
+      }
+
+      .kid-icon {
+        font-size: 2.5em;
+      }
+
+      .kid-card h3 {
+        font-size: 1.2em;
+      }
+
+      .kid-card p {
+        font-size: 0.9em;
+      }
+
+      .final-kid-box {
+        width: 240px;
+        padding: 18px;
+      }
+    }
+
+    @media screen and (max-width:600px) {
+      body {
+        height: auto;
+        padding: 10px;
+        align-items: flex-start;
+        overflow: hidden;
+      }
+
+      .quiz {
+        height: auto;
+        gap: 20px;
+      }
+
+      .question {
+        font-size: 20px;
+      }
+
+      .image img {
+        max-height: 90px;
+      }
+
+      .options {
+        flex-direction: row;
+        gap: 20px;
+      }
+
+      .option-btn {
+        width: 110px;
+        padding: 10px 5px;
+        font-size: 18px;
+      }
+
+      .btn-emoji {
+        font-size: 24px;
+      }
+
+      button {
+        padding: 10px 16px;
+        font-size: 14px;
+        margin-top: -20px;
+      }
+
+      .kid-card {
+        width: 180px;
+        padding: 15px;
+        border-radius: 20px;
+      }
+
+      .kid-icon {
+        font-size: 2.5em;
+        margin-bottom: 6px;
+      }
+
+      .kid-card h3 {
+        font-size: 1.2em;
+        margin-bottom: 4px;
+      }
+
+      .kid-card p {
+        font-size: 0.9em;
+      }
+
+      .final-kid-box {
+        width: 200px;
+        padding: 18px;
+        border-radius: 25px;
+      }
+
+      .final-kid-box h2 {
+        font-size: 1.4em;
+      }
+
+      .final-kid-box p {
+        font-size: 1em;
+      }
+
+      #stars {
+        font-size: 1.4em;
+      }
+
+      .playAgain-btn {
+        padding: 8px 16px;
+        font-size: 0.9em;
+      }
+    }
+
+    @media screen and (min-width:1225px) and (max-width:1440px) {
+      .quiz {
+        max-width: 1300px;
+        height: 90%;
+      }
+
+      .question {
+        font-size: 40px;
+      }
+
+      .image img {
+        max-height: 250px;
+      }
+
+      .option-btn {
+        width: 220px;
+        padding: 22px 12px;
+        font-size: 32px;
+      }
+
+      .btn-emoji {
+        font-size: 40px;
+      }
+
+      button {
+        padding: 18px 36px;
+        font-size: 25px;
+      }
+    }
+
+    @media screen and (min-width:1225px) and (max-width:1600px) {
+      .quiz {
+        max-width: 1350px;
+        height: 88%;
+      }
+
+      .question {
+        font-size: 38px;
+      }
+
+      .image img {
+        max-height: 230px;
+        margin: 5px auto;
+      }
+
+      .options {
+        gap: 40px;
+        margin-top: 10px;
+      }
+
+      .option-btn {
+        width: 200px;
+        padding: 18px 10px;
+        font-size: 30px;
+      }
+
+      .btn-emoji {
+        font-size: 36px;
+      }
+
+      button {
+        padding: 16px 34px;
+        font-size: 22px;
+      }
+
+      .nav {
+        margin-top: 10px;
+      }
+    }
+
+    @media screen and (min-width:1441px) and (max-width:1920px) {
+      .quiz {
+        max-width: 1600px;
+        height: 90%;
+      }
+
+      .question {
+        font-size: 40px;
+      }
+
+      .image img {
+        max-height: 240px;
+      }
+
+      .option-btn {
+        width: 220px;
+        padding: 20px 10px;
+        font-size: 32px;
+      }
+    }
+
+    @media screen and (min-width:1921px) {
+      .quiz {
+        max-width: 1900px;
+        height: 80%;
+      }
+
+      .question {
+        font-size: 50px;
+      }
+
+      .image img {
+        max-height: 280px;
+      }
+
+      .option-btn {
+        width: 260px;
+        padding: 24px 15px;
+        font-size: 38px;
+      }
+
+      .btn-emoji {
+        font-size: 46px;
+      }
+
+      button {
+        font-size: 22px;
+        padding: 16px 40px;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="quiz">
+
+    <div class="question" id="question"></div>
+
+    <div class="image">
+      <img id="img">
+    </div>
+
+    <div class="options">
+      <button class="option-btn option-true" id="trueBtn">
+        <span class="btn-emoji"></span> TRUE
+      </button>
+
+      <button class="option-btn option-false" id="falseBtn">
+        <span class="btn-emoji"></span> FALSE
+      </button>
+    </div>
+
+    <!-- ANSWER BOX - REMOVED COMPLETELY -->
+
+    <div class="nav">
+      <button id="prev">← Prev</button>
+      <button id="next" disabled>Next →</button>
+    </div>
+
+  </div>
+
+  <!-- POPUP -->
+  <div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+      <div class="kid-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <div id="finalPopup">
+    <div class="final-kid-box">
+      <h2>🎉 Congratulations!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div>
+      <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      { q: "Q1. The deficiency of mineral iron causes goitre.", img: "../images/tf1.png", correct: "F" },
+      { q: "Q2. Cooking kills the germs present in the food.", img: "../images/tf2.png", correct: "T" },
+      { q: "Q3. Rickets is caused due to the deficiency of vitamin A.", img: "../images/tf3.png", correct: "F" },
+      { q: "Q4. Our body needs minerals to grow and stay healthy.", img: "../images/tf4.png", correct: "T" },
+      { q: "Q5. Sugar and salt are two types of carbohydrates.", img: "../images/tf5.png", correct: "F" }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let answered = false;
+    let userAnswers = new Array(questions.length).fill(null);
+
+    const qEl = document.getElementById("question");
+    const imgEl = document.getElementById("img");
+    const next = document.getElementById("next");
+    const prev = document.getElementById("prev");
+    const trueBtn = document.getElementById("trueBtn");
+    const falseBtn = document.getElementById("falseBtn");
+
+    // Speech function
+    function speakText(text) {
+      let msg = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(msg);
+    }
+
+    // Popup function
+    function showPopup(isCorrect) {
+      const popup = document.getElementById("answerPopup");
+      const icon = document.getElementById("popupIcon");
+      const title = document.getElementById("popupTitle");
+      const msg = document.getElementById("popupMsg");
+
+      popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+      popup.style.display = "flex";
+
+      if (isCorrect) {
+        icon.textContent = "🎉😊";
+        title.textContent = "Great Job!";
+        msg.textContent = "You got it right!";
+      } else {
+        icon.textContent = "😭";
+        title.textContent = "Oops!";
+        msg.textContent = "Try again!";
+      }
+
+      setTimeout(() => popup.style.display = "none", 1200);
+    }
+
+    // Highlight selected button
+    function highlightButton(choice) {
+      trueBtn.classList.remove("active");
+      falseBtn.classList.remove("active");
+      if (choice === "T") {
+        trueBtn.classList.add("active");
+      } else {
+        falseBtn.classList.add("active");
+      }
+    }
+
+    // Remove any active highlight
+    function clearHighlight() {
+      trueBtn.classList.remove("active");
+      falseBtn.classList.remove("active");
+    }
+
+    // Show only correct answer button (keep it enabled), hide the wrong one completely
+    function keepOnlyCorrectAnswer(correctChoice) {
+      if (correctChoice === "T") {
+        // Correct answer is TRUE - hide FALSE button completely, keep TRUE button visible and enabled (not disabled)
+        falseBtn.style.display = "none";
+        trueBtn.style.display = "flex";
+        // TRUE button remains enabled (not disabled) - user can see it but it won't affect score if clicked again
+        // We'll allow it to be clickable but it won't change anything (answered already true)
+        trueBtn.disabled = false;
+        // Add a class to indicate it's the correct answer
+        trueBtn.classList.add("correct-keep");
+      } else {
+        // Correct answer is FALSE - hide TRUE button completely, keep FALSE button visible and enabled
+        trueBtn.style.display = "none";
+        falseBtn.style.display = "flex";
+        falseBtn.disabled = false;
+        falseBtn.classList.add("correct-keep");
+      }
+    }
+
+    // Reset both buttons to visible and enabled (for new question)
+    function resetButtons() {
+      trueBtn.style.display = "flex";
+      falseBtn.style.display = "flex";
+      trueBtn.disabled = false;
+      falseBtn.disabled = false;
+      trueBtn.classList.remove("active", "correct-keep");
+      falseBtn.classList.remove("active", "correct-keep");
+    }
+
+    function loadQ() {
+      answered = false;
+
+      // Reset buttons visibility and enabled state
+      resetButtons();
+
+      // Set question text and image
+      qEl.textContent = questions[current].q;
+      imgEl.src = questions[current].img;
+
+      // Restore previous answer if exists (when navigating back to already answered question)
+      if (userAnswers[current] !== null) {
+        answered = true;
+        next.disabled = false;
+        // restore highlight on the correct button
+        highlightButton(userAnswers[current]);
+        // keep only the correct answer visible (wrong one hidden)
+        keepOnlyCorrectAnswer(userAnswers[current]);
+      } else {
+        next.disabled = true;
+        clearHighlight();
+      }
+
+      // Prev button state
+      prev.disabled = (current === 0);
+    }
+
+    // Select answer: if wrong, just show popup and keep both options; if correct, hide wrong option and keep correct enabled
+    function selectAnswer(choice) {
+      if (answered) return;   // already answered this question correctly
+
+      // If the selected answer is WRONG: show popup, speak "Wrong", but DO NOT store answer
+      if (choice !== questions[current].correct) {
+        showPopup(false);
+        speakText("Wrong");
+        return;  // STOP: both buttons remain visible and enabled
+      }
+
+      // ✅ CORRECT ANSWER path
+      userAnswers[current] = choice;
+      
+      // highlight the chosen button
+      highlightButton(choice);
+
+      score++;   // increment score only for correct
+      confetti();   // celebrate
+      showPopup(true);
+      speakText("Correct");
+
+      answered = true;
+      next.disabled = false;
+      
+      // KEEP ONLY CORRECT ANSWER - hide the wrong option button, keep correct button visible and enabled
+      keepOnlyCorrectAnswer(choice);
+
+      // If this was the last question, show result after a short delay
+      if (current === questions.length - 1) {
+        setTimeout(showResult, 1200);
+      }
+    }
+
+    function nextQ() {
+      if (!answered) return;   // cannot proceed if current question not answered correctly
+
+      if (current < questions.length - 1) {
+        current++;
+        loadQ();
+      } else {
+        showResult();
+      }
+    }
+
+    function prevQ() {
+      if (current > 0) {
+        current--;
+        loadQ();
+      }
+    }
+
+    function finalConfetti() {
+      confetti({
+        particleCount: 120,
+        spread: 120,
+        origin: { y: 0.6 }
+      });
+    }
+
+    function showResult() {
+      document.getElementById("finalPopup").style.display = "flex";
+      document.getElementById("finalScore").innerText = "Your Score: " + score + " / " + questions.length;
+      document.getElementById("stars").innerText = "⭐".repeat(score);
+      finalConfetti();
+    }
+
+    // Assign event listeners
+    next.onclick = nextQ;
+    prev.onclick = prevQ;
+    trueBtn.onclick = () => selectAnswer('T');
+    falseBtn.onclick = () => selectAnswer('F');
+
+    // Initial load
+    loadQ();
+  </script>
+
+
+</body>
+</html>

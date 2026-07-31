@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Livvic';
+        }
+
+        /* ✅ PERFECT CENTERING */
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow: hidden;
+
+        }
+
+        /* ✅ MAIN WRAPPER */
+        .main-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .question {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            text-align: left;
+            font-size: 30px;
+            margin-bottom: 10px;
+            color: #2f4f4f;
+            margin-bottom: 30px;
+        }
+
+        /* CONTAINER */
+        .quiz-container {
+            width: 100%;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* LEFT IMAGE */
+        .left {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .left img {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        /* OPTIONS */
+        .right {
+            flex: 1.5;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0px 15px;
+        }
+
+        .option {
+            border-radius: 120px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+
+            height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+
+            border: 3px solid #83c8d4;
+
+            overflow: hidden;
+            margin-top: 20px;
+
+            backdrop-filter: blur(6px);
+
+            box-shadow:
+                0 8px 10px rgba(0, 0, 0, 0.219);
+
+        }
+
+        .option:nth-child(1),
+        .option:nth-child(2),
+        .option:nth-child(3),
+        .option:nth-child(4) {
+            background: #f8fbff;
+        }
+
+        .option:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .option:active {
+            transform: scale(0.97);
+        }
+
+        .correct {
+            background: #dff7e2 !important;
+            border: 4px solid #8ecf9b !important;
+            box-shadow: 0 0 0 4px rgba(142, 207, 155, 0.15);
+        }
+
+        .wrong {
+            background: #ffe3e3 !important;
+            border: 4px solid #e5a5a5 !important;
+            box-shadow: 0 0 0 4px rgba(229, 165, 165, 0.15);
+        }
+
+        .opt-img {
+            width: 90px;
+        }
+
+        .opt-text {
+
+            padding: 8px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: 500;
+
+            /* 🎯 CONTROL TEXT */
+            max-height: 50px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* NAV */
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            /* 🔥 bigger */
+            font-size: 18px;
+            /* 🔥 bigger text */
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .prev {
+            background: #83c8d4;
+            color: white;
+            /* box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); */
+        }
+
+        .next {
+            background: #ffcc3f;
+            color: white;
+            /* box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); */
+        }
+
+        /* .next:disabled {
+            background: #ccc;
+        } */
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .nav-buttons button:hover:not(:disabled) {
+            transform: scale(1.01);
+        }
+
+        /* POPUP */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            padding: 40px;
+            border-radius: 30px;
+            display: none;
+            animation: pop 0.4s forwards;
+            z-index: 100;
+        }
+
+        @keyframes pop {
+            to {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .correct-popup {
+            background: #edfced;
+            border: 2px solid #a8ddb5;
+            box-shadow: 0 10px 25px rgba(168, 221, 181, 0.25);
+        }
+
+        .wrong-popup {
+            background: #fff0f0;
+            border: 2px solid #efb0b0;
+            box-shadow: 0 10px 25px rgba(239, 176, 176, 0.2);
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%)
+            }
+
+            25% {
+                transform: translate(-50%, -50%) translateX(-10px)
+            }
+
+            50% {
+                transform: translate(-50%, -50%) translateX(10px)
+            }
+
+            75% {
+                transform: translate(-50%, -50%) translateX(-10px)
+            }
+        }
+
+        .final-popup {
+            background: #fff7ca;
+            border: 3px solid #ffbe0b;
+            box-shadow: 0 0 30px #c8c6c240;
+            padding: 50px;
+            font-size: 26px;
+        }
+
+        .play-again {
+            margin-top: 20px;
+
+            /* ✅ CENTER FIX */
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+
+            padding: 14px 30px;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #06d6a0, #1b9aaa);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .play-again:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #finalText {
+            font-weight: 600;
+        }
+
+        /* MOBILE */
+        @media(max-width:768px) {
+            .quiz-container {
+                flex-direction: column;
+            }
+        }
+
+        /* =========================
+   📱 MOBILE (0–600px)
+========================= */
+        @media (max-width:600px) {
+
+            body {
+                align-items: flex-start;
+            }
+
+            /* STACK LAYOUT */
+            .quiz-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            /* 🔥 SMALL QUESTION IMAGE */
+            .left img {
+                width: 60%;
+                max-width: 180px;
+            }
+
+            /* 🔥 FORCE 2x2 GRID */
+            .right {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 10px;
+                width: 100%;
+            }
+
+            /* 🔥 FLEXIBLE BOX (NO BREAK) */
+            .option {
+                height: auto;
+                /* remove fixed height issue */
+                min-height: 100px;
+                padding: 10px;
+                margin-top: 0;
+            }
+
+            /* SMALLER CONTENT */
+            .opt-img {
+                width: 45px;
+            }
+
+            .opt-text {
+                font-size: 12px;
+                padding: 6px;
+            }
+
+            /* BUTTONS */
+            button {
+                font-size: 15px;
+                padding: 10px 18px;
+            }
+
+            .popup {
+                width: 50%;
+                max-width: 260px;
+                padding: 18px;
+                border-radius: 20px;
+            }
+
+            /* TEXT SIZE SMALL */
+            .popup h4 {
+                font-size: 20px !important;
+            }
+
+            /* FINAL POPUP */
+            .final-popup {
+                width: 85%;
+                max-width: 280px;
+                padding: 20px;
+                font-size: 18px;
+            }
+
+            /* PLAY AGAIN BUTTON */
+            .play-again {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+        }
+
+        /* =========================
+   📲 TABLET (601px–900px)
+========================= */
+        /* =========================
+   📲 TABLET FIX (601px–900px)
+========================= */
+        @media (min-width:601px) and (max-width:900px) {
+
+            /* STACK PROPERLY */
+            .quiz-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+
+            /* IMAGE CONTROL */
+            .left {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+            }
+
+            .left img {
+                width: 50%;
+                max-width: 180px;
+            }
+
+            /* KEEP 2x2 GRID */
+            .right {
+                width: 100%;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+
+            .option {
+                height: auto;
+                /* remove fixed height issue */
+                min-height: 80px;
+                padding: 10px;
+                margin-top: 0;
+            }
+
+            /* SMALLER CONTENT */
+            .opt-img {
+                width: 45px;
+            }
+
+            /* BETTER TEXT SCALE */
+            .opt-text {
+                font-size: 14px;
+            }
+
+            /* BUTTONS BALANCE */
+            .nav-buttons {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            button {
+                flex: none;
+                width: auto;
+                padding: 12px 22px;
+                font-size: 16px;
+                margin-top: -20px;
+            }
+
+            .nav-buttons {
+                justify-content: center;
+                gap: 15px;
+            }
+        }
+
+
+        @media screen and (min-width:1025px) and (max-width:1400px) {
+
+            .main-wrapper {
+                max-width: 1200px;
+            }
+
+            .question {
+                font-size: 30px;
+            }
+
+            .left img {
+                max-width: 400px;
+            }
+
+            .option {
+                height: 160px;
+                padding: 20px;
+            }
+
+            .opt-img {
+                width: 80px;
+            }
+
+            .opt-text {
+                font-size: 18px;
+            }
+
+            /* button {
+                font-size: 22px;
+                padding: 18px 30px;
+            } */
+
+        }
+
+
+        /* =========================
+   🖥 LARGE MONITORS (1441px–1920px)
+========================= */
+        @media screen and (min-width:1441px) and (max-width:1920px) {
+
+            .main-wrapper {
+                max-width: 1400px;
+                /* 🔥 bigger layout */
+            }
+
+            .question {
+                font-size: 45px;
+            }
+
+            .left img {
+                max-width: 480px;
+            }
+
+            .option {
+                height: 200px;
+                /* 🔥 bigger boxes */
+                padding: 24px;
+            }
+
+            .opt-img {
+                width: 95px;
+            }
+
+            .opt-text {
+                font-size: 25px;
+            }
+
+            button {
+                font-size: 22px;
+                padding: 20px 36px;
+            }
+
+            .popup {
+                padding: 70px;
+            }
+
+            .final-popup {
+                font-size: 40px;
+                padding: 70px;
+            }
+
+            .play-again {
+
+                font-size: 22px;
+
+                padding: 18px 34px;
+
+                margin-top: 25px;
+
+                border-radius: 40px;
+
+            }
+
+        }
+
+        /* =========================
+   🖥 EXTRA LARGE / 4K (1921px+)
+========================= */
+        @media screen and (min-width:1921px) {
+
+            .main-wrapper {
+                max-width: 1600px;
+                /* 🔥 very wide but controlled */
+            }
+
+            .question {
+                font-size: 42px;
+            }
+
+            .left img {
+                max-width: 450px;
+            }
+
+            .option {
+                height: 220px;
+                padding: 30px;
+                border-radius: 40px;
+            }
+
+            .opt-img {
+                width: 110px;
+            }
+
+            .opt-text {
+                font-size: 20px;
+            }
+
+            button {
+                font-size: 22px;
+                padding: 18px 34px;
+            }
+
+            .popup {
+                padding: 60px;
+            }
+
+            .final-popup {
+                font-size: 34px;
+                padding: 70px;
+            }
+
+            .play-again {
+                font-size: 20px;
+                padding: 16px 32px;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-wrapper">
+
+        <div class="question" id="question"></div>
+
+        <div class="quiz-container">
+            <div class="left"><img id="qImage"></div>
+
+            <div class="right">
+                <div class="option" onclick="selectOption(0)"><img class="opt-img">
+                    <div class="opt-text"></div>
+                </div>
+                <div class="option" onclick="selectOption(1)"><img class="opt-img">
+                    <div class="opt-text"></div>
+                </div>
+                <div class="option" onclick="selectOption(2)"><img class="opt-img">
+                    <div class="opt-text"></div>
+                </div>
+                <div class="option" onclick="selectOption(3)"><img class="opt-img">
+                    <div class="opt-text"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="prev" onclick="prevQuestion()">← Prev</button>
+            <button class="next" id="nextBtn" onclick="nextQuestion()" disabled>Next →</button>
+        </div>
+
+    </div>
+
+    <div class="popup" id="popup"></div>
+    <div class="popup final-popup" id="finalPopup">
+        <h2 id="finalText"></h2>
+        <button class="play-again" onclick="restartQuiz()">🔄 Play Again</button>
+    </div>
+
+    <script>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                let questions = [
+            {
+                q: "Q1. The digestive system is ______.",
+                qImg: "../images/mcq1.png",
+                options: [
+                    "The body's breathing system",
+                    "The body's food processing system",
+                    "The body's waste removal system",
+                    "The body's blood transporting system"
+                ],
+                imgOptions: ["../images/breathing.png", "../images/food.png", "../images/waste.png", "../images/blood.png"],
+                correct: 1
+            },
+            {
+                q: "Q2. When food reaches the stomach, ______.",
+                qImg: "../images/mcq2.png",
+                options: [
+                    "Saliva moistens the food",
+                    "Food moves quickly to the small intestine",
+                    "Food is churned into a paste",
+                    "Food moves quickly into the large intestine"
+                ],
+                imgOptions: ["../images/saliva.png", "../images/intestine.png", "../images/churn.png", "../images/large.png"],
+                correct: 2
+            },
+            {
+                q: "Q3. We have 8 ______, 2 on either side of the jaws.",
+                qImg: "../images/mcq3.png",
+                options: [
+                    "Incisors",
+                    "Canines",
+                    "Premolars",
+                    "Molars"
+                ],
+                imgOptions: ["../images/incisors.png", "../images/canines.png", "../images/premolars.png", "../images/molars.png"],
+                correct: 2
+            },
+            {
+                q: "Q4. The ______ is the hardest substance present in the human body.",
+                qImg: "../images/mcq4.png",
+                options: [
+                    "Enamel",
+                    "Pulp",
+                    "Dentine",
+                    "Crown"
+                ],
+                imgOptions: ["../images/enamel.png", "../images/pulp.png", "../images/dentine.png", "../images/crown.png"],
+                correct: 0
+            },
+            {
+                q: "Q5. The set of milk teeth has ______ teeth.",
+                qImg: "../images/mcq5.png",
+                options: [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                imgOptions: ["../images/twentytwo.png", "../images/32.png", "../images/12.png", "../images/20.png"],
+                correct: 3
+            }
+        ];
+
+        let current = 0;
+        let score = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+        let locked = new Array(questions.length).fill(false);
+        let popupTimer = null;
+
+        /* 🔊 UK VOICE */
+        function speak(text) {
+            let msg = new SpeechSynthesisUtterance(text);
+            speechSynthesis.speak(msg);
+        }
+
+
+        /* LOAD */
+        function loadQuestion() {
+
+            let q = questions[current];
+            document.querySelector(".prev").disabled = current === 0;
+
+            document.getElementById("question").innerText = q.q;
+            document.getElementById("qImage").src = q.qImg;
+
+            let options = document.querySelectorAll(".option");
+
+            options.forEach((btn, i) => {
+                btn.querySelector(".opt-text").innerText = q.options[i];
+                btn.querySelector(".opt-img").src = q.imgOptions[i];
+                btn.classList.remove("correct", "wrong");
+                btn.style.opacity = "1";
+            });
+
+            /* restore */
+            if (userAnswers[current] !== null) {
+
+                let selected = userAnswers[current];
+
+                /* restore selected style */
+                options[selected].classList.add(
+                    selected === q.correct ? "correct" : "wrong"
+                );
+
+                /* restore opacity */
+                if (selected === q.correct) {
+
+                    options.forEach((btn, index) => {
+
+                        if (index !== selected) {
+                            btn.style.opacity = "0.4";
+                        }
+
+                    });
+
+                    document.getElementById("nextBtn").disabled = false;
+
+                    /* lock correct answered question */
+                    options.forEach(btn => {
+                        btn.style.pointerEvents = "none";
+                    });
+
+                } else {
+
+                    document.getElementById("nextBtn").disabled = true;
+
+                    /* 🔥 keep wrong answer disabled */
+                    options.forEach(btn => {
+                        btn.style.pointerEvents = "none";
+                    });
+
+                }
+
+            } else {
+
+                document.getElementById("nextBtn").disabled = true;
+
+                options.forEach(btn => {
+                    btn.style.pointerEvents = "auto";
+                });
+            }
+        }
+
+        /* SELECT */
+        function selectOption(i) {
+
+            let popup = document.getElementById("popup");
+
+            /* stop fast click */
+            if (popup.style.display === "block") return;
+
+            /* prevent if locked */
+            if (locked[current]) return;
+
+            let q = questions[current];
+            let options = document.querySelectorAll(".option");
+
+            options.forEach(btn => btn.classList.remove("correct", "wrong"));
+
+            userAnswers[current] = i;
+
+            if (i === q.correct) {
+
+                options.forEach((btn, index) => {
+
+                    if (index === i) {
+
+                        btn.classList.add("correct");
+                        btn.style.opacity = "1";
+
+                    } else {
+
+                        btn.style.opacity = "0.4";
+                    }
+
+                });
+
+
+
+                showPopup("🎉 Correct!");
+                speak("Correct");
+                confetti();
+
+                /* lock */
+                locked[current] = true;
+                options.forEach(btn => btn.style.pointerEvents = "none");
+
+                /* score once */
+                if (!q.answered) {
+                    score++;
+                    q.answered = true;
+                }
+
+                document.getElementById("nextBtn").disabled = false;
+
+                /* auto final */
+                if (current === questions.length - 1) {
+                    setTimeout(() => showFinal(), 1000);
+                }
+
+            } else {
+
+                options[i].classList.add("wrong");
+
+                showPopup("❌ Try again!");
+                speak("Try again");
+
+                document.getElementById("nextBtn").disabled = true;
+            }
+        }
+
+        /* 🎉 PERFECT POPUP (NO SMALL BUG) */
+        function showPopup(text) {
+
+            let popup = document.getElementById("popup");
+
+            /* stop previous */
+            if (popupTimer) clearTimeout(popupTimer);
+
+            /* reset fully */
+            popup.style.display = "none";
+            popup.className = "popup";
+            popup.style.animation = "none";
+
+            /* force refresh */
+            popup.offsetHeight;
+
+            /* restore animation */
+            popup.style.animation = "";
+
+            /* content */
+            popup.innerHTML = `<h4 style="font-size:34px;font-weight:600;">${text}</h4>`;
+
+            /* style */
+            if (text.includes("Correct")) {
+                popup.classList.add("correct-popup");
+            } else {
+                popup.classList.add("wrong-popup");
+            }
+
+            /* SHOW BIG directly */
+            popup.style.transform = "translate(-50%,-50%) scale(1)";
+            popup.style.display = "block";
+
+            /* auto hide */
+            popupTimer = setTimeout(() => {
+                popup.style.display = "none";
+            }, 1000);
+        }
+
+        /* NAV */
+        function nextQuestion() {
+            if (current < questions.length - 1) {
+                current++;
+                loadQuestion();
+            } else {
+                showFinal();
+            }
+        }
+
+        function prevQuestion() {
+            if (current > 0) {
+                current--;
+                loadQuestion();
+            }
+        }
+        function showFinal() {
+            document.getElementById("finalText").innerHTML =
+                `<span style="font-weight:600">🏆 Score: ${score}/${questions.length}</span>`;
+
+            document.getElementById("finalPopup").style.display = "block";
+            confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+        }
+
+        /* RESTART */
+        function restartQuiz() {
+            current = 0;
+            score = 0;
+
+            userAnswers.fill(null);
+            locked.fill(false);
+            questions.forEach(q => q.answered = false);
+
+            document.getElementById("finalPopup").style.display = "none";
+
+            loadQuestion();
+        }
+
+        /* INIT */
+        loadQuestion();                                 
+    </script>
+
+
+</body>
+</html>

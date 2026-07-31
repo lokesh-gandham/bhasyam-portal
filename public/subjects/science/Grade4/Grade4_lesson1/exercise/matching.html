@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Livvic';
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* CONTAINER */
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .game {
+            display: flex;
+            justify-content: center;
+            gap: clamp(60px, 10vw, 160px);
+            position: relative;
+        }
+
+        /* SVG */
+
+        svg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* COLUMNS */
+
+        .column {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        /* 🎨 COMPACT UNIQUE BOX */
+
+        .item {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            height: 70px;
+            cursor: pointer;
+            transition: 0.3s;
+            background: #f8fbff;
+
+            /* unique but clean */
+            /* border-radius: 20px 40px 20px 40px; */
+            border-radius: 14px;
+            border: 3px solid #83c8d4;
+
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.233);
+        }
+
+        /* COLORS */
+
+        /* .left .item:nth-child(1) {
+            background: #ff9aa2;
+        }
+
+        .left .item:nth-child(2) {
+            background: #ffd166;
+        }
+
+        .left .item:nth-child(3) {
+            background: #80ed99;
+        }
+
+        .left .item:nth-child(4) {
+            background: #90dbf4;
+        }
+
+        .left .item:nth-child(5) {
+            background: #cdb4db;
+        }
+
+        .right .item:nth-child(1) {
+            background: #ffe5ec;
+        }
+
+        .right .item:nth-child(2) {
+            background: #fef9c3;
+        }
+
+        .right .item:nth-child(3) {
+            background: #d8f3dc;
+        }
+
+        .right .item:nth-child(4) {
+            background: #caf0f8;
+        }
+
+        .right .item:nth-child(5) {
+            background: #e0c3fc;
+        } */
+
+        /* HOVER */
+
+
+        /* ACTIVE */
+
+        .item.active {
+
+            transform: translateY(-3px);
+
+            box-shadow:
+                0 10px 22px rgba(0, 0, 0, 0.08);
+
+        }
+
+        /* MATCHED */
+
+        .item.matched {
+            pointer-events: none;
+            opacity: 0.9;
+            box-shadow:
+                0 8px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        /* IMAGE */
+
+        .item img {
+            width: 50px;
+        }
+
+        /* ⚡ ENERGY LINE CLEAN */
+
+        .energy {
+            stroke-width: 4;
+            fill: none;
+            stroke-linecap: round;
+            stroke-dasharray: 10, 6;
+            animation: flow 4s linear infinite;
+        }
+
+        @keyframes flow {
+            to {
+                stroke-dashoffset: -40;
+            }
+        }
+
+        /* WRONG */
+
+        .wrong {
+            background: #ffd4d4 !important;
+            border: 2px solid rgb(243, 148, 148);
+            animation: shake 0.3s;
+        }
+
+        @keyframes shake {
+            25% {
+                transform: translateX(-4px);
+            }
+
+            50% {
+                transform: translateX(4px);
+            }
+        }
+
+        /* FINAL POPUP */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 40px;
+            border-radius: 30px;
+            display: none;
+            z-index: 100;
+            text-align: center;
+        }
+
+        .final-popup {
+            background: #fff7ca;
+            border: 3px solid #ffbe0b;
+            box-shadow: 0 0 30px #c8c6c240;
+            padding: 50px;
+            font-size: 26px;
+        }
+
+        .play-again {
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #06d6a0, #1b9aaa);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .play-again:hover {
+            transform: scale(1.1);
+        }
+
+        @media(max-width:700px) {
+            .container {
+                width: 95%;
+            }
+        }
+
+        /* =========================
+   📱 MOBILE (0–600px)
+========================= */
+        @media (max-width:600px) {
+
+            body {
+                align-items: flex-start;
+                padding: 10px;
+            }
+
+            /* FULL WIDTH */
+            .container {
+                width: 100%;
+            }
+
+            /* 🔥 KEEP SIDE-BY-SIDE */
+            .game {
+                flex-direction: row;
+                /* IMPORTANT */
+                gap: 20px;
+                align-items: flex-start;
+            }
+
+            /* BOTH COLUMNS FIT */
+            .column {
+                width: 50%;
+                gap: 12px;
+            }
+
+            /* SMALL COMPACT ITEMS */
+            .item {
+                font-size: 14px;
+                padding: 8px;
+                height: auto;
+            }
+
+            /* SMALL IMAGE */
+            .item img {
+                width: 28px;
+            }
+
+            /* 🔥 SVG STILL WORKS */
+            svg {
+                display: block;
+            }
+
+            /* SMALL POPUP */
+            .popup {
+                width: 80%;
+                padding: 18px;
+            }
+
+            .final-popup {
+                width: 85%;
+                padding: 20px;
+                font-size: 18px;
+            }
+        }
+
+        @media (min-width:601px) and (max-width:900px) {
+
+            .container {
+                width: 100%;
+            }
+
+            /* REDUCE GAP */
+            .game {
+                gap: 60px;
+            }
+
+            /* ADJUST ITEM SIZE */
+            .item {
+                height: auto;
+                font-size: 18px;
+            }
+
+            /* IMAGE MEDIUM */
+            .item img {
+                width: 40px;
+            }
+        }
+
+
+
+
+
+        /* =========================
+   📱 MOBILE (0–600px)
+========================= */
+        @media (max-width:600px) {
+
+            .game {
+                flex-direction: row;
+                gap: 15px;
+            }
+
+            /* KEEP BOTH SIDES SAME */
+            .column {
+                width: 50%;
+            }
+
+            /* SMALL BUT EQUAL */
+            .item {
+                min-height: 75px;
+                font-size: 13px;
+                padding: 8px;
+            }
+
+            .popup {
+                width: 50%;
+                max-width: 260px;
+                padding: 18px;
+                border-radius: 20px;
+            }
+
+            /* TEXT SIZE SMALL */
+            .popup h4 {
+                font-size: 20px !important;
+            }
+
+            /* FINAL POPUP */
+            .final-popup {
+                width: 85%;
+                max-width: 280px;
+                padding: 20px;
+                font-size: 18px;
+            }
+
+            /* PLAY AGAIN BUTTON */
+            .play-again {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+
+
+
+            /* IMAGE SMALL */
+            .item img {
+                width: 30px;
+            }
+
+
+            /* hide svg lines */
+            svg {
+                display: none;
+            }
+
+            /* matched pair same color */
+            .match-a {
+                background: #ffd6e0 !important;
+            }
+
+            .match-b {
+                background: #d0f4de !important;
+            }
+
+            .match-c {
+                background: #fff1b6 !important;
+            }
+
+            .match-d {
+                background: #cde7ff !important;
+            }
+
+            .match-e {
+                background: #e0c3fc !important;
+            }
+        }
+
+
+
+        /* =========================
+   🔥 GLOBAL FIX
+========================= */
+
+        /* FIX CONTAINER */
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        /* EQUAL COLUMNS ALWAYS */
+        .column {
+            width: 50% !important;
+        }
+
+        /* 🔥 FIX IMAGE SIZE (SAME EVERYWHERE) */
+        .item img {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+        }
+
+        /* TEXT WRAP CLEAN */
+        .item span {
+            flex: 1;
+            word-break: break-word;
+        }
+
+
+        /* =========================
+   📲 TABLET (601px–900px)
+========================= */
+        @media (min-width:601px) and (max-width:900px) {
+            body {
+                overflow: hidden;
+            }
+
+            .game {
+                gap: 60px;
+            }
+
+            .item {
+                min-height: 70px;
+                font-size: 16px;
+            }
+        }
+
+        /* ============================= */
+        /* 💻 Desktop (1025px - 1440px) */
+        /* ============================= */
+        @media screen and (min-width:1025px) and (max-width:1440px) {
+
+            .container {
+                max-width: 1100px;
+            }
+
+            .column {
+                width: 34% !important;
+            }
+
+            .game {
+                gap: 160px;
+            }
+
+            .item {
+                font-size: 20px;
+                min-height: 80px;
+            }
+
+        }
+
+
+        /* ============================= */
+        /* 🖥 Large Monitor (1441px - 1920px) */
+        /* ============================= */
+        @media screen and (min-width:1441px) and (max-width:1920px) {
+
+            .container {
+                max-width: 1400px;
+                /* 🔥 bigger */
+            }
+
+            .game {
+                gap: 220px;
+                /* 🔥 more space */
+            }
+
+            .column {
+                gap: 35px;
+
+            }
+
+            .item {
+                font-size: 24px;
+                min-height: 110px;
+                padding: 14px 18px;
+            }
+
+            .item img {
+                width: 60px;
+                height: 60px;
+            }
+
+            .popup {
+                padding: 70px;
+            }
+
+            .final-popup {
+                font-size: 40px;
+                padding: 70px;
+            }
+
+            .play-again {
+
+                font-size: 22px;
+
+                padding: 18px 34px;
+
+                margin-top: 25px;
+
+                border-radius: 40px;
+            }
+
+        }
+
+
+        /* ============================= */
+        /* 🧠 4K Screens (1921px+) */
+        /* ============================= */
+        @media screen and (min-width:1921px) {
+
+            .container {
+                max-width: 1700px;
+                /* 🔥 very big */
+            }
+
+            .game {
+                gap: 280px;
+            }
+
+            .column {
+                gap: 45px;
+
+            }
+
+            .item {
+                font-size: 28px;
+                min-height: 140px;
+                padding: 18px 22px;
+            }
+
+            .item img {
+                width: 75px;
+                height: 75px;
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="game">
+            <svg id="svg"></svg>
+
+            <div class="column left" id="left"></div>
+            <div class="column right" id="right"></div>
+
+        </div>
+
+
+    </div>
+
+    <!-- ✅ FINAL POPUP -->
+    <div class="popup final-popup" id="finalPopup">
+        <h2 id="finalText"></h2>
+        <button class="play-again" onclick="location.reload()">🔄 Play Again</button>
+    </div>
+    <script>
+
+        function speak(text) {
+            let msg = new SpeechSynthesisUtterance(text);
+            speechSynthesis.speak(msg);
+        }
+
+        let selected = null;
+        const svg = document.getElementById("svg");
+
+        /* DATA */
+        const leftData = [
+            { text: "Mouth", match: "c", img: "../images/mouth.png" },
+            { text: "Food pipe", match: "d", img: "../images/foodpipe.png" },
+            { text: "Stomach", match: "e", img: "../images/stomach.png" },
+            { text: "Small intestine", match: "b", img: "../images/smallintestine.png" },
+            { text: "Large intestine", match: "a", img: "../images/largeintestine.png" },
+        ];
+
+        const rightData = [
+            { text: "Absorbs most of the water from the undigested food.", match: "a" },
+            { text: "Absorbs the nutrients from the digested food.", match: "b" },
+            { text: "Produces saliva.", match: "c" },
+            { text: "Passes the food from the mouth into the stomach.", match: "d" },
+            { text: "Churns and makes the food into a paste.", match: "e" },
+        ];
+
+        /* ✅ NOW SAFE */
+        let score = 0;
+        let total = leftData.length;
+
+        const pairColors = {
+
+            a: "#ffcfd8",
+            b: "#d7f0dc",
+            c: "#ffedbf",
+            d: "#d3ebff",
+            e: "#ffe0c7"
+
+        };
+
+        const pairBorders = {
+
+            a: "#e7a8b7",
+            b: "#9fceb0",
+            c: "#e4c46d",
+            d: "#8fc3e8",
+            e: "#e2ab7f"
+
+        };
+
+        /* CREATE LEFT */
+        leftData.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "item";
+            div.dataset.match = item.match;
+
+            div.innerHTML = `<img src="${item.img}"><span>${item.text}</span>`;
+
+            div.onclick = () => {
+
+                document.querySelectorAll(".left .item").forEach(i => {
+                    i.classList.remove("active");
+
+                    // Reset only unmatched items
+                    if (!i.classList.contains("matched")) {
+                        i.style.background = "#f8fbff";   // default background
+                        i.style.border = "3px solid #83c8d4"; // default border
+                    }
+                });
+
+                div.classList.add("active");
+
+                let color = pairColors[div.dataset.match];
+                let border = pairBorders[div.dataset.match];
+
+                div.style.background = color;
+                div.style.border = `2px solid ${border}`;
+
+                selected = div;
+            };
+
+            document.getElementById("left").appendChild(div);
+        });
+
+        /* CREATE RIGHT */
+        rightData.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "item";
+            div.dataset.match = item.match;
+
+            div.innerHTML = `<span>${item.text}</span>`;
+
+            div.onclick = () => {
+
+                if (!selected) return;
+                if (selected.dataset.match === div.dataset.match) {
+
+                    /* 📱 CHECK MOBILE */
+                    if (window.innerWidth > 600) {
+                        drawLine(selected, div);   // desktop only
+                    }
+
+                    /* MATCHED */
+                    selected.classList.add("matched");
+                    div.classList.add("matched");
+
+                    let color = pairColors[selected.dataset.match];
+                    let border = pairBorders[selected.dataset.match];
+
+                    selected.style.background = color;
+                    selected.style.border = `2px solid ${border}`;
+
+                    div.style.background = color;
+                    div.style.border = `2px solid ${border}`;
+                    /* 📱 MOBILE SAME COLOR */
+                    if (window.innerWidth <= 600) {
+                        let cls = "match-" + selected.dataset.match;
+                        selected.classList.add(cls);
+                        div.classList.add(cls);
+                    }
+                    selected.classList.remove("active");
+
+                    confetti();
+
+                    /* ✅ SPEECH */
+                    speak("Correct");
+
+                    /* ✅ SCORE */
+                    score++;
+
+                    selected = null;
+
+                    /* 🎯 FINAL CHECK */
+                    if (score === total) {
+                        setTimeout(showFinal, 800);
+                    }
+
+                } else {
+
+                    div.classList.add("wrong");
+
+                    /* ❌ ONLY SPEECH */
+                    speak("Try again");
+
+                    setTimeout(() => div.classList.remove("wrong"), 300);
+                }
+            };
+
+            document.getElementById("right").appendChild(div);
+        });
+
+        /* DRAW LINE */
+        function drawLine(l, r) {
+
+            const r1 = l.getBoundingClientRect();
+            const r2 = r.getBoundingClientRect();
+            const s = svg.getBoundingClientRect();
+
+            const x1 = r1.right - s.left;
+            const y1 = r1.top + r1.height / 2 - s.top;
+
+            const x2 = r2.left - s.left;
+            const y2 = r2.top + r2.height / 2 - s.top;
+
+            const cx = (x1 + x2) / 2;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+            path.setAttribute("d", `M${x1},${y1} Q${cx},${y1 - 40} ${x2},${y2}`);
+            path.setAttribute(
+                "stroke",
+                pairBorders[l.dataset.match]
+            );
+            path.setAttribute("class", "energy");
+
+            svg.appendChild(path);
+        }
+
+        /* FINAL POPUP */
+        function showFinal() {
+            document.getElementById("finalText").innerHTML =
+                `<span style="font-weight:600">🏆 Score: ${score}/${total}</span>`;
+
+            document.getElementById("finalPopup").style.display = "block";
+            confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+        }
+
+    </script>
+
+</body>
+</html>

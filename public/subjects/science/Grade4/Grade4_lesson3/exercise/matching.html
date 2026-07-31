@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Livvic', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* background: linear-gradient(145deg, #fef9e6 0%, #fff4e0 100%); */
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .game {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 55px;
+      align-items: stretch;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      border-radius: 48px;
+      cursor: pointer;
+      position: relative;
+      background: #f6fff4;
+
+      border: 2px solid #eadfb4;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+      transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+
+    /* 🔴 SELECTED FOOD CARD - RED COLOR */
+    .item.selected-food {
+      background: linear-gradient(135deg, #ffe9c5, #ffdfc1) !important;
+      border: 3px solid #ffd489 !important;
+      transform: scale(1.02);
+      /* box-shadow: 0 0 20px rgba(255, 51, 51, 0.5) !important; */
+    }
+
+    .item.selected-food span {
+      color: #8b0000;
+      font-weight: 700;
+    }
+
+    .item.selected-food .img-box {
+      background: #ffe0e0;
+      box-shadow: inset 0 0 0 2px #ff6666;
+    }
+
+    /* ✅ ALL CORRECT MATCHES - GREEN COLOR */
+    .item.matched {
+      background: linear-gradient(135deg, #9befb0, #6fcf97) !important;
+      border: 2px solid #2ecc71 !important;
+      box-shadow: 0 0 16px rgba(46, 204, 113, 0.6) !important;
+      transform: scale(0.98);
+      pointer-events: none;
+      opacity: 0.95;
+      color: #1e4a2f;
+    }
+
+    .item.matched span {
+      color: #0a3b24;
+      font-weight: 700;
+    }
+
+    .item.matched .img-box {
+      background: #d4f5e2;
+      box-shadow: inset 0 0 0 2px #2ecc71, 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .wrong {
+      background: #ffe5e5 !important;
+      border: 2px solid #f8a5a5 !important;
+      animation: shake 0.35s ease-in-out;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-3px); }
+      100% { transform: translateX(0); }
+    }
+
+    .img-box {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #fff3cd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      flex-shrink: 0;
+      transition: 0.2s;
+    }
+
+    .img-box img {
+      width: 52px;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .item span {
+      color: #2f4f4f;
+      font-size: 1.15rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    /* SVG line layer */
+    #lineLayer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    /* POPUP STYLES */
+    .kid-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+    }
+
+    .kid-card {
+      background: #fff;
+      width: clamp(300px, 55vw, 360px);
+      padding: clamp(20px, 2.5vw, 30px);
+      border-radius: 30px;
+      text-align: center;
+    }
+
+    .kid-icon {
+      font-size: clamp(3em, 6vw, 4.5em);
+      margin-bottom: 10px;
+    }
+
+    .kid-card h3 {
+      font-size: clamp(1.4em, 2.5vw, 2em);
+      margin-bottom: 8px;
+    }
+
+    .kid-card p {
+      font-size: clamp(1em, 1.5vw, 1.2em);
+    }
+
+    .kid-correct .kid-card {
+      background: #e6fffa;
+      border: 6px solid #38d9a9;
+    }
+
+    .kid-wrong .kid-card {
+      background: #fff5f5;
+      border: 6px solid #ffa8a8;
+    }
+
+    /* FINAL POPUP */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+      /* background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px); */
+    }
+
+    .final-kid-box {
+      background: linear-gradient(135deg, #fff7d6, #e6fff5);
+      padding: clamp(20px, 3vw, 35px);
+      border-radius: 35px;
+      text-align: center;
+      width: clamp(280px, 60vw, 420px);
+      /* box-shadow: 0 20px 35px rgba(0,0,0,0.3); */
+      /* border: 2px solid #ffbe0b; */
+    }
+
+    .final-kid-box h2 {
+      font-size: clamp(1.6em, 3vw, 2.2em);
+      color: #2f9e44;
+      margin-bottom: 10px;
+    }
+
+    .final-kid-box p {
+      font-size: clamp(1.1em, 2vw, 1.3em);
+      font-weight: 600;
+    }
+
+    #stars {
+      font-size: clamp(1.5em, 3vw, 2.3em);
+      margin: 12px 0;
+    }
+
+    .playAgain-btn {
+      background: #ffac30;
+      color: #fff;
+      border: none;
+      padding: clamp(10px, 1.5vw, 14px) clamp(20px, 3vw, 34px);
+      border-radius: 30px;
+      font-size: clamp(1em, 1.5vw, 1.1em);
+      cursor: pointer;
+      margin-top: 12px;
+      transition: 0.2s;
+    }
+
+    .playAgain-btn:hover {
+      transform: scale(1.03);
+      background: #ff9f0a;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .container { padding: 8px; }
+      .row { gap: 18px; }
+      .item { padding: 8px 12px; gap: 8px; }
+      .img-box { width: 48px; height: 48px; }
+      .img-box img { width: 38px; }
+      .item span { font-size: 0.85rem; }
+    }
+
+    @media (max-width: 550px) {
+      .row { gap: 12px; }
+      .item span { font-size: 0.75rem; }
+      .img-box { width: 42px; height: 42px; }
+      .img-box img { width: 32px; }
+    }
+
+    @media (min-width: 1350px) and (max-width: 1600px) {
+      .container { max-width: 1200px; }
+      .row { gap: 70px; }
+      .item { padding: 16px 24px; gap: 16px; }
+      .img-box { width: 78px; height: 78px; }
+      .img-box img { width: 64px; }
+      .item span { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SVG layer for dynamic connection lines -->
+  <svg id="lineLayer" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="3.5" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#2ecc71" />
+        <stop offset="100%" stop-color="#27ae60" />
+      </linearGradient>
+      <style>
+        @keyframes dashFlow {
+          to { stroke-dashoffset: -48; }
+        }
+      </style>
+    </defs>
+  </svg>
+
+  <div class="container">
+    <div class="game" id="game"></div>
+  </div>
+
+  <!-- POPUP for correct/wrong -->
+  <div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+      <div class="kid-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <!-- FINAL POPUP -->
+  <div id="finalPopup">
+    <div class="final-kid-box">
+      <h2>🎉 Congratulations!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div>
+      <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // ----- SPEECH FUNCTION (ONLY "Correct" and "Wrong") -----
+      function speakText(text) {
+        if (!window.speechSynthesis) return;
+        let msg = new SpeechSynthesisUtterance(text);
+        msg.rate = 0.9;
+        msg.pitch = 1.0;
+        msg.volume = 0.7;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(msg);
+      }
+
+      // ----- DATA: Food items & Cooking methods -----
+      const leftData = [
+        { text: "Cakes", match: "d", img: "../images/Cakes.png", fallback: "🍰" },
+        { text: "Idli", match: "c", img: "../images/Idli.png", fallback: "🥞" },
+        { text: "Samosa", match: "a", img: "../images/Samosa.png", fallback: "🥟" },
+        { text: "Diced meat", match: "e", img: "../images/meat.png", fallback: "🍖" },
+        { text: "Rice", match: "b", img: "../images/Ricee.png", fallback: "🍚" }
+      ];
+
+      const rightData = [
+        { text: "Frying", match: "a" },
+        { text: "Boiling", match: "b" },
+        { text: "Steaming", match: "c" },
+        { text: "Baking", match: "d" },
+        { text: "Stewing", match: "e" }
+      ];
+
+      let selectedFoodCard = null;  // currently selected food card (red highlight)
+      let score = 0;
+      let matchedCount = 0;
+      const gameContainer = document.getElementById("game");
+      const svgLayer = document.getElementById("lineLayer");
+      
+      // Store drawn lines
+      let activeLines = [];
+
+      // ----- POPUP FUNCTIONS -----
+      function showPopup(isCorrect) {
+        const popup = document.getElementById("answerPopup");
+        const icon = document.getElementById("popupIcon");
+        const title = document.getElementById("popupTitle");
+        const msg = document.getElementById("popupMsg");
+
+        popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+        popup.style.display = "flex";
+
+        if (isCorrect) {
+          icon.textContent = "🎉😊";
+          title.textContent = "Great Job!";
+          msg.textContent = "You got it right!";
+        } else {
+          icon.textContent = "😭";
+          title.textContent = "Oops!";
+          msg.textContent = "Try again!";
+        }
+
+        setTimeout(() => popup.style.display = "none", 1200);
+      }
+
+      // ----- FINAL POPUP -----
+      function showFinalPopup() {
+        removeAllLines();
+        
+        const finalPopup = document.getElementById("finalPopup");
+        const finalScoreSpan = document.getElementById("finalScore");
+        const starsDiv = document.getElementById("stars");
+        
+        finalScoreSpan.innerText = "Your Score: " + score + " / " + leftData.length;
+        starsDiv.innerText = "⭐".repeat(score);
+        
+        finalPopup.style.display = "flex";
+        
+        // Grand confetti celebration
+        confetti({ particleCount: 180, spread: 100, origin: { y: 0.6 }, startVelocity: 20, colors: ['#10b981', '#f59e0b', '#3b82f6'] });
+        setTimeout(() => {
+          confetti({ particleCount: 120, spread: 85, origin: { y: 0.4, x: 0.2 }, startVelocity: 18 });
+          confetti({ particleCount: 120, spread: 85, origin: { y: 0.4, x: 0.8 }, startVelocity: 18 });
+        }, 150);
+      }
+
+      // Helper: handle missing images
+      function handleImageError(img, fallbackEmoji) {
+        img.onerror = () => {
+          if (img.parentElement && !img.parentElement.querySelector('.fallback-emoji')) {
+            img.style.display = 'none';
+            const span = document.createElement('span');
+            span.className = 'fallback-emoji';
+            span.textContent = fallbackEmoji;
+            span.style.fontSize = '32px';
+            span.style.lineHeight = '1';
+            img.parentElement.appendChild(span);
+          }
+        };
+      }
+
+      // Remove red selection from any food card
+      function clearFoodSelection() {
+        if (selectedFoodCard) {
+          selectedFoodCard.classList.remove("selected-food");
+          selectedFoodCard = null;
+        }
+      }
+
+      // Draw connecting line
+      function drawConnectionLine(leftEl, rightEl, rowIndex) {
+        const leftRect = leftEl.getBoundingClientRect();
+        const rightRect = rightEl.getBoundingClientRect();
+        
+        if (leftRect.width === 0 || rightRect.width === 0) return null;
+        
+        const startX = leftRect.right - 6;
+        const startY = leftRect.top + leftRect.height / 2;
+        const endX = rightRect.left + 6;
+        const endY = rightRect.top + rightRect.height / 2;
+        
+        const midX = (startX + endX) / 2;
+        const verticalOffset = 28;
+        const direction = (rowIndex % 2 === 0) ? -verticalOffset : verticalOffset;
+        const controlX = midX;
+        const controlY = startY + direction + (rowIndex * 2);
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const d = `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", "url(#lineGradient)");
+        path.setAttribute("stroke-width", "3.8");
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("stroke-dasharray", "10 8");
+        path.style.filter = "url(#glow)";
+        path.style.animation = "dashFlow 0.8s linear infinite";
+        
+        svgLayer.appendChild(path);
+        
+        addSparkleOnMatch(startX, startY, endX, endY);
+        
+        const lineData = {
+          path: path,
+          leftEl: leftEl,
+          rightEl: rightEl,
+          rowIndex: rowIndex,
+          updateHandler: null
+        };
+        
+        const updateLinePosition = () => {
+          if (!leftEl.isConnected || !rightEl.isConnected) {
+            removeLine(lineData);
+            return;
+          }
+          const newLeftRect = leftEl.getBoundingClientRect();
+          const newRightRect = rightEl.getBoundingClientRect();
+          if (newLeftRect.width === 0 || newRightRect.width === 0) return;
+          
+          const newStartX = newLeftRect.right - 6;
+          const newStartY = newLeftRect.top + newLeftRect.height / 2;
+          const newEndX = newRightRect.left + 6;
+          const newEndY = newRightRect.top + newRightRect.height / 2;
+          const newMidX = (newStartX + newEndX) / 2;
+          const newDirection = (lineData.rowIndex % 2 === 0) ? -28 : 28;
+          const newControlY = newStartY + newDirection + (lineData.rowIndex * 2);
+          const newD = `M ${newStartX} ${newStartY} Q ${newMidX} ${newControlY} ${newEndX} ${newEndY}`;
+          lineData.path.setAttribute("d", newD);
+        };
+        
+        window.addEventListener("resize", updateLinePosition);
+        window.addEventListener("scroll", updateLinePosition);
+        
+        lineData.updateHandler = updateLinePosition;
+        activeLines.push(lineData);
+        
+        return lineData;
+      }
+      
+      function removeLine(lineData) {
+        if (lineData.path && lineData.path.parentNode) lineData.path.remove();
+        if (lineData.updateHandler) {
+          window.removeEventListener("resize", lineData.updateHandler);
+          window.removeEventListener("scroll", lineData.updateHandler);
+        }
+        const index = activeLines.indexOf(lineData);
+        if (index !== -1) activeLines.splice(index, 1);
+      }
+      
+      function removeAllLines() {
+        activeLines.forEach(line => {
+          if (line.path && line.path.parentNode) line.path.remove();
+          if (line.updateHandler) {
+            window.removeEventListener("resize", line.updateHandler);
+            window.removeEventListener("scroll", line.updateHandler);
+          }
+        });
+        activeLines = [];
+        // Clear extra SVG elements but keep defs
+        const defs = svgLayer.querySelector('defs');
+        if (defs) {
+          const children = svgLayer.children;
+          for (let i = children.length - 1; i >= 0; i--) {
+            if (children[i] !== defs && children[i].tagName !== 'defs') {
+              children[i].remove();
+            }
+          }
+        }
+      }
+      
+      function addSparkleOnMatch(x1, y1, x2, y2) {
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        for (let i = 0; i < 8; i++) {
+          const spark = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          const angle = (Math.PI * 2 * i) / 8;
+          const radius = 16;
+          spark.setAttribute("cx", midX + Math.cos(angle) * radius);
+          spark.setAttribute("cy", midY + Math.sin(angle) * radius);
+          spark.setAttribute("r", "3.5");
+          spark.setAttribute("fill", `hsl(${120 + i * 30}, 85%, 55%)`);
+          spark.setAttribute("opacity", "1");
+          svgLayer.appendChild(spark);
+          
+          let opacity = 1;
+          let size = 3.5;
+          const interval = setInterval(() => {
+            opacity -= 0.12;
+            size -= 0.25;
+            if (opacity <= 0 || size <= 0) {
+              if (spark && spark.parentNode) spark.remove();
+              clearInterval(interval);
+            } else {
+              spark.setAttribute("opacity", opacity);
+              spark.setAttribute("r", size);
+            }
+          }, 35);
+        }
+      }
+      
+      // Build the game board
+      function buildGame() {
+        gameContainer.innerHTML = '';
+        removeAllLines();
+        clearFoodSelection();
+        score = 0;
+        matchedCount = 0;
+        
+        for (let i = 0; i < leftData.length; i++) {
+          const row = document.createElement("div");
+          row.className = "row";
+          row.dataset.rowIndex = i;
+          
+          // LEFT CARD (food item)
+          const leftCard = document.createElement("div");
+          leftCard.className = "item";
+          leftCard.dataset.match = leftData[i].match;
+          leftCard.dataset.rowId = i;
+          leftCard.dataset.side = "left";
+          leftCard.dataset.foodName = leftData[i].text;
+          
+          const imgBox = document.createElement("div");
+          imgBox.className = "img-box";
+          const img = document.createElement("img");
+          img.src = leftData[i].img;
+          img.alt = leftData[i].text;
+          handleImageError(img, leftData[i].fallback);
+          imgBox.appendChild(img);
+          
+          const textSpan = document.createElement("span");
+          textSpan.innerText = leftData[i].text;
+          
+          leftCard.appendChild(imgBox);
+          leftCard.appendChild(textSpan);
+          
+          // 🔴 FOOD CARD CLICK: highlights RED (selected)
+          leftCard.onclick = (e) => {
+            e.stopPropagation();
+            // If already matched, do nothing
+            if (leftCard.classList.contains("matched")) return;
+            
+            // Remove red selection from any previously selected food card
+            clearFoodSelection();
+            
+            // Add red selection to this card
+            leftCard.classList.add("selected-food");
+            selectedFoodCard = leftCard;
+          };
+          
+          // RIGHT CARD (cooking method)
+          const rightCard = document.createElement("div");
+          rightCard.className = "item";
+          rightCard.dataset.match = rightData[i].match;
+          rightCard.dataset.rowId = i;
+          rightCard.dataset.side = "right";
+          rightCard.dataset.methodName = rightData[i].text;
+          rightCard.innerHTML = `<span>${rightData[i].text}</span>`;
+          
+          // RIGHT CARD CLICK: match with selected food card
+          rightCard.onclick = (e) => {
+            e.stopPropagation();
+            
+            // If right card is already matched, ignore
+            if (rightCard.classList.contains("matched")) return;
+            
+            // If no food card is selected, show gentle hint but keep nothing selected
+            if (!selectedFoodCard) {
+              rightCard.style.transform = 'scale(0.98)';
+              setTimeout(() => { if(rightCard) rightCard.style.transform = ''; }, 150);
+              return;
+            }
+            
+            // If selected food card is already matched (should not happen but safety)
+            if (selectedFoodCard.classList.contains("matched")) {
+              clearFoodSelection();
+              return;
+            }
+            
+            // CHECK MATCH
+            if (selectedFoodCard.dataset.match === rightCard.dataset.match) {
+              // ✅ CORRECT MATCH
+              
+              // SPEECH: only "Correct"
+              speakText("Correct");
+              
+              // Show popup for correct
+              // showPopup(true);
+              
+              // confetti burst on match
+              confetti({ particleCount: 55, spread: 55, origin: { y: 0.6 }, colors: ['#2ecc71', '#27ae60', '#f59e0b'] });
+              
+              // draw beautiful connection line
+              const rowIdx = parseInt(selectedFoodCard.dataset.rowId) || 0;
+              drawConnectionLine(selectedFoodCard, rightCard, rowIdx);
+              
+              // mark as matched - BOTH CARDS TURN GREEN
+              selectedFoodCard.classList.add("matched");
+              rightCard.classList.add("matched");
+              
+              // Remove red selection class
+              selectedFoodCard.classList.remove("selected-food");
+              
+              // Disable further clicks
+              selectedFoodCard.style.pointerEvents = "none";
+              rightCard.style.pointerEvents = "none";
+              
+              score++;
+              matchedCount++;
+              
+              // Clear selected food reference
+              selectedFoodCard = null;
+              
+              // check game completion
+              if (matchedCount === leftData.length) {
+                setTimeout(showFinalPopup, 500);
+              }
+            } 
+            else {
+              // ❌ WRONG MATCH
+              
+              // SPEECH: only "Wrong"
+              speakText("Wrong");
+              
+              // Show popup for wrong
+              // showPopup(false);
+              
+              // Flash red on wrong answer for both cards
+              rightCard.classList.add("wrong");
+              if (selectedFoodCard) selectedFoodCard.classList.add("wrong");
+              
+              setTimeout(() => {
+                rightCard.classList.remove("wrong");
+                if (selectedFoodCard) selectedFoodCard.classList.remove("wrong");
+              }, 350);
+              
+              // ⭐ IMPORTANT: DO NOT clear selection!
+              // User keeps the same food selected and can try other cooking methods
+              // The selected food card stays red/highlighted
+            }
+          };
+          
+          row.appendChild(leftCard);
+          row.appendChild(rightCard);
+          gameContainer.appendChild(row);
+        }
+      }
+      
+      // Initialize game
+      buildGame();
+      
+      // Clean speech on page unload
+      window.addEventListener('beforeunload', () => {
+        if (window.speechSynthesis) speechSynthesis.cancel();
+        removeAllLines();
+      });
+      
+      // Add dynamic style for SVG animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes dashFlow {
+          to { stroke-dashoffset: -48; }
+        }
+      `;
+      document.head.appendChild(style);
+      
+    })();
+  </script>
+
+</body>
+</html>

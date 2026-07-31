@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Livvic';
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* MAIN BOX */
+    .quiz-box {
+      width: 100%;
+      max-width: 1400px;
+    }
+
+    /* QUESTION */
+    .question {
+      width: 100%;
+      max-width: 1400px;
+
+      height: 90px;
+      /* 🔥 FIXED HEIGHT */
+
+      display: flex;
+      /* center text */
+      align-items: center;
+      justify-content: center;
+
+      text-align: left;
+      font-size: 30px;
+      color: #2f4f4f;
+
+      overflow: hidden;
+      /* 🔥 prevents growing */
+    }
+
+    /* CONTENT LAYOUT */
+    .content {
+      display: flex;
+      gap: 120px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* LEFT IMAGE */
+    .question-img {
+      width: 300px;
+      height: 250px;
+      object-fit: contain;
+    }
+
+    /* 🌈 IMAGE WRAPPER */
+    .image-wrap {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 🎈 MAIN CIRCLE */
+    .image-circle {
+      width: 300px;
+      height: 300px;
+      border-radius: 999px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      /* background:#cecece; */
+
+      /* box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.068),
+        inset 0 0 30px rgba(255, 255, 255, 0.267); */
+
+      /* border: 5px solid #fff; */
+
+      /* animation: floatCircle 4s ease-in-out infinite alternate; */
+
+      position: relative;
+    }
+
+    /* 🖼 IMAGE */
+    .image-circle img {
+      width: 95%;
+      height: 95%;
+      object-fit: contain;
+    }
+
+
+
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, 220px);
+      /* 🔥 same width */
+      justify-content: center;
+      gap: 50px;
+    }
+
+    .option {
+      position: relative;
+      color: #2f4f4f;
+      width: 200px;
+      /* 🔥 FIXED WIDTH */
+      height: 70px;
+      /* 🔥 FIXED HEIGHT */
+
+      display: flex;
+      /* 🔥 CENTER TEXT */
+      align-items: center;
+      justify-content: flex-start;
+
+      padding: 10px;
+      padding-left: 20px;
+      border-radius: 30px;
+
+      text-align: center;
+      font-size: 18px;
+      font-weight: 400;
+      cursor: pointer;
+
+      /* background: linear-gradient(135deg, #a4e2da, #a3dfd7a9); */
+      background: linear-gradient(145deg, #98d6b0, #81cca3);
+      border: 4px solid #fff;
+
+      box-shadow:
+        /* inset -6px -8px 12px rgba(0, 0, 0, .1), */
+        /* inset 6px 8px 12px rgba(255, 255, 255, .8), */
+        0 10px 20px rgba(0, 0, 0, .15);
+
+      transition: all .25s ease;
+      animation: float 3s ease-in-out infinite alternate;
+
+      overflow: hidden;
+      /* 🔥 prevents overflow */
+    }
+
+    /* 🎨 different colors for each option */
+
+
+    /* ✨ hover effect */
+    .option:hover {
+      transform: translateY(-8px) scale(1.05);
+    }
+
+    .correct {
+      background: linear-gradient(135deg, #caffbf, #b2f2bb) !important;
+      box-shadow: 0 0 0 2px #69db7c, 0 12px 25px rgba(0, 0, 0, .2);
+      transform: scale(1.02);
+    }
+
+    .opt-img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin-right: 8px;
+    }
+
+    .wrong {
+      background: linear-gradient(135deg, #ffccd5, #ff8fab);
+      animation: shake .3s;
+    }
+
+    @keyframes shake {
+      0% {
+        transform: translateX(0)
+      }
+
+      25% {
+        transform: translateX(-5px)
+      }
+
+      50% {
+        transform: translateX(5px)
+      }
+
+      75% {
+        transform: translateX(-5px)
+      }
+
+      100% {
+        transform: translateX(0)
+      }
+    }
+
+    /* NAV */
+    .nav {
+      margin-top: 30px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    button {
+      border: none;
+      padding: 14px 28px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: .3s;
+      border: 2px solid #fff;
+      position: relative;
+      overflow: hidden;
+
+    }
+
+    /* PREV */
+    .prev {
+      background: linear-gradient(135deg, #ff9a9e, #ff9a9e);
+      color: #333;
+    }
+
+    /* NEXT */
+    .next {
+      background: linear-gradient(135deg, #a1c4fd, #a1c4fd);
+      color: #333;
+    }
+
+    /* HOVER */
+    button:hover {
+      transform: translateY(-4px) scale(1.05);
+    }
+
+    /* CLICK */
+    button:active {
+      transform: scale(0.95);
+    }
+
+    /* DISABLED */
+    button:disabled {
+      /* background: #ddd; */
+      opacity: 0.4;
+      color: #888;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* ✨ sparkle effect */
+    /* button::after {
+      content: "✨";
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      font-size: 14px;
+    } */
+
+    /* 🌈 POPUP BACKGROUND */
+    .kid-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+
+      backdrop-filter: blur(6px);
+      z-index: 999;
+    }
+
+    /* 🎉 CARD */
+    .kid-card {
+      width: 300px;
+      padding: 30px 20px;
+      border-radius: 35px;
+      text-align: center;
+
+      background: linear-gradient(135deg, #fff7d6, #e6fff5);
+
+      box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.25),
+        inset 0 0 20px rgba(255, 255, 255, 0.5);
+
+      animation: popupBounce .4s ease;
+    }
+
+    /* 🎈 ICON */
+    .kid-card::before {
+      content: "🎉";
+      font-size: 60px;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    /* TEXT */
+    .kid-card h3 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .kid-card p {
+      font-size: 18px;
+    }
+
+    /* ✅ CORRECT */
+    .kid-correct .kid-card {
+      border: 6px solid #38d9a9;
+    }
+
+    /* ❌ WRONG */
+    .kid-wrong .kid-card {
+      border: 6px solid #ff8787;
+    }
+
+    /* 🎬 ANIMATION */
+    @keyframes popupBounce {
+      0% {
+        transform: scale(0.5)
+      }
+
+      70% {
+        transform: scale(1.1)
+      }
+
+      100% {
+        transform: scale(1)
+      }
+    }
+
+    .kid-card::before {
+      content: var(--emoji);
+    }
+
+    /* 🎉 FINAL POPUP FIX */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+
+      backdrop-filter: blur(2px);
+      z-index: 2000;
+    }
+
+    /* 🎊 FINAL CARD (PLAYFUL) */
+    .final-kid-box {
+      width: 350px;
+      padding: 30px;
+      border-radius: 35px;
+      text-align: center;
+
+      background: linear-gradient(135deg, #ffe0f0, #d0f4ff);
+
+      box-shadow:
+        0 20px 50px rgba(0, 0, 0, .3),
+        inset 0 0 20px rgba(255, 255, 255, .5);
+
+      animation: popupBounce .5s ease;
+    }
+
+    /* 🎉 BIG EMOJI */
+    .final-kid-box::before {
+      content: "🏆";
+      font-size: 70px;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    /* TEXT */
+    .final-kid-box h2 {
+      font-size: 26px;
+      margin-bottom: 10px;
+    }
+
+    .final-kid-box p {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    /* PLAY AGAIN BUTTON */
+    .final-kid-box button {
+      margin-top: 15px;
+      background: linear-gradient(135deg, #ffd166, #ff9f1c);
+      color: #333;
+      font-weight: 700;
+    }
+
+    /* MOBILE */
+    @media(max-width:768px) {
+
+      body {
+        padding: 10px;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .quiz-box {
+        width: 100%;
+      }
+
+      /* stack layout */
+      .content {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* image smaller */
+      .image-circle {
+        width: 150px;
+        height: 150px;
+      }
+
+      /* options full width */
+      .options {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .option {
+        width: 80%;
+        height: 50px;
+        font-size: 12px;
+      }
+
+      .opt-img {
+        width: 30px;
+        height: 30px;
+        object-fit: contain;
+        margin-right: 8px;
+      }
+
+      /* question text */
+      .question {
+        font-size: 20px;
+      }
+
+      /* nav fixed bottom */
+
+      .kid-card {
+        width: 90%;
+        padding: 30px 20px;
+      }
+
+      .final-kid-box {
+        width: 90%;
+        padding: 35px 20px;
+      }
+
+    }
+
+
+    @media screen and (min-width:1025px) and (max-width:1440px) {
+
+      .quiz-box {
+        width: 90%;
+      }
+
+      .content {
+        gap: 80px;
+      }
+
+      .image-circle {
+        width: 260px;
+        height: 260px;
+      }
+
+      .option {
+        width: 200px;
+        height: 70px;
+      }
+
+    }
+
+    @media screen and (min-width:1441px) and (max-width:1920px) {
+
+      .quiz-box {
+        width: 100%;
+      }
+
+      .question {
+        font-size: 42px !important;
+        /* 🔥 force override */
+        line-height: 1.3;
+      }
+
+      .content {
+        gap: 120px;
+      }
+
+      .image-circle {
+        width: 380px;
+        height: 380px;
+      }
+
+      .options {
+        gap: 60px 180px
+      }
+
+      .option {
+        width: 280px;
+        height: 100px;
+        font-size: 26px;
+
+      }
+
+      .question {
+        font-size: 45px;
+      }
+
+      button {
+        font-size: 25px;
+        padding: 20px 38px;
+      }
+
+      /* 🎉 ANSWER POPUP BIGGER */
+      .kid-card {
+        width: 420px;
+        /* bigger */
+        padding: 55px 40px;
+        /* more height */
+
+        transform: scale(1.05);
+        /* slight zoom */
+
+        border-radius: 40px;
+      }
+
+      /* 🎈 EMOJI SIZE */
+      .kid-card::before {
+        font-size: 80px;
+      }
+
+      /* TEXT */
+      .kid-card h3 {
+        font-size: 30px;
+      }
+
+      .kid-card p {
+        font-size: 22px;
+      }
+
+      /* 🎊 FINAL POPUP BIGGER */
+      .final-kid-box {
+        width: 460px;
+        /* bigger than default */
+        padding: 60px 45px;
+
+        transform: scale(1.08);
+        /* visual boost */
+
+        border-radius: 40px;
+      }
+
+      /* 🏆 ICON */
+      .final-kid-box::before {
+        font-size: 90px;
+      }
+
+      /* TEXT */
+      .final-kid-box h2 {
+        font-size: 32px;
+      }
+
+      .final-kid-box p {
+        font-size: 24px;
+      }
+
+      /* BUTTON */
+      .final-kid-box button {
+        font-size: 22px;
+        padding: 18px 32px;
+      }
+    }
+
+    @media screen and (min-width:1921px) {
+
+      .quiz-box {
+        width: 100%;
+      }
+
+      .content {
+        gap: 80px;
+      }
+
+      .options {
+        display: grid;
+        grid-template-columns: repeat(2, 320px);
+        justify-content: center;
+        gap: 50px;
+      }
+
+      .image-circle {
+        width: 350px;
+        height: 350px;
+      }
+
+      .option {
+        width: 260px;
+        height: 90px;
+        font-size: 22px;
+      }
+
+      .question {
+        font-size: 40px;
+      }
+
+      button {
+        font-size: 22px;
+        padding: 18px 40px;
+      }
+    }
+
+    /* ========================================
+🖥️ MONITOR POPUP RESPONSIVE
+======================================== */
+
+
+    /* ================= 1350px — 1500px ================= */
+
+    @media screen and (min-width:1350px) and (max-width:1500px) {
+
+      .popup-card,
+      .kid-card {
+        width: 380px;
+        padding: 32px 26px;
+        border-radius: 38px;
+      }
+
+      .popup-bubble,
+      .kid-icon {
+        width: 85px;
+        height: 85px;
+        font-size: 42px;
+      }
+
+      .popup-card h2,
+      .kid-card h3 {
+        font-size: 30px;
+      }
+
+      .popup-card p,
+      .kid-card p {
+        font-size: 18px;
+      }
+
+      .popup-stars {
+        font-size: 32px;
+      }
+
+      .finalpopup-box,
+      .final-kid-box {
+        width: 520px;
+        max-width: 520px;
+        padding: 38px;
+        border-radius: 40px;
+      }
+
+      .final-heading,
+      .final-kid-box h2 {
+        font-size: 34px;
+      }
+
+      .final-sub,
+      .final-kid-box p {
+        font-size: 18px;
+      }
+
+      #stars {
+        font-size: 38px;
+      }
+
+      .playAgain-btn,
+      .next-section-btn {
+        font-size: 17px;
+        padding: 14px 24px;
+        border-radius: 18px;
+      }
+    }
+
+
+
+    /* ================= 1501px — 1700px ================= */
+
+    @media screen and (min-width:1501px) and (max-width:1700px) {
+
+      .popup-card,
+      .kid-card {
+        width: 430px;
+        padding: 38px 30px;
+        border-radius: 44px;
+      }
+
+      .popup-bubble,
+      .kid-icon {
+        width: 100px;
+        height: 100px;
+        font-size: 48px;
+      }
+
+      .popup-card h2,
+      .kid-card h3 {
+        font-size: 36px;
+      }
+
+      .popup-card p,
+      .kid-card p {
+        font-size: 20px;
+      }
+
+      .popup-stars {
+        font-size: 40px;
+      }
+
+      .finalpopup-box,
+      .final-kid-box {
+        width: 620px;
+        max-width: 620px;
+        padding: 48px;
+        border-radius: 50px;
+      }
+
+      .final-heading,
+      .final-kid-box h2 {
+        font-size: 42px;
+      }
+
+      .final-sub,
+      .final-kid-box p {
+        font-size: 22px;
+      }
+
+      #stars {
+        font-size: 44px;
+      }
+
+      .playAgain-btn,
+      .next-section-btn {
+        font-size: 19px;
+        padding: 16px 28px;
+        border-radius: 20px;
+      }
+    }
+
+
+
+    /* ================= 1701px — 1920px ================= */
+
+    @media screen and (min-width:1701px) and (max-width:1920px) {
+
+      .popup-card,
+      .kid-card {
+        width: 500px;
+        padding: 45px 35px;
+        border-radius: 55px;
+      }
+
+      .popup-bubble,
+      .kid-icon {
+        width: 115px;
+        height: 115px;
+        font-size: 56px;
+      }
+
+      .popup-card h2,
+      .kid-card h3 {
+        font-size: 42px;
+      }
+
+      .popup-card p,
+      .kid-card p {
+        font-size: 24px;
+      }
+
+      .popup-stars {
+        font-size: 48px;
+      }
+
+      .finalpopup-box,
+      .final-kid-box {
+        width: 760px;
+        max-width: 760px;
+        padding: 60px;
+        border-radius: 65px;
+      }
+
+      .final-heading,
+      .final-kid-box h2 {
+        font-size: 52px;
+      }
+
+      .final-sub,
+      .final-kid-box p {
+        font-size: 26px;
+      }
+
+      #stars {
+        font-size: 52px;
+      }
+
+      .playAgain-btn,
+      .next-section-btn {
+        font-size: 22px;
+        padding: 18px 32px;
+        border-radius: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="quiz-box">
+
+    <div class="question" id="question"></div>
+
+    <div class="content">
+      <div class="image-wrap">
+        <div class="image-circle">
+          <img id="questionImg">
+        </div>
+      </div>
+      <div class="options" id="options"></div>
+    </div>
+
+    <div class="nav">
+      <button class="prev" id="prevBtn" onclick="prevQ()" disabled>← Prev</button>
+      <button class="next" id="nextBtn" onclick="nextQ()" disabled>Next →</button>
+    </div>
+
+  </div>
+
+  <!-- POPUP -->
+  <div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <!-- FINAL -->
+  <div id="finalPopup">
+    <div class="final-kid-box">
+      <h2>🎉 Congratulations!</h2>
+      <p id="finalScore"></p>
+      <button onclick="location.reload()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    function speak(text) {
+      let msg = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(msg);
+    }
+    const quiz = [
+
+      {
+        q: "Q1. ______ is necessary for burning things.",
+        img: "../images/mcq1.png",
+        options: ["Carbon dioxide", "Hydrogen", "Oxygen", "Nitrogen"],
+        imgOptions: [
+          "../images/co2.png",
+          "../images/Hydrogen.png",
+          "../images/oxygen.png",
+          "../images/Nitrogen.png"
+        ],
+        correct: 2
+      },
+
+      {
+        q: "Q2. The Sun's heat ______ the water from the lakes, seas and oceans into water vapour.",
+        img: "../images/mcq2.png",
+        options: ["Condenses", "Evaporates", "Freezes", "Cools"],
+        imgOptions: [
+          "../images/condenses.png",
+          "../images/evaporates1.png",
+          "../images/freezes.png",
+          "../images/cool.png"
+        ],
+        correct: 1
+      },
+
+      {
+        q: "Q3. The process by which water vapour changes into water due to cooling is called ______.",
+        img: "../images/mcq3.png",
+        options: ["Evaporation", "Condensation", "Water cycle", "Freezing"],
+        imgOptions: [
+          "../images/evaporates.png",
+          "../images/condenses.png",
+          "../images/watercycle.png",
+          "../images/freezes.png"
+        ],
+        correct: 1
+      },
+
+      {
+        q: "Q4. The water vapour ______ and condenses into small water droplets to form clouds.",
+        img: "../images/mcq4.png",
+        options: ["Heats", "Cools", "Increases", "Decreases"],
+        imgOptions: [
+          "../images/heat.png",
+          "../images/cool.png",
+          "../images/increase.png",
+          "../images/decrease.png"
+        ],
+        correct: 1
+      },
+
+      {
+        q: "Q5. ______ is the droplets of water found on leaves and flowers.",
+        img: "../images/mcq5.png",
+        options: ["Fog", "Smoke", "Dew", "Mist"],
+        imgOptions: [
+          "../images/fog.png",
+          "../images/smoke.png",
+          "../images/dew.png",
+          "../images/mist.png"
+        ],
+        correct: 2
+      }
+
+    ];
+
+    let current = 0
+    let score = 0
+    let answered = false
+    let userAnswers = new Array(quiz.length).fill(null);
+    function showPopup(isCorrect) {
+
+      const popup = document.getElementById("answerPopup")
+      popup.style.display = "flex"
+
+      document.getElementById("popupTitle").innerText =
+        isCorrect ? "Great Job!" : "Oops!"
+
+      document.getElementById("popupMsg").innerText =
+        isCorrect ? "Correct Answer" : "Try Again"
+
+      popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong")
+
+      setTimeout(() => popup.style.display = "none", 1200)
+
+    }
+
+    function loadQuestion() {
+
+      answered = false;
+
+      document.getElementById("nextBtn").disabled = true;
+      document.getElementById("prevBtn").disabled = current === 0;
+
+      document.getElementById("question").innerText = quiz[current].q;
+      document.getElementById("questionImg").src = quiz[current].img;
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      quiz[current].options.forEach((opt, i) => {
+
+        const div = document.createElement("div");
+
+        div.className = "option";
+
+        div.innerHTML = `
+      <img src="${quiz[current].imgOptions[i]}" class="opt-img">
+      <span>${opt}</span>
+    `;
+
+        /* ✅ RESTORE PREVIOUS STATE */
+        if (userAnswers[current] !== null) {
+
+          answered = true;
+
+          document.getElementById("nextBtn").disabled = false;
+
+          /* correct option */
+          if (i === quiz[current].correct) {
+
+            div.classList.add("correct");
+
+          }
+
+          /* fade wrong options */
+          else {
+
+            div.style.opacity = "0.4";
+
+          }
+
+          div.style.pointerEvents = "none";
+        }
+
+        /* 🔥 CLICK EVENT */
+        div.onclick = () => {
+
+          /* STOP MULTIPLE CLICK */
+          if (userAnswers[current] !== null) return;
+
+          /* ✅ CORRECT */
+          if (i === quiz[current].correct) {
+
+            div.classList.add("correct");
+
+            confetti({
+              particleCount: 90,
+              spread: 90,
+              origin: { y: 0.6 }
+            });
+
+            score++;
+
+            answered = true;
+
+            userAnswers[current] = i;
+
+            showPopup(true);
+
+            speak("Correct");
+
+            /* 🔥 FADE OTHER OPTIONS */
+            const allOptions =
+              document.querySelectorAll(".option");
+
+            allOptions.forEach((o, index) => {
+
+              if (index !== quiz[current].correct) {
+
+                o.style.opacity = "0.4";
+
+              }
+
+              o.style.pointerEvents = "none";
+
+            });
+
+            if (current === quiz.length - 1) {
+
+              setTimeout(showResult, 500);
+
+            } else {
+
+              document.getElementById("nextBtn").disabled = false;
+
+            }
+
+          }
+
+          /* ❌ WRONG */
+          else {
+
+            div.classList.add("wrong");
+
+            showPopup(false);
+
+            speak("Try again");
+
+            /* 🔥 REMOVE WRONG STYLE AGAIN */
+            setTimeout(() => {
+
+              div.classList.remove("wrong");
+
+            }, 500);
+
+          }
+
+        };
+
+        optionsDiv.appendChild(div);
+
+      });
+
+    }
+
+    function nextQ() {
+      current++
+      loadQuestion()
+    }
+
+    function prevQ() {
+      current--
+      loadQuestion()
+    }
+    function showPopup(isCorrect) {
+
+      const popup = document.getElementById("answerPopup")
+      const card = popup.querySelector(".kid-card")
+
+      card.style.setProperty("--emoji", isCorrect ? "🎉" : "😅")
+
+      popup.style.display = "flex"
+
+      document.getElementById("popupTitle").innerText =
+        isCorrect ? "Awesome!" : "Oops!"
+
+      document.getElementById("popupMsg").innerText =
+        isCorrect ? "You got it right!" : "Try again!"
+
+      popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong")
+
+      setTimeout(() => popup.style.display = "none", 1400)
+
+    }
+
+    function showResult() {
+
+      document.getElementById("finalPopup").style.display = "flex"
+
+      document.getElementById("finalScore").innerText =
+        "Your Score: " + score + " / " + quiz.length
+
+      /* 🎊 BIG CONFETTI */
+      confetti({
+
+        particleCount: 300,
+        spread: 150,
+        origin: { y: 0.6 }
+
+      })
+
+
+    }
+
+    loadQuestion()
+
+  </script>
+
+
+</body>
+</html>

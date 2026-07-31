@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    /* ===== ORIGINAL DESIGN (UNCHANGED) ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Livvic';
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .quiz-box {
+      width: 100%;
+      max-width: 1400px;
+    }
+
+    .header p {
+      font-size: 30px;
+      text-align: center;
+      margin-bottom: 90px;
+      color: #2f4f4f;
+    }
+
+    .grid {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 40px;
+    }
+
+    /* 🎈 CIRCLE */
+    /* 🎈 CIRCLE */
+
+    .item {
+
+      width: 300px;
+      height: 280px;
+
+      border-radius: 50%;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      text-align: center;
+
+      padding: 20px;
+
+      /* ✅ SINGLE PASTEL COLOR */
+
+    background: linear-gradient(145deg, #98d6b0, #81cca3);
+
+    }
+
+    /* IMAGE */
+    .item img {
+      width: 110px;
+      height: 110px;
+      margin-bottom: 8px;
+    }
+
+    /* TEXT */
+    .qtext {
+      font-size: 30px;
+      color: #2f4f4f;
+      margin-bottom: 10px;
+    }
+
+    /* INPUT */
+    .answer {
+      width: 90px;
+      height: 45px;
+      border-radius: 25px;
+      border: none;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 500;
+      background: linear-gradient(#fff, #f3f4f6);
+      box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.15),
+        0 4px 10px rgba(0, 0, 0, 0.2);
+      outline: none;
+    }
+
+    .answer:focus {
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.8),
+        inset 0 3px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    /* BUTTON */
+    .check-btn {
+      margin-top: 10px;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      cursor: pointer;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .check-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* ===================================== */
+    /* ✅ EXACT MCQ POPUP (ADDED) */
+    /* ===================================== */
+
+    .kid-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(6px);
+      z-index: 999;
+    }
+
+    .kid-card {
+      width: 320px;
+      padding: 40px 25px;
+      border-radius: 35px;
+      text-align: center;
+      background: linear-gradient(135deg, #fff7d6, #e6fff5);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25),
+        inset 0 0 20px rgba(255, 255, 255, 0.5);
+      animation: popupBounce .4s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .kid-card::before {
+      content: var(--emoji);
+      font-size: 60px;
+    }
+
+    .kid-card h3 {
+      font-size: 24px;
+    }
+
+    .kid-card p {
+      font-size: 18px;
+    }
+
+    .kid-correct .kid-card {
+      border: 6px solid #38d9a9;
+    }
+
+    .kid-wrong .kid-card {
+      border: 6px solid #ff8787;
+    }
+
+    @keyframes popupBounce {
+      0% {
+        transform: scale(0.5)
+      }
+
+      70% {
+        transform: scale(1.1)
+      }
+
+      100% {
+        transform: scale(1)
+      }
+    }
+
+    /* 🎉 FINAL POPUP */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(2px);
+      z-index: 2000;
+    }
+
+    .final-kid-box {
+      width: 350px;
+      padding: 30px;
+      border-radius: 35px;
+      text-align: center;
+      background: linear-gradient(135deg, #ffe0f0, #d0f4ff);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, .3),
+        inset 0 0 20px rgba(255, 255, 255, .5);
+      animation: popupBounce .5s ease;
+    }
+
+    .final-kid-box::before {
+      content: "🏆";
+      font-size: 70px;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .final-kid-box h2 {
+      font-size: 26px;
+      margin-bottom: 10px;
+    }
+
+    .final-kid-box p {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .final-kid-box button {
+      margin-top: 15px;
+      background: linear-gradient(135deg, #ffd166, #ff9f1c);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media screen and (max-width:768px) {
+
+      .header p {
+        font-size: 20px;
+        margin-bottom: 40px;
+      }
+
+      .grid {
+        gap: 20px;
+      }
+
+      .item {
+        width: 220px;
+        height: 220px;
+      }
+
+      .item img {
+        width: 80px;
+        height: 80px;
+      }
+
+      .qtext {
+        font-size: 14px;
+      }
+
+      .answer {
+        width: 70px;
+        height: 35px;
+        font-size: 14px;
+      }
+
+      .check-btn {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+
+      /* popup */
+      .kid-card {
+        width: 90%;
+        padding: 30px 20px;
+      }
+
+      .kid-card h3 {
+        font-size: 20px;
+      }
+
+      .kid-card p {
+        font-size: 16px;
+      }
+
+      .final-kid-box {
+        width: 90%;
+        padding: 30px 20px;
+      }
+
+    }
+
+    @media screen and (min-width:769px) and (max-width:1024px) {
+
+      .header p {
+        font-size: 26px;
+      }
+
+      .item {
+        width: 260px;
+        height: 250px;
+      }
+
+      .item img {
+        width: 95px;
+        height: 95px;
+      }
+
+      .qtext {
+        font-size: 16px;
+      }
+
+      .answer {
+        width: 80px;
+        height: 40px;
+      }
+
+    }
+
+    @media screen and (min-width:1025px) and (max-width:1440px) {
+
+      .header p {
+        font-size: 30px;
+      }
+
+
+      .item {
+        width: 300px;
+        height: 280px;
+      }
+
+    }
+
+    @media screen and (min-width:1441px) and (max-width:1920px) {
+
+      .header p {
+        font-size: 45px;
+        margin-bottom: 100px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      .item {
+        width: 100%;
+        max-width: 400px;
+        margin: auto;
+      }
+
+
+      .item {
+        width: 420px;
+        height: 400px;
+      }
+
+      .item img {
+        width: 160px;
+        height: 160px;
+      }
+
+      .qtext {
+        font-size: 28px;
+      }
+
+      .answer {
+        width: 130px;
+        height: 60px;
+        font-size: 20px;
+      }
+
+      .check-btn {
+        font-size: 18px;
+        padding: 12px 20px;
+      }
+
+      /* POPUP BIGGER */
+      .kid-card {
+        width: 420px;
+        padding: 55px 40px;
+      }
+
+      .kid-card h3 {
+        font-size: 30px;
+      }
+
+      .kid-card p {
+        font-size: 22px;
+      }
+
+      .kid-card::before {
+        font-size: 80px;
+      }
+
+      .final-kid-box {
+        width: 460px;
+        padding: 60px 45px;
+      }
+
+      .final-kid-box h2 {
+        font-size: 32px;
+      }
+
+      .final-kid-box p {
+        font-size: 24px;
+      }
+
+    }
+
+    @media screen and (min-width:1921px) {
+
+      .header p {
+        font-size: 50px;
+      }
+
+      .grid {
+        gap: 40px;
+      }
+
+      .item {
+        width: 420px;
+        height: 400px;
+      }
+
+      .item img {
+        width: 160px;
+        height: 160px;
+      }
+
+      .qtext {
+        font-size: 40px;
+      }
+
+      .answer {
+        width: 130px;
+        height: 60px;
+        font-size: 24px;
+      }
+
+      .check-btn {
+        font-size: 20px;
+        padding: 12px 22px;
+      }
+
+      /* POPUPS */
+      .kid-card {
+        width: 500px;
+        padding: 70px 50px;
+      }
+
+      .kid-card h3 {
+        font-size: 36px;
+      }
+
+      .kid-card p {
+        font-size: 26px;
+      }
+
+      .final-kid-box {
+        width: 550px;
+        padding: 70px 55px;
+      }
+
+    }
+
+    /* ========================================
+🖥️ MONITOR POPUP RESPONSIVE
+======================================== */
+
+
+    /* ================= 1350px — 1500px ================= */
+
+    @media screen and (min-width:1350px) and (max-width:1500px) {
+
+      .popup-card,
+      .kid-card {
+        width: 380px;
+        padding: 32px 26px;
+        border-radius: 38px;
+      }
+
+      .popup-bubble,
+      .kid-icon {
+        width: 85px;
+        height: 85px;
+        font-size: 42px;
+      }
+
+      .popup-card h2,
+      .kid-card h3 {
+        font-size: 30px;
+      }
+
+      .popup-card p,
+      .kid-card p {
+        font-size: 18px;
+      }
+
+      .popup-stars {
+        font-size: 32px;
+      }
+
+      .finalpopup-box,
+      .final-kid-box {
+        width: 520px;
+        max-width: 520px;
+        padding: 38px;
+        border-radius: 40px;
+      }
+
+      .final-heading,
+      .final-kid-box h2 {
+        font-size: 34px;
+      }
+
+      .final-sub,
+      .final-kid-box p {
+        font-size: 18px;
+      }
+
+      #stars {
+        font-size: 38px;
+      }
+
+      .playAgain-btn,
+      .next-section-btn {
+        font-size: 17px;
+        padding: 14px 24px;
+        border-radius: 18px;
+      }
+    }
+
+
+
+    /* ================= 1501px — 1700px ================= */
+
+    @media screen and (min-width:1501px) and (max-width:1700px) {
+
+      .popup-card,
+      .kid-card {
+        width: 430px;
+        padding: 38px 30px;
+        border-radius: 44px;
+      }
+
+      .popup-bubble,
+      .kid-icon {
+        width: 100px;
+        height: 100px;
+        font-size: 48px;
+      }
+
+      .popup-card h2,
+      .kid-card h3 {
+        font-size: 36px;
+      }
+
+      .popup-card p,
+      .kid-card p {
+        font-size: 20px;
+      }
+
+      .popup-stars {
+        font-size: 40px;
+      }
+
+      .finalpopup-box,
+      .final-kid-box {
+        width: 620px;
+        max-width: 620px;
+        padding: 48px;
+        border-radius: 50px;
+      }
+
+      .final-heading,
+      .final-kid-box h2 {
+        font-size: 42px;
+      }
+
+      .final-sub,
+      .final-kid-box p {
+        font-size: 22px;
+      }
+
+      #stars {
+        font-size: 44px;
+      }
+
+      .playAgain-btn,
+      .next-section-btn {
+        font-size: 19px;
+        padding: 16px 28px;
+        border-radius: 20px;
+      }
+    }
+
+
+
+    /* ================= 1701px — 1920px ================= */
+
+    @media screen and (min-width:1701px) and (max-width:1920px) {
+
+      .popup-card,
+      .kid-card {
+        width: 500px;
+        padding: 45px 35px;
+        border-radius: 55px;
+      }
+
+      .popup-bubble,
+      .kid-icon {
+        width: 115px;
+        height: 115px;
+        font-size: 56px;
+      }
+
+      .popup-card h2,
+      .kid-card h3 {
+        font-size: 42px;
+      }
+
+      .popup-card p,
+      .kid-card p {
+        font-size: 24px;
+      }
+
+      .popup-stars {
+        font-size: 48px;
+      }
+
+      .finalpopup-box,
+      .final-kid-box {
+        width: 760px;
+        max-width: 760px;
+        padding: 60px;
+        border-radius: 65px;
+      }
+
+      .final-heading,
+      .final-kid-box h2 {
+        font-size: 52px;
+      }
+
+      .final-sub,
+      .final-kid-box p {
+        font-size: 26px;
+      }
+
+      #stars {
+        font-size: 52px;
+      }
+
+      .playAgain-btn,
+      .next-section-btn {
+        font-size: 22px;
+        padding: 18px 32px;
+        border-radius: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="quiz-box">
+    <div class="header">
+      <p>👉 Write the percentage of these gases present in the air</p>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- ✅ MCQ STYLE POPUP -->
+  <div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <!-- FINAL -->
+  <div id="finalPopup">
+    <div class="final-kid-box">
+      <h2>🎉 Congratulations!</h2>
+      <p id="finalScore"></p>
+      <button onclick="location.reload()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+
+    function speak(text) {
+      let msg = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(msg);
+    }
+    
+    function bigConfetti() {
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 }
+      });
+    }
+    const questions = [
+      { img: "../images/oxygen1.png", text: "Oxygen", answer: "21" },
+      { img: "../images/carbon-dioxide.png", text: "Carbon dioxide", answer: "0.04" },
+      { img: "../images/nitrogen1.png", text: "Nitrogen", answer: "78" }
+    ];
+
+    let score = 0;
+
+    const grid = document.getElementById("grid");
+
+    /* RENDER */
+    function render() {
+      grid.innerHTML = "";
+
+      questions.forEach((q, i) => {
+        const item = document.createElement("div");
+        item.className = "item";
+
+        item.innerHTML = `
+      <img src="${q.img}">
+      <div class="qtext">${q.text}</div>
+      <input id="ans${i}" class="answer" placeholder="%">
+      <button class="check-btn" id="btn${i}" onclick="check(${i})" disabled>✓</button>
+    `;
+
+        grid.appendChild(item);
+
+        const input = document.getElementById("ans" + i);
+        const btn = document.getElementById("btn" + i);
+
+        input.addEventListener("input", () => {
+          btn.disabled = input.value.trim() === "";
+        });
+      });
+    }
+    render();
+    // 🚫 Disable drag & drop on inputs
+    document.addEventListener("dragover", (e) => {
+      e.preventDefault();
+    });
+
+    document.addEventListener("drop", (e) => {
+      e.preventDefault();
+    });
+    /* ✅ MCQ STYLE POPUP FUNCTION */
+    function showPopup(isCorrect) {
+
+      const popup = document.getElementById("answerPopup");
+      const card = popup.querySelector(".kid-card");
+
+      card.style.setProperty("--emoji", isCorrect ? "🎉" : "😅");
+
+      popup.style.display = "flex";
+
+      document.getElementById("popupTitle").innerText =
+        isCorrect ? "Awesome!" : "Oops!";
+
+      document.getElementById("popupMsg").innerText =
+        isCorrect ? "You got it right!" : "Try again!";
+
+      popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+
+      speak(isCorrect ? "Correct" : "Try again");
+
+      setTimeout(() => popup.style.display = "none", 1400);
+    }
+
+    /* CHECK */
+    function check(i) {
+      const input = document.getElementById("ans" + i);
+      if (input.value.trim() === questions[i].answer) {
+
+        input.readOnly = true;
+
+        score++;
+
+        /* 🎉 CONFETTI */
+        confetti({
+
+          particleCount: 120,
+          spread: 90,
+          origin: { y: 0.6 }
+
+        });
+
+        showPopup(true);
+
+        /* DISABLE BUTTON */
+        document.getElementById("btn" + i)
+          .disabled = true;
+
+        /* GREEN INPUT */
+        input.style.boxShadow =
+          "0 0 18px #38d9a9";
+
+        input.style.background =
+          "#e6fcf5";
+
+        /* FINAL */
+        if (score === questions.length) {
+
+          setTimeout(showFinal, 1000);
+
+        }
+
+      } else {
+        showPopup(false);
+        input.value = "";
+      }
+    }
+
+    /* FINAL */
+    function showFinal() {
+
+      document.getElementById("finalPopup")
+        .style.display = "flex";
+
+      document.getElementById("finalScore")
+        .innerText =
+        "Your Score: " + score + " / " + questions.length;
+
+      /* 🎊 BIG CONFETTI */
+      confetti({
+
+        particleCount: 300,
+        spread: 150,
+        origin: { y: 0.6 }
+
+      });
+
+
+    }
+  </script>
+
+
+</body>
+</html>

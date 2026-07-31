@@ -1,0 +1,676 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Livvic", sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      overflow: hidden;
+      background: url("./images/bgg.jpg");
+      background-size: 100% 100%;
+      background-position: center;
+    }
+
+    /* ===== APP ===== */
+    .app {
+      height: 100vh;
+      display: flex;
+      background: rgba(206, 221, 217, 0.6);
+      backdrop-filter: blur(2px);
+    }
+
+    /* ===== NUMBERED IMAGE CARD STYLE SIDEBAR ===== */
+    .sidebar {
+      width: 320px;
+
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+      /* background: rgba(255, 248, 235, 0.92); */
+      /* backdrop-filter: blur(12px); */
+      border-radius: 0 42px 42px 0;
+      margin: 16px 0;
+      height: calc(100vh - 32px);
+      /* box-shadow: 10px 0 28px rgba(0, 0, 0, 0.1);
+      border-right: 1px solid rgba(255, 215, 170, 0.7); */
+      overflow-y: hidden;
+      scrollbar-width: thin;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: #f0e2d0;
+      border-radius: 10px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: #e6b17e;
+      border-radius: 10px;
+    }
+
+    /* ===== IMAGE CARD BUTTON WITH NUMBER BADGE ===== */
+    .island-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: auto;
+      gap: 16px;
+      padding: 12px 18px;
+      border-radius: 28px;
+      cursor: pointer;
+      font-size: 17px;
+      font-weight: 600;
+      color: #1e293b;
+      background: white;
+      border: none;
+      transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.03);
+      border: 1px solid rgba(255, 234, 200, 0.8);
+      text-align: left;
+    }
+
+    /* Number badge - circular colored number */
+    .number-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Different colors for each number badge */
+    .badge-1 {
+      background: linear-gradient(135deg, #FF6B6B, #EE5A24);
+    }
+
+    .badge-2 {
+      background: linear-gradient(135deg, #4ECDC4, #44B3A2);
+    }
+
+    .badge-3 {
+      background: linear-gradient(135deg, #FFE66D, #F7B731);
+    }
+
+    .badge-4 {
+      background: linear-gradient(135deg, #A55EEA, #8855DD);
+    }
+
+    .badge-5 {
+      background: linear-gradient(135deg, #FF9F4A, #FF6B35);
+    }
+
+    /* Image icon wrapper */
+    .island-btn img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      border-radius: 18px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #fff5ec, #ffe8da);
+      padding: 8px;
+      box-shadow: inset 0 1px 3px rgba(255, 255, 240, 0.9), 0 4px 8px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 205, 140, 0.5);
+    }
+
+    /* Text container */
+    .btn-text {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .btn-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: #2c241a;
+      line-height: 1.3;
+    }
+
+    .btn-desc {
+      font-size: 0.65rem;
+      font-weight: 500;
+      opacity: 0.7;
+      letter-spacing: 0.2px;
+      margin-top: 2px;
+    }
+
+    /* Hover effect */
+    .island-btn:hover {
+      transform: translateY(-3px) translateX(2px);
+      background: #fffcf9;
+      box-shadow: 0 18px 28px -10px rgba(0, 0, 0, 0.18);
+      border-color: #ffcf9a;
+    }
+
+    .island-btn:hover img {
+      transform: scale(1.03);
+      background: #ffe2c4;
+    }
+
+    .island-btn:hover .number-badge {
+      transform: scale(1.05);
+    }
+
+    /* ===== ACTIVE STATE - Premium glow with matching color border ===== */
+    .island-btn.active {
+      background: linear-gradient(115deg, #fff7ef 0%, #fff0e2 100%);
+      border-left: 5px solid;
+      box-shadow: 0 12px 22px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.05);
+      transform: scale(1.01) translateX(3px);
+    }
+
+    /* Individual active border colors matching badge */
+    .island-btn.active[data-type="1"] {
+      border-left-color: #EE5A24;
+    }
+
+    .island-btn.active[data-type="2"] {
+      border-left-color: #44B3A2;
+    }
+
+    .island-btn.active[data-type="3"] {
+      border-left-color: #F7B731;
+    }
+
+    .island-btn.active[data-type="4"] {
+      border-left-color: #8855DD;
+    }
+
+    .island-btn.active[data-type="5"] {
+      border-left-color: #FF6B35;
+    }
+
+    .island-btn.active img {
+      background: #f9d6a8;
+      box-shadow: 0 0 0 2px #f9b953, inset 0 1px 4px rgba(0, 0, 0, 0.05);
+      transform: scale(1.02);
+    }
+
+    .island-btn.active .number-badge {
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6), 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Sparkles decoration */
+    .sparkles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      border-radius: 28px;
+    }
+
+    .sparkles span {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: radial-gradient(circle, #ffd966 40%, transparent 70%);
+      opacity: 0;
+      animation: sparkle 2.5s infinite;
+      border-radius: 50%;
+    }
+
+    .sparkles span:nth-child(1) {
+      top: 15%;
+      left: 8%;
+      animation-delay: 0s;
+    }
+
+    .sparkles span:nth-child(2) {
+      top: 20%;
+      right: 10%;
+      animation-delay: 0.8s;
+    }
+
+    .sparkles span:nth-child(3) {
+      bottom: 18%;
+      left: 15%;
+      animation-delay: 1.6s;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main {
+      flex: 1;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes sparkle {
+
+      0%,
+      100% {
+        opacity: 0;
+        transform: scale(0.6);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1.3);
+      }
+    }
+
+    @keyframes cardPop {
+      0% {
+        transform: scale(0.97);
+        opacity: 0.9;
+      }
+
+      100% {
+        transform: scale(1.01) translateX(3px);
+        opacity: 1;
+      }
+    }
+
+    .island-btn.active {
+      animation: cardPop 0.2s ease forwards;
+    }
+
+    /* ================================
+       📱 MOBILE RESPONSIVE
+    ================================ */
+    .menu-btn {
+      display: none;
+    }
+
+    .offcanvas {
+      display: none;
+    }
+
+    @media (max-width: 1065px) {
+      body {
+        overflow: hidden;
+      }
+
+      .app {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .menu-btn {
+        display: block;
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        font-size: 28px;
+        background: #f4a261;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        width: 50px;
+        height: 50px;
+        cursor: pointer;
+        z-index: 5000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: 0.2s;
+      }
+
+      .menu-btn:hover {
+        background: #e76f1f;
+        transform: scale(1.02);
+      }
+
+      .offcanvas {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: none;
+        z-index: 4000;
+        backdrop-filter: blur(4px);
+      }
+
+      .offcanvas.show {
+        display: block;
+      }
+
+      .offcanvas-panel {
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 310px;
+        height: 100%;
+        background: #fff8f0;
+        padding: 70px 20px 20px 20px;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+        box-shadow: -8px 0 28px rgba(0, 0, 0, 0.15);
+        border-radius: 28px 0 0 28px;
+      }
+
+      .offcanvas.show .offcanvas-panel {
+        transform: translateX(0);
+      }
+
+      .offcanvas-panel .island-btn {
+        width: 100%;
+        margin-bottom: 16px;
+      }
+    }
+
+    /* ===== RESPONSIVE SCALING ===== */
+    @media screen and (min-width: 1225px) and (max-width: 1440px) {
+      .sidebar {
+        width: 310px;
+        gap: 22px;
+      }
+
+      .island-btn {
+        padding: 14px 20px;
+        gap: 16px;
+      }
+
+      .number-badge {
+        width: 46px;
+        height: 46px;
+        font-size: 24px;
+        border-radius: 26px;
+      }
+
+      .island-btn img {
+        width: 50px;
+        height: 50px;
+      }
+
+      .btn-title {
+        font-size: 1.1rem;
+      }
+    }
+
+    @media screen and (min-width: 1441px) and (max-width: 1920px) {
+      .sidebar {
+        width: 360px;
+        padding: 56px 24px;
+        gap: 26px;
+      }
+
+      .island-btn {
+        padding: 18px 24px;
+        gap: 20px;
+        border-radius: 34px;
+      }
+
+      .number-badge {
+        width: 56px;
+        height: 56px;
+        font-size: 28px;
+        border-radius: 32px;
+      }
+
+      .island-btn img {
+        width: 58px;
+        height: 58px;
+        padding: 10px;
+      }
+
+      .btn-title {
+        font-size: 1.2rem;
+      }
+
+      .btn-desc {
+        font-size: 0.9rem;
+      }
+    }
+
+    @media screen and (min-width: 1921px) {
+      .sidebar {
+        width: 440px;
+        padding: 70px 32px;
+        gap: 30px;
+      }
+
+      .island-btn {
+        padding: 22px 28px;
+        gap: 24px;
+        border-radius: 40px;
+      }
+
+      .number-badge {
+        width: 68px;
+        height: 68px;
+        font-size: 34px;
+        border-radius: 38px;
+      }
+
+      .island-btn img {
+        width: 72px;
+        height: 72px;
+        padding: 12px;
+      }
+
+      .btn-title {
+        font-size: 1.4rem;
+      }
+
+      .btn-desc {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<button class="menu-btn" onclick="toggleMenu()">☰</button>
+
+  <div class="app">
+    <!-- SIDEBAR - NUMBERED IMAGE CARDS WITH DIFFERENT COLORS -->
+    <div class="sidebar">
+      <!-- 1. MCQ / Choose Correct -->
+      <div class="island-btn o1 active" data-type="1" onclick="openIsland(0)">
+        <div class="sparkles"><span></span><span></span><span></span></div>
+        <div class="number-badge badge-1">1</div>
+        <!-- <img src="./images/bear-img.png" alt="mcq"> -->
+        <div class="btn-text">
+          <span class="btn-title">Choose Correct</span>
+          <span class="btn-desc">Multiple Choice Questions</span>
+        </div>
+      </div>
+
+      <div class="island-btn o2" data-type="2" onclick="openIsland(1)">
+        <div class="sparkles"><span></span><span></span><span></span></div>
+        <div class="number-badge badge-2">2</div>
+        <!-- <img src="./images/forest-img.png" alt="true false"> -->
+        <div class="btn-text">
+          <span class="btn-title">True / False</span>
+          <span class="btn-desc">Select True or False</span>
+        </div>
+      </div>
+
+      <!-- 5. One Word -->
+      <div class="island-btn o3" data-type="3" onclick="openIsland(2)">
+        <div class="sparkles"><span></span><span></span><span></span></div>
+        <div class="number-badge badge-3">3</div>
+        <!-- <img src="./images/tiger-img.png" alt="one word"> -->
+        <div class="btn-text">
+          <span class="btn-title">Two Example</span>
+          <span class="btn-desc">Choose Right One</span>
+        </div>
+      </div>
+      <!-- 2. Fill in Blanks -->
+      <div class="island-btn o4" data-type="4" onclick="openIsland(3)">
+        <div class="sparkles"><span></span><span></span><span></span></div>
+        <div class="number-badge badge-4">4</div>
+        <!-- <img src="./images/pencil.png" alt="fill blanks"> -->
+        <div class="btn-text">
+          <span class="btn-title">Fill in Blanks</span>
+          <span class="btn-desc">Complete the sentence</span>
+        </div>
+      </div>
+
+
+
+      <!-- 4. Matching -->
+      <div class="island-btn o5" data-type="5" onclick="openIsland(4)">
+        <div class="sparkles"><span></span><span></span><span></span></div>
+        <div class="number-badge badge-5">5</div>
+        <!-- <img src="./images/a-3.png" alt="matching"> -->
+        <div class="btn-text">
+          <span class="btn-title">Matching</span>
+          <span class="btn-desc">Match the following</span>
+        </div>
+      </div>
+
+
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+      <iframe id="contentFrame" src="./exercises/mcq.html"></iframe>
+    </div>
+  </div>
+
+  <!-- MOBILE OFF CANVAS MENU (numbered cards as well) -->
+  <div class="offcanvas" id="offcanvas" onclick="toggleMenu()">
+    <div class="offcanvas-panel" onclick="event.stopPropagation()">
+      <div class="island-btn o1 active" data-type="1" onclick="mobileOpen(0)">
+        <div class="number-badge badge-1">1</div>
+        <!-- <img src="./images/bear-img.png" alt="mcq"> -->
+        <div class="btn-text">
+          <span class="btn-title">Choose Correct</span>
+          <span class="btn-desc">MCQ</span>
+        </div>
+      </div>
+      <div class="island-btn o2" data-type="2" onclick="mobileOpen(1)">
+        <div class="number-badge badge-2">2</div>
+        <!-- <img src="./images/forest-img.png" alt="true false"> -->
+        <div class="btn-text">
+          <span class="btn-title">True / False</span>
+          <span class="btn-desc">Select True or False</span>
+        </div>
+      </div>
+
+      <div class="island-btn o3" data-type="3" onclick="mobileOpen(2)">
+        <div class="number-badge badge-3">3</div>
+        <!-- <img src="./images/tiger-img.png" alt="one word"> -->
+        <div class="btn-text">
+          <span class="btn-title">Two Example</span>
+          <span class="btn-desc">Choose Right One</span>
+        </div>
+      </div>
+
+      <div class="island-btn o4" data-type="4" onclick="mobileOpen(3)">
+        <div class="number-badge badge-4">4</div>
+        <!-- <img src="./images/pencil.png" alt="fill"> -->
+        <div class="btn-text">
+          <span class="btn-title">Fill in Blanks</span>
+          <span class="btn-desc">Complete sentence</span>
+        </div>
+      </div>
+
+      <div class="island-btn o5" data-type="5" onclick="mobileOpen(4)">
+        <div class="number-badge badge-5">5</div>
+        <!-- <img src="./images/a-3.png" alt="matching"> -->
+        <div class="btn-text">
+          <span class="btn-title">Matching</span>
+          <span class="btn-desc">Match the following</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const sidebarButtons = document.querySelectorAll(".sidebar .island-btn");
+    const mobileButtons = document.querySelectorAll(".offcanvas .island-btn");
+    const frame = document.getElementById("contentFrame");
+
+    // Page routes
+    const pages = [
+      "./exercises/mcq.html",
+      "./exercises/true_false.html",
+      "./exercises/one_example.html",
+      "./exercises/FTB.html",
+      "./exercises/matching.html"
+
+    ];
+
+    function openIsland(index) {
+      // Update sidebar active state
+      sidebarButtons.forEach(btn => btn.classList.remove("active"));
+      if (sidebarButtons[index]) sidebarButtons[index].classList.add("active");
+
+      // Update mobile panel active state
+      mobileButtons.forEach(btn => btn.classList.remove("active"));
+      if (mobileButtons[index]) mobileButtons[index].classList.add("active");
+
+      // Load page
+      if (frame && pages[index]) {
+        frame.src = pages[index];
+      }
+    }
+
+    function toggleMenu() {
+      const offcanvas = document.getElementById("offcanvas");
+      if (offcanvas) {
+        offcanvas.classList.toggle("show");
+      }
+    }
+
+    function mobileOpen(i) {
+      openIsland(i);
+      toggleMenu();
+    }
+
+    // Close offcanvas on resize
+    window.addEventListener("resize", function () {
+      const offcanvas = document.getElementById("offcanvas");
+      if (window.innerWidth > 1065 && offcanvas && offcanvas.classList.contains("show")) {
+        offcanvas.classList.remove("show");
+      }
+    });
+
+    // Ensure active sync on load
+    window.addEventListener("load", () => {
+      document.body.style.overflow = "hidden";
+      // If no active button, set first as active
+      const hasActive = document.querySelector(".sidebar .island-btn.active");
+      if (!hasActive && sidebarButtons[0]) {
+        sidebarButtons[0].classList.add("active");
+        if (mobileButtons[0]) mobileButtons[0].classList.add("active");
+      }
+    });
+  </script>
+
+
+
+
+</body>
+</html>

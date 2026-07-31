@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <script src="/auth-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+
+body{
+font-family:'Livvic';
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+overflow:hidden;
+}
+
+/* MAIN */
+.quiz-box{
+width:100%;
+max-width:1200px;
+text-align:center;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+height:70%;
+}
+
+/* QUESTION */
+.question{
+font-size:30px;
+color:#2f4f4f;
+}
+
+.question-img{
+width:300px;
+height:220px;
+object-fit:contain;
+margin:20px auto;
+}
+
+/* 🎁 LETTER BOXES */
+.letter-container{
+display:flex;
+gap:12px;
+justify-content:center;
+margin-top:10px;
+}
+/* 🎁 PLAYFUL LETTER BOX */
+.letter-box{
+  width:60px;
+  height:75px;
+
+  border-radius:18px;
+
+  /* 🌈 soft candy gradient */
+  background:linear-gradient(135deg,#fff3bf,#ffd6e0,#d0f4ff);
+
+  /* 🎯 remove dashed border */
+  border:3px solid transparent;
+
+  font-size:28px;
+  font-weight:800;
+  color:#2f4f4f;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  /* ✨ 3D shadow */
+  box-shadow:
+    0 10px 20px rgba(0,0,0,.2),
+    inset 0 4px 8px rgba(255,255,255,.8);
+
+  transition:.25s;
+}
+/* ✨ ACTIVE BOX */
+.letter-box.active{
+  transform:translateY(-6px) scale(1.08);
+
+  box-shadow:
+    0 15px 25px rgba(0,0,0,.25),
+    0 0 15px #4cc9f0;
+}/* ✅ CORRECT */
+.letter-box.correct{
+  background:linear-gradient(135deg,#69db7c,#38d9a9);
+  color:white;
+
+  box-shadow:
+    0 0 20px #69db7c,
+    0 10px 25px rgba(0,0,0,.3);
+}
+/* ❌ WRONG */
+.letter-box.wrong{
+  background:linear-gradient(135deg,#ffa8a8,#ff6b6b);
+  color:white;
+
+  box-shadow:
+    0 0 18px #ff6b6b;
+}
+
+.letter-box:not(:empty){
+  animation:pop .2s ease;
+}
+
+@keyframes pop{
+  0%{transform:scale(0.7)}
+  100%{transform:scale(1)}
+}
+
+/* NAV */
+.nav{
+display:flex;
+justify-content:space-between;
+margin-top:20px;
+}
+
+button{
+border:none;
+  padding: clamp(10px, 1.2vw, 14px) clamp(20px, 3vw, 32px);
+  font-size: clamp(15px, 1.4vw + 0.6vh, 20px);
+  font-weight:600;
+  border-radius:50px;
+  cursor:pointer;
+  transition:all .3s ease;
+  box-shadow:0 6px 15px rgba(0,0,0,0.2);
+   min-width: clamp(100px, 14vw, 150px);
+}
+
+.prev{
+background:linear-gradient(45deg,#ff7a7a,#ffb199);
+color:white;
+}
+
+.next{
+background:linear-gradient(45deg,#00c6ff,#0072ff);
+color:white;
+}
+
+button:disabled{
+background:#dcdcdc;
+color:#888;
+cursor:not-allowed;
+}
+
+/* POPUP */
+.kid-popup{
+position:fixed;
+inset:0;
+display:none;
+align-items:center;
+justify-content:center;
+z-index:3000;
+}
+
+.kid-card{
+background:#fff;
+width:300px;
+padding:25px;
+border-radius:30px;
+text-align:center;
+}
+
+.kid-icon{
+font-size:60px;
+margin-bottom:10px;
+}
+
+.kid-correct .kid-card{
+background:#e6fffa;
+border:6px solid #38d9a9;
+}
+
+.kid-wrong .kid-card{
+background:#fff5f5;
+border:6px solid #ffa8a8;
+}
+
+/* FINAL */
+#finalPopup{
+position:fixed;
+inset:0;
+display:none;
+justify-content:center;
+align-items:center;
+z-index:4000;
+}
+
+.final-kid-box{
+background:linear-gradient(135deg,#fff7d6,#e6fff5);
+padding:30px;
+border-radius:35px;
+text-align:center;
+width:350px;
+}
+
+.playAgain-btn{
+background:#ffac30;
+color:white;
+padding:10px 25px;
+border:none;
+border-radius:25px;
+margin-top:10px;
+}
+
+
+/* ========================= */
+/* 📱 MOBILE (≤ 600px) */
+/* ========================= */
+@media screen and (max-width:600px){
+
+body{
+  height:auto;
+  padding:10px;
+  align-items:flex-start;
+  overflow:auto;
+}
+
+/* container */
+.quiz-box{
+  height:auto;
+  gap:15px;
+}
+
+/* question */
+.question{
+  font-size:20px;
+}
+
+/* image */
+.question-img{
+  width:150px;
+  height:100px;
+}
+
+/* letter boxes */
+.letter-container{
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.letter-box{
+  width:40px;
+  height:55px;
+  font-size:20px;
+  border-radius:14px;
+}
+
+/* nav */
+.nav{
+  margin-top:15px;
+}
+
+button{
+  padding:10px 18px;
+  font-size:16px;
+}
+
+.kid-card{
+  width:180px;            /* smaller width */
+  padding:15px;           /* less padding */
+  border-radius:20px;
+}
+
+/* icon smaller */
+.kid-icon{
+  font-size:2.5em;
+  margin-bottom:6px;
+}
+
+/* title */
+.kid-card h3{
+  font-size:1.2em;
+  margin-bottom:4px;
+}
+
+/* message */
+.kid-card p{
+  font-size:0.9em;
+}
+
+/* final popup */
+.final-kid-box{
+  width:200px;
+  padding:18px;
+  border-radius:25px;
+}
+
+/* final text */
+.final-kid-box h2{
+  font-size:1.4em;
+}
+
+.final-kid-box p{
+  font-size:1em;
+}
+
+/* stars */
+#stars{
+  font-size:1.4em;
+}
+
+/* play again */
+.playAgain-btn{
+  padding:8px 16px;
+  font-size:0.9em;
+}
+
+
+}
+
+/* ========================= */
+/* 📱 TABLET (601px–1024px) */
+/* ========================= */
+@media screen and (min-width:601px) and (max-width:800px){
+
+body{
+  height:auto;
+  padding:15px;
+  overflow:auto;
+}
+
+/* container */
+.quiz-box{
+  height:auto;
+}
+
+/* question */
+.question{
+  font-size:26px;
+  margin-top: 60px;
+}
+
+/* image */
+.question-img{
+  width:300px;
+  height:230px;
+}
+
+/* letter boxes */
+.letter-container{
+  gap:10px;
+}
+
+.letter-box{
+  width:55px;
+  height:70px;
+  font-size:24px;
+}
+
+/* buttons */
+button{
+ padding:12px 24px;
+  font-size:16px;
+  margin-top: 40px;
+}
+
+}
+
+/* ========================= */
+/* 💻 Desktop / Monitor */
+/* ========================= */
+@media screen and (min-width:1225px) and (max-width:1440px){
+
+.quiz-box{
+  max-width:1300px;
+  height:90%;
+}
+
+.question{
+  font-size:40px;
+}
+
+.question-img{
+  width:400px;
+  height:300px;
+}
+
+.letter-box{
+  width:80px;
+  height:90px;
+  font-size:30px;
+}
+
+button{
+   padding:16px 40px;
+  font-size:22px;
+}
+
+}
+
+/* ========================= */
+/* 🖥 Large Monitors */
+/* ========================= */
+@media screen and (min-width:1441px) and (max-width:1920px){
+
+.quiz-box{
+  max-width:1500px;
+  height:80%;
+}
+
+.question{
+  font-size:36px;
+}
+
+.question-img{
+  width:360px;
+  height:260px;
+}
+
+.letter-box{
+  width:75px;
+  height:90px;
+  font-size:30px;
+}
+
+button{
+  padding:16px 45px;
+  font-size:22px;
+}
+
+}
+
+/* ========================= */
+/* 🖥 4K Screens */
+/* ========================= */
+@media screen and (min-width:1921px){
+
+.quiz-box{
+  max-width:1800px;
+  height:85%;
+}
+
+.question{
+  font-size:46px;
+}
+
+.question-img{
+  width:420px;
+  height:300px;
+}
+
+.letter-box{
+  width:90px;
+  height:110px;
+  font-size:36px;
+}
+
+button{
+  padding:20px 55px;
+  font-size:26px;
+}
+
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="quiz-box">
+
+<div class="question" id="question"></div>
+<img id="img" class="question-img">
+
+<div id="letterBoxes" class="letter-container"></div>
+
+<div class="nav">
+<button class="prev" id="prev" onclick="prevQ()" disabled>← Prev</button>
+<button class="next" id="next" onclick="nextQ()" disabled>Next →</button>
+</div>
+
+</div>
+
+<!-- POPUP -->
+
+<div id="answerPopup" class="kid-popup">
+<div class="kid-card">
+<div class="kid-icon" id="popupIcon"></div>
+<h3 id="popupTitle"></h3>
+<p id="popupMsg"></p>
+</div>
+</div>
+
+<!-- FINAL -->
+
+<div id="finalPopup">
+<div class="final-kid-box">
+<h2>🎉 Congratulations!</h2>
+<p id="finalScore"></p>
+<div id="stars"></div>
+<button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+</div>
+</div>
+
+<script>
+const quiz=[
+{q:"Q1. Kwashiorkor can be cured by adding ______ rich food in the diet.",img:"../images/ftb1.png",a:"protein"},
+{q:"Q2. Anaemia occurs due to deficiency of ______ in one's diet.",img:"../images/ftb2.png",a:"iron"},
+{q:"Q3. ______ are germinating seeds that are eaten raw.",img:"../images/ftb3.png",a:"sprouts"},
+{q:"Q4. ______ helps to remove waste materials from our body.",img:"../images/ftb4.png",a:"water"},
+{q:"Q5. The food that we eat contains useful substances called ______.",img:"../images/ftb5.png",a:"nutrients"}
+];
+
+let current=0;
+let score=0;
+
+/* 🔥 STORE ANSWERS */
+let userAnswers=new Array(quiz.length).fill(null);
+
+let answered=false;
+let userInput="";
+
+/* 🔊 Speech */
+function speakText(text){
+let s=new SpeechSynthesisUtterance(text);
+s.lang="en-GB";
+speechSynthesis.speak(s);
+}
+
+/* 🎉 Popup */
+function showPopup(c){
+let p=document.getElementById("answerPopup");
+p.className="kid-popup "+(c?"kid-correct":"kid-wrong");
+p.style.display="flex";
+
+popupIcon.textContent=c?"🎉😊":"😅";
+popupTitle.textContent=c?"Great Job!":"Oops!";
+popupMsg.textContent=c?"You got it right!":"Try again!";
+
+setTimeout(()=>p.style.display="none",1200);
+}
+
+/* LOAD */
+function loadQ(){
+
+question.innerText=quiz[current].q;
+img.src=quiz[current].img;
+
+prev.disabled=current===0;
+
+letterBoxes.innerHTML="";
+
+const answer=quiz[current].a;
+
+/* 🔁 RESTORE */
+if(userAnswers[current]){
+
+userInput=userAnswers[current];
+answered=true;
+next.disabled=false;
+
+}else{
+userInput="";
+answered=false;
+next.disabled=true;
+}
+
+/* CREATE BOXES */
+for(let i=0;i<answer.length;i++){
+let box=document.createElement("div");
+box.className="letter-box";
+letterBoxes.appendChild(box);
+}
+
+/* 🔁 FILL RESTORED ANSWER */
+const boxes=document.querySelectorAll(".letter-box");
+
+if(userAnswers[current]){
+boxes.forEach((b,i)=>{
+b.textContent=userInput[i].toUpperCase();
+b.classList.add("correct");
+});
+}
+}
+
+/* TYPE */
+document.addEventListener("keydown",(e)=>{
+
+if(answered) return; /* 🔒 LOCK AFTER CORRECT */
+
+const answer=quiz[current].a;
+const boxes=document.querySelectorAll(".letter-box");
+
+if(e.key==="Backspace"){
+userInput=userInput.slice(0,-1);
+}else if(/^[a-zA-Z]$/.test(e.key) && userInput.length < answer.length){
+userInput+=e.key.toLowerCase();
+}
+
+boxes.forEach((b,i)=>{
+b.textContent=userInput[i]?userInput[i].toUpperCase():"";
+b.classList.toggle("active",i===userInput.length);
+});
+
+/* AUTO CHECK */
+if(userInput.length === answer.length){
+checkAnswer();
+}
+
+});
+
+/* CHECK */
+function checkAnswer(){
+
+const boxes=document.querySelectorAll(".letter-box");
+
+if(userInput===quiz[current].a){
+
+answered=true;
+score++;
+
+/* 🔥 SAVE ANSWER */
+userAnswers[current]=userInput;
+
+boxes.forEach(b=>b.classList.add("correct"));
+
+showPopup(true);
+speakText("Correct");
+
+next.disabled=false;
+
+/* FINAL */
+if(current===quiz.length-1){
+setTimeout(showResult,1200);
+}
+
+}else{
+
+boxes.forEach(b=>b.classList.add("wrong"));
+
+showPopup(false);
+speakText("wrong");
+
+setTimeout(()=>{
+userInput="";
+boxes.forEach(b=>{
+b.textContent="";
+b.classList.remove("wrong");
+});
+},800);
+}
+}
+
+/* NAV */
+function nextQ(){
+if(!answered) return;
+current++;
+loadQ();
+}
+
+function prevQ(){
+current--;
+loadQ();
+}
+
+/* RESULT */
+function showResult(){
+finalPopup.style.display="flex";
+finalScore.innerText="Your Score: "+score+" / "+quiz.length;
+stars.innerText="⭐".repeat(score);
+
+confetti({
+particleCount:120,
+spread:120,
+origin:{y:0.6}
+});
+}
+
+loadQ();
+
+</script>
+
+
+</body>
+</html>

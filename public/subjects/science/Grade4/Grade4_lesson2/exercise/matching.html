@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="/auth-guard.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Livvic', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      /* background: linear-gradient(135deg, #fef9e6 0%, #fff7ed 100%); */
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      padding: 10px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .game {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 50px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 40px;
+      cursor: pointer;
+      position: relative;
+      background: #fffdf5;
+      border: 2px solid #eadfb4;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+      transition: .25s ease;
+    }
+
+    .item.active {
+      background: #fff4e6;
+      border: 2px solid #f7b267;
+      transform: scale(1.03);
+    }
+
+    .item.matched {
+      background: linear-gradient(135deg, #ecfdf3, #d1fae5);
+      border: 2px solid #86efac;
+      box-shadow: 0 0 12px rgba(134, 239, 172, 0.35);
+      transform: scale(.98);
+      pointer-events: none;
+      opacity: .9;
+    }
+
+    .wrong {
+      background: #ffe5e5 !important;
+      border: 2px solid #f8a5a5 !important;
+      animation: shake .35s;
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0) }
+      25% { transform: translateX(-5px) }
+      50% { transform: translateX(5px) }
+      75% { transform: translateX(-5px) }
+      100% { transform: translateX(0) }
+    }
+
+    .img-box {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #fff3cd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .img-box img {
+      width: 50px;
+    }
+
+    .item span {
+      color: #136113;
+      font-size: 20px;
+      font-weight: 400;
+    }
+
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      /* background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(4px); */
+    }
+
+    .popup-box {
+      width: 320px;
+      max-width: 90%;
+      padding: 30px;
+      border-radius: 30px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 800;
+      animation: popScale 0.4s ease;
+    }
+
+    .popup-final {
+      background: linear-gradient(135deg, #ffefb0, #ffe4a0);
+      border: 3px solid #ffbe0b;
+      color: #7a5c00;
+    }
+
+    .play-btn {
+      margin-top: 20px;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
+      background: #02be8c;
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.05);
+      background: #029a70;
+    }
+
+    @keyframes popScale {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .row {
+        gap: 20px;
+      }
+      .item span {
+        font-size: 14px;
+      }
+      .img-box {
+        width: 45px;
+        height: 45px;
+      }
+      .img-box img {
+        width: 35px;
+      }
+      .item {
+        padding: 8px 12px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .row {
+        gap: 12px;
+      }
+      .item span {
+        font-size: 11px;
+      }
+      .img-box {
+        width: 38px;
+        height: 38px;
+      }
+      .img-box img {
+        width: 28px;
+      }
+    }
+
+    /* Media Query for 1350px to 1600px screens */
+    @media (min-width: 1350px) and (max-width: 1600px) {
+      .container {
+        max-width: 1200px;
+      }
+      .row {
+        gap: 60px;
+      }
+      .item {
+        padding: 14px 20px;
+        gap: 15px;
+      }
+      .img-box {
+        width: 70px;
+        height: 70px;
+      }
+      .img-box img {
+        width: 58px;
+      }
+      .item span {
+        font-size: 22px;
+      }
+      .popup-box {
+        width: 400px;
+        padding: 40px;
+        font-size: 28px;
+      }
+      .play-btn {
+        font-size: 20px;
+        padding: 14px 30px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- SVG layer for dynamic matching lines -->
+  <svg id="lineLayer"
+       style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1000;">
+    <defs>
+      <!-- Glow filter for lines -->
+      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="3" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+      
+      <!-- Gradient for the connection lines -->
+      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#10b981;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+      </linearGradient>
+      
+      <style>
+        @keyframes dash {
+          to {
+            stroke-dashoffset: -40;
+          }
+        }
+      </style>
+    </defs>
+  </svg>
+
+  <div class="container">
+    <div class="game" id="game"></div>
+  </div>
+
+  <script>
+    (function() {
+      function speak(text) {
+        let msg = new SpeechSynthesisUtterance(text);
+        msg.rate = 0.9;
+        msg.pitch = 1.1;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(msg);
+      }
+
+      /* DATA */
+      const leftData = [
+        { text: "The heart", match: "e", img: "../images/heart.png" },
+        { text: "The lungs", match: "a", img: "../images/lungs.png" },
+        { text: "The veins", match: "d", img: "../images/veins.png" },
+        { text: "The nose", match: "c", img: "../images/nose.png" },
+        { text: "The arteries", match: "b", img: "../images/arteries.png" },
+      ];
+
+      const rightData = [
+        { text: "Carry out exchange of gases.", match: "a" },
+        { text: "Carry oxygen rich blood to all the body parts.", match: "b" },
+        { text: "Helps in taking in oxygen rich air and expelling carbon dioxide rich air out of the body.", match: "c" },
+        { text: "Carry carbon dioxide rich blood back to the heart.", match: "d" },
+        { text: "Pumps the blood.", match: "e" },
+      ];
+
+      let selected = null;
+      let score = 0;
+      const game = document.getElementById("game");
+      const svgLayer = document.getElementById("lineLayer");
+      
+      // Store drawn lines for resize handling
+      let drawnLines = [];
+
+      /* CREATE ROWS */
+      for (let i = 0; i < leftData.length; i++) {
+
+        const row = document.createElement("div");
+        row.className = "row";
+        row.dataset.rowIndex = i;
+
+        /* LEFT */
+        const left = document.createElement("div");
+        left.className = "item";
+        left.dataset.match = leftData[i].match;
+        left.dataset.rowId = i;
+        left.dataset.side = "left";
+
+        left.innerHTML = `
+          <div class="img-box">
+            <img src="${leftData[i].img}" alt="${leftData[i].text}" onerror="this.src='https://via.placeholder.com/50?text=icon'">
+          </div>
+          <span>${leftData[i].text}</span>
+        `;
+
+        left.onclick = () => {
+          if (left.classList.contains("matched")) return;
+          document.querySelectorAll(".item").forEach(i => i.classList.remove("active"));
+          left.classList.add("active");
+          selected = left;
+        };
+
+        /* RIGHT */
+        const right = document.createElement("div");
+        right.className = "item";
+        right.dataset.match = rightData[i].match;
+        right.dataset.rowId = i;
+        right.dataset.side = "right";
+
+        right.innerHTML = `<span>${rightData[i].text}</span>`;
+
+        right.onclick = () => {
+          if (right.classList.contains("matched")) return;
+          if (!selected) return;
+
+          /* CORRECT MATCH */
+          if (selected.dataset.match === right.dataset.match) {
+            speak("Correct");
+            
+            // Enhanced confetti effect
+            confetti({
+              particleCount: 80,
+              spread: 60,
+              origin: { y: 0.7 },
+              startVelocity: 15,
+              colors: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444']
+            });
+
+            // Draw beautiful matching line (without bouncing circles)
+            drawEnhancedLine(selected, right);
+            
+            selected.classList.add("matched");
+            right.classList.add("matched");
+
+            selected.style.pointerEvents = "none";
+            right.style.pointerEvents = "none";
+            
+            selected.classList.remove("active");
+            
+            score++;
+            selected = null;
+
+            if (score === 5) {
+              setTimeout(showFinal, 500);
+            }
+          }
+          /* WRONG MATCH */
+          else {
+            speak("Wrong");
+            
+            // Enhanced wrong feedback
+            right.classList.add("wrong");
+            if (selected) selected.classList.add("wrong");
+            
+            setTimeout(() => {
+              right.classList.remove("wrong");
+              if (selected) selected.classList.remove("wrong");
+            }, 350);
+          }
+        };
+
+        row.appendChild(left);
+        row.appendChild(right);
+        game.appendChild(row);
+      }
+
+      /* DRAW MATCHING LINE - Beautiful design without bouncing circles */
+      function drawEnhancedLine(leftEl, rightEl) {
+        const leftRect = leftEl.getBoundingClientRect();
+        const rightRect = rightEl.getBoundingClientRect();
+        
+        // Calculate connection points - from center-right of left item to center-left of right item
+        const startX = leftRect.right - 8;
+        const startY = leftRect.top + leftRect.height / 2;
+        const endX = rightRect.left + 8;
+        const endY = rightRect.top + rightRect.height / 2;
+        
+        // Calculate control points for a beautiful curved line
+        const midX = (startX + endX) / 2;
+        const curveOffset = 25;
+        
+        // Alternate curve direction based on row to prevent overlapping
+        const rowId = parseInt(leftEl.dataset.rowId) || 0;
+        const direction = rowId % 2 === 0 ? -curveOffset : curveOffset;
+        const controlX = midX;
+        const controlY = startY + direction + (rowId * 3);
+        
+        // Create SVG path for curved line
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        
+        // Quadratic bezier curve: M start Q control end
+        const d = `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
+        path.setAttribute("d", d);
+        
+        // Styling - gradient stroke with glow
+        path.setAttribute("stroke", "url(#lineGradient)");
+        path.setAttribute("stroke-width", "3.5");
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("stroke-dasharray", "8 6");
+        path.style.filter = "url(#glow)";
+        path.style.animation = "dash 0.8s linear infinite";
+        
+        // Append only the path (no bouncing circles)
+        svgLayer.appendChild(path);
+        
+        // Store line data for resize handling
+        const lineData = {
+          path, leftEl, rightEl, rowId, direction
+        };
+        drawnLines.push(lineData);
+        
+        // Add a small sparkle effect on connection
+        createSparkleEffect(startX, startY, endX, endY);
+        
+        // Update line positions on window resize or scroll
+        const updatePosition = () => {
+          if (!leftEl.isConnected || !rightEl.isConnected) {
+            removeLineElements(lineData);
+            return;
+          }
+          
+          const newLeftRect = leftEl.getBoundingClientRect();
+          const newRightRect = rightEl.getBoundingClientRect();
+          
+          const newStartX = newLeftRect.right - 8;
+          const newStartY = newLeftRect.top + newLeftRect.height / 2;
+          const newEndX = newRightRect.left + 8;
+          const newEndY = newRightRect.top + newRightRect.height / 2;
+          
+          const newMidX = (newStartX + newEndX) / 2;
+          const newCurveOffset = 25;
+          const newDirection = (lineData.rowId % 2 === 0) ? -newCurveOffset : newCurveOffset;
+          const newControlY = newStartY + newDirection + (lineData.rowId * 3);
+          
+          const newD = `M ${newStartX} ${newStartY} Q ${newMidX} ${newControlY} ${newEndX} ${newEndY}`;
+          lineData.path.setAttribute("d", newD);
+        };
+        
+        // Attach event listeners
+        window.addEventListener("resize", updatePosition);
+        window.addEventListener("scroll", updatePosition);
+        
+        // Store cleanup function
+        lineData.cleanup = () => {
+          window.removeEventListener("resize", updatePosition);
+          window.removeEventListener("scroll", updatePosition);
+        };
+      }
+      
+      /* Helper: Remove line elements */
+      function removeLineElements(lineData) {
+        if (lineData.path && lineData.path.parentNode) lineData.path.remove();
+        if (lineData.cleanup) lineData.cleanup();
+      }
+      
+      /* Create temporary sparkle effect on connection */
+      function createSparkleEffect(x1, y1, x2, y2) {
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        
+        for (let i = 0; i < 6; i++) {
+          const sparkle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+          const angle = (Math.PI * 2 * i) / 6;
+          const radius = 15;
+          sparkle.setAttribute("cx", midX + Math.cos(angle) * radius);
+          sparkle.setAttribute("cy", midY + Math.sin(angle) * radius);
+          sparkle.setAttribute("r", "3");
+          sparkle.setAttribute("fill", `hsl(${45 + i * 60}, 100%, 60%)`);
+          sparkle.setAttribute("opacity", "1");
+          svgLayer.appendChild(sparkle);
+          
+          // Animate sparkle
+          let opacity = 1;
+          let size = 3;
+          const interval = setInterval(() => {
+            opacity -= 0.1;
+            size -= 0.2;
+            if (opacity <= 0 || size <= 0) {
+              if (sparkle.parentNode) sparkle.remove();
+              clearInterval(interval);
+            } else {
+              sparkle.setAttribute("opacity", opacity);
+              sparkle.setAttribute("r", size);
+            }
+          }, 40);
+        }
+      }
+      
+      /* Final popup with celebration */
+      function showFinal() {
+        // Remove all active lines from storage
+        drawnLines.forEach(lineData => removeLineElements(lineData));
+        drawnLines = [];
+        
+        let overlay = document.createElement("div");
+        overlay.className = "popup-overlay";
+        
+        let box = document.createElement("div");
+        box.className = "popup-box popup-final";
+        
+        box.innerHTML = `
+          🎉 Perfect Match! 🎉<br>
+          Score: ${score}/5<br>
+          <button class="play-btn" onclick="location.reload()">
+            🎮 Play Again
+          </button>
+        `;
+        
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+        
+        // Grand confetti celebration
+        confetti({
+          particleCount: 200,
+          spread: 100,
+          origin: { y: 0.6 },
+          startVelocity: 25,
+          colors: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6']
+        });
+        
+        setTimeout(() => {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.4 },
+            startVelocity: 20
+          });
+        }, 200);
+        
+        setTimeout(() => {
+          confetti({
+            particleCount: 150,
+            spread: 85,
+            origin: { y: 0.7 },
+            startVelocity: 22
+          });
+        }, 400);
+      }
+      
+      // Clean up speech synthesis on page unload
+      window.addEventListener('beforeunload', () => {
+        if (window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+      });
+      
+      // Add CSS keyframes dynamically
+      const styleSheet = document.createElement("style");
+      styleSheet.textContent = `
+        @keyframes dash {
+          to { stroke-dashoffset: -40; }
+        }
+      `;
+      document.head.appendChild(styleSheet);
+      
+    })();
+  </script>
+
+</body>
+</html>

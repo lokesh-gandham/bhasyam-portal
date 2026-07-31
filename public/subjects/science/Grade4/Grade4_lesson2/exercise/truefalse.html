@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="/auth-guard.js"></script>
+    <meta charset="UTF-8">
+    <title>Digital Assessments</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Livvic';
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* MAIN */
+        .quiz-container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .question {
+            max-width: 900px;
+            width: 100%;
+
+            margin: auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+
+            padding: 0 20px;
+
+            font-size: clamp(22px, 2.8vw, 32px);
+            color: #136113;
+
+            height: 80px;
+            /* 🔥 FIXED HEIGHT */
+            line-height: 1.3;
+
+            overflow: hidden;
+            /* prevents layout shift */
+        }
+
+        /* ROW */
+        .row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 60px;
+        }
+
+        /* IMAGE */
+        .image img {
+            max-width: 280px;
+        }
+
+        /* OPTIONS */
+        .options {
+            display: flex;
+            gap: 40px;
+        }
+
+        /* LAPTOP BUTTON (BIGGER) */
+        .laptop {
+            width: 170px;
+            /* 🔥 increased */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .screen {
+            width: 150px;
+            /* 🔥 increased */
+            height: 110px;
+            /* 🔥 increased */
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 22px;
+            /* 🔥 slightly bigger text */
+            font-weight: 700;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
+        }
+
+        .base {
+            width: 170px;
+            /* 🔥 match laptop width */
+            height: 16px;
+            /* 🔥 slightly thicker */
+            border-radius: 0 0 35px 35px;
+            margin-top: 6px;
+            background: #ccc;
+        }
+
+
+        /* DEFAULT SAME COLOR */
+        .true-laptop .screen,
+        .false-laptop .screen {
+            background: #f7f1d5;
+            border: 3px solid #e9dfaa;
+            color: #3d3d3d;
+            text-align: center;
+        }
+
+        .true-laptop .base,
+        .false-laptop .base {
+            background: #d8cf9c;
+        }
+
+        /* ✅ CORRECT */
+        .correct-answer .screen {
+            background: #dcfce7 !important;
+            border: 3px solid #57da87 !important;
+            color: #166534;
+        }
+
+        .correct-answer .base {
+            background: #86efac !important;
+        }
+
+        .correct-answer {
+            transform: scale(1.04);
+            /* filter: drop-shadow(0 0 10px rgba(134, 239, 172, 0.6)); */
+        }
+
+        /* ❌ WRONG */
+        .wrong-answer .screen {
+            background: #ffe4e6 !important;
+            border: 3px solid #fda4af !important;
+            color: #9f1239;
+        }
+
+        .wrong-answer .base {
+            background: #fda4af !important;
+        }
+
+        /* .wrong-answer {
+            filter: drop-shadow(0 0 8px rgba(253, 164, 175, 0.5));
+        } */
+
+        /* NAV */
+        .nav-buttons {
+            position: absolute;
+            top: 85%;
+            /* 🔥 vertical middle */
+            left: 0;
+            width: 100%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            /* allow only buttons clickable */
+        }
+
+        .prev {
+            position: absolute;
+            left: 0px;
+            /* 🔥 left side */
+            pointer-events: auto;
+        }
+
+        .next {
+            position: absolute;
+            right: 0px;
+            /* 🔥 right side */
+            pointer-events: auto;
+        }
+
+        button {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            color: #333;
+        }
+
+        .prev {
+            background: #95d5b2;
+        }
+
+        .next {
+            background: #ffb4a2;
+        }
+
+        /* ✨ HOVER */
+        button:hover {
+            transform: scale(1.08);
+            filter: brightness(1.05);
+        }
+
+        /* CLICK */
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+
+        /* POPUP */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+
+        .popup-box {
+            width: 320px;
+            padding: 30px;
+            border-radius: 30px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 800;
+            animation: pop 0.3s ease;
+        }
+
+        /* 🎉 CORRECT */
+        .popup-correct {
+            background: linear-gradient(135deg, #ffffff, #ffffff);
+            border: 3px solid #5ed164;
+            color: #14532d;
+        }
+
+        /* ❌ WRONG */
+        .popup-wrong {
+            background: linear-gradient(135deg, #ffffff, #ffffff);
+            border: 3px solid #ffa1a1;
+            color: #7f1d1d;
+            animation: shake 0.4s, popScale 0.4s;
+        }
+
+        .popup-final {
+            background: linear-gradient(135deg, #ffefb0, #ffefb0);
+            border: 3px solid #ffbe0b;
+            color: #7a5c00;
+        }
+
+        .play-btn {
+            margin-top: 20px;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            background: #02be8c;
+            color: white;
+            cursor: pointer;
+        }
+
+        @keyframes pop {
+            from {
+                transform: scale(0.5);
+            }
+
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width:600px) {
+
+            body {
+                padding: 10px;
+                align-items: center;
+                overflow: auto;
+            }
+
+            .quiz-container {
+                gap: 15px;
+            }
+
+            /* QUESTION */
+            .question {
+                font-size: 20px;
+                height: auto;
+                text-align: center;
+                justify-content: center;
+            }
+
+            /* STACK LAYOUT */
+            .row {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            /* IMAGE */
+            .image img {
+                max-width: 160px;
+            }
+
+            /* OPTIONS */
+            .options {
+                gap: 20px;
+            }
+
+            .laptop {
+                width: 120px;
+            }
+
+            .screen {
+                width: 110px;
+                height: 80px;
+                font-size: 16px;
+            }
+
+            .base {
+                width: 120px;
+                height: 12px;
+            }
+
+            /* BUTTONS */
+            button {
+                font-size: 14px;
+                padding: 8px 18px;
+            }
+
+            /* POPUP */
+            .popup-box {
+                width: 200px;
+                padding: 20px;
+                font-size: 18px;
+                border-radius: 20px;
+            }
+
+            .play-btn {
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+        }
+
+        @media (max-width:600px) {
+
+            .nav-buttons {
+                position: static;
+                /* 🔥 reset */
+                transform: none;
+                /* 🔥 remove translate */
+
+                display: flex;
+                justify-content: center;
+                /* center bottom */
+                gap: 15px;
+                padding: 15px 10px;
+                margin-top: 20px;
+            }
+
+            .prev,
+            .next {
+                position: static;
+                /* 🔥 reset side positioning */
+            }
+
+        }
+
+        @media (min-width:601px) and (max-width:1024px) {
+
+            .row {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .image img {
+                max-width: 200px;
+            }
+
+            .laptop {
+                width: 140px;
+            }
+
+            .screen {
+                width: 130px;
+                height: 95px;
+                font-size: 18px;
+            }
+
+            .base {
+                width: 140px;
+            }
+
+            .question {
+                font-size: 24px;
+            }
+        }
+
+        @media (min-width:1225px) and (max-width:1440px) {
+
+            .quiz-container {
+                max-width: 1200px;
+            }
+
+            .question {
+                font-size: 40px;
+                height: 100px;
+            }
+
+            .image img {
+                max-width: 360px;
+            }
+
+            .laptop {
+                width: 250px;
+            }
+
+            .screen {
+                width: 200px;
+                height: 150px;
+                font-size: 26px;
+            }
+
+            /* 🔥 BUTTONS */
+            button {
+                font-size: 22px;
+                padding: 18px 36px;
+            }
+
+            /* 🔥 NAV SPACING */
+            .nav-buttons {
+                gap: 30px;
+                padding: 20px;
+            }
+
+            .prev {
+                position: absolute;
+                left: 10px;
+                /* 🔥 left side */
+                pointer-events: auto;
+            }
+
+            .next {
+                position: absolute;
+                right: 10px;
+                /* 🔥 right side */
+                pointer-events: auto;
+
+
+            }
+        }
+
+        @media (min-width:1441px) and (max-width:1920px) {
+
+            .quiz-container {
+                max-width: 1400px;
+            }
+
+            .question {
+                font-size: 36px;
+            }
+
+            .image img {
+                max-width: 300px;
+            }
+
+            .options {
+                gap: 50px;
+            }
+        }
+
+        /* ============================= */
+        /* 🖥 MONITOR POPUP BIGGER */
+        /* ============================= */
+
+        @media (min-width:1225px) and (max-width:1440px) {
+
+            /* 🔥 NORMAL POPUP */
+
+            .popup-box {
+
+                width: 420px;
+
+                padding: 50px 40px;
+
+                border-radius: 38px;
+
+                font-size: 38px;
+
+            }
+
+            /* 🔥 FINAL POPUP */
+
+            .popup-final {
+
+                width: 520px;
+
+                padding: 60px 45px;
+
+                font-size: 40px;
+
+            }
+
+            /* 🔥 PLAY AGAIN BUTTON */
+
+            .play-btn {
+
+                font-size: 24px;
+
+                padding: 16px 32px;
+
+                border-radius: 35px;
+
+                margin-top: 25px;
+
+            }
+
+        }
+
+        @media (min-width:1921px) {
+
+            .quiz-container {
+                max-width: 1700px;
+            }
+
+            .question {
+                font-size: 40px;
+            }
+
+            .image img {
+                max-width: 340px;
+            }
+
+            .laptop {
+                width: 220px;
+            }
+
+            .screen {
+                width: 200px;
+                height: 140px;
+                font-size: 26px;
+            }
+
+            button {
+                font-size: 20px;
+                padding: 14px 32px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz-container">
+
+        <div class="question" id="question"></div>
+
+        <div class="row">
+            <div class="image">
+                <img id="img">
+            </div>
+
+            <div class="options">
+                <div class="laptop true-laptop" onclick="selectAnswer('T')">
+                    <div class="screen">👍<br>TRUE</div>
+                    <div class="base"></div>
+                </div>
+
+                <div class="laptop false-laptop" onclick="selectAnswer('F')">
+                    <div class="screen">👎<br>FALSE</div>
+                    <div class="base"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="prev" onclick="prevQuestion()">← Prev</button>
+            <button class="next" id="nextBtn" onclick="nextQuestion()" disabled>Next →</button>
+        </div>
+
+    </div>
+
+    <!-- POPUPS -->
+    <div class="popup-overlay" id="popupOverlay" style="display:none;">
+        <div class="popup-box" id="popupBox"></div>
+    </div>
+
+    <div class="popup-overlay" id="finalOverlay" style="display:none;">
+        <div class="popup-box popup-final">
+            <div id="finalText"></div>
+            <button class="play-btn" onclick="restartQuiz()">🔄 Play Again</button>
+        </div>
+    </div>
+
+    <script>
+
+        function speak(text) {
+            let msg = new SpeechSynthesisUtterance(text);
+            speechSynthesis.speak(msg);
+        }
+
+        let questions = [
+            { q: "Q1. The upper two chambers of the heart are called ventricles.", img: "../images/tf1.png", correct: "F" },
+            { q: "Q2. Veins carry blood from the heart to the different parts of the body.", img: "../images/tf2.png", correct: "F" },
+            { q: "Q3. Blood vessels are the tubes in which blood flows throughout the body.", img: "../images/tf3.png", correct: "T" },
+            { q: "Q4. The heart does not pump blood at night.", img: "../images/heart.png", correct: "F" },
+            { q: "Q5. Inhalation is taking in oxygen rich air.", img: "../images/inhalation.png", correct: "T" }
+        ];
+
+        let current = 0;
+        let score = 0;
+        let answers = new Array(questions.length).fill(null);
+
+        const prevBtn = document.querySelector(".prev");
+        const nextBtn = document.querySelector(".next");
+
+        function loadQ() {
+
+            let q = questions[current];
+            prevBtn.disabled = current === 0;
+
+            document.getElementById("question").innerText = q.q;
+            document.getElementById("img").src = q.img;
+
+
+            let laptops = document.querySelectorAll(".laptop");
+
+            laptops.forEach(l => {
+                l.classList.remove("correct-answer", "wrong-answer");
+                l.style.pointerEvents = "auto";
+                l.style.opacity = "1";
+            });
+
+            /* restore */
+            if (answers[current] !== null) {
+
+                laptops.forEach(l => {
+
+                    if (l.onclick.toString().includes(answers[current])) {
+
+                        l.classList.add("correct-answer");
+
+                    } else {
+
+                        l.style.opacity = "0.5";
+                    }
+
+                    l.style.pointerEvents = "none";
+                });
+
+                nextBtn.disabled = false;
+
+            } else {
+                nextBtn.disabled = true;
+            }
+            if (current === questions.length - 1 && answers[current] === questions[current].correct) {
+                nextBtn.disabled = true;
+            }
+        }
+
+        function showPopup(text, type) {
+
+            let overlay = document.getElementById("popupOverlay");
+            let box = document.getElementById("popupBox");
+
+            overlay.style.display = "flex";
+
+            box.className = "popup-box " + (type === "correct" ? "popup-correct" : "popup-wrong");
+            box.innerHTML = text;
+
+            setTimeout(() => overlay.style.display = "none", 1500);
+        }
+
+        function selectAnswer(choice) {
+
+            if (answers[current] !== null) return;
+
+            let correct = questions[current].correct;
+            let laptops = document.querySelectorAll(".laptop");
+
+            /* ✅ CORRECT */
+            if (choice === correct) {
+
+                confetti();
+
+                answers[current] = choice;
+                score++;
+
+                laptops.forEach(l => {
+
+                    /* correct button */
+                    if (l.onclick.toString().includes(choice)) {
+                        l.classList.add("correct-answer");
+                    }
+
+                    /* wrong button faded */
+                    else {
+                        l.style.opacity = "0.5";
+                    }
+
+                    l.style.pointerEvents = "none";
+                });
+
+                showPopup("🎉 Correct!", "correct");
+                speak("Correct");
+
+                nextBtn.disabled = false;
+
+                if (current === questions.length - 1) {
+                    setTimeout(showFinal, 1200);
+                }
+
+            }
+
+            /* ❌ WRONG */
+            else {
+
+                laptops.forEach(l => {
+
+                    if (l.onclick.toString().includes(choice)) {
+
+                        l.classList.add("wrong-answer");
+
+                        /* remove wrong style again */
+                        setTimeout(() => {
+                            l.classList.remove("wrong-answer");
+                        }, 600);
+
+                    }
+
+                });
+
+                showPopup("❌ Try again!", "wrong");
+                speak("Try again");
+
+                nextBtn.disabled = true;
+            }
+        }
+
+        function nextQuestion() {
+            if (current < questions.length - 1) {
+                current++;
+                loadQ();
+            } else {
+                showFinal();
+            }
+        }
+
+        function prevQuestion() {
+            if (current > 0) {
+                current--;
+                loadQ();
+            }
+        }
+
+        function showFinal() {
+            document.getElementById("finalText").innerHTML =
+                `🎉 Score: ${score}/${questions.length}`;
+            document.getElementById("finalOverlay").style.display = "flex";
+            confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+        }
+
+        function restartQuiz() {
+            current = 0;
+            score = 0;
+            answers.fill(null);
+            document.getElementById("finalOverlay").style.display = "none";
+            loadQ();
+        }
+
+        loadQ();
+
+    </script>
+
+
+</body>
+</html>
