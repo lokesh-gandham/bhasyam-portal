@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Tiro Devanagari Hindi";
+    }
+
+    body {
+      background: #fff6ef;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .game-wrap {
+      width: 100%;
+      max-width: 1400px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .question-box {
+      width: fit-content;
+      margin: 0 auto 12px auto;
+      background: #fff3ed;
+      color: #bc5f7a;
+      padding: 8px 28px;
+      border-radius: 60px;
+      border: 1px solid #ffcdd9;
+      font-size: 20px;
+      font-weight: 400;
+      text-align: center;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+      margin-top: -20px;
+    }
+
+    .matching-area {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 180px;
+      width: 100%;
+    }
+
+    .side-group {
+      width: 22%;
+      display: flex;
+      flex-direction: column;
+      gap: 68px;
+    }
+
+    .center-group {
+      width: 16%;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-top: -10px;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .side-group .text-box {
+      min-height: 72px;
+      font-size: 30px;
+      padding: 14px 48px;
+      flex: 1;
+    }
+
+    .center-group .text-box {
+      min-height: 58px;
+      font-size: 30px;
+      padding: 10px 28px;
+    }
+
+    .img-box {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: #ffe6ef;
+      border: 2px solid #ffbfd3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .img-box img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+    }
+
+    .text-box {
+      position: relative;
+      flex: 1;
+      background: white;
+      border: 2px solid #ffc1d5;
+      border-radius: 18px;
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px 38px;
+      font-size:30px;
+      font-weight: 400;
+      color: #53354a;
+      cursor: pointer;
+      transition: 0.25s;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    }
+
+    .text-box:hover {
+      transform: translateY(-2px);
+      border-color: #ff4f87;
+    }
+
+    .text-box.active {
+      background: #ffe9f1;
+      border-color: #ff4f87;
+      box-shadow: 0 0 0 4px rgba(255, 79, 135, 0.15);
+    }
+
+    .text-box.correct {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      color: white;
+      border-color: #22c55e;
+      pointer-events: none;
+      cursor: default;
+    }
+
+    .text-box.wrong {
+      background: #ef4444;
+      color: white;
+      border-color: #ef4444;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      75% {
+        transform: translateX(5px);
+      }
+    }
+
+    .center-group .text-box.answer .dot,
+    .center-group .text-box.answer .right-dot {
+      display: none !important;
+    }
+
+    .dot {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ff4f87;
+      top: 50%;
+      transform: translateY(-50%);
+      right: 14px;
+      pointer-events: none;
+      box-shadow: 0 0 0 2px rgba(255, 79, 135, 0.3);
+    }
+
+    .side-group:last-child .text-box .dot {
+      left: 14px;
+      right: auto;
+    }
+
+    .match-wrapper {
+      position: relative;
+    }
+
+    svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .final-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      /* backdrop-filter: blur(6px); */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      visibility: hidden;
+      opacity: 0;
+      transition: 0.2s ease;
+    }
+
+    .final-overlay.active {
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
+    .final-popup-box {
+      background: #fff8eb;
+      border-radius: 70px;
+      padding: 1.5rem 1.8rem;
+      text-align: center;
+      max-width: 400px;
+      width: 85%;
+      border: 8px solid #ffc471;
+      box-shadow: 0 25px 0 #b87a38;
+      animation: legoFinal 0.5s cubic-bezier(0.34, 1.2, 0.55, 1);
+    }
+
+    @keyframes legoFinal {
+
+      0% {
+        transform: scale(0.2) rotate(-5deg);
+        opacity: 0;
+      }
+
+      60% {
+        transform: scale(1.05);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .medals-row {
+      font-size: 1.8rem;
+      letter-spacing: 6px;
+      margin-bottom: 0.5rem;
+    }
+
+    .final-heading {
+      font-size: 1.5rem;
+      color: #e67e22;
+      margin-bottom: 0.3rem;
+    }
+
+    .final-sub {
+      color: #785d37;
+      font-size: 1rem;
+      margin-bottom: 0.7rem;
+    }
+
+    .final-stars {
+      font-size: 1.7rem;
+      letter-spacing: 5px;
+      color: #f7b32b;
+      margin: 0.5rem 0;
+    }
+
+    .final-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .final-btn {
+      border: none;
+      padding: 10px 24px;
+      border-radius: 60px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 7px 0 #b87232;
+      transition: 0.05s linear;
+    }
+
+    .playagain-btn {
+      background: #ffe2a4;
+      color: #6b451f;
+    }
+
+    .final-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #b87232;
+    }
+
+    @media(max-width:1200px) {
+      .matching-area {
+        gap: 100px;
+      }
+
+      .side-group {
+        width: 26%;
+      }
+
+      .center-group {
+        width: 20%;
+      }
+    }
+
+    @media(max-width:1100px) {
+      .matching-area {
+        gap: 60px;
+      }
+
+      .side-group {
+        width: 28%;
+        gap: 50px;
+      }
+
+      .center-group {
+        width: 24%;
+      }
+
+      .text-box {
+        font-size: 30px;
+      }
+
+      .side-group .text-box {
+        min-height: 60px;
+        padding: 12px 40px;
+      }
+    }
+
+    @media(min-width:1200px) and (max-width:1600px) {
+      .matching-area {
+        gap: 120px;
+      }
+
+      .side-group {
+        gap: 50px;
+        width: 24%;
+      }
+
+      .center-group {
+        width: 18%;
+        margin-top: -3px;
+      }
+
+      .side-group .text-box {
+        min-height: 70px;
+        padding: 12px 42px;
+        font-size: 25px;
+      }
+
+      .center-group .text-box {
+        min-height: 45px;
+        font-size: 20px;
+      }
+    }
+
+    @media(min-width:1601px) {
+      .center-group {
+        margin-top: 0px;
+      }
+    }
+
+    @media(max-width:900px) {
+      .matching-area {
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+      }
+
+      .side-group,
+      .center-group {
+        width: 100%;
+        max-width: 500px;
+      }
+
+      .side-group {
+        gap: 20px;
+      }
+
+      body {
+        overflow: auto;
+        height: auto;
+      }
+
+      .game-wrap {
+        padding: 20px;
+      }
+    }
+
+    @media(max-width:550px) {
+      .img-box {
+        width: 52px;
+        height: 52px;
+      }
+
+      .side-group .text-box {
+        font-size: 16px;
+        padding: 10px 36px;
+        min-height: 52px;
+      }
+
+      .dot {
+        width: 14px;
+        height: 14px;
+      }
+
+      .center-group .text-box {
+        font-size: 16px;
+        padding: 8px 20px;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+    }
+  </style>
+      <link rel="stylesheet" href="../assets/CSS/walkman-font.css">
+</head>
+
+<body>
+
+  <div class="game-wrap">
+    <div class="question-box">
+      दिए गए शब्दों में से उचित स्त्री-पुरुष के जोड़े बनाइए
+    </div>
+
+    <div class="match-wrapper">
+      <svg id="svgLines"></svg>
+
+      <div class="matching-area">
+
+        <!-- LEFT SIDE GROUP -->
+        <div class="side-group">
+          <div class="item">
+            <div class="img-box"><img src="../assets/images/seth.png" alt="सेठ"></div>
+            <div class="text-box" data-match="सेठानी">सेठ<div class="dot"></div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="img-box"><img src="../assets/images/bull.png" alt="बैल"></div>
+            <div class="text-box" data-match="गाय">बैल <div class="dot"></div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="img-box"><img src="../assets/images/two-sisters.png" alt="बहन"></div>
+            <div class="text-box" data-match="भाई">बहन<div class="dot"></div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="img-box"><img src="../assets/images/father.png" alt="पिता"></div>
+            <div class="text-box" data-match="माता">पिता<div class="dot"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CENTER ANSWERS GROUP -->
+        <div class="center-group">
+          <div class="item">
+            <div class="text-box answer" data-word="बेटी">बेटी</div>
+          </div>
+          <div class="item">
+            <div class="text-box answer" data-word="चाची">चाची</div>
+          </div>
+          <div class="item">
+            <div class="text-box answer" data-word="लड़का">लड़का</div>
+          </div>
+          <div class="item">
+            <div class="text-box answer" data-word="सेठानी">सेठानी</div>
+          </div>
+          <div class="item">
+            <div class="text-box answer" data-word="गाय">गाय</div>
+          </div>
+          <div class="item">
+            <div class="text-box answer" data-word="भाई">भाई</div>
+          </div>
+          <div class="item">
+            <div class="text-box answer" data-word="माता">माता</div>
+          </div>
+          <div class="item">
+            <div class="text-box answer" data-word="मोर">मोर</div>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE GROUP -->
+        <div class="side-group">
+          <div class="item">
+            <div class="img-box"><img src="../assets/images/pecock.png" alt="मोरनी"></div>
+            <div class="text-box" data-match="मोर">मोरनी<div class="dot"></div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="img-box"><img src="../assets/images/girl.png" alt="लड़की"></div>
+            <div class="text-box" data-match="लड़का">लड़की<div class="dot"></div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="img-box"><img src="../assets/images/uncle.png" alt="चाचा"></div>
+            <div class="text-box" data-match="चाची">चाचा<div class="dot"></div>
+            </div>
+          </div>
+          <div class="item">
+            <div class="img-box"><img src="../assets/images/boy.png" alt="बेटा"></div>
+            <div class="text-box" data-match="बेटी">बेटा<div class="dot"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- FINAL POPUP -->
+  <!-- FINAL POPUP -->
+
+  <div id="finalPopup" class="final-overlay">
+
+    <div class="final-popup-box">
+
+      <div class="medals-row">
+        🏅 🥇 🏅
+      </div>
+
+      <h2 class="final-heading">
+        बधाई हो!
+      </h2>
+
+      <p class="final-sub">
+        आपने सभी जोड़े सही बनाए!
+      </p>
+
+      <div class="final-stars">
+        ⭐⭐⭐⭐⭐
+      </div>
+
+      <div class="final-buttons">
+
+        <button class="final-btn playagain-btn" onclick="location.reload()">
+          🔄 फिर से खेलें
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    /* ===== STATE ===== */
+    let selected = null;
+    let audioCtx = null;
+    const svg = document.getElementById('svgLines');
+    const sideBoxes = document.querySelectorAll('.side-group .text-box[data-match]');
+    const answers = document.querySelectorAll('.center-group .text-box.answer');
+
+    /* ===== AUDIO ===== */
+    function playCorrectSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.value = 880; gain.gain.value = 0.2; osc.type = 'sine';
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+        osc.stop(audioCtx.currentTime + 0.5);
+      } catch (e) { }
+    }
+    function playWrongSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.frequency.value = 440; gain.gain.value = 0.25; osc.type = 'sawtooth';
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
+        osc.stop(audioCtx.currentTime + 0.4);
+      } catch (e) { }
+    }
+
+    /* ===== DRAW LINE (defined at top level so all code can access it) ===== */
+    function drawLineToCenterEdge(sideBox, centerAnswerBox) {
+      const sideDot = sideBox.querySelector('.dot');
+      if (!sideDot) return;
+
+      const svgRect = svg.getBoundingClientRect();
+      const dotRect = sideDot.getBoundingClientRect();
+      const startX = dotRect.left + dotRect.width / 2 - svgRect.left;
+      const startY = dotRect.top + dotRect.height / 2 - svgRect.top;
+
+      const answerRect = centerAnswerBox.getBoundingClientRect();
+      const sideRect = sideBox.getBoundingClientRect();
+      const centerRect = centerAnswerBox.getBoundingClientRect();
+
+      let endX, endY;
+      if (sideRect.right < centerRect.left) {
+        endX = answerRect.left - svgRect.left;
+        endY = answerRect.top + answerRect.height / 2 - svgRect.top;
+      } else if (sideRect.left > centerRect.right) {
+        endX = answerRect.right - svgRect.left;
+        endY = answerRect.top + answerRect.height / 2 - svgRect.top;
+      } else {
+        const distToLeft = Math.abs(sideRect.right - centerRect.left);
+        const distToRight = Math.abs(sideRect.left - centerRect.right);
+        endX = distToLeft < distToRight ? answerRect.left - svgRect.left : answerRect.right - svgRect.left;
+        endY = answerRect.top + answerRect.height / 2 - svgRect.top;
+      }
+
+      const midX = (startX + endX) / 2;
+      const distance = Math.abs(endX - startX);
+      const curveStrength = Math.min(distance * 0.2, 60);
+      const ctrl1Y = startY - curveStrength;
+      const ctrl2Y = Math.abs(endY - startY) > 30 ? endY + curveStrength : endY - curveStrength;
+      const d = `M ${startX} ${startY} C ${midX} ${ctrl1Y}, ${midX} ${ctrl2Y}, ${endX} ${endY}`;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', '#ff4f87');
+      path.setAttribute('stroke-width', '4');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke-linecap', 'round');
+      path.style.filter = 'drop-shadow(0 0 3px rgba(255,79,135,0.5))';
+      svg.appendChild(path);
+
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot.setAttribute('cx', endX);
+      dot.setAttribute('cy', endY);
+      dot.setAttribute('r', '6');
+      dot.setAttribute('fill', '#ff4f87');
+      dot.setAttribute('opacity', '0.9');
+      svg.appendChild(dot);
+      setTimeout(() => {
+        dot.style.transition = 'opacity 0.6s';
+        dot.setAttribute('opacity', '0');
+        setTimeout(() => { if (dot.parentNode) dot.remove(); }, 600);
+      }, 800);
+    }
+
+    /* ===== REDRAW ALL LINES ===== */
+    function redrawAllLines() {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      document.querySelectorAll('.side-group .text-box.correct[data-match]').forEach(sideBox => {
+        const matchedValue = sideBox.dataset.match.trim();
+        const matchedAnswer = Array.from(document.querySelectorAll('.center-group .text-box.answer.correct'))
+          .find(ans => ans.textContent.trim() === matchedValue);
+        if (matchedAnswer) drawLineToCenterEdge(sideBox, matchedAnswer);
+      });
+    }
+
+    /* ===== SUCCESS FEEDBACK ===== */
+    function showSuccessFeedback(element) {
+      const rect = element.getBoundingClientRect();
+      const check = document.createElement('div');
+      check.textContent = '✓';
+      check.style.cssText = `position:fixed;left:${rect.left + rect.width / 2}px;top:${rect.top - 20}px;font-size:30px;font-weight:bold;color:#22c55e;z-index:1000;pointer-events:none;opacity:1;transition:all 0.4s ease;text-shadow:0 0 3px white;`;
+      document.body.appendChild(check);
+      setTimeout(() => {
+        check.style.opacity = '0'; check.style.transform = 'translateY(-20px)';
+        setTimeout(() => check.remove(), 500);
+      }, 50);
+    }
+
+    /* ===== SIDE BOX CLICKS ===== */
+    sideBoxes.forEach(box => {
+      box.addEventListener('click', e => {
+        e.stopPropagation();
+        if (box.classList.contains('correct')) return;
+        sideBoxes.forEach(b => b.classList.remove('active'));
+        box.classList.add('active');
+        selected = box;
+      });
+    });
+
+    /* ===== ANSWER CLICKS ===== */
+    answers.forEach(answer => {
+      answer.addEventListener('click', e => {
+        e.stopPropagation();
+        if (!selected) return;
+        if (answer.classList.contains('correct')) return;
+
+        const isCorrect = (selected.dataset.match.trim() === answer.textContent.trim());
+
+        if (isCorrect) {
+          playCorrectSound();
+          confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 }, startVelocity: 22, colors: ['#ff4f87', '#22c55e', '#f5b042', '#3b82f6', '#ff8c00'] });
+
+          answer.classList.add('correct');
+          selected.classList.add('correct');
+          selected.classList.remove('active');
+
+          /* draw line AFTER marking correct so getBoundingClientRect is stable */
+          const sideBoxRef = selected;
+          requestAnimationFrame(() => drawLineToCenterEdge(sideBoxRef, answer));
+
+          showSuccessFeedback(answer);
+          selected = null;
+
+          /* check completion */
+          const allCorrect = document.querySelectorAll('.side-group .text-box.correct').length;
+          if (allCorrect === sideBoxes.length) {
+            setTimeout(() => {
+              document.getElementById('finalPopup').classList.add('active');
+              confetti({ particleCount: 350, spread: 130, origin: { y: 0.5 }, startVelocity: 28 });
+              setTimeout(() => confetti({ particleCount: 250, spread: 150, origin: { x: 0.2, y: 0.5 } }), 200);
+              setTimeout(() => confetti({ particleCount: 250, spread: 150, origin: { x: 0.8, y: 0.5 } }), 400);
+            }, 500);
+          }
+
+        } else {
+          playWrongSound();
+          answer.classList.add('wrong');
+          setTimeout(() => answer.classList.remove('wrong'), 500);
+          if (selected) { selected.style.transform = 'scale(0.98)'; setTimeout(() => { if (selected) selected.style.transform = ''; }, 200); }
+        }
+      });
+    });
+
+    /* ===== CLEAR SELECTION ON OUTSIDE CLICK ===== */
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.side-group .text-box') && !e.target.closest('.center-group .text-box')) {
+        if (selected) { selected.classList.remove('active'); selected = null; }
+      }
+    });
+
+    /* ===== RESIZE ===== */
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(redrawAllLines, 200);
+    });
+
+    window.addEventListener('load', () => setTimeout(redrawAllLines, 100));
+  </script>
+</body>
+
+</html>

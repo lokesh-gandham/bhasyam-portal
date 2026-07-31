@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>✅ One Word Quiz · with image popup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Livvic', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* ===== QUIZ CONTAINER ===== */
+        .quiz-container {
+            width: min(900px, 95vw);
+            border-radius: 30px;
+            /* padding: 20px; */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .quiz-container.slide-in {
+            animation: slideIn 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateX(30px) scale(0.96); opacity: 0; }
+            100% { transform: translateX(0) scale(1); opacity: 1; }
+        }
+
+        /* ===== QUESTION LINE ===== */
+        .question-line {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            width: 100%;
+        }
+
+        .question-number {
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            display: none;
+        }
+
+        #questionText {
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            text-align: start;
+            line-height: 1.4;
+        }
+
+        /* ===== IMAGE ===== */
+        .image-area {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin: 6px 0 10px;
+        }
+
+        .image-area img {
+            width: 250px;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 20px;
+            border: 4px solid white;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+            background: #fff;
+            display: block;
+        }
+
+        /* ===== LETTER ROW ===== */
+        .letter-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        /* word-group: each word is a group with a small gap after it */
+        .word-group {
+            display: flex;
+            gap: 8px;
+            margin-right: 12px;
+        }
+        .word-group:last-child {
+            margin-right: 0;
+        }
+
+        .char-box {
+            width: 62px;
+            height: 62px;
+            border-radius: 30px;
+            background: #fdfcff;
+            border: 2px solid rgba(137, 137, 137, 0.8);
+            font-size: 26px;
+            font-weight: 600;
+            text-align: center;
+            color: #2f4f4f;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-transform: uppercase;
+        }
+
+        .char-box:focus {
+            outline: none;
+            border:4px solid #d8c3ff;
+            background: #f8fffd;
+            transform: translateY(-2px);
+            box-shadow: 0 0 0 4px rgba(159, 211, 199, 0.18);
+        }
+
+        .char-box.correct {
+            background: #ffffff;
+            border: 4px solid #adffc1;
+            box-shadow: 0 6px 0 #9effb3;
+            color: #2f4f4f;
+        }
+
+        .char-box.wrong {
+            background: #fadcdc;
+            border-color: #ff9a9a;
+            box-shadow: 0 6px 0 #f3afaf;
+            animation: smoothWrongBlink 0.7s ease-in-out;
+        }
+
+        @keyframes smoothWrongBlink {
+            0%, 100% {
+                background: #fadcdc;
+                border-color: #ff9a9a;
+                box-shadow: 0 6px 0 #f3afaf;
+            }
+            40% {
+                background: #ffd0d0;
+                border-color: #ff7a7a;
+            }
+            65% {
+                background: #fadcdc;
+            }
+        }
+
+        .char-box:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* ===== NAV ===== */
+        .nav {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            gap: 12px;
+        }
+
+        .nav button {
+            padding: 13px 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 35px;
+            border: 3px solid #ffffff;
+            font-size: 20px;
+            font-weight: 400;
+            color: #ffffff;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+            
+                  width: 150px;
+        }
+
+        .nav button:active:not(:disabled) {
+            transform: translateY(4px);
+        }
+
+        .nav button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .prev {
+            background: linear-gradient(#86cfe5, #66b6d2);
+            box-shadow: 0 4px 0 #3e9dbb;
+        }
+        .prev:active:not(:disabled) {
+            box-shadow: 0 2px 0 #3e9dbb;
+        }
+
+        .next {
+            background: linear-gradient(#ffc37a, #f7a24f);
+            box-shadow: 0 4px 0 #e08634;
+        }
+        .next:active:not(:disabled) {
+            box-shadow: 0 2px 0 #e08634;
+        }
+
+        /* ===== POPUPS ===== */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+          
+        }
+
+        .kid-card {
+            background: #ffffff;
+            width: 340px;
+            padding: 25px 30px;
+            border-radius: 40px;
+            text-align: center;
+            animation: kidPop 0.6s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .kid-icon {
+            font-size: 4em;
+            margin-bottom: 6px;
+            animation: emojiBounce 0.9s infinite alternate;
+        }
+
+        .kid-card h3 {
+            font-size: 2em;
+            font-family: "Livvic";
+            margin-bottom: 4px;
+        }
+
+        .kid-card p {
+            font-size: 1em;
+            font-family: "Livvic";
+            color: #555;
+        }
+
+        /* Correct answer display - shows image and text */
+        .correct-answer-display {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 8px 0 4px;
+            padding: 8px 16px;
+            background: rgba(56, 217, 169, 0.12);
+            border-radius: 60px;
+            border: 2px solid #38d9a9;
+        }
+
+        .correct-answer-display img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .correct-answer-display .answer-text {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2f9e44;
+            text-transform: capitalize;
+        }
+
+        .kid-correct .kid-card {
+            background: #e6fffa;
+            border: 6px solid #38d9a9;
+        }
+        .kid-correct h3 { color: #2f9e44; }
+
+        .kid-wrong .kid-card {
+            background: #fff5f5;
+            border: 6px solid #ffa8a8;
+        }
+        .kid-wrong h3 { color: #e03131; }
+        .kid-wrong p { color: #c92a2a; }
+
+        @keyframes kidPop {
+            0% { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(5deg); }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        @keyframes emojiBounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-15px); }
+        }
+
+        /* ===== FINAL ===== */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 4000;
+            /* background: rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(6px); */
+        }
+
+        .final-kid-box {
+            background: linear-gradient(135deg, #fff7d6, #e6fff5);
+            padding: 30px 35px;
+            border-radius: 35px;
+            text-align: center;
+            width: 450px;
+            animation: finalBounce 0.8s ease;
+            /* box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2); */
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.2em;
+            font-family: "Livvic";
+            color: #2f9e44;
+            margin-bottom: 10px;
+            font-weight:600;
+        }
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-family: "Livvic";
+            font-weight: 600;
+        }
+        #stars {
+            font-size: 2.3em;
+            margin: 12px 0;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 14px 34px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 400;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: transform 0.15s;
+            box-shadow: 0 6px 0 #d4871f;
+        }
+        .playAgain-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #d4871f;
+        }
+
+        @keyframes finalBounce {
+            0% { transform: scale(0.3); opacity: 0; }
+            60% { transform: scale(1.15); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* ===== FLOATING THUMBS ===== */
+        .floating-thumbs {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            font-size: 28px;
+            animation: floatThumbs 2.2s ease-out forwards;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25));
+        }
+
+        @keyframes floatThumbs {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(0.6) rotate(0deg);
+            }
+            40% {
+                opacity: 1;
+                transform: translate(var(--tx), calc(var(--ty) - 40px)) scale(1.1) rotate(8deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(var(--tx) * 1.2), calc(var(--ty) - 140px)) scale(0.9) rotate(20deg);
+            }
+        }
+
+        /* ============================================================ */
+        /* ===== RESPONSIVE ===== */
+        /* ============================================================ */
+
+        @media (max-width: 768px) {
+            body { padding: 10px; align-items: flex-start; padding-top: 20px; }
+            .quiz-container { padding: 20px 16px; gap: 12px; }
+            .question-number { font-size: 22px; }
+            #questionText { font-size: 22px; }
+            .image-area img { width: 200px; height: 160px; }
+            .letter-row { gap: 8px; }
+            .char-box { width: 42px; height: 42px; font-size: 20px; border-radius: 20px; }
+            .word-group { gap: 6px; margin-right: 8px; }
+            .nav button {font-size: 20px;
+                padding: 13px 32px;
+                  width: 150px;  }
+            .kid-card { width: 300px; padding: 20px 24px; }
+            .final-kid-box { width: 90%; max-width: 340px; padding: 22px; }
+            .final-kid-box h2 { font-size: 1.8em; }
+            #stars { font-size: 1.8em; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 8px; align-items: flex-start; padding-top: 12px; }
+            .quiz-container { padding: 16px 10px; gap: 8px; }
+            .question-number { font-size: 18px; }
+            #questionText { font-size: 18px; }
+            .question-line { gap: 4px; }
+            .image-area img { width: 160px; height: 130px; }
+            .letter-row { gap: 6px; }
+            .char-box { width: 32px; height: 32px; font-size: 16px; border-radius: 16px; border-width: 3px; }
+            .word-group { gap: 4px; margin-right: 6px; }
+            .nav button { padding: 8px 14px; font-size: 16px; }
+            .kid-card { width: 260px; padding: 16px 18px; border-radius: 30px; }
+            .kid-icon { font-size: 3em; }
+            .kid-card h3 { font-size: 1.5em; }
+            .kid-card p { font-size: 0.85em; }
+            .correct-answer-display img { width: 30px; height: 30px; }
+            .correct-answer-display .answer-text { font-size: 0.9em; }
+            .final-kid-box { width: 90%; max-width: 300px; padding: 20px; }
+            .final-kid-box h2 { font-size: 1.5em; }
+            .final-kid-box p { font-size: 1em; }
+            #stars { font-size: 1.6em; }
+            .playAgain-btn { padding: 10px 20px; font-size: 0.9em; }
+        }
+
+        @media (min-width: 1025px) and (max-width: 1440px) {
+            .quiz-container { max-width: 1000px; }
+            .question-number { font-size: 30px; }
+            #questionText { font-size: 30px; }
+            .image-area img { width: 300px; height: 200px; }
+            .char-box { width: 65px; height: 65px; font-size: 28px; border-radius: 30px; }
+            .nav button {  font-size: 20px;
+                padding: 13px 32px;
+                  width: 150px; }
+            .kid-card { width: 420px; padding: 35px; }
+            .kid-icon { font-size: 5.5em; }
+            .correct-answer-display img { width: 48px; height: 48px; }
+            .final-kid-box { width: 520px; padding: 40px; }
+            .final-kid-box h2 { font-size: 2.8em; } .final-kid-box p {
+                font-size: 1.5em;
+            }
+            #stars { font-size: 2.8em; }
+              .playAgain-btn {
+                padding: 16px 40px;
+                font-size: 1.2em;
+            }
+        }
+
+        @media (min-width: 1441px) and (max-width: 1920px) {
+            .quiz-container { max-width: 1100px; }
+            .question-number { font-size: 40px; }
+            #questionText { font-size: 40px; }
+            .image-area img { width: 340px; height: 240px; }
+            .letter-row { gap: 18px; }
+            .char-box { width: 85px; height: 85px; font-size: 34px; border-radius: 40px; }
+            .word-group { gap: 12px; margin-right: 14px; }
+            .nav button {  font-size: 22px;
+                padding: 16px 40px;
+                width: 170px; }
+            .kid-card { width: 470px; padding: 40px; }
+            .kid-icon { font-size: 6em; }
+            .correct-answer-display img { width: 52px; height: 52px; }
+            .final-kid-box { width: 580px; padding: 45px; }
+            .final-kid-box h2 { font-size: 3em; }
+            #stars { font-size: 3em; }
+        }
+
+        @media (min-width: 1921px) {
+            .quiz-container { max-width: 1200px; }
+            .question-number { font-size: 42px; }
+            #questionText { font-size: 42px; }
+            .image-area img { width: 380px; height: 270px; }
+            .letter-row { gap: 22px; }
+            .char-box { width: 90px; height: 90px; font-size: 40px; border-radius: 45px; }
+            .word-group { gap: 14px; margin-right: 18px; }
+            .nav button { font-size: 26px; padding: 18px 44px; }
+            .kid-card { width: 520px; padding: 45px; }
+            .kid-icon { font-size: 6.5em; }
+            .correct-answer-display img { width: 58px; height: 58px; }
+            .final-kid-box { width: 650px; padding: 55px; }
+            .final-kid-box h2 { font-size: 3.4em; }
+            #stars { font-size: 3.4em; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container" id="quizContainer">
+    <!-- Question line: number + text (like true/false style) -->
+    <div class="question-line">
+        <span class="question-number" id="questionNumber">Q1.</span>
+        <span id="questionText"></span>
+    </div>
+
+    <div class="image-area">
+        <img id="questionImg" alt="Question illustration">
+    </div>
+
+    <div id="letterRow" class="letter-row"></div>
+
+    <div class="nav">
+        <button class="prev" id="prevBtn">← Prev</button>
+        <button class="next" id="nextBtn" disabled>Next →</button>
+    </div>
+</div>
+
+<!-- POPUPS with correct answer display -->
+<div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+        <div class="kid-icon" id="popupIcon"></div>
+        <h3 id="popupTitle"></h3>
+        <div id="correctAnswerDisplay" class="correct-answer-display">
+            <img id="correctAnswerImg" src="" alt="Correct Answer">
+            <span class="answer-text" id="correctAnswerText"></span>
+        </div>
+        <p id="popupMsg"></p>
+    </div>
+</div>
+
+<div id="finalPopup">
+    <div class="final-kid-box">
+        <h2>🎉 Congratulations!</h2>
+        <p id="finalScore"></p>
+        <div id="stars"></div>
+        <button class="playAgain-btn" onclick="restartQuiz()">Play Again</button>
+    </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+    // ============================================================
+    //  DATA
+    // ============================================================
+    const questions = [
+        {
+            q: "Q1. They have different features like scales, legends, signs and symbols, colours, etc.",
+            a: "MAPS",
+            img: "../assets/images/oneEx11.png",
+            correctText: "MAPS"
+        },
+        {
+            q: "Q2. They represent distances and directions on it.",
+            a: "GLOBE",
+             img: "../assets/images/oneEx2.png",
+            correctText: "GLOBE"
+        },
+       {
+    q: "Q3. To show physical features on a map, cartographers use this for easy recognition.",
+    a: "SIGNS & SYMBOLS",
+    img: "../assets/images/oneEx3.png",
+    correctText: "SIGNS & SYMBOLS"
+},
+        {
+            q: "Q4. They run from east to west on a globe or a map.",
+            a: "LATITUDES",
+             img: "../assets/images/oneEx4.png",
+            correctText: "LATITUDES"
+        },
+        {
+            q: "Q5. They are also known as meridians.",
+            a: "LONGITUDES",
+             img: "../assets/images/oneEx5.png",
+            correctText: "LONGITUDES"
+        }
+    ];
+
+    // ============================================================
+    //  STATE
+    // ============================================================
+    let currentIndex = 0;
+    let score = 0;
+    const answered = new Array(questions.length).fill(false);
+    const locked = new Array(questions.length).fill(false);
+    let isTransitioning = false;
+    let popupTimer = null;
+
+    // ============================================================
+    //  DOM REFS
+    // ============================================================
+    const elements = {
+        questionNumber: document.getElementById("questionNumber"),
+        questionText: document.getElementById("questionText"),
+        img: document.getElementById("questionImg"),
+        letterRow: document.getElementById("letterRow"),
+        prevBtn: document.getElementById("prevBtn"),
+        nextBtn: document.getElementById("nextBtn"),
+        popup: document.getElementById("answerPopup"),
+        popupIcon: document.getElementById("popupIcon"),
+        popupTitle: document.getElementById("popupTitle"),
+        popupMsg: document.getElementById("popupMsg"),
+        correctDisplay: document.getElementById("correctAnswerDisplay"),
+        correctImg: document.getElementById("correctAnswerImg"),
+        correctText: document.getElementById("correctAnswerText"),
+        finalPopup: document.getElementById("finalPopup"),
+        finalScore: document.getElementById("finalScore"),
+        stars: document.getElementById("stars"),
+        container: document.getElementById("quizContainer"),
+        correctSound: document.getElementById("correctSound"),
+        wrongSound: document.getElementById("wrongSound"),
+    };
+
+    // ============================================================
+    //  UTILITIES
+    // ============================================================
+    function speak(text) {
+        speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = "en-UK";
+        msg.volume = 0.25;
+        msg.rate = 1;
+        msg.pitch = 1;
+        speechSynthesis.speak(msg);
+    }
+
+    function smallConfetti() {
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+    }
+
+    function bigConfetti() {
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 80, spread: 100, origin: { y: 0.6 } });
+        }
+    }
+
+    // ============================================================
+    //  POPUP - with image and text like true/false
+    // ============================================================
+    function showPopup(isCorrect, correctImg, correctText) {
+        if (popupTimer) clearTimeout(popupTimer);
+
+        const popup = elements.popup;
+        const icon = elements.popupIcon;
+        const title = elements.popupTitle;
+        const msg = elements.popupMsg;
+        const display = elements.correctDisplay;
+        const imgEl = elements.correctImg;
+        const textEl = elements.correctText;
+
+        popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+        popup.style.display = "flex";
+
+        if (isCorrect) {
+            icon.textContent = "🥳";
+            title.textContent = "Great Job!";
+            msg.textContent = "You got it right!";
+            // Show correct answer display with image and text
+            display.style.display = "flex";
+            imgEl.src = correctImg || "";
+            textEl.textContent = correctText || "";
+            if (elements.correctSound) elements.correctSound.play().catch(() => {});
+            smallConfetti();
+        } else {
+            icon.textContent = "😒";
+            title.textContent = "Oops!";
+            msg.textContent = "Try again, you can do it!";
+            // Hide correct answer display for wrong answers
+            display.style.display = "none";
+            if (elements.wrongSound) elements.wrongSound.play().catch(() => {});
+        }
+
+        popupTimer = setTimeout(() => {
+            popup.style.display = "none";
+            display.style.display = "none";
+        }, 2000);
+    }
+
+    // ============================================================
+    //  RENDER (with word groups)
+    // ============================================================
+    function renderQuestion() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        const q = questions[currentIndex];
+        elements.questionNumber.textContent = `Q${currentIndex + 1}.`;
+        elements.questionText.textContent = q.q;
+        elements.img.src = q.img;
+        elements.img.alt = "loading";
+
+        // Clear letter row
+        elements.letterRow.innerHTML = "";
+
+        // Enable/disable nav
+        elements.prevBtn.disabled = currentIndex === 0;
+        elements.nextBtn.disabled = true;
+
+        // ----- split answer into words (preserve spaces) -----
+        const raw = q.a; // e.g. "SIGNS AND SYMBOLS"
+        // Split by space, keep words as array
+       const words = raw.split(' ');
+        // Create a document fragment or directly append
+        words.forEach((word, wordIdx) => {
+            // Create disabled '&' box
+if (word === "&") {
+    const group = document.createElement("span");
+    group.className = "word-group";
+
+    const ampBox = document.createElement("input");
+    ampBox.className = "char-box";
+    ampBox.value = "&";
+    ampBox.disabled = true;
+
+    group.appendChild(ampBox);
+    elements.letterRow.appendChild(group);
+
+    return;
+}
+            const group = document.createElement('span');
+            group.className = 'word-group';
+
+            // for each character in the word
+            for (let k = 0; k < word.length; k++) {
+                const input = document.createElement('input');
+                input.className = 'char-box';
+                input.maxLength = 1;
+                input.setAttribute('autocomplete', 'off');
+                input.dataset.wordIndex = wordIdx;
+                input.dataset.charIndex = k;
+
+                input.addEventListener('dragover', e => e.preventDefault());
+                input.addEventListener('drop', e => e.preventDefault());
+                input.addEventListener('paste', e => e.preventDefault());
+
+                input.oninput = function() {
+                    this.value = this.value.replace(/\s/g, '').toUpperCase();
+                    if (this.value.length > 1) {
+                        this.value = this.value.charAt(0);
+                    }
+
+                    if (this.value.length === 1) {
+                        // find next input in the same word-group
+                        const siblings = this.parentElement.querySelectorAll('.char-box');
+                        const idx = Array.from(siblings).indexOf(this);
+                        if (idx < siblings.length - 1) {
+                            siblings[idx + 1].focus();
+                        } else {
+                            // last char of this word -> jump to first char of next word-group
+                            const allGroups = document.querySelectorAll('.word-group');
+                            const currentGroup = this.parentElement;
+                            const groupIdx = Array.from(allGroups).indexOf(currentGroup);
+                            if (groupIdx < allGroups.length - 1) {
+                               const allGroups = document.querySelectorAll('.word-group');
+
+let nextIndex = groupIdx + 1;
+
+while (nextIndex < allGroups.length) {
+    const nextInput = allGroups[nextIndex].querySelector('.char-box:not(:disabled)');
+
+    if (nextInput) {
+        nextInput.focus();
+        return;
+    }
+
+    nextIndex++;
+}
+
+// Last editable box reached
+checkAnswer();
+                            } else {
+                                // last word last char -> check answer
+                                checkAnswer();
+                            }
+                        }
+                    }
+                };
+
+                input.onkeydown = function(e) {
+                    if (e.key === 'Backspace' && !this.value) {
+                        const siblings = this.parentElement.querySelectorAll('.char-box');
+                        const idx = Array.from(siblings).indexOf(this);
+                        if (idx > 0) {
+                            siblings[idx - 1].focus();
+                        } else {
+                            // first char of word -> go to previous word-group last char
+                            const allGroups = document.querySelectorAll('.word-group');
+                            const currentGroup = this.parentElement;
+                            const groupIdx = Array.from(allGroups).indexOf(currentGroup);
+                            if (groupIdx > 0) {
+                                const prevGroup = allGroups[groupIdx - 1];
+                                const inputs = prevGroup.querySelectorAll('.char-box');
+                                if (inputs.length) inputs[inputs.length - 1].focus();
+                            }
+                        }
+                    }
+                };
+
+                group.appendChild(input);
+            }
+
+            elements.letterRow.appendChild(group);
+        });
+
+        // Restore if already answered
+        if (answered[currentIndex]) {
+            const allBoxes = document.querySelectorAll('.char-box');
+            let flatAnswer = q.a
+    .replace("&", "")
+    .replace(/\s/g, "");
+          let index = 0;
+
+allBoxes.forEach((b) => {
+
+    if (b.value === "&") {
+        b.disabled = true;
+        b.classList.add("correct");
+        return;
+    }
+
+    b.value = flatAnswer[index++];
+    b.disabled = true;
+    b.classList.add("correct");
+});
+            elements.nextBtn.disabled = false;
+        }
+
+        // Focus first box
+        setTimeout(() => {
+            const firstGroup = elements.letterRow.querySelector('.word-group');
+            if (firstGroup) {
+                const firstInput = firstGroup.querySelector('.char-box');
+                if (firstInput) firstInput.focus();
+            }
+        }, 50);
+
+        // Slide animation
+        elements.container.classList.remove('slide-in');
+        void elements.container.offsetWidth;
+        elements.container.classList.add('slide-in');
+
+        setTimeout(() => {
+            isTransitioning = false;
+        }, 500);
+    }
+
+    // ============================================================
+    //  CHECK ANSWER (handles multi-word with spaces)
+    // ============================================================
+    function checkAnswer() {
+        if (locked[currentIndex]) return;
+
+        const boxes = document.querySelectorAll('.char-box');
+        let typed = "";
+
+boxes.forEach(box => {
+    if (!(box.disabled && box.value === "&")) {
+        typed += box.value;
+    }
+});
+
+        const q = questions[currentIndex];
+        // Remove spaces from both for comparison (but we keep the raw answer with spaces)
+        const normalizedTyped = typed.toUpperCase();
+        const normalizedAnswer = q.a
+    .replace("&", "")
+    .replace(/\s/g, "")
+    .toUpperCase();
+
+        if (normalizedTyped === normalizedAnswer) {
+            locked[currentIndex] = true;
+            answered[currentIndex] = true;
+
+            boxes.forEach(b => {
+                b.classList.add('correct');
+                b.disabled = true;
+            });
+
+            showPopup(true, q.img, q.correctText || q.a);
+            speak('Correct');
+
+            score++;
+            elements.nextBtn.disabled = false;
+
+            if (currentIndex === questions.length - 1) {
+                setTimeout(showFinal, 1800);
+            }
+        } else {
+            showPopup(false);
+            speak('Try again');
+
+            boxes.forEach(b => {
+                b.classList.add('wrong');
+                b.disabled = true;
+            });
+
+            setTimeout(() => {
+                boxes.forEach(b => {
+                    b.classList.remove('wrong');
+                    b.value = '';
+                    b.disabled = false;
+                });
+                // focus first box
+                const firstGroup = elements.letterRow.querySelector('.word-group');
+                if (firstGroup) {
+                    const firstInput = firstGroup.querySelector('.char-box');
+                    if (firstInput) firstInput.focus();
+                }
+            }, 2000);
+        }
+    }
+
+    // ============================================================
+    //  FINAL
+    // ============================================================
+    function showFinal() {
+        elements.finalScore.textContent = `Your Score: ${score} / ${questions.length}`;
+        elements.stars.textContent = '⭐'.repeat(score);
+        elements.finalPopup.style.display = 'flex';
+        bigConfetti();
+        // setTimeout(() => speak(`You scored ${score} out of ${questions.length}`), 500);
+    }
+
+    function restartQuiz() {
+        currentIndex = 0;
+        score = 0;
+        for (let i = 0; i < questions.length; i++) {
+            locked[i] = false;
+            answered[i] = false;
+        }
+        elements.finalPopup.style.display = 'none';
+        renderQuestion();
+    }
+
+    // ============================================================
+    //  EVENT LISTENERS
+    // ============================================================
+    elements.prevBtn.onclick = () => {
+        if (isTransitioning || currentIndex === 0) return;
+        currentIndex--;
+        renderQuestion();
+    };
+
+    elements.nextBtn.onclick = () => {
+        if (isTransitioning) return;
+        if (answered[currentIndex] === false) return;
+        if (currentIndex < questions.length - 1) {
+            currentIndex++;
+            renderQuestion();
+        } else {
+            showFinal();
+        }
+    };
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    renderQuestion();
+    console.log('✅ One Word Quiz - with word groups (gap between words)');
+</script>
+</body>
+</html>

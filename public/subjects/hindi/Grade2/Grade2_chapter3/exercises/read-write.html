@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Livvic", sans-serif;
+        }
+
+        body {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+            overflow-y: hidden;
+            padding: 10px;
+        }
+
+        .app {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 0;
+        }
+
+        /* =========================================
+           MAIN CONTAINER
+        ========================================= */
+
+        .template {
+
+            width: min(1280px, 100%);
+            border-radius: 35px;
+            padding: 18px 20px 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* =========================================
+           HEADING
+        ========================================= */
+
+        .heading {
+
+            width: fit-content;
+
+            margin-inline: auto;
+
+            text-align: center;
+
+            padding: 12px 24px;
+
+            border-radius: 0;
+
+            background: transparent;
+
+            color: #4b4b4b;
+
+            font-size: 34px;
+            font-weight: 700;
+
+            border-bottom: 6px solid #ff9eb5;
+        }
+
+        /* =========================================
+           QUESTIONS WRAP
+        ========================================= */
+
+        .questions-wrap {
+
+            width: 100%;
+
+            display: grid;
+
+            grid-template-columns: repeat(2, 1fr);
+
+            gap: 18px;
+
+            align-items: stretch;
+        }
+
+        /* =========================================
+           QUESTION CARD
+        ========================================= */
+
+        .question-card {
+
+            min-height: 420px;
+
+            background:
+                linear-gradient(180deg,
+                    #edfffe,
+                    #e9f6ff);
+
+            border-radius: 28px;
+
+            border: 3px solid #d898a1;
+
+            padding: 16px;
+
+            position: relative;
+
+            overflow: hidden;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+
+            box-shadow:
+                0 10px 24px rgba(0, 0, 0, 0.014);
+        }
+
+        .question-card::before {
+
+            content: "";
+
+            position: absolute;
+
+            width: 130px;
+            height: 130px;
+
+            background: #ffe7e7;
+
+            border-radius: 50%;
+
+            top: -60px;
+            right: -50px;
+        }
+
+        .question-top {
+
+            width: 100%;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            gap: 10px;
+
+            position: relative;
+            z-index: 2;
+        }
+
+        .q-number {
+
+            width: 38px;
+            height: 38px;
+
+            border-radius: 50%;
+
+            background:
+                linear-gradient(135deg,
+                    #ffb74d,
+                    #ff9800);
+
+            color: white;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .word {
+
+            font-size: 30px;
+            font-weight: 700;
+
+            color: #31455c;
+        }
+
+        /* =========================================
+           IMAGE
+        ========================================= */
+
+        .question-image {
+
+            width: 145px;
+            height: 145px;
+
+            border-radius: 24px;
+
+            overflow: hidden;
+
+            border: 4px solid #fff1d5;
+
+            background: white;
+
+            box-shadow:
+                0 8px 18px rgba(0, 0, 0, .08);
+
+            position: relative;
+            z-index: 2;
+
+            flex-shrink: 0;
+        }
+
+        .question-image img {
+
+            width: 100%;
+            height: 100%;
+
+            object-fit: contain;
+        }
+
+        /* =========================================
+           INPUT BOXES
+        ========================================= */
+
+        .input-row {
+
+            display: flex;
+            justify-content: center;
+
+            gap: 6px;
+
+            flex-wrap: wrap;
+
+            position: relative;
+            z-index: 2;
+        }
+
+        .letter-box {
+
+            min-width: 50px;
+            height: 52px;
+
+            padding: 0 10px;
+
+            border-radius: 14px;
+
+            background: #f9fdff;
+
+            border: 3px dashed #4db6ff;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 22px;
+            font-weight: 700;
+
+            color: #444;
+
+            transition: .2s;
+
+            cursor: pointer;
+        }
+
+        .letter-box.locked {
+
+            background:
+                linear-gradient(180deg,
+                    #dfffe8,
+                    #c8ffd6);
+
+            border: 3px solid #43c86d;
+
+            color: #13813b;
+        }
+
+        .letter-box.wrong {
+
+            border: 3px solid #ff4d6d;
+
+            animation: blink .5s ease;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .2;
+            }
+        }
+
+        /* =========================================
+           OPTIONS
+        ========================================= */
+
+        .options {
+
+            display: flex;
+
+            gap: 6px;
+
+            flex-wrap: wrap;
+
+            justify-content: center;
+
+            position: relative;
+            z-index: 2;
+        }
+
+        .option-btn {
+
+            min-width: 48px;
+            height: 44px;
+
+            padding: 0 12px;
+
+            border-radius: 14px;
+
+            border: none;
+
+            background:
+                linear-gradient(180deg,
+                    #7cbbff,
+                    #5d8dff);
+
+            color: white;
+
+            font-size: 18px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            transition: .2s;
+
+            box-shadow:
+                0 6px 14px rgba(93, 141, 255, .28);
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .option-btn.disabled {
+
+            opacity: .35;
+
+            pointer-events: none;
+        }
+
+        /* =========================================
+           NAVIGATION
+        ========================================= */
+
+        .navigation-btns {
+
+            width: 100%;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 16px;
+
+            margin-top: 2px;
+        }
+
+        .nav-btn {
+
+            border: none;
+
+            background:
+                linear-gradient(135deg,
+                    #7dc8ff,
+                    #5ba7ff);
+
+            color: white;
+
+            padding: 14px 26px;
+
+            border-radius: 50px;
+
+            font-size: 20px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 8px 18px rgba(0, 0, 0, 0.18);
+
+            display: none;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* =========================================
+           POPUP
+        ========================================= */
+
+        .kid-popup {
+
+            position: fixed;
+
+            inset: 0;
+
+            display: none;
+
+            justify-content: center;
+            align-items: center;
+
+            z-index: 5000;
+
+            /* backdrop-filter: blur(4px); */
+        }
+
+        .popup-card {
+
+            width: 300px;
+
+            padding: 24px;
+
+            border-radius: 28px;
+
+            text-align: center;
+
+            background: white;
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, .2);
+        }
+
+        .popup-icon {
+
+            width: 80px;
+            height: 80px;
+
+            border-radius: 50%;
+
+            margin: auto auto 15px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 40px;
+        }
+
+        .popup-card h2 {
+
+            font-size: 30px;
+
+            margin-bottom: 10px;
+        }
+
+        .popup-card p {
+
+            font-size: 18px;
+        }
+
+        .popup-correct .popup-icon {
+
+            background: #dff8e5;
+
+            color: #22b455;
+        }
+
+        .popup-correct h2 {
+
+            color: #189a48;
+        }
+
+        .popup-wrong .popup-icon {
+
+            background: #ffe3e3;
+
+            color: #ff4d4d;
+        }
+
+        .popup-wrong h2 {
+
+            color: #e63946;
+        }
+
+        /* =========================================
+           FINAL POPUP
+        ========================================= */
+
+        #finalPopup {
+
+            position: fixed;
+
+            inset: 0;
+
+            display: none;
+
+            justify-content: center;
+            align-items: center;
+
+            z-index: 6000;
+
+            /* backdrop-filter: blur(6px); */
+        }
+
+        .final-card {
+
+            width: 400px;
+            max-width: 92%;
+
+            background: white;
+
+            border-radius: 40px;
+
+            padding: 35px;
+
+            text-align: center;
+        }
+
+        .final-card h2 {
+
+            font-size: 40px;
+
+            color: #1ca34a;
+
+            margin-bottom: 12px;
+        }
+
+        .final-card p {
+
+            font-size: 22px;
+
+            color: #4d5875;
+
+            font-weight: 600;
+        }
+
+        #stars {
+
+            font-size: 48px;
+
+            margin: 20px 0;
+        }
+
+        .playAgain-btn {
+
+            border: none;
+
+            background:
+                linear-gradient(135deg,
+                    #ffb14d,
+                    #ff8b2b);
+
+            color: white;
+
+            padding: 14px 35px;
+
+            border-radius: 50px;
+
+            font-size: 18px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        /* =========================================
+           KEEP SAME VIEW IN MOBILE
+        ========================================= */
+
+        @media(max-width:768px) {
+
+            body {
+                padding: 8px;
+            }
+
+            .template {
+
+                border-radius: 24px;
+
+                padding: 12px;
+
+                gap: 10px;
+            }
+
+            .questions-wrap {
+
+                grid-template-columns: repeat(2, 1fr);
+
+                gap: 10px;
+            }
+
+            .question-card {
+
+                min-height: 300px;
+
+                padding: 10px;
+
+                border-radius: 18px;
+            }
+
+            .heading {
+
+                width: fit-content;
+
+                font-size: 22px;
+
+                padding: 8px 18px;
+            }
+
+            .q-number {
+
+                width: 28px;
+                height: 28px;
+
+                font-size: 14px;
+            }
+
+            .word {
+
+                font-size: 20px;
+            }
+
+            .question-image {
+
+                width: 90px;
+                height: 90px;
+
+                border-radius: 16px;
+            }
+
+            .input-row {
+
+                gap: 4px;
+            }
+
+            .letter-box {
+
+                min-width: 32px;
+                height: 34px;
+
+                font-size: 14px;
+
+                border-radius: 10px;
+            }
+
+            .options {
+
+                gap: 4px;
+            }
+
+            .option-btn {
+
+                min-width: 32px;
+                height: 30px;
+
+                font-size: 13px;
+
+                border-radius: 10px;
+
+                padding: 0 8px;
+            }
+
+            .navigation-btns {
+
+                margin-top: 4px;
+            }
+
+            .nav-btn {
+
+                font-size: 13px;
+
+                padding: 9px 16px;
+            }
+        }
+
+        @media(max-width:480px) {
+
+            .question-card {
+
+                min-height: 270px;
+            }
+
+            .question-image {
+
+                width: 76px;
+                height: 76px;
+            }
+
+            .word {
+
+                font-size: 18px;
+            }
+
+            .letter-box {
+
+                min-width: 28px;
+                height: 30px;
+
+                font-size: 12px;
+            }
+
+            .option-btn {
+
+                min-width: 28px;
+                height: 28px;
+
+                font-size: 12px;
+            }
+        }
+
+        @media(min-width:1468px){
+
+ .app {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+        }
+    </style>
+
+    <link rel="stylesheet" href="../assets/CSS/walkman-font.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <div class="template">
+
+            <div class="heading">
+                पढ़ो और लिखो।
+            </div>
+
+            <div class="questions-wrap" id="questionsWrap"></div>
+
+            <div class="navigation-btns">
+
+                <button id="prevBtn" class="nav-btn" onclick="prevPage()">
+                    ⬅ पिछला
+                </button>
+
+                <button id="nextBtn" class="nav-btn" onclick="nextPage()">
+                    अगला ➡
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- POPUP -->
+
+    <div id="answerPopup" class="kid-popup">
+
+        <div class="popup-card" id="popupCard">
+
+            <div class="popup-icon" id="popupIcon">🎉</div>
+
+            <h2 id="popupTitle"></h2>
+
+            <p id="popupMsg"></p>
+
+        </div>
+
+    </div>
+
+    <!-- FINAL -->
+
+    <div id="finalPopup">
+
+        <div class="final-card">
+
+            <h2>🎉 शाबाश !</h2>
+
+            <p id="finalScore"></p>
+
+            <div id="stars">⭐⭐⭐</div>
+
+            <button class="playAgain-btn" onclick="location.reload()">
+                फिर से शुरू करें
+            </button>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        const allQuestions = [
+            {
+                word: "खत",
+                img: "../assets/images/letter.png",
+                options: ["ख", "त", "म"]
+            },
+            {
+                word: "लिख",
+                img: "../assets/images/write.png",
+                options: ["लि", "ख", "प"]
+            },
+            {
+                word: "किताब",
+                img: "../assets/images/book.png",
+                options: ["कि", "ता", "ब", "स"]
+            },
+            {
+                word: "डाकिया",
+                img: "../assets/images/postman.png",
+                options: ["डा", "कि", "या", "ना"]
+            },
+            {
+                word: "किसान",
+                img: "../assets/images/farmer.png",
+                options: ["कि", "सा", "न", "म"]
+            },
+            {
+                word: "लिफाफा",
+                img: "../assets/images/envelope1.png",
+                options: ["लि", "फा", "फा", "का"]
+            },
+            {
+                word: "सीढ़ी",
+                img: "../assets/images/ladder.png",
+                options: ["सी", "ढ़ी", "खी"]
+            },
+            {
+                word: "जिद",
+                img: "../assets/images/jid.png",
+                options: ["जि", "द", "न"]
+            },
+            {
+                word: "एक",
+                img: "../assets/images/ek.png",
+                options: ["ए", "क", "र"]
+            },
+            {
+                word: "नानी",
+                img: "../assets/images/grandmother.png",
+                options: ["ना", "नी", "दा"]
+            },
+            {
+                word: "महल",
+                img: "../assets/images/fort.png",
+                options: ["म", "ह", "ल", "च"]
+            },
+            {
+                word: "मस्तानी",
+                img: "../assets/images/mastani.png",
+                options: ["म", "स्", "ता", "नी", "दी"]
+            }
+        ];
+
+        const pages = [];
+
+        for (let i = 0; i < allQuestions.length; i += 2) {
+            pages.push(allQuestions.slice(i, i + 2));
+        }
+
+        pages.forEach(page => {
+
+            page.forEach(item => {
+
+                item.options.sort(() => Math.random() - 0.5);
+
+            });
+
+        });
+
+        const wrap =
+            document.getElementById("questionsWrap");
+
+        let currentPage = 0;
+
+        let solvedPages = {};
+
+        let solvedCount = 0;
+
+        function splitWord(word) {
+
+            return word.match(
+                /(?:[क-हक़-य़][्]?[ािीुूृेैोौंःँ]*)|(?:[अ-औ][ािीुूृेैोौंःँ]*)/g
+            ) || [];
+        }
+
+        function loadPage(index) {
+
+            wrap.innerHTML = "";
+
+            const pageData = pages[index];
+
+            pageData.forEach((item, qIndex) => {
+
+                const letters = splitWord(item.word);
+
+                const saved =
+                    solvedPages[index]?.[qIndex] || [];
+
+                let html =
+
+                    `
+                <div class="question-card">
+
+                    <div class="question-top">
+
+                        <div class="q-number">
+                            ${index * 2 + qIndex + 1}
+                        </div>
+
+                        <div class="word">
+                            ${item.word}
+                        </div>
+
+                    </div>
+
+                    <div class="question-image">
+                        <img src="${item.img}" alt="${item.word}">
+                    </div>
+
+                    <div class="input-row">
+
+                        ${letters.map((l, i) =>
+
+                        `
+                        <div class="letter-box
+                        ${saved[i] ? "locked" : ""}"
+
+                        data-answer="${l}"
+
+                        onclick="removeLetter(
+                        ${qIndex},
+                        ${i}
+                        )">
+
+                        ${saved[i] || ""}
+
+                        </div>
+                        `
+
+                    ).join("")}
+
+                    </div>
+
+                    <div class="options">
+
+                        ${item.options.map(letter =>
+
+                        `
+                        <button
+                        class="option-btn"
+
+                        onclick="fillLetter(
+                        '${letter}',
+                        ${qIndex},
+                        this
+                        )">
+
+                        ${letter}
+
+                        </button>
+                        `
+
+                    ).join("")}
+
+                    </div>
+
+                </div>
+                `;
+
+                wrap.innerHTML += html;
+
+            });
+
+            restoreSolvedQuestions();
+
+            document.getElementById(
+                "prevBtn"
+            ).style.display =
+
+                currentPage === 0
+                    ? "none"
+                    : "block";
+
+            document.getElementById(
+                "nextBtn"
+            ).style.display =
+                "none";
+
+            enableCurrentQuestion();
+
+            checkPageCompleted();
+        }
+
+        loadPage(0);
+
+        function restoreSolvedQuestions() {
+
+            const cards =
+                document.querySelectorAll(
+                    ".question-card"
+                );
+
+            cards.forEach((card, qIndex) => {
+
+                const boxes =
+                    card.querySelectorAll(
+                        ".letter-box"
+                    );
+
+                const buttons =
+                    card.querySelectorAll(
+                        ".option-btn"
+                    );
+
+                let allFilled = true;
+
+                boxes.forEach(box => {
+
+                    if (
+                        box.textContent.trim() === ""
+                    ) {
+
+                        allFilled = false;
+                    }
+                });
+
+                if (allFilled) {
+
+                    let formed = "";
+
+                    let original = "";
+
+                    boxes.forEach(box => {
+
+                        formed += box.textContent;
+                        original += box.dataset.answer;
+                    });
+
+                    if (formed === original) {
+
+                        boxes.forEach(box => {
+
+                            box.classList.add(
+                                "locked"
+                            );
+                        });
+
+                        buttons.forEach(btn => {
+
+                            btn.disabled = true;
+
+                            btn.classList.add(
+                                "disabled"
+                            );
+                        });
+                    }
+                }
+            });
+        }
+
+        function enableCurrentQuestion() {
+
+            const cards =
+                document.querySelectorAll(
+                    ".question-card"
+                );
+
+            let firstUnsolvedFound = false;
+
+            cards.forEach(card => {
+
+                const boxes =
+                    card.querySelectorAll(
+                        ".letter-box"
+                    );
+
+                const buttons =
+                    card.querySelectorAll(
+                        ".option-btn"
+                    );
+
+                let solved = true;
+
+                boxes.forEach(box => {
+
+                    if (
+                        !box.classList.contains(
+                            "locked"
+                        )
+                    ) {
+
+                        solved = false;
+                    }
+                });
+
+                if (solved) {
+
+                    buttons.forEach(btn => {
+
+                        btn.disabled = true;
+
+                        btn.classList.add(
+                            "disabled"
+                        );
+                    });
+
+                    return;
+                }
+
+                if (!firstUnsolvedFound) {
+
+                    firstUnsolvedFound = true;
+
+                    buttons.forEach(btn => {
+
+                        btn.disabled = false;
+
+                        btn.classList.remove(
+                            "disabled"
+                        );
+                    });
+                }
+
+                else {
+
+                    buttons.forEach(btn => {
+
+                        btn.disabled = true;
+
+                        btn.classList.add(
+                            "disabled"
+                        );
+                    });
+                }
+            });
+        }
+
+        function removeLetter(qIndex, boxIndex) {
+
+            const card =
+                document.querySelectorAll(
+                    ".question-card"
+                )[qIndex];
+
+            const boxes =
+                card.querySelectorAll(
+                    ".letter-box"
+                );
+
+            const buttons =
+                card.querySelectorAll(
+                    ".option-btn"
+                );
+
+            const targetBox =
+                boxes[boxIndex];
+
+            if (
+                targetBox.classList.contains(
+                    "locked"
+                )
+            ) {
+
+                return;
+            }
+
+            const value =
+                targetBox.textContent.trim();
+
+            if (value === "") return;
+
+            targetBox.textContent = "";
+
+            buttons.forEach(btn => {
+
+                if (
+                    btn.textContent.trim() === value
+                ) {
+
+                    btn.disabled = false;
+
+                    btn.classList.remove(
+                        "disabled"
+                    );
+                }
+            });
+        }
+
+        function fillLetter(
+            selected,
+            qIndex,
+            clickedBtn
+        ) {
+
+            const card =
+                document.querySelectorAll(
+                    ".question-card"
+                )[qIndex];
+
+            const boxes =
+                card.querySelectorAll(
+                    ".letter-box"
+                );
+
+            const buttons =
+                card.querySelectorAll(
+                    ".option-btn"
+                );
+
+            let targetBox = null;
+
+            boxes.forEach(box => {
+
+                if (
+                    !targetBox &&
+                    box.textContent.trim() === ""
+                ) {
+
+                    targetBox = box;
+                }
+            });
+
+            if (!targetBox) return;
+
+            targetBox.textContent =
+                selected;
+
+            clickedBtn.disabled = true;
+
+            clickedBtn.classList.add(
+                "disabled"
+            );
+
+            let formedWord = "";
+
+            let originalWord = "";
+
+            let allFilled = true;
+
+            boxes.forEach(box => {
+
+                formedWord +=
+                    box.textContent.trim();
+
+                originalWord +=
+                    box.dataset.answer;
+
+                if (
+                    box.textContent.trim() === ""
+                ) {
+
+                    allFilled = false;
+                }
+            });
+
+            if (!allFilled) {
+                return;
+            }
+
+            if (
+                formedWord === originalWord
+            ) {
+
+                playCorrectSound();
+
+                boxes.forEach(box => {
+
+                    box.classList.add(
+                        "locked"
+                    );
+                });
+
+                buttons.forEach(btn => {
+
+                    btn.disabled = true;
+
+                    btn.classList.add(
+                        "disabled"
+                    );
+                });
+
+                solvedPages[currentPage] ??= {};
+
+                solvedPages[currentPage][qIndex] =
+                    boxes.length
+                        ? Array.from(boxes).map(
+                            box => box.textContent.trim()
+                        )
+                        : [];
+
+                solvedCount++;
+
+                showPopup(true);
+
+                fireConfetti();
+
+                enableCurrentQuestion();
+
+                checkPageCompleted();
+            }
+
+            else {
+
+                playWrongSound();
+
+                boxes.forEach(box => {
+
+                    box.classList.add(
+                        "wrong"
+                    );
+                });
+
+                showPopup(false);
+
+                setTimeout(() => {
+
+                    boxes.forEach(box => {
+
+                        box.classList.remove(
+                            "wrong"
+                        );
+
+                        box.textContent = "";
+                    });
+
+                    buttons.forEach(btn => {
+
+                        btn.disabled = false;
+
+                        btn.classList.remove(
+                            "disabled"
+                        );
+                    });
+
+                    enableCurrentQuestion();
+
+                }, 700);
+            }
+        }
+
+        function checkPageCompleted() {
+
+            const cards =
+                document.querySelectorAll(
+                    ".question-card"
+                );
+
+            let allDone = true;
+
+            cards.forEach(card => {
+
+                const boxes =
+                    card.querySelectorAll(
+                        ".letter-box"
+                    );
+
+                boxes.forEach(box => {
+
+                    if (
+                        !box.classList.contains(
+                            "locked"
+                        )
+                    ) {
+
+                        allDone = false;
+                    }
+                });
+            });
+
+            if (allDone) {
+
+                if (
+                    currentPage <
+                    pages.length - 1
+                ) {
+
+                    document.getElementById(
+                        "nextBtn"
+                    ).style.display =
+                        "block";
+                }
+
+                else {
+
+                    setTimeout(
+                        showFinal,
+                        1000
+                    );
+                }
+            }
+        }
+
+        function nextPage() {
+
+            currentPage++;
+
+            loadPage(currentPage);
+
+            window.scrollTo(0, 0);
+        }
+
+        function prevPage() {
+
+            currentPage--;
+
+            loadPage(currentPage);
+
+            window.scrollTo(0, 0);
+        }
+
+        function showPopup(isCorrect) {
+
+            const popup =
+                document.getElementById(
+                    "answerPopup"
+                );
+
+            const popupCard =
+                document.getElementById(
+                    "popupCard"
+                );
+
+            const icon =
+                document.getElementById(
+                    "popupIcon"
+                );
+
+            const title =
+                document.getElementById(
+                    "popupTitle"
+                );
+
+            const msg =
+                document.getElementById(
+                    "popupMsg"
+                );
+
+            popup.style.display =
+                "flex";
+
+            popupCard.className =
+                "popup-card " +
+
+                (
+                    isCorrect
+                        ? "popup-correct"
+                        : "popup-wrong"
+                );
+
+            if (isCorrect) {
+
+                icon.textContent = "🎉";
+
+                title.textContent =
+                    "बहुत बढ़िया!";
+
+                msg.textContent =
+                    "आपका उत्तर सही है।";
+            }
+
+            else {
+
+                icon.textContent = "😯";
+
+                title.textContent =
+                    "ओह!";
+
+                msg.textContent =
+                    "फिर से प्रयास करें।";
+            }
+
+            setTimeout(() => {
+
+                popup.style.display =
+                    "none";
+
+            }, 1000);
+        }
+
+        function showFinal() {
+
+            const popup =
+                document.getElementById(
+                    "finalPopup"
+                );
+
+            document.getElementById(
+                "finalScore"
+            ).textContent =
+
+                `आपने ${solvedCount}
+            शब्द सही लिखे`;
+
+            popup.style.display =
+                "flex";
+
+            confetti({
+
+                particleCount: 180,
+
+                spread: 120,
+
+                origin: { y: 0.6 }
+
+            });
+
+            playCorrectSound();
+        }
+
+        function fireConfetti() {
+
+            confetti({
+
+                particleCount: 60,
+
+                spread: 80,
+
+                origin: { y: 0.6 }
+
+            });
+        }
+
+        const audioContext =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+        document.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    audioContext.state === "suspended"
+                ) {
+
+                    audioContext.resume();
+                }
+            },
+            { once: true }
+        );
+
+        function playCorrectSound() {
+
+            const osc =
+                audioContext.createOscillator();
+
+            const gain =
+                audioContext.createGain();
+
+            osc.type = "triangle";
+
+            osc.frequency.setValueAtTime(
+                520,
+                audioContext.currentTime
+            );
+
+            osc.frequency.exponentialRampToValueAtTime(
+                880,
+                audioContext.currentTime + 0.18
+            );
+
+            gain.gain.setValueAtTime(
+                0.25,
+                audioContext.currentTime
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.001,
+                audioContext.currentTime + 0.35
+            );
+
+            osc.connect(gain);
+
+            gain.connect(audioContext.destination);
+
+            osc.start();
+
+            osc.stop(
+                audioContext.currentTime + 0.35
+            );
+        }
+
+        function playWrongSound() {
+
+            const osc =
+                audioContext.createOscillator();
+
+            const gain =
+                audioContext.createGain();
+
+            osc.type = "sawtooth";
+
+            osc.frequency.setValueAtTime(
+                300,
+                audioContext.currentTime
+            );
+
+            osc.frequency.exponentialRampToValueAtTime(
+                120,
+                audioContext.currentTime + 0.4
+            );
+
+            gain.gain.setValueAtTime(
+                0.22,
+                audioContext.currentTime
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.001,
+                audioContext.currentTime + 0.4
+            );
+
+            osc.connect(gain);
+
+            gain.connect(audioContext.destination);
+
+            osc.start();
+
+            osc.stop(
+                audioContext.currentTime + 0.4
+            );
+        }
+
+    </script>
+
+</body>
+
+</html>

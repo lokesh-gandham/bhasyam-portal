@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+    <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Tiro Devanagari Hindi", sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            /* background: linear-gradient(145deg, #fef9e6, #fff4e0); */
+        }
+
+        /* MAIN CONTAINER */
+        .main-container {
+            width: 750px;
+        }
+
+        /* QUIZ CARD */
+        .quiz-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .instruction {
+            font-size: 30px;
+            position: relative;
+            width: fit-content;
+            padding: 10px 60px;
+            margin-top: -20px;
+            border-radius: 24px;
+            font-weight: 400;
+            color: #4b4b63;
+            background: #fdd1d1;
+            backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 24px rgba(120, 120, 180, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            overflow: hidden;
+            margin: auto;
+        }
+
+        /* QUESTION */
+        .question-area {
+            width: 100%;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .question-area h2 {
+            font-size: 40px;
+            font-weight: 400;
+            color: #2f4f4f;
+            text-align: center;
+        }
+
+        /* OPTIONS WRAP - 4 big buttons with image + text (replaces input-area) */
+        .options-wrap {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 25px 0 20px;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            width: 160px;
+            height: auto;
+            min-height: 160px;
+            border: none;
+            border-radius: 28px;
+            /* background: #ffd089; */
+            background: #ffd089a1;
+            border: 3px solid #fff;
+            font-size: 32px;
+            font-weight: 600;
+            color: #2f4f4f;
+            cursor: pointer;
+            box-shadow: 0 8px 14px rgba(0, 0, 0, 0.15);
+            transition: 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px 8px;
+        }
+
+        .option-btn img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.2));
+        }
+
+        .option-btn span {
+            font-size: 40px;
+            font-weight: 500;
+            /* padding: 4px 12px; */
+            border-radius: 40px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-5px);
+            background: #ffd48a;
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            transform: none;
+        }
+
+        .correct-option {
+            background: #b8f5c8 !important;
+            color: #146c2e !important;
+            box-shadow: 0 4px 0 #4cae4c;
+            transform: translateY(2px);
+            pointer-events: none;
+            opacity: 1 !important;
+        }
+
+        .wrong-option {
+            background: #ffd6d6 !important;
+            color: #b42323 !important;
+            animation: wrongBlink 0.3s ease 2;
+        }
+
+        @keyframes wrongBlink {
+
+            0%,
+            100% {
+                background: #ffd6d6;
+            }
+
+            50% {
+                background: #ffaaaa;
+            }
+        }
+
+        /* NAV BUTTONS - exactly same style */
+        .nav-buttons {
+            width: 100%;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nav-buttons button {
+            width: 150px;
+            height: 60px;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            border: 3px solid #ffffff;
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            cursor: pointer;
+            background-size: 200% 200%;
+            transition: .15s ease;
+        }
+
+        #prevBtn {
+            background: linear-gradient(#86cfe5, #66b6d2);
+            box-shadow: 0 4px 0 #3e9dbb;
+        }
+
+        #nextBtn {
+            background: linear-gradient(#ffc37a, #f7a24f);
+            box-shadow: 0 4px 0 #e08634;
+        }
+
+        .nav-buttons button:active {
+            transform: translateY(2px);
+        }
+
+        .nav-buttons button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* POPUP - exactly same as original */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .kid-card {
+            background: #fff;
+            width: 320px;
+            padding: 25px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 15px 0 #ffd966, 0 25px 40px rgba(0, 0, 0, 0.2);
+            animation: kidPop 0.6s ease;
+        }
+
+        .kid-icon {
+            font-size: 4.5em;
+            margin-bottom: 10px;
+            animation: emojiBounce .9s infinite alternate;
+        }
+
+        .kid-card h3 {
+            font-size: 2em;
+            margin-bottom: 8px;
+            color: #2f9e44;
+        }
+
+        .kid-card p {
+            font-size: 1.2em;
+            color: #1c7c54;
+        }
+
+        .kid-correct .kid-card {
+            background: #e6fffa;
+            border: 6px solid #38d9a9;
+        }
+
+        .kid-wrong .kid-card {
+            background: #fff5f5;
+            border: 6px solid #ffa8a8;
+        }
+
+        .kid-wrong h3 {
+            color: #e03131;
+        }
+
+        .kid-wrong p {
+            color: #c92a2a;
+        }
+
+        @keyframes kidPop {
+            0% {
+                transform: scale(.3) rotate(-10deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.1) rotate(5deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-15px);
+            }
+        }
+
+        /* FINAL POPUP - same as original */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 4000;
+        }
+
+        .final-kid-box {
+            background: linear-gradient(135deg, #fff7d6, #e6fff5);
+            padding: 30px 35px;
+            border-radius: 35px;
+            text-align: center;
+            width: 450px;
+            animation: finalBounce .8s ease;
+            box-shadow: 0 20px 0 #ffd43b, 0 30px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.2em;
+            color: #2f9e44;
+            margin-bottom: 10px;
+        }
+
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        #stars {
+            font-size: 2.3em;
+            margin: 12px 0;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 14px 34px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        @keyframes finalBounce {
+            0% {
+                transform: scale(.3);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.15);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+                overflow: auto;
+                height: auto;
+                align-items: center;
+            }
+
+            .main-container {
+                width: 100%;
+                max-width: 700px;
+            }
+
+            .option-btn {
+                width: 130px;
+                min-height: 130px;
+                padding: 12px 6px;
+            }
+
+            .option-btn img {
+                width: 55px;
+                height: 55px;
+            }
+
+            .option-btn span {
+                font-size: 22px;
+            }
+
+            .instruction {
+                font-size: 18px;
+                padding: 10px 30px;
+                margin-top: 10px;
+            }
+
+            .question-area h2 {
+                font-size: 24px;
+            }
+
+            .nav-buttons button {
+                padding: 10px 20px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .options-wrap {
+                gap: 12px;
+            }
+
+            .option-btn {
+                width: 110px;
+                min-height: 110px;
+            }
+
+            .option-btn img {
+                width: 45px;
+                height: 45px;
+            }
+
+            .option-btn span {
+                font-size: 18px;
+            }
+        }
+
+        /* SMALL DESKTOP / LAPTOP (1025px - 1280px) */
+        @media screen and (min-width: 1025px) and (max-width: 1280px) {
+            body {
+                padding: 30px;
+            }
+
+            .main-container {
+                width: 1150px;
+            }
+
+            .instruction {
+                font-size: 30px;
+                padding: 12px 50px;
+                margin-bottom: 32px;
+            }
+
+            .question-area {
+                height: 95px;
+            }
+
+            .question-area h2 {
+                font-size: 40px;
+            }
+
+            .options-wrap {
+                gap: 22px;
+                margin: 28px 0;
+            }
+
+            .option-btn {
+                width: 180px;
+                min-height: 190px;
+                padding: 20px 14px;
+                border-radius: 32px;
+            }
+
+            .option-btn img {
+                width: 80px;
+                height: 80px;
+            }
+
+            .option-btn span {
+                font-size: 40px;
+                padding: 6px 16px;
+            }
+
+            .nav-buttons {
+                gap: 22px;
+                margin-top: 25px;
+            }
+
+            .nav-buttons button {
+                padding: 14px 30px;
+                font-size: 20px;
+            }
+        }
+
+        /* STANDARD DESKTOP (1281px - 1440px) */
+        @media screen and (min-width: 1281px) and (max-width: 1440px) {
+            body {
+                padding: 35px;
+            }
+
+            .main-container {
+                width: 1100px;
+            }
+
+            .instruction {
+                font-size: 30px;
+                padding: 12px 55px;
+                margin-bottom: 35px;
+            }
+
+            .question-area {
+                height: 100px;
+            }
+
+            .question-area h2 {
+                font-size: 40px;
+            }
+
+            .options-wrap {
+                gap: 24px;
+                margin: 30px 0;
+            }
+
+            .option-btn {
+                width: 190px;
+                min-height: 200px;
+                padding: 22px 15px;
+                border-radius: 35px;
+            }
+
+            .option-btn img {
+                width: 85px;
+                height: 85px;
+            }
+
+            .option-btn span {
+                font-size: 40px;
+                padding: 8px 18px;
+            }
+
+            .nav-buttons {
+                gap: 24px;
+                margin-top: 28px;
+            }
+
+            .nav-buttons button {
+                padding: 15px 32px;
+                font-size: 21px;
+            }
+        }
+
+        /* LARGE DESKTOP (1441px - 1600px) */
+        @media screen and (min-width: 1441px) and (max-width: 1600px) {
+            body {
+                padding: 40px;
+            }
+
+            .main-container {
+                width: 1250px;
+            }
+
+            .instruction {
+                font-size: 35px;
+                padding: 12px 60px;
+                margin-bottom: 38px;
+            }
+
+            .question-area {
+                height: 105px;
+            }
+
+            .question-area h2 {
+                font-size: 50px;
+            }
+
+            .options-wrap {
+                gap: 26px;
+                margin: 32px 0;
+            }
+
+            .option-btn {
+                width: 200px;
+                min-height: 210px;
+                padding: 24px 16px;
+                border-radius: 38px;
+            }
+
+            .option-btn img {
+                width: 90px;
+                height: 90px;
+            }
+
+            .option-btn span {
+                font-size: 50px;
+                padding: 8px 20px;
+            }
+
+            .nav-buttons {
+                gap: 26px;
+                margin-top: 30px;
+            }
+
+            .nav-buttons button {
+                padding: 16px 35px;
+                font-size: 22px;
+            }
+        }
+
+        /* WIDE DESKTOP (1601px - 1920px) */
+        @media screen and (min-width: 1601px) and (max-width: 1920px) {
+            body {
+                padding: 45px;
+            }
+
+            .main-container {
+                max-width: 1000px;
+            }
+
+            .instruction {
+                font-size: 35px;
+                padding: 14px 65px;
+                margin-bottom: 40px;
+            }
+
+            .question-area {
+                height: 110px;
+            }
+
+            .question-area h2 {
+                font-size: 50px;
+            }
+
+            .options-wrap {
+                gap: 28px;
+                margin: 35px 0;
+            }
+
+            .option-btn {
+                width: 210px;
+                min-height: 220px;
+                padding: 26px 18px;
+                border-radius: 40px;
+            }
+
+            .option-btn img {
+                width: 95px;
+                height: 95px;
+            }
+
+            .option-btn span {
+                font-size: 50px;
+                padding: 8px 22px;
+            }
+
+            .nav-buttons {
+                gap: 28px;
+                margin-top: 32px;
+            }
+
+            .nav-buttons button {
+                padding: 18px 38px;
+                font-size: 24px;
+            }
+
+            .kid-card {
+                width: 380px;
+                padding: 30px;
+            }
+
+            .kid-icon {
+                font-size: 5em;
+            }
+
+            .kid-card h3 {
+                font-size: 2.2em;
+            }
+
+            .final-kid-box {
+                width: 500px;
+                padding: 35px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 2.5em;
+            }
+        }
+
+        /* ULTRA WIDE (>1920px) - for 4K screens */
+        @media screen and (min-width: 1921px) {
+            body {
+                padding: 50px;
+            }
+
+            .main-container {
+                max-width: 1100px;
+            }
+
+            .instruction {
+                font-size: 35px;
+                padding: 16px 70px;
+                margin-bottom: 45px;
+            }
+
+            .question-area {
+                height: 120px;
+            }
+
+            .question-area h2 {
+                font-size: 50px;
+            }
+
+            .options-wrap {
+                gap: 32px;
+                margin: 40px 0;
+            }
+
+            .option-btn {
+                width: 230px;
+                min-height: 240px;
+                padding: 28px 20px;
+                border-radius: 45px;
+            }
+
+            .option-btn img {
+                width: 105px;
+                height: 105px;
+            }
+
+            .option-btn span {
+                font-size: 50px;
+                padding: 10px 25px;
+            }
+
+            .nav-buttons {
+                gap: 32px;
+                margin-top: 35px;
+            }
+
+            .nav-buttons button {
+                padding: 20px 42px;
+                font-size: 26px;
+            }
+
+            .kid-card {
+                width: 420px;
+                padding: 35px;
+            }
+
+            .kid-icon {
+                font-size: 5.5em;
+            }
+
+            .kid-card h3 {
+                font-size: 2.5em;
+            }
+
+            .final-kid-box {
+                width: 550px;
+                padding: 40px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 2.8em;
+            }
+        }
+
+        /* LANDSCAPE MODE FOR MOBILES */
+        @media screen and (max-width: 768px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+            }
+
+            .question-area {
+                min-height: 60px;
+            }
+
+            .question-area h2 {
+                font-size: 18px;
+            }
+
+            .options-wrap {
+                gap: 12px;
+                margin: 10px 0;
+            }
+
+            .option-btn {
+                min-width: 120px;
+                min-height: 110px;
+                padding: 10px 8px;
+            }
+
+            .option-btn img {
+                width: 45px;
+                height: 45px;
+            }
+
+            .option-btn span {
+                font-size: 16px;
+                padding: 3px 8px;
+            }
+
+            .nav-buttons button {
+                padding: 6px 14px;
+                font-size: 14px;
+            }
+        }
+
+        /* TOUCH DEVICES OPTIMIZATION */
+        @media (hover: hover) {
+            .option-btn:hover:not(:disabled) {
+                transform: translateY(-5px);
+            }
+        }
+
+        @media (hover: none) {
+            .option-btn:active:not(:disabled) {
+                transform: scale(0.98);
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="../assets/CSS/walkman-font.css">
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="instruction">
+            निम्नलिखित अक्षरों के आगे वाला अक्षर चुनिए।
+        </div>
+        <div class="quiz-container">
+            <div class="question-area">
+                <h2 id="questionText"></h2>
+            </div>
+
+            <!-- 4 BIG OPTIONS with IMAGE + TEXT -->
+            <div class="options-wrap" id="optionsWrap"></div>
+
+            <div class="nav-buttons">
+                <button id="prevBtn"><i style="margin-right: 5px;" class="fa-solid fa-angles-left"></i> पिछला </button>
+                <button id="nextBtn">अगला <i style="margin-left: 5px;" class="fa-solid fa-angles-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎊 कमाल कर दिया!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()"> पुनः खेलें</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        // ---------- SAME QUESTIONS (original data) ----------
+        const questions = [
+            { question: "Q1. ______ आ", answer: "अ", options: ["अ", "इ", "उ", "आ"], imageMapping: { "अ": "anar", "इ": "imli", "उ": "ullu", "आ": "aam" } },
+            { question: "Q2. ______ ई", answer: "इ", options: ["अ", "इ", "ई", "उ"], imageMapping: {} },
+            { question: "Q3. ______ ऊ", answer: "उ", options: ["उ", "ऊ", "ऋ", "इ"], imageMapping: {} },
+            { question: "Q4. ______ ए", answer: "ऋ", options: ["ऊ", "ऋ", "ए", "ऐ"], imageMapping: {} },
+            { question: "Q5. ______ ऐ", answer: "ए", options: ["ए", "ऐ", "ओ", "औ"], imageMapping: {} },
+            { question: "Q6. ______ औ", answer: "ओ", options: ["ओ", "औ", "अं", "अः"], imageMapping: {} },
+            { question: "Q7. ______ अः", answer: "अं", options: ["औ", "अं", "अः", "अ"], imageMapping: {} },
+            { question: "Q8. ______ उ", answer: "ई", options: ["इ", "ई", "उ", "ऊ"], imageMapping: {} },
+            { question: "Q9. ______ ख", answer: "क", options: ["क", "म", "ग", "घ"], imageMapping: {} },
+            { question: "Q10. ______ ग", answer: "ख", options: ["ख", "ज", "ट", "क"], imageMapping: {} },
+            { question: "Q11. ______ घ", answer: "ग", options: ["च", "ग", "द", "ख"], imageMapping: {} },
+            { question: "Q12. ______ ड़", answer: "घ", options: ["घ", "फ", "ल", "ड"], imageMapping: {} },
+            { question: "Q13. ______ छ", answer: "च", options: ["च", "न", "प", "ज"], imageMapping: {} },
+            { question: "Q14. ______ झ", answer: "ज", options: ["थ", "ज", "य", "च"], imageMapping: {} },
+            { question: "Q15. ______ ज", answer: "छ", options: ["ल", "छ", "व", "झ"], imageMapping: {} },
+            { question: "Q16. ______ ञ", answer: "झ", options: ["झ", "ह", "र", "ज"], imageMapping: {} },
+            { question: "Q17. ______ ठ", answer: "ट", options: ["ट", "ड", "ण", "ठ"], imageMapping: {} },
+            { question: "Q18. ______ ढ", answer: "ठ", options: ["ठ", "ट", "ढ", "ड"], imageMapping: {} },
+            { question: "Q19. ______ थ", answer: "त", options: ["त", "द", "न", "थ"], imageMapping: {} },
+            { question: "Q20. ______ म", answer: "भ", options: ["भ", "ब", "प", "म"], imageMapping: {} },
+            { question: "Q21. ______ फ", answer: "प", options: ["प", "ब", "म", "फ"], imageMapping: {} },
+            { question: "Q22. ______ ण", answer: "ढ", options: ["ढ", "ठ", "ड", "ण"], imageMapping: {} },
+            { question: "Q23. ______ भ", answer: "ब", options: ["ब", "प", "फ", "भ"], imageMapping: {} },
+            { question: "Q24. ______ न", answer: "ध", options: ["ध", "त", "थ", "न"], imageMapping: {} },
+            { question: "Q25. ______ ज्ञ", answer: "त्र", options: ["त्र", "क्ष", "श", "ज्ञ"], imageMapping: {} },
+            { question: "Q26. ______ स", answer: "ष", options: ["ष", "श", "ह", "स"], imageMapping: {} },
+            { question: "Q27. ______ ल", answer: "र", options: ["र", "य", "व", "ल"], imageMapping: {} },
+            { question: "Q28. ______ ष", answer: "श", options: ["श", "ष", "स", "ह"], imageMapping: {} },
+            { question: "Q29. ______ र", answer: "य", options: ["य", "ल", "व", "र"], imageMapping: {} },
+            { question: "Q30. ______ व", answer: "ल", options: ["ल", "र", "य", "व"], imageMapping: {} }
+        ];
+
+        // Image mapping for each letter (same style as original assets)
+        const letterImageMap = {
+            "अ": "../assets/images/anar.png",
+            "इ": "../assets/images/imli.png",
+            "उ": "../assets/images/ullu.png",
+            "आ": "../assets/images/aam.png",
+            "ई": "../assets/images/ekha.png",
+            "ऊ": "../assets/images/un.png",
+            "ऋ": "../assets/images/rishi.png",
+            "ए": "../assets/images/edi.png",
+            "ऐ": "../assets/images/enak.png",
+            "ओ": "../assets/images/okhali.png",
+            "औ": "../assets/images/aurat.png",
+            "अं": "../assets/images/angur.png",
+            "अः": "../assets/images/boy-think.png",
+            "क": "../assets/images/kamal.png",
+            "ख": "../assets/images/khargosh.png",
+            "ग": "../assets/images/gamla.png",
+            "घ": "../assets/images/ghadi.png",
+            "च": "../assets/images/chamach.png",
+            "छ": "../assets/images/chhata.png",
+            "ज": "../assets/images/jahaj.png",
+            "झ": "../assets/images/jhula.png",
+            "ट": "../assets/images/tamater.png",
+            "ठ": "../assets/images/thathera.png",
+            "ड": "../assets/images/damaru.png",
+            "ढ": "../assets/images/dhakkan.png",
+            "ण": "../assets/images/boy-think.png",
+            "त": "../assets/images/tarbuj.png",
+            "थ": "../assets/images/tharmas.png",
+            "द": "../assets/images/dant.png",
+            "ध": "../assets/images/dhanush.png",
+            "न": "../assets/images/nal.png",
+            "प": "../assets/images/patang.png",
+            "फ": "../assets/images/fal.png",
+            "ब": "../assets/images/bakri.png",
+            "भ": "../assets/images/bhalu.png",
+            "म": "../assets/images/machhli.png",
+            "य": "../assets/images/yagya.png",
+            "र": "../assets/images/rassi.png",
+            "ल": "../assets/images/lattu.png",
+            "व": "../assets/images/vak.png",
+            "श": "../assets/images/sahad.png",
+            "ष": "../assets/images/satkond2.png",
+            "स": "../assets/images/sun.png",
+            "ह": "../assets/images/hal.png",
+            "त्र": "../assets/images/trisul.png",
+            "क्ष": "../assets/images/chhatriya.png",
+            "ज्ञ": "../assets/images/rishi.png"
+        };
+
+        function getOptionImage(letter) {
+            return letterImageMap[letter] || "../assets/images/kamal.png";
+        }
+
+        let currentQuestion = 0;
+        let score = 0;
+        const answers = new Array(questions.length).fill(null);
+        const optionsWrap = document.getElementById("optionsWrap");
+        const questionText = document.getElementById("questionText");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+  
+// ===== AUDIO =====
+let audioCtx = null;
+
+function playCorrectSound() {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.frequency.value = 880;
+    gainNode.gain.value = 0.2;
+    oscillator.type = "sine";
+
+    oscillator.start();
+
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.00001,
+      audioCtx.currentTime + 0.5,
+    );
+
+    oscillator.stop(audioCtx.currentTime + 0.5);
+  } catch (e) {
+    console.log("Audio error:", e);
+  }
+}
+
+function playWrongSound() {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.frequency.value = 440;
+    gainNode.gain.value = 0.25;
+    oscillator.type = "sawtooth";
+
+    oscillator.start();
+
+    gainNode.gain.exponentialRampToValueAtTime(
+      0.00001,
+      audioCtx.currentTime + 0.4,
+    );
+
+    oscillator.stop(audioCtx.currentTime + 0.4);
+  } catch (e) {
+    console.log("Audio error:", e);
+  }
+}
+
+// Initialize audio
+function initAudioOnFirstClick() {
+  if (audioCtx) return;
+
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const buffer = audioCtx.createBuffer(1, 1, 22050);
+    const source = audioCtx.createBufferSource();
+
+    source.buffer = buffer;
+    source.connect(audioCtx.destination);
+    source.start();
+  } catch (e) {
+    console.log("Audio init error:", e);
+  }
+}
+
+document.body.addEventListener("click", initAudioOnFirstClick, { once: true });
+
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+        }
+
+        function showPopup(isCorrect) {
+            const popup = document.getElementById("answerPopup");
+            const icon = document.getElementById("popupIcon");
+            const title = document.getElementById("popupTitle");
+            const msg = document.getElementById("popupMsg");
+
+            popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+            popup.style.display = "flex";
+
+            if (isCorrect) {
+                icon.textContent = "🐵";
+                title.textContent = "वाह!";
+                msg.textContent = "आपने कमाल कर दिया!";
+            } else {
+                icon.textContent = "🙈";
+                title.textContent = "अरे!";
+                msg.textContent = "थोड़ा और सोचिए!";
+            }
+
+            setTimeout(() => {
+                popup.style.display = "none";
+            }, 1400);
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            questionText.innerText = q.question;
+
+            optionsWrap.innerHTML = "";
+
+            // If already answered, show all options but disabled with correct highlighted
+            if (answers[currentQuestion] !== null) {
+                let opts = [...q.options];
+                // Shuffle for variety
+                for (let i = opts.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [opts[i], opts[j]] = [opts[j], opts[i]];
+                }
+                opts.forEach(opt => {
+                    const btn = document.createElement("button");
+                    btn.className = "option-btn";
+                    if (opt === q.answer) {
+                        btn.classList.add("correct-option");
+                    }
+                    const img = document.createElement("img");
+                    img.src = getOptionImage(opt);
+                    img.alt = opt;
+                    const span = document.createElement("span");
+                    span.innerText = opt;
+                    btn.appendChild(img);
+                    btn.appendChild(span);
+                    btn.disabled = true;
+                    optionsWrap.appendChild(btn);
+                });
+                prevBtn.disabled = currentQuestion === 0;
+                nextBtn.disabled = false;
+                return;
+            }
+
+            // Not answered yet - create clickable options
+            let opts = [...q.options];
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+
+            opts.forEach(opt => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                const img = document.createElement("img");
+                img.src = getOptionImage(opt);
+                img.alt = opt;
+                const span = document.createElement("span");
+                span.innerText = opt;
+                btn.appendChild(img);
+                btn.appendChild(span);
+
+                btn.onclick = () => {
+                    if (answers[currentQuestion] !== null) return;
+
+                    if (opt === q.answer) {
+                        // CORRECT ANSWER
+                        answers[currentQuestion] = opt;
+                        score++;
+                        playCorrectSound();
+                        smallConfetti();
+                        showPopup(true);
+
+                        // Disable all buttons and mark correct one
+                        const allBtns = document.querySelectorAll(".option-btn");
+                        allBtns.forEach(b => {
+                            b.disabled = true;
+                            b.onclick = null;
+                            if (b.querySelector("span").innerText === q.answer) {
+                                b.classList.add("correct-option");
+                            }
+                        });
+
+                        nextBtn.disabled = false;
+
+                        if (answers.every(a => a !== null)) {
+                            setTimeout(showFinal, 800);
+                        }
+                    } else {
+                        // WRONG ANSWER - only flash wrong, don't disable
+                        playWrongSound();
+                        showPopup(false);
+                        btn.classList.add("wrong-option");
+                        setTimeout(() => {
+                            btn.classList.remove("wrong-option");
+                        }, 500);
+                    }
+                };
+                optionsWrap.appendChild(btn);
+            });
+
+            prevBtn.disabled = currentQuestion === 0;
+            nextBtn.disabled = false;
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1 && answers[currentQuestion] !== null) {
+                currentQuestion++;
+                loadQuestion();
+            } else if (currentQuestion === questions.length - 1 && answers[currentQuestion] !== null) {
+                if (answers.every(a => a !== null)) {
+                    showFinal();
+                }
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        function showFinal() {
+            const popup = document.getElementById("finalPopup");
+            document.getElementById("finalScore").textContent = `आपके अंक: ${score} / ${questions.length}`;
+
+            let starRating = "";
+            const percent = (score / questions.length) * 100;
+            if (percent === 100) starRating = "🌟🌟🌟🌟🌟";
+            else if (percent >= 80) starRating = "🌟🌟🌟🌟 ⭐";
+            else if (percent >= 60) starRating = "🌟🌟🌟 ✨";
+            else if (percent >= 40) starRating = "🌟🌟 🌱";
+            else starRating = "🌟 कोशिश जारी रखें!";
+
+            document.getElementById("stars").textContent = starRating;
+            popup.style.display = "flex";
+            bigConfetti();
+        }
+
+        nextBtn.onclick = nextQuestion;
+        prevBtn.onclick = prevQuestion;
+
+        // Initialize
+        loadQuestion();
+    </script>
+</body>
+
+</html>

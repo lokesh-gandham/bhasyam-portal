@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>True / False Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', system-ui, sans-serif;
+            font-weight: 400;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .stage {
+            width: 100%;
+            max-width: 1100px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .question {
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            line-height: 1.4;
+            letter-spacing: -0.3px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: left;
+        }
+
+        /* Image Container - Fixed Size */
+        .photo-wrap {
+            width: 100%;
+            width: 250px;
+            height: 200px;
+            margin: 0 auto;
+            border-radius: 24px;
+            padding: 8px;
+            position: relative;
+            overflow: hidden;
+            object-fit: contain;
+        }
+
+        .photo-wrap::after {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border-radius: 20px;
+            z-index: 0;
+        }
+
+        .photo {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 20px;
+            display: block;
+        }
+
+        /* ===== NEW STYLISH DROP CAPSULE ===== */
+        .drop-capsule {
+            width: 260px;
+            height: 74px;
+            margin: 0 auto;
+            border: 3px dashed #a1a1aa;
+            border-radius: 37px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #71717a;
+            background: #fafafa;
+            letter-spacing: 1px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-capsule::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 37px;
+            padding: 3px;
+            background: #ffffff;
+            border: 3px solid rgb(72, 172, 72);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .drop-capsule.filled {
+            border: 3px solid #10b981;
+            background: #ecfdf5;
+            color: #065f46;
+            box-shadow: 0 8px 20px -6px rgba(16, 185, 129, 0.3);
+            transform: scale(1.02);
+        }
+
+        .drop-capsule.filled::before {
+            opacity: 1;
+        }
+
+        .drop-capsule .capsule-inner {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== TRUE / FALSE BUTTONS - NEW STYLE ===== */
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .option {
+            padding: 14px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            min-height: 80px;
+            position: relative;
+            border: none;
+            color: white;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .option::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .option.true-btn {
+            background: linear-gradient(180deg, #34d399, #10b981);
+            box-shadow: 0 6px 20px -4px rgba(16, 185, 129, 0.5);
+        }
+
+        .option.false-btn {
+            background: linear-gradient(180deg, #fb7185, #ef4444);
+            box-shadow: 0 6px 20px -4px rgba(239, 68, 68, 0.5);
+        }
+
+        .option:hover:not(:disabled) {
+            transform: translateY(-6px) scale(1.02);
+        }
+
+        .option.true-btn:hover:not(:disabled) {
+            box-shadow: 0 12px 30px -6px rgba(16, 185, 129, 0.7);
+        }
+
+        .option.false-btn:hover:not(:disabled) {
+            box-shadow: 0 12px 30px -6px rgba(239, 68, 68, 0.7);
+        }
+
+        .option:disabled {
+            cursor: not-allowed;
+            transform: scale(0.98);
+        }
+
+        .option .btn-icon {
+            margin-right: 12px;
+            font-size: 22px;
+            opacity: 0.8;
+        }
+
+        .option .btn-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== NAV BUTTONS ===== */
+        .btn {
+            width: 130px;
+            height: 55px;
+            padding: 13px 28px;
+            font-size: 18px;
+            font-weight: 500;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            color: #fff;
+            transition: all 0.2s ease;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:not(:disabled)::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.4) 50%,
+                    rgba(255, 255, 255, 0) 100%);
+            transform: skewX(-25deg);
+            animation: glassShine 3.5s infinite ease-in-out;
+        }
+
+        @keyframes glassShine {
+            0% {
+                left: -150%;
+            }
+
+            30% {
+                left: 150%;
+            }
+
+            100% {
+                left: 150%;
+            }
+        }
+
+        .btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:not(:disabled):active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .prev-btn {
+            background: linear-gradient(135deg, #ffc371 0%, #ffb347 100%);
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #5ba3ff 0%, #4a90e2 100%);
+        }
+
+        .nav-row {
+            display: flex;
+            gap: 50px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        /* ============================================
+           POPUP STYLE — EXACTLY COPIED FROM MCQ QUIZ
+        ============================================ */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .kid-card {
+            background: #ffffff;
+            width: 320px;
+            padding: 25px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 15px 0 #ffd966, 0 25px 40px rgba(0, 0, 0, 0.2);
+            animation: kidPop 0.6s ease;
+        }
+
+        .kid-icon {
+            font-size: 4.5em;
+            margin-bottom: 10px;
+            animation: emojiBounce 0.9s infinite alternate;
+        }
+
+        .kid-card h3 {
+            font-size: 2em;
+            font-family: "Livvic";
+            margin-bottom: 8px;
+        }
+
+        .kid-card p {
+            font-size: 1.2em;
+            font-family: "Livvic";
+        }
+
+        .kid-correct .kid-card {
+            background: #e6fffa;
+            border: 6px solid #38d9a9;
+        }
+
+        .kid-correct h3 {
+            color: #2f9e44;
+            font-weight: 600;
+        }
+
+        .kid-correct p {
+            color: #1c7c54;
+        }
+
+        .kid-wrong .kid-card {
+            background: #fff5f5;
+            border: 6px solid #ffa8a8;
+        }
+
+        .kid-wrong h3 {
+            color: #e03131;
+            font-weight: 600;
+        }
+
+        .kid-wrong p {
+            color: #c92a2a;
+        }
+
+        @keyframes kidPop {
+            0% {
+                transform: scale(0.3) rotate(-10deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.1) rotate(5deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-15px);
+            }
+        }
+
+        /* ===== FINAL POPUP (also copied) ===== */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 4000;
+        }
+
+        .final-kid-box {
+            background: linear-gradient(135deg, #fff7d6, #e6fff5);
+            padding: 30px 35px;
+            border-radius: 35px;
+            text-align: center;
+            width: 450px;
+            animation: finalBounce 0.8s ease;
+            box-shadow: 0 20px 0 #ffd43b, 0 30px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.2em;
+            font-family: "Livvic";
+            color: #2f9e44;
+            margin-bottom: 10px;
+              font-weight: 600;
+        }
+
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-family: "Livvic";
+            font-weight: 600;
+        }
+
+        #stars {
+            font-size: 2.3em;
+            margin: 12px 0;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 14px 34px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 400;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .playAgain-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #1c7ed6;
+        }
+
+        @keyframes finalBounce {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.15);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* -------- MEDIA QUERIES (copied from MCQ) -------- */
+        @media (max-width:900px) {
+            body {
+                align-items: center;
+                padding: 20px;
+                overflow: auto;
+            }
+
+            .stage {
+                width: 100%;
+                max-width: 100%;
+                padding: 25px;
+                gap: 20px;
+            }
+
+            .question {
+                font-size: 30px;
+                font-weight: 400;
+                min-height: 80px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+
+            .photo-wrap {
+                width: 240px;
+                height: 180px;
+            }
+
+            .drop-capsule {
+                width: 240px;
+                height: 68px;
+                font-size: 22px;
+            }
+
+            .options {
+                max-width: 500px;
+                gap: 18px;
+            }
+
+            .option {
+                min-height: 75px;
+                font-size: 22px;
+            }
+
+            .btn {
+                width: 140px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 40px;
+            }
+
+            .kid-card {
+                width: 300px;
+            }
+
+            .final-kid-box {
+                width: 90%;
+                max-width: 340px;
+                padding: 22px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 1.8em;
+            }
+
+            .final-kid-box p {
+                font-size: 1.1em;
+            }
+
+            #stars {
+                font-size: 1.8em;
+            }
+        }
+
+        @media (max-width:768px) {
+            body {
+                padding: 30px 0 10px;
+                align-items: center;
+            }
+
+            .stage {
+                padding: 20px;
+                gap: 18px;
+            }
+
+            .question {
+                font-size: 30px;
+                font-weight: 400;
+                min-height: 80px;
+            }
+
+            .photo-wrap {
+                width: 220px;
+                height: 170px;
+            }
+
+            .drop-capsule {
+                width: 220px;
+                height: 64px;
+                font-size: 20px;
+            }
+
+            .options {
+                max-width: 450px;
+                gap: 16px;
+            }
+
+            .option {
+                min-height: 72px;
+                font-size: 20px;
+            }
+
+            .btn {
+                width: 130px;
+                height: 48px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 30px;
+            }
+
+            .kid-card {
+                width: 280px;
+                padding: 20px;
+            }
+
+            .final-kid-box {
+                width: 90%;
+                max-width: 320px;
+                padding: 22px;
+            }
+        }
+
+        @media (max-width:480px) {
+            body {
+                padding: 50px 0 10px;
+                align-items: flex-start;
+            }
+
+            .stage {
+                padding: 20px;
+                gap: 16px;
+            }
+
+            .question {
+                font-size: 22px;
+                font-weight: 400;
+                min-height: 80px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+
+            .photo-wrap {
+                width: 200px;
+                height: 120px;
+            }
+
+            .drop-capsule {
+                width: 200px;
+                height: 58px;
+                font-size: 18px;
+            }
+
+            .options {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .option {
+                min-height: 65px;
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            .option .btn-icon {
+                font-size: 16px;
+                margin-right: 6px;
+            }
+
+            .btn {
+                width: 120px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 20px;
+            }
+
+            .kid-card {
+                width: 260px;
+                padding: 15px;
+            }
+
+            .kid-icon {
+                font-size: 3em;
+            }
+
+            .kid-card h3 {
+                font-size: 1.5em;
+            }
+
+            .final-kid-box {
+                width: 90%;
+                max-width: 300px;
+                padding: 20px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 1.5em;
+            }
+
+            .final-kid-box p {
+                font-size: 1em;
+            }
+
+            #stars {
+                font-size: 1.6em;
+            }
+
+            .playAgain-btn {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+        }
+
+        @media screen and (min-width:1025px) and (max-width:1440px) {
+            .stage {
+                max-width: 1100px;
+            }
+
+            .question {
+                font-size: 30px;
+                font-weight: 400;
+                min-height: 80px;
+            }
+
+            .photo-wrap {
+                width: 260px;
+                height: 180px;
+            }
+
+            .drop-capsule {
+                width: 260px;
+                height: 74px;
+                font-size: 24px;
+            }
+
+            .options {
+                max-width: 520px;
+            }
+
+            .option {
+                min-height: 80px;
+                font-size: 24px;
+            }
+
+            .btn {
+                width: 150px;
+                height: 55px;
+                font-size: 20px;
+            }
+        }
+
+        @media screen and (min-width:1441px) and (max-width:1920px) {
+            .stage {
+                max-width: 1400px;
+                gap: 40px;
+            }
+
+            .question {
+                font-size: 40px;
+                font-weight: 400;
+                min-height: 90px;
+            }
+
+            .photo-wrap {
+                width: 300px;
+                height: 200px;
+            }
+
+            .drop-capsule {
+                width: 300px;
+                height: 80px;
+                font-size: 28px;
+            }
+
+            .options {
+                max-width: 600px;
+            }
+
+            .option {
+                min-height: 90px;
+                font-size: 26px;
+            }
+
+            .btn {
+                width: 160px;
+                height: 58px;
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width:1921px) {
+            .stage {
+                max-width: 1500px;
+            }
+
+            .question {
+                font-size: 40px;
+                font-weight: 400;
+                min-height: 90px;
+            }
+
+            .photo-wrap {
+                width: 340px;
+                height: 230px;
+            }
+
+            .drop-capsule {
+                width: 340px;
+                height: 90px;
+                font-size: 30px;
+            }
+
+            .options {
+                max-width: 650px;
+            }
+
+            .option {
+                min-height: 100px;
+                font-size: 28px;
+            }
+
+            .btn {
+                width: 170px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="stage">
+        <div class="question" id="question"></div>
+
+        <div class="photo-wrap">
+            <img class="photo" id="questionImg" alt="Quiz Visual Asset">
+        </div>
+
+        <!-- NEW STYLISH DROP CAPSULE -->
+        <div class="drop-capsule" id="dropBox">
+            <span class="capsule-inner">
+                <span id="dropText"></span>
+            </span>
+        </div>
+
+        <div class="options">
+            <button class="option true-btn" id="trueBtn">
+                <span class="btn-icon"><i class="fa-regular fa-circle-check"></i></span>
+                <span class="btn-text">TRUE</span>
+            </button>
+            <button class="option false-btn" id="falseBtn">
+                <span class="btn-icon"><i class="fa-regular fa-circle-xmark"></i></span>
+                <span class="btn-text">FALSE</span>
+            </button>
+        </div>
+
+        <div class="nav-row">
+            <button class="btn prev-btn" id="prevBtn"><i class="fa-solid fa-angles-left"></i> Prev</button>
+            <button class="btn next-btn" id="nextBtn" disabled>Next <i class="fa-solid fa-angles-right"></i></button>
+        </div>
+    </div>
+
+    <!-- ===== POPUP ELEMENTS (EXACT COPY FROM MCQ) ===== -->
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        const questions = [
+            {
+                q: "Q1. During the rule of the Mughals, Jharkhand was known as Kukara.",
+                a: true,
+                img: "../assets/images/mughals.png"
+            },
+            {
+                q: "Q2. Itanagar is the capital of West Bengal.",
+                a: false,
+                img: "../assets/images/tf2.png"
+            },
+            {
+                q: "Q3. Assam also takes the credit as the largest tea-producing state in our country.",
+                a: true,
+                img: "../assets/images/tea-garden.png"
+            },
+            {
+                q: "Q4. Fishing is an important occupation of West Bengal.",
+                a: true,
+                img: "../assets/images/fishing.png"
+            },
+            {
+                q: "Q5. The important cities of Punjab are Haryana and Mumbai.",
+                a: false,
+                img: "../assets/images/punjab.png"
+            }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+        const answers = new Array(questions.length).fill(null);
+
+        // ===== DOM REFS =====
+        const qEl = document.getElementById('question');
+        const imgEl = document.getElementById('questionImg');
+        const trueBtn = document.getElementById('trueBtn');
+        const falseBtn = document.getElementById('falseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const dropBox = document.getElementById('dropBox');
+        const dropText = document.getElementById('dropText');
+
+        // ===== POPUP ELEMENTS (copied from MCQ) =====
+        const popup = document.getElementById('answerPopup');
+        const icon = document.getElementById('popupIcon');
+        const title = document.getElementById('popupTitle');
+        const msg = document.getElementById('popupMsg');
+        const finalPopup = document.getElementById('finalPopup');
+
+        function speakText(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-UK";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+        }
+
+        // ===== SHOW POPUP (copied from MCQ) =====
+        function showPopup(isCorrect) {
+            popup.className = 'kid-popup ' + (isCorrect ? 'kid-correct' : 'kid-wrong');
+            popup.style.display = 'flex';
+
+            if (isCorrect) {
+                icon.textContent = '🎉😊';
+                title.textContent = 'Great Job!';
+                msg.textContent = 'You got it right!';
+            } else {
+                icon.textContent = '🥲💭';
+                title.textContent = 'Oops!';
+                msg.textContent = 'Try again, you can do it!';
+            }
+
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 1400);
+        }
+
+        function showFinal() {
+            document.getElementById('finalScore').textContent =
+                `Your Score: ${score} / ${questions.length}`;
+            document.getElementById('stars').textContent = '⭐'.repeat(score);
+            finalPopup.style.display = 'flex';
+            bigConfetti();
+        }
+
+        // ===== RENDER =====
+        function render() {
+            const q = questions[currentIndex];
+            qEl.textContent = q.q;
+            imgEl.src = q.img;
+
+            const solved = answers[currentIndex] !== null;
+
+            trueBtn.disabled = false;
+            falseBtn.disabled = false;
+            trueBtn.style.opacity = '1';
+            falseBtn.style.opacity = '1';
+            nextBtn.disabled = true;
+
+            if (solved) {
+                const val = answers[currentIndex];
+                dropText.textContent = val ? 'TRUE' : 'FALSE';
+                dropBox.classList.add('filled');
+                trueBtn.disabled = true;
+                falseBtn.disabled = true;
+                if (val) {
+                    trueBtn.style.opacity = '1';
+                    falseBtn.style.opacity = '0.5';
+                } else {
+                    falseBtn.style.opacity = '1';
+                    trueBtn.style.opacity = '0.5';
+                }
+                nextBtn.disabled = false;
+            } else {
+                dropText.textContent = '';
+                dropBox.classList.remove('filled');
+            }
+
+            prevBtn.disabled = currentIndex === 0;
+        }
+
+        // ===== HANDLE ANSWER =====
+        function handleAnswer(selected) {
+            if (answers[currentIndex] !== null) return;
+
+            const q = questions[currentIndex];
+            const correct = q.a;
+
+            if (selected === correct) {
+                score++;
+                answers[currentIndex] = selected;
+                render();
+
+                speakText('Correct');
+                smallConfetti();
+                showPopup(true);
+
+                if (currentIndex === questions.length - 1) {
+                    setTimeout(showFinal, 1600);
+                }
+            } else {
+                speakText('Wrong');
+                showPopup(false);
+            }
+        }
+
+        // ===== RESET (for Play Again) =====
+        function resetGame() {
+            for (let i = 0; i < answers.length; i++) {
+                answers[i] = null;
+            }
+            score = 0;
+            currentIndex = 0;
+            finalPopup.style.display = 'none';
+            render();
+        }
+
+        // ===== EVENT LISTENERS =====
+        trueBtn.addEventListener('click', () => handleAnswer(true));
+        falseBtn.addEventListener('click', () => handleAnswer(false));
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                currentIndex--;
+                render();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < questions.length - 1 && answers[currentIndex] !== null) {
+                currentIndex++;
+                render();
+            }
+        });
+
+        document.querySelector('.playAgain-btn').addEventListener('click', resetGame);
+
+        // ===== INIT =====
+        render();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,298 @@
+  let audioCtx = null;
+    
+    function playCorrectSound() {
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.value = 880;
+            gainNode.gain.value = 0.2;
+            oscillator.type = 'sine';
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        } catch(e) { console.log("Audio error:", e); }
+    }
+    
+    function playWrongSound() {
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.value = 440;
+            gainNode.gain.value = 0.25;
+            oscillator.type = 'sawtooth';
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        } catch(e) { console.log("Audio error:", e); }
+    }
+
+    // Quiz Data with text options
+ const quizData = [
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/bird.png",
+    options:["कप","बस","खग","थन"],
+    a:2
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/ghar.png",
+    options:["जल","घर","फल","नल"],
+    a:1
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/hoe.png",
+    options:["हल","बस","थन","वन"],
+    a:0
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/childran.png",
+    options:["गज","श्रम","कप","टब"],
+    a:1
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/eraser.png",
+    options:["रतन","पवन","रबड़","शहर"],
+    a:2
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/sky.png",
+    options:["गगन","नहर","भवन","चमक"],
+    a:0
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/lotus.png",
+    options:["कलश","कलम","कमल","पवन"],
+    a:2
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/solt.png",
+    options:["नयन","नमक","नगर","हवन"],
+    a:1
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/flower.png",
+    options:["आम","फूल","चिड़िया","मोर"],
+    a:1
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/bangles.png",
+    options:["कंगन","मोर","सेब","अदरक"],
+    a:0
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/bag.png",
+    options:["चिड़िया","मृग","थैला","गुलाब"],
+    a:2
+},
+
+{
+    q:"चित्रों के सही नामों पर गोला लगाइए।",
+    img:"../assets/images/toys.png",
+    options:["मोर","अदरक","चीता","खिलौना"],
+    a:3
+}
+
+];
+    let current = 0;
+    let score = 0;
+    let answered = Array(quizData.length).fill(null);
+    let popupTimeout = null;
+    let finalPopupTimeout = null;
+    let quizCompleted = false;
+
+    // DOM Elements
+    const qEl = document.getElementById("question");
+    const imgEl = document.getElementById("questionImg");
+    const optEl = document.getElementById("options");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const emojiPopup = document.getElementById("emojiPopup");
+    const popupEmoji = document.getElementById("popupEmoji");
+    const finalPopupEl = document.getElementById("finalPopup");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+
+    function showEmojiPopup(isCorrect) {
+        if (popupTimeout) clearTimeout(popupTimeout);
+        
+        if (isCorrect) {
+            popupEmoji.textContent = "😊✨";
+            emojiPopup.className = "emoji-popup emoji-popup-correct active";
+            playCorrectSound();
+            
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 60, spread: 65, origin: { y: 0.6 }, colors: ['#ffb347', '#2ecc71', '#f1c40f'] });
+            }
+        } else {
+            popupEmoji.textContent = "😢💔";
+            emojiPopup.className = "emoji-popup emoji-popup-wrong active";
+            playWrongSound();
+        }
+        
+        popupTimeout = setTimeout(() => {
+            emojiPopup.classList.remove("active");
+        }, 1000);
+    }
+
+    function bigConfetti() {
+        confetti({ particleCount: 80, spread: 90, origin: { y: 0.7 } });
+    }
+
+    function speak(text) {
+        speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = "hi-IN";
+        msg.volume = 0.25;
+        speechSynthesis.speak(msg);
+    }
+
+    function showFinalCelebration() {
+        if (quizCompleted) return;
+        quizCompleted = true;
+        
+        bigConfetti();
+        // speak("बहुत बहुत बधाई! आपने सभी प्रश्न सही किए!");
+        
+        finalPopupTimeout = setTimeout(() => {
+            finalPopupEl.classList.add("active");
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+        }, 500);
+    }
+
+    function loadQuestion() {
+        
+        const q = quizData[current];
+        qEl.textContent = q.q;
+        imgEl.src = q.img;
+        optEl.innerHTML = "";
+        
+        nextBtn.disabled = answered[current] === null;
+
+        q.options.forEach((optText, i) => {
+            const btn = document.createElement("button");
+            btn.className = `option o${(i % 4) + 1}`;
+            btn.textContent = optText;
+
+            if (answered[current] !== null) {
+                if (i === q.a) {
+                    btn.classList.add("correct");
+                } else {
+                    btn.classList.add("disabled");
+                }
+            }
+
+            btn.onclick = () => {
+                if (answered[current] !== null) return;
+
+                if (i === q.a) {
+                    answered[current] = i;
+                    score++;
+                    btn.classList.add("correct");
+                    
+                    const allOptions = [...optEl.children];
+                    allOptions.forEach(opt => {
+                        if (opt !== btn) opt.classList.add("disabled");
+                    });
+                    
+                    showEmojiPopup(true);
+                    // speak("सही");
+                    nextBtn.disabled = false;
+
+                    if (answered.every(ans => ans !== null)) {
+                        showFinalCelebration();
+                    }
+                } else {
+                    showEmojiPopup(false);
+                    // speak("गलत");
+                    btn.classList.add("wrong");
+                    setTimeout(() => {
+                        btn.classList.remove("wrong");
+                    }, 700);
+                }
+            };
+
+            optEl.appendChild(btn);
+        });
+
+        prevBtn.disabled = current === 0;
+    }
+
+    function goPrev() {
+        if (current > 0 && !quizCompleted) {
+            current--;
+            loadQuestion();
+        }
+    }
+
+    function goNext() {
+        if (current < quizData.length - 1 && answered[current] !== null && !quizCompleted) {
+            current++;
+            loadQuestion();
+        }
+    }
+
+    function restartQuiz() {
+        current = 0;
+        score = 0;
+        answered = Array(quizData.length).fill(null);
+        quizCompleted = false;
+        if (finalPopupTimeout) clearTimeout(finalPopupTimeout);
+        finalPopupEl.classList.remove("active");
+        loadQuestion();
+    }
+
+    // Initialize audio on first click
+    function initAudioOnFirstClick() {
+        if (audioCtx) return;
+        try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const buffer = audioCtx.createBuffer(1, 1, 22050);
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            source.start();
+        } catch(e) { console.log("Audio init error:", e); }
+    }
+
+    document.body.addEventListener('click', initAudioOnFirstClick, { once: true });
+
+    prevBtn.addEventListener('click', goPrev);
+    nextBtn.addEventListener('click', goNext);
+    playAgainBtn.addEventListener('click', () => {
+        restartQuiz();
+    });
+
+    // Initialize
+    loadQuestion();
+    //  speak("चित्रों के सही नामों पर गोला लगाइए।");

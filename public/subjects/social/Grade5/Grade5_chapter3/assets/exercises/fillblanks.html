@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fill in the Blanks</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "Livvic" !important;
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            width: 400px;
+            height: 400px;
+          
+            bottom: -120px;
+            left: -100px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* HEADER */
+        .header {
+            display: none !important;
+        }
+
+        /* MAIN WRAPPER */
+        .main {
+            position: relative;
+            width: 850px;
+            max-width: 95%;
+            z-index: 10;
+        }
+
+        /* CARD */
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        /* QUESTION — back to your original 30px font, 14px 32px padding.
+           Only margin-bottom was trimmed (20px -> 12px) to reclaim
+           vertical space for .nav, without touching the box itself. */
+        .question {
+            text-align: start;
+            font-size: 30px;
+            font-weight: 400;
+            margin-bottom: 12px;
+            color: #1a3c4a;
+            display: inline-block;
+            width: auto;
+            padding: 14px 32px;
+            border-radius: 60px;
+            margin-top: 0;
+            margin-right: auto;
+        }
+
+        /* IMAGE — back to your exact original fixed size (180 x 260).
+           Only the surrounding margin was trimmed. */
+        .image-box {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0 18px;
+        }
+
+        .image-box img {
+            height: 180px !important;
+            width: 260px !important;
+            object-fit: contain;
+            background: #fff8f0;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s;
+        }
+
+        .image-box img:hover {
+            transform: scale(1.02);
+        }
+
+        /* SIMPLE INPUT BOX — back to your original 70px height.
+           Only surrounding margin trimmed. */
+        .letters {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 12px 0 15px;
+        }
+
+        .simple-input {
+            width: 380px;
+            max-width: 85%;
+            height: 70px;
+            border-radius: 50px;
+            border: 3px solid #e2e8f0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 400;
+            padding: 0 25px;
+            background: white;
+            transition: all 0.3s ease;
+            color: #1e293b;
+        }
+
+        .simple-input:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+            transform: scale(1.01);
+        }
+
+        .simple-input.correct {
+            border-color: #22c55e;
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .simple-input:disabled {
+            background: #f0fdf4;
+            cursor: default;
+            opacity: 0.9;
+        }
+
+        /* BUTTON ROW — margin-top trimmed (20px -> 12px) only. */
+        .action-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* NAV — this is the row that was getting clipped; margins
+           trimmed slightly to make sure it stays inside the viewport
+           now that the space above it is a bit tighter. */
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            flex-shrink: 0;
+        }
+
+        button {
+            width: 150px;
+            height: 55px;
+            border: none;
+            border-radius: 28px;
+            font-size: 20px;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        #prevBtn {
+            background: #6bc6d8;
+            min-width: 130px;
+        }
+
+        #nextBtn {
+            background: #ffb347;
+            min-width: 130px;
+        }
+
+        #checkBtn {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .home {
+            display: none;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+
+        /* =============================================
+   CORRECT / WRONG POPUP
+   ============================================= */
+        .popup {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .popup-content {
+            background: linear-gradient(135deg,
+                    rgba(255, 255, 255, 0.98) 0%,
+                    rgba(240, 255, 240, 0.98) 100%);
+            padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+            border: 4px solid transparent;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .popup.correct .popup-content {
+            border: none;
+            border-top: 8px solid #22c55e !important;
+        }
+
+        .popup.wrong .popup-content {
+            border: none;
+            border-top: 8px solid #ef4444 !important;
+        }
+
+        .popup-icon {
+            font-size: 5.5em;
+            margin-bottom: 10px;
+            animation: iconBounce .8s ease;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .3));
+        }
+
+        @keyframes iconBounce {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1) rotate(0);
+            }
+
+            25% {
+                transform: translateY(-30px) scale(1.2) rotate(-10deg);
+            }
+
+            50% {
+                transform: translateY(-15px) scale(1.1) rotate(10deg);
+            }
+
+            75% {
+                transform: translateY(-25px) scale(1.15) rotate(-5deg);
+            }
+        }
+
+        .popup.correct .popup-icon {
+            animation: iconBounce .8s ease, correctSpin .8s ease;
+        }
+
+        .popup.wrong .popup-icon {
+            animation: iconBounce .8s ease, wrongShake .6s ease;
+        }
+
+        .popup-content h3 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .popup-content p {
+            font-size: 1.3em;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .popup.correct h3 {
+            color: #22543d;
+        }
+
+        .popup.wrong h3 {
+            color: #742a2a;
+        }
+
+        .popup.correct p {
+            color: #276749;
+        }
+
+        .popup.wrong p {
+            color: #9b2c2c;
+        }
+
+        @keyframes correctSpin {
+            0% {
+                transform: rotate(0) scale(1);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(1.3);
+            }
+
+            100% {
+                transform: rotate(360deg) scale(1);
+            }
+        }
+
+        @keyframes wrongShake {
+
+            0%,
+            100% {
+                transform: rotate(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: rotate(-15deg);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: rotate(15deg);
+            }
+        }
+
+        .popup-stars {
+            font-size: 28px;
+            margin-top: 15px;
+        }
+
+        /* =============================================
+   FINAL POPUP
+   ============================================= */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .finalpopup-box {
+            background: #fff;
+            padding: 40px 52px;
+            border-radius: 24px;
+            text-align: center;
+            animation: popIn 0.45s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+        }
+
+        .final-heading {
+            font-size: 2.4em;
+            font-weight: 700;
+            color: #2f4f4f;
+            margin: 0 0 12px;
+        }
+
+        #finalScore {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #555;
+            margin: 0;
+        }
+
+        #stars {
+            font-size: 44px;
+            margin-top: 14px;
+            letter-spacing: 4px;
+        }
+
+        .playAgain-btn {
+            width: 170px;
+            background: #1fb36b;
+            color: #fff;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 24px;
+            font-size: 18px;
+            font-family: "Livvic", sans-serif;
+            font-weight: 700;
+            margin-top: 16px;
+            cursor: pointer;
+            transition: transform .15s ease;
+        }
+
+        .playAgain-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* RESPONSIVE — unchanged from your original */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+
+            .card {
+                padding: 25px 20px;
+                border-radius: 40px;
+            }
+
+            .question {
+                font-size: 22px;
+                padding: 10px 20px;
+            }
+
+            .simple-input {
+                width: 280px;
+                height: 55px;
+                font-size: 20px;
+            }
+
+            .image-box img {
+                width: 200px !important;
+                height: 150px !important;
+            }
+
+            .action-row {
+                gap: 12px;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 15px;
+            }
+        }
+
+        @media (min-width: 1440px) {
+            .main {
+                max-width: 1200px;
+            }
+
+            .card {
+                padding: 45px 40px;
+            }
+
+            .question {
+                font-size: 40px !important;
+                padding: 18px 42px;
+            }
+
+            .simple-input {
+                width: 450px;
+                height: 80px;
+                font-size: 28px;
+                border-radius: 60px;
+            }
+
+            .image-box img {
+                width: 320px !important;
+                height: 220px !important;
+            }
+.simple-input{
+    font-size: 30px;
+}
+            button {
+                width: 160px;
+                height: 60px;
+                font-size: 22px !important;
+            }
+
+            .popup-card {
+                width: 400px;
+                padding: 48px 34px;
+            }
+
+            .popup-bubble {
+                width: 100px;
+                height: 100px;
+                top: -48px;
+                font-size: 52px;
+            }
+             .playAgain-btn {
+            
+            padding: 14px 20px;
+            border-radius: 24px;
+            font-size: 18px;
+            
+        }
+        }
+    </style>
+    <style id="codex-responsive-shell">
+        html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        img,
+        svg,
+        canvas,
+        video {
+            max-width: 100%;
+        }
+
+        iframe {
+            display: block;
+            max-width: 100%;
+        }
+
+        body:has(iframe) {
+            width: 100%;
+            height: 100svh;
+            min-height: 100svh;
+            overflow: hidden;
+        }
+
+        body:has(iframe) .app,
+        body:has(iframe) .frame,
+        body:has(iframe) .board {
+            max-width: 100%;
+            max-height: 100svh;
+            min-height: 0;
+        }
+
+        body:has(iframe) .app {
+            height: 100svh;
+        }
+
+        body:has(iframe) .board {
+            width: min(1250px, calc(100vw - 16px));
+            height: min(570px, calc(100svh - 16px));
+        }
+
+        body:has(iframe) .content,
+        body:has(iframe) .main,
+        body:has(iframe) .screen,
+        body:has(iframe) .iframe-wrapper {
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        body:has(iframe) iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        @media (min-width: 1025px) {
+            body:has(iframe) .sidebar {
+                width: clamp(190px, 17vw, 300px);
+                min-width: 0;
+                min-height: 0;
+            }
+
+            body:has(iframe) .topbar,
+            body:has(iframe) .top-nav,
+            body:has(iframe) .top-index,
+            body:has(iframe) .bottom-bar,
+            body:has(iframe) .nav-group {
+                flex-shrink: 0;
+            }
+
+            body:has(iframe) .nav-container,
+            body:has(iframe) .nav-wrapper,
+            body:has(iframe) .sidebar-scroll,
+            body:has(iframe) .menu {
+                max-height: 100svh;
+                overflow: hidden;
+            }
+
+            body:has(iframe) .top-nav,
+            body:has(iframe) .top-index,
+            body:has(iframe) .bottom-bar,
+            body:has(iframe) .topbar,
+            body:has(iframe) .nav-group {
+                gap: clamp(10px, 2.8vw, 44px);
+                padding: clamp(6px, 1.4dvh, 14px) clamp(8px, 1.4vw, 20px);
+            }
+
+            body:has(iframe) .nav-btn,
+            body:has(iframe) .puzzle,
+            body:has(iframe) .island-btn,
+            body:has(iframe) .btn {
+                min-height: 0;
+                max-width: 100%;
+            }
+        }
+
+        @media (min-width: 1025px) and (max-height: 760px) {
+
+            body:has(iframe) .top-nav,
+            body:has(iframe) .top-index,
+            body:has(iframe) .bottom-bar,
+            body:has(iframe) .topbar,
+            body:has(iframe) .nav-group {
+                gap: clamp(8px, 2vw, 24px);
+                padding-block: clamp(4px, 1dvh, 10px);
+            }
+
+            body:has(iframe) .nav-btn,
+            body:has(iframe) .puzzle,
+            body:has(iframe) .island-btn,
+            body:has(iframe) .btn {
+                padding: clamp(8px, 1.4dvh, 14px) clamp(10px, 1.4vw, 22px);
+                font-size: clamp(15px, 1.2vw, 20px);
+            }
+
+            body:has(iframe) .puzzle {
+                width: clamp(150px, 14vw, 210px);
+                height: clamp(54px, 8dvh, 70px);
+            }
+
+            body:has(iframe) .sidebar {
+                width: clamp(190px, 16vw, 240px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main">
+        <div class="header">
+            <span>Fill & Blanks</span>
+            <div class="progress" id="progress"></div>
+        </div>
+        <button class="home" onclick="location.href='../../Grade5_chapter3.html'">🏠 Home</button>
+
+        <div class="q-indicator" id="indicator"></div>
+
+        <div class="card">
+            <div class="question" id="question"></div>
+
+            <div class="image-box">
+                <img id="image" alt="Question image">
+            </div>
+
+            <div class="letters" id="letters"></div>
+            <div class="action-row">
+                <button id="checkBtn">✓ Submit</button>
+            </div>
+            <!-- NAV -->
+            <div class="nav">
+                <button id="prevBtn">← Prev</button>
+                <button id="nextBtn">Next →</button>
+            </div>
+
+        </div>
+
+        <!-- CORRECT / WRONG POPUP -->
+        <div id="answerPopup" class="popup">
+            <div class="popup-content">
+                <div class="popup-icon" id="popupIcon"></div>
+                <h3 id="popupTitle"></h3>
+                <p id="popupMsg"></p>
+                <!-- <div id="popupStars" class="popup-stars"></div> -->
+            </div>
+        </div>
+
+        <!-- FINAL POPUP -->
+        <div id="finalPopup">
+            <div class=" finalpopup-box">
+                <h2 class="final-heading">🎉 Congratulations!</h2>
+                <p id="finalScore"></p>
+                <div id="stars"></div><br> <button onclick="location.reload()" class="playAgain-btn"> Play Again
+                </button>
+            </div>
+        </div>
+
+
+        <script>
+            // Prevent drag and drop anywhere on page
+            ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+                document.addEventListener(eventName, function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
+            // Prevent image/file paste also
+            document.addEventListener("paste", function (e) {
+                const items = (e.clipboardData || window.clipboardData).items;
+
+                for (let item of items) {
+                    if (item.type.indexOf("image") !== -1) {
+                        e.preventDefault();
+                        return false;
+                    }
+                }
+            });
+
+
+            const questions = [
+                {
+                    q: "Q1. As of 2023, it is the largest solar park in the world.",
+                    a: "Bhadla Solar Park",
+                    a_mobile: "Bhadla Solar Park",
+                    img: "../images/oneWord1.png"
+                },
+                {
+                    q: "Q2. It is a precious gemstone found in the desert region.",
+                    a: "Diamond",
+                    a_mobile: "Diamond",
+                    img: "../images/oneWord2.png"
+                },
+                {
+                    q: "Q3. The windows are closed here during winters.",
+                    a: "Ladakh",
+                    a_mobile: "Ladakh",
+                    img: "../images/oneWord3.png"
+                },
+                {
+                    q: "Q4. To make their life easier, desert people live here.",
+                    a: "Oasis",
+                    a_mobile: "Oasis",
+                    img: "../images/oneWord4.png"
+                },
+                {
+                    q: "Q5. They move from one place to another in search of food.",
+                    a: "Nomads",
+                    a_mobile: "Nomads",
+                    img: "../images/oneWord5.png"
+                }
+            ];
+
+            let index = 0;
+            let score = 0;
+            let answered = Array(questions.length).fill(false);
+            let finalPopupShown = false;
+
+            const qEl = document.getElementById("question");
+            const img = document.getElementById("image");
+            const letters = document.getElementById("letters");
+            const prevBtn = document.getElementById("prevBtn");
+            const nextBtn = document.getElementById("nextBtn");
+            const checkBtn = document.getElementById("checkBtn");
+            const correctAudio = document.getElementById("correctSound");
+            const wrongAudio = document.getElementById("wrongSound");
+
+            function isMobile() {
+                return window.innerWidth <= 768;
+            }
+
+            let voices = [];
+
+            function playFeedback(isCorrect) {
+                if (!("speechSynthesis" in window)) return;
+
+                const synth = window.speechSynthesis;
+
+                synth.cancel();
+
+                const msg = new SpeechSynthesisUtterance(
+                    isCorrect ? "Correct" : "Try again"
+                );
+
+                if (voices.length > 0) {
+                    msg.voice = voices.find(v => v.lang.startsWith("en")) || voices[0];
+                }
+
+                msg.volume = 1;
+                msg.rate = 1;
+                msg.pitch = isCorrect ? 1.2 : 0.9;
+
+                synth.speak(msg);
+            }
+    function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+            function fireSmallConfetti() {
+                confetti({
+                    particleCount: 45,
+                    spread: 65,
+                    origin: { y: 0.7 },
+                    scalar: 0.8
+                });
+            }
+
+            function fireBigConfetti() {
+
+                const duration = 2000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+
+                    confetti({
+                        particleCount: 6,
+                        angle: 60,
+                        spread: 70,
+                        origin: { x: 0 }
+                    });
+
+                    confetti({
+                        particleCount: 6,
+                        angle: 120,
+                        spread: 70,
+                        origin: { x: 1 }
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+
+                })();
+            }
+
+            function showPopup(isCorrect) {
+
+                const popup = document.getElementById("answerPopup");
+                const icon = document.getElementById("popupIcon");
+                const title = document.getElementById("popupTitle");
+                const msg = document.getElementById("popupMsg");
+                // const stars = document.getElementById("popupStars");
+                popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+                popup.style.display = "flex";
+
+                if (isCorrect) {
+                    icon.textContent = "🎉";
+                    title.textContent = "Correct!";
+                    msg.textContent = "Well done!";
+                } else {
+                    icon.textContent = "😔";
+                    title.textContent = "Wrong!";
+                    msg.textContent = "Try again!";
+                }
+
+                setTimeout(() => {
+                    popup.style.display = "none";
+                }, 1200);
+            }
+
+            function load() {
+
+                const q = questions[index];
+
+                qEl.textContent = q.q;
+                img.src = q.img;
+
+                letters.innerHTML = "";
+
+                const correctAnswer =
+                    isMobile()
+                        ? (q.a_mobile || q.a)
+                        : q.a;
+
+                const inputBox = document.createElement("input");
+
+                inputBox.type = "text";
+                inputBox.className = "simple-input";
+                inputBox.placeholder = "Type your answer here...";
+                inputBox.autocomplete = "off";
+
+                // ✅ typing first letter capital
+                inputBox.addEventListener("input", function () {
+
+                 this.value =
+    this.value.charAt(0).toUpperCase() +
+    this.value.slice(1).toLowerCase();
+
+                    if (!answered[index]) {
+                        checkBtn.disabled =
+                            (this.value.trim() === "");
+                    }
+                });
+
+                // ✅ already answered
+                if (answered[index]) {
+
+                   inputBox.value =
+    correctAnswer.charAt(0).toUpperCase() +
+    correctAnswer.slice(1).toLowerCase();
+
+                    inputBox.classList.add("correct");
+                    inputBox.disabled = true;
+
+                    checkBtn.disabled = true;
+                    checkBtn.textContent = "✓ DONE";
+
+                    nextBtn.disabled = false;
+
+                } else {
+
+                    inputBox.value = "";
+                    inputBox.disabled = false;
+
+                    checkBtn.disabled = true;
+                    checkBtn.textContent = "✓ SUBMIT";
+
+                    nextBtn.disabled = true;
+                }
+
+                letters.appendChild(inputBox);
+
+                prevBtn.disabled = (index === 0);
+
+                if (!answered[index] && !inputBox.disabled) {
+                    setTimeout(() => inputBox.focus(), 50);
+                }
+            }
+
+            // ================= CHECK ANSWER =================
+
+            checkBtn.onclick = () => {
+
+                if (answered[index]) return;
+
+                const inputBox =
+                    letters.querySelector(".simple-input");
+
+                const user =
+                    inputBox.value.trim().toLowerCase();
+
+                const correctAnswer =
+                    (
+                        isMobile()
+                            ? (questions[index].a_mobile || questions[index].a)
+                            : questions[index].a
+                    ).toLowerCase();
+
+                // ✅ CORRECT
+                if (user === correctAnswer) {
+
+                    answered[index] = true;
+
+                    score++;
+
+                    // ✅ Hold answer with first letter capital
+                   inputBox.value =
+    correctAnswer.charAt(0).toUpperCase() +
+    correctAnswer.slice(1).toLowerCase();;
+
+                    inputBox.classList.add("correct");
+
+                    inputBox.disabled = true;
+
+                    checkBtn.disabled = true;
+
+                    nextBtn.disabled = false;
+
+                    speak("Correct");
+                    fireSmallConfetti();
+
+                    setTimeout(() => {
+                        showPopup(true);
+                    }, 150);
+
+                    // ✅ Final popup
+                    if (
+                        index === questions.length - 1 &&
+                        !finalPopupShown
+                    ) {
+
+                        finalPopupShown = true;
+
+                        setTimeout(() => {
+
+                            prevBtn.disabled = true;
+                            nextBtn.disabled = true;
+
+                            showFinal();
+
+                        }, 800);
+                    }
+
+                } else {
+
+                    // ❌ Wrong answer
+                    inputBox.value = "";
+
+                    inputBox.classList.remove("correct");
+
+                    checkBtn.disabled = true;
+
+                     speak("Try again");
+
+                    setTimeout(() => {
+                        showPopup(false);
+                    }, 150);
+
+                    inputBox.focus();
+                }
+            };
+
+            // ================= NAVIGATION =================
+
+            prevBtn.onclick = () => {
+
+                if (index > 0) {
+
+                    index--;
+
+                    load();
+                }
+            };
+
+            nextBtn.onclick = () => {
+
+                if (index < questions.length - 1) {
+
+                    index++;
+
+                    load();
+                }
+            };
+
+            // ================= FINAL =================
+
+            function showFinal() {
+
+                const finalPopup =
+                    document.getElementById("finalPopup");
+
+                finalPopup.style.display = "flex";
+
+                document.getElementById("finalScore").textContent =
+                    `You scored ${score} out of ${questions.length}`;
+
+                document.getElementById("stars").innerHTML =
+                    "⭐".repeat(score) +
+                    "☆".repeat(questions.length - score);
+
+                fireBigConfetti();
+            }
+
+            // ================= RESTART =================
+
+            function restart() {
+
+                index = 0;
+
+                score = 0;
+
+                answered.fill(false);
+
+                finalPopupShown = false;
+
+                document.getElementById("finalPopup").style.display = "none";
+
+                load();
+            }
+
+            // ================= START =================
+
+            function loadVoices() {
+                voices = speechSynthesis.getVoices();
+            }
+
+            loadVoices();
+
+            speechSynthesis.onvoiceschanged = loadVoices;
+
+            load();
+
+        </script>
+        <script id="codex-viewport-fit">
+            (function () {
+                if (window.__codexViewportFit) return;
+                window.__codexViewportFit = true;
+
+                const hasIframe = Boolean(document.querySelector("iframe"));
+                const selectors = [
+                    ".main",
+                    ".main-container",
+                    ".quiz",
+                    ".quiz-container",
+                    ".quiz-box",
+                    ".container",
+                    ".stage",
+                    ".screen",
+                    ".game",
+                    ".template",
+                    ".quiz-card",
+                    ".app"
+                ];
+                const minScale = 0.62;
+                let rafId = 0;
+
+                function setViewportRules() {
+                    document.documentElement.style.width = "100%";
+                    document.documentElement.style.height = "100%";
+                    document.documentElement.style.overflow = "hidden";
+                    document.body.style.width = "100%";
+                    document.body.style.height = "100svh";
+                    document.body.style.minHeight = "100svh";
+                    document.body.style.overflow = "hidden";
+                }
+
+                function getStage() {
+                    for (const selector of selectors) {
+                        const stage = document.querySelector(selector);
+                        if (stage) return stage;
+                    }
+                    return null;
+                }
+
+                function fitToViewport() {
+                    setViewportRules();
+                    if (hasIframe) return;
+
+                    const stage = getStage();
+                    if (!stage) return;
+
+                    stage.style.transform = "scale(1)";
+                    stage.style.transformOrigin = "center center";
+
+                    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+                    const viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+                    const breathingRoom = Math.max(6, Math.min(18, viewportWidth * 0.012));
+                    const rect = stage.getBoundingClientRect();
+                    const contentWidth = Math.max(rect.width, stage.scrollWidth, 1);
+                    const contentHeight = Math.max(rect.height, stage.scrollHeight, 1);
+                    const scale = Math.max(
+                        minScale,
+                        Math.min(
+                            1,
+                            (viewportWidth - breathingRoom * 2) / contentWidth,
+                            (viewportHeight - breathingRoom * 2) / contentHeight
+                        )
+                    );
+
+                    stage.style.transform = `scale(${scale})`;
+                }
+
+                function requestFit() {
+                    cancelAnimationFrame(rafId);
+                    rafId = requestAnimationFrame(fitToViewport);
+                }
+
+                window.addEventListener("load", requestFit);
+                window.addEventListener("resize", requestFit);
+                window.addEventListener("orientationchange", requestFit);
+
+                if (document.fonts && document.fonts.ready) {
+                    document.fonts.ready.then(requestFit).catch(function () { });
+                }
+
+                document.querySelectorAll("img").forEach(function (img) {
+                    img.addEventListener("load", requestFit, { once: false });
+                });
+
+                if ("ResizeObserver" in window) {
+                    const observer = new ResizeObserver(requestFit);
+                    const observeStage = function () {
+                        const stage = getStage();
+                        if (stage) observer.observe(stage);
+                    };
+                    observeStage();
+                    window.addEventListener("load", observeStage);
+                }
+
+                if (document.body) {
+                    new MutationObserver(requestFit).observe(document.body, {
+                        childList: true,
+                        subtree: true,
+                        characterData: true
+                    });
+                }
+
+                requestFit();
+            })();
+        </script>
+</body>
+
+</html>

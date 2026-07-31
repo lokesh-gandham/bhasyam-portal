@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+    <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Tiro Devanagari Hindi", sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            /* background: linear-gradient(145deg, #fef9e6, #fff4e0); */
+        }
+
+        /* MAIN CONTAINER */
+        .main-container {
+            width: 750px;
+        }
+
+        /* QUIZ CARD */
+        .quiz-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .instruction {
+            font-size: 30px;
+            position: relative;
+            width: fit-content;
+            padding: 10px 60px;
+            margin-top: -20px;
+            border-radius: 24px;
+            font-weight: 400;
+            color: #4b4b63;
+            background: #fdd1d1;
+            backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 24px rgba(120, 120, 180, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            overflow: hidden;
+            margin: auto;
+            text-align: center;
+        }
+
+        /* QUESTION */
+        .question-area {
+            width: 100%;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .question-area h2 {
+            font-size: 40px;
+            font-weight: 400;
+            color: #2f4f4f;
+            text-align: center;
+        }
+
+        /* IMAGE AREA - REMOVED (hidden) */
+        .image-area {
+            display: none;
+        }
+
+        /* INPUT AREA - REMOVED */
+        .input-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* 4 BIG OPTIONS WITH IMAGES - 2 ROWS, 2 OPTIONS EACH ROW */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin: 25px 0 30px;
+            padding: 0 15px;
+            width: 100%;
+
+        }
+
+        .option-card {
+            background: linear-gradient(145deg, #ffffff, #fff8f0);
+            border: 3px solid #b7ebff;
+            border-radius: 28px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            /* box-shadow: 0 10px 0 #e9c891, 0 8px 18px rgba(0, 0, 0, 0.12); */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            /* padding: 20px 12px; */
+            gap: 12px;
+        }
+
+        .option-card:hover:not(.disabled-opt) {
+            transform: translateY(-5px);
+            background: #fffef5;
+            box-shadow: 0 14px 0 #ffe8bd, 0 12px 22px rgba(0, 0, 0, 0.15);
+        }
+
+        .option-card:active:not(.disabled-opt) {
+            transform: translateY(3px);
+            box-shadow: 0 7px 0 #e2bd7a;
+        }
+
+        .option-card.disabled-opt {
+            cursor: default;
+            opacity: 0.8;
+            transform: none;
+        }
+
+        .option-img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            filter: drop-shadow(2px 6px 10px rgba(0, 0, 0, 0.15));
+            border-radius: 20px;
+            /* background: rgba(255, 248, 225, 0.6); */
+            padding: 8px;
+        }
+
+        .option-text {
+            font-size: 40px;
+            font-weight: 500;
+            color: #2d3e2b;
+            /* background: rgba(255, 245, 220, 0.9); */
+            padding: 6px 20px;
+            border-radius: 50px;
+            letter-spacing: 2px;
+        }
+
+        /* Correct answer styling */
+        .option-card.correct-selected {
+            background: linear-gradient(145deg, #c8f0d1, #adebad);
+            box-shadow: 0 5px 0 #2e8b57;
+            transform: translateY(5px);
+            cursor: default;
+            border: 3px solid #58d68d;
+            pointer-events: none;
+        }
+
+        .option-card.wrong-highlight {
+            background: #ffe0e0;
+            box-shadow: 0 5px 0 #c96f6f;
+            transform: translateY(5px);
+            transition: 0.1s;
+            animation: wrongBlink 0.3s ease 2;
+        }
+
+        @keyframes wrongBlink {
+
+            0%,
+            100% {
+                background: #ffe0e0;
+            }
+
+            50% {
+                background: #ffb8b8;
+            }
+        }
+
+        /* NAV BUTTONS - SAME AS ORIGINAL */
+        .nav-buttons {
+            width: 100%;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nav-buttons button {
+            width: 150px;
+            height: 60px;
+            padding: 14px 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            border: 3px solid #ffffff;
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            cursor: pointer;
+            transition: .15s ease;
+        }
+
+        #prevBtn {
+            background: linear-gradient(#86cfe5, #66b6d2);
+            box-shadow: 0 4px 0 #3e9dbb;
+        }
+
+        #nextBtn {
+            background: linear-gradient(#ffc37a, #f7a24f);
+            box-shadow: 0 4px 0 #e08634;
+        }
+
+        .nav-buttons button:active {
+            transform: translateY(2px);
+        }
+
+        .nav-buttons button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* POPUP - SAME AS ORIGINAL */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .kid-card {
+            background: #fff;
+            width: 320px;
+            padding: 25px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 15px 0 #ffd966, 0 25px 40px rgba(0, 0, 0, 0.2);
+            animation: kidPop 0.6s ease;
+        }
+
+        .kid-icon {
+            font-size: 4.5em;
+            margin-bottom: 10px;
+            animation: emojiBounce .9s infinite alternate;
+        }
+
+        .kid-card h3 {
+            font-size: 2em;
+            margin-bottom: 8px;
+            color: #2f9e44;
+        }
+
+        .kid-card p {
+            font-size: 1.2em;
+            color: #1c7c54;
+        }
+
+        .kid-correct .kid-card {
+            background: #e6fffa;
+            border: 6px solid #38d9a9;
+        }
+
+        .kid-wrong .kid-card {
+            background: #fff5f5;
+            border: 6px solid #ffa8a8;
+        }
+
+        .kid-wrong h3 {
+            color: #e03131;
+        }
+
+        .kid-wrong p {
+            color: #c92a2a;
+        }
+
+        @keyframes kidPop {
+            0% {
+                transform: scale(.3) rotate(-10deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.1) rotate(5deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-15px);
+            }
+        }
+
+        /* FINAL POPUP - SAME AS ORIGINAL */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 4000;
+        }
+
+        .final-kid-box {
+            background: linear-gradient(135deg, #fff7d6, #e6fff5);
+            padding: 30px 35px;
+            border-radius: 35px;
+            text-align: center;
+            width: 450px;
+            animation: finalBounce .8s ease;
+            box-shadow: 0 20px 0 #ffd43b, 0 30px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.2em;
+            color: #2f9e44;
+            margin-bottom: 10px;
+        }
+
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        #stars {
+            font-size: 2.3em;
+            margin: 12px 0;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 14px 34px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        @keyframes finalBounce {
+            0% {
+                transform: scale(.3);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.15);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================
+           RESPONSIVE MEDIA QUERIES (320px - 1920px)
+        ============================================ */
+        /* ============================================
+   COMPLETE MEDIA QUERIES (320px - 1920px)
+   For 4 Options Grid with Images
+   ============================================ */
+
+        /* EXTRA SMALL DEVICES (320px - 480px) */
+        @media screen and (min-width: 320px) and (max-width: 480px) {
+            body {
+                padding: 15px;
+                overflow: auto;
+                height: auto;
+                align-items: center;
+            }
+
+            .main-container {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .instruction {
+                font-size: 14px;
+                padding: 8px 16px;
+                margin-top: 0;
+                margin-bottom: 15px;
+                text-align: center;
+            }
+
+            .question-area {
+                height: auto;
+                min-height: 60px;
+                margin-bottom: 5px;
+            }
+
+            .question-area h2 {
+                font-size: 16px;
+                line-height: 1.4;
+            }
+
+            .options-grid {
+                gap: 12px;
+                padding: 0 8px;
+                margin: 15px 0 20px;
+            }
+
+            .option-card {
+                padding: 12px 8px;
+                border-radius: 20px;
+            }
+
+            .option-img {
+                width: 55px;
+                height: 55px;
+                padding: 5px;
+            }
+
+            .option-text {
+                font-size: 18px;
+                padding: 3px 8px;
+            }
+
+            .nav-buttons {
+                gap: 12px;
+                margin-top: 5px;
+            }
+
+            .nav-buttons button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+
+            .nav-buttons button i {
+                font-size: 10px;
+            }
+
+            .kid-card {
+                width: 260px;
+                padding: 20px;
+            }
+
+            .kid-icon {
+                font-size: 3em;
+            }
+
+            .kid-card h3 {
+                font-size: 1.5em;
+            }
+
+            .kid-card p {
+                font-size: 1em;
+            }
+
+            .final-kid-box {
+                width: 90%;
+                max-width: 300px;
+                padding: 20px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 1.4em;
+            }
+
+            .final-kid-box p {
+                font-size: 1em;
+            }
+
+            #stars {
+                font-size: 1.5em;
+            }
+
+            .playAgain-btn {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+        }
+
+        /* SMALL DEVICES (481px - 576px) */
+        @media screen and (min-width: 481px) and (max-width: 576px) {
+            body {
+                padding: 18px;
+                overflow: auto;
+                height: auto;
+                align-items: center;
+            }
+
+            .main-container {
+                width: 100%;
+                max-width: 540px;
+            }
+
+            .instruction {
+                font-size: 16px;
+                padding: 8px 24px;
+                margin-top: 0;
+                margin-bottom: 18px;
+            }
+
+            .question-area {
+                height: auto;
+                min-height: 65px;
+            }
+
+            .question-area h2 {
+                font-size: 18px;
+            }
+
+            .options-grid {
+                gap: 15px;
+                padding: 0 10px;
+                margin: 18px 0 22px;
+            }
+
+            .option-card {
+                padding: 14px 10px;
+                border-radius: 22px;
+            }
+
+            .option-img {
+                width: 65px;
+                height: 65px;
+                padding: 6px;
+            }
+
+            .option-text {
+                font-size: 20px;
+                padding: 3px 10px;
+            }
+
+            .nav-buttons {
+                gap: 15px;
+            }
+
+            .nav-buttons button {
+                padding: 10px 20px;
+                font-size: 16px;
+            }
+
+            .kid-card {
+                width: 280px;
+                padding: 22px;
+            }
+
+            .final-kid-box {
+                width: 90%;
+                max-width: 340px;
+                padding: 22px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 1.6em;
+            }
+        }
+
+        /* MOBILE DEVICES (577px - 768px) */
+        @media screen and (min-width: 577px) and (max-width: 768px) {
+            body {
+                padding: 20px;
+                overflow: auto;
+                height: auto;
+                align-items: center;
+            }
+
+            .main-container {
+                width: 100%;
+                max-width: 700px;
+            }
+
+            .instruction {
+                font-size: 18px;
+                padding: 10px 30px;
+                margin-top: 0;
+                margin-bottom: 20px;
+            }
+
+            .question-area {
+                height: auto;
+                min-height: 75px;
+            }
+
+            .question-area h2 {
+                font-size: 20px;
+            }
+
+            .options-grid {
+                gap: 18px;
+                padding: 0 12px;
+                margin: 20px 0 25px;
+            }
+
+            .option-card {
+                padding: 16px 12px;
+                border-radius: 24px;
+            }
+
+            .option-img {
+                width: 75px;
+                height: 75px;
+                padding: 7px;
+            }
+
+            .option-text {
+                font-size: 22px;
+                padding: 4px 12px;
+            }
+
+            .nav-buttons {
+                gap: 18px;
+            }
+
+            .nav-buttons button {
+                padding: 10px 22px;
+                font-size: 18px;
+            }
+
+            .final-kid-box {
+                width: 90%;
+                max-width: 380px;
+                padding: 25px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 1.8em;
+            }
+        }
+
+        /* TABLET DEVICES (769px - 1024px) */
+        /* @media screen and (min-width: 769px) and (max-width: 1024px) {
+    body {
+        padding: 25px;
+    }
+    
+    .main-container {
+        width: 100%;
+        max-width: 780px;
+    }
+    
+    .instruction {
+        font-size: 20px;
+        padding: 10px 40px;
+        margin-top: -10px;
+        margin-bottom: 25px;
+    }
+    
+    .question-area {
+        height: 85px;
+    }
+    
+    .question-area h2 {
+        font-size: 24px;
+    }
+    
+    .options-grid {
+        gap: 20px;
+        padding: 0 15px;
+        margin: 22px 0 28px;
+    }
+    
+    .option-card {
+        padding: 18px 12px;
+        border-radius: 26px;
+    }
+    
+    .option-img {
+        width: 85px;
+        height: 85px;
+        padding: 8px;
+    }
+    
+    .option-text {
+        font-size: 26px;
+        padding: 5px 14px;
+    }
+    
+    .nav-buttons {
+        gap: 20px;
+    }
+    
+    .nav-buttons button {
+        padding: 12px 25px;
+        font-size: 19px;
+    }
+} */
+
+
+        @media screen and (min-width: 900px) and (max-width: 1280px) {
+            body {
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-container {
+                max-width: 950px;
+                width: 100%;
+            }
+
+            .instruction {
+                font-size: 30px;
+                padding: 12px 55px;
+                margin-top: -15px;
+            }
+
+            .question-area {
+                height: 90px;
+            }
+
+            .question-area h2 {
+                font-size: 40px;
+            }
+
+            .options-grid {
+                max-width: 800px;
+                margin: 15px auto;
+                gap: 22px 30px;
+                padding: 0;
+            }
+
+            .option-card {
+                border-radius: 26px;
+                padding: 10px 12px;
+            }
+
+            .option-img {
+                width: 90px;
+                height: 90px;
+            }
+
+            .option-text {
+                font-size: 40px;
+                padding: 4px 14px;
+            }
+
+            .nav-buttons button {
+                width: 150px;
+                padding: 14px 28px;
+                font-size: 20px;
+            }
+
+            .kid-card {
+                width: 320px;
+            }
+
+            .final-kid-box {
+                width: 420px;
+            }
+        }
+
+        /* STANDARD DESKTOP (1281px - 1440px) */
+        @media screen and (min-width: 1281px) and (max-width: 1440px) {
+            body {
+                padding: 35px;
+            }
+
+            .main-container {
+                width: 850px;
+            }
+
+            .instruction {
+                font-size: 30px;
+                padding: 12px 55px;
+                margin-top: -18px;
+                margin-bottom: 30px;
+            }
+
+            .question-area {
+                height: 95px;
+            }
+
+            .question-area h2 {
+                font-size: 40px;
+            }
+
+            .options-grid {
+                gap: 24px;
+                padding: 0 20px;
+                margin: 15px 0 32px;
+            }
+
+            .option-card {
+                padding: 22px 16px;
+                border-radius: 30px;
+            }
+
+            .option-img {
+                width: 105px;
+                height: 105px;
+                padding: 10px;
+            }
+
+            .option-text {
+                font-size: 40px;
+                padding: 6px 18px;
+            }
+
+            .nav-buttons {
+                gap: 24px;
+            }
+
+            .nav-buttons button {
+                padding: 14px 30px;
+                font-size: 20px;
+            }
+        }
+
+        /* LARGE DESKTOP (1441px - 1600px) */
+        @media screen and (min-width: 1441px) and (max-width: 1600px) {
+            body {
+                padding: 40px;
+            }
+
+            .main-container {
+                width: 900px;
+            }
+
+            .instruction {
+                font-size: 35px;
+                padding: 12px 60px;
+                margin-top: -20px;
+                margin-bottom: 32px;
+            }
+
+            .question-area {
+                height: 100px;
+            }
+
+            .question-area h2 {
+                font-size: 50px;
+            }
+
+            .options-grid {
+                gap: 26px;
+                padding: 0 20px;
+                margin: 30px 0 35px;
+            }
+
+            .option-card {
+                padding: 24px 16px;
+                border-radius: 32px;
+            }
+
+            .option-img {
+                width: 115px;
+                height: 115px;
+                padding: 10px;
+            }
+
+            .option-text {
+                font-size: 50px;
+                padding: 6px 20px;
+            }
+
+            .nav-buttons {
+                gap: 26px;
+            }
+
+            .nav-buttons button {
+                padding: 15px 32px;
+                font-size: 21px;
+            }
+        }
+
+        /* WIDE DESKTOP (1601px - 1920px) */
+        @media screen and (min-width: 1601px) and (max-width: 1920px) {
+            body {
+                padding: 45px;
+            }
+
+            .main-container {
+                width: 950px;
+            }
+
+            .instruction {
+                font-size: 35px;
+                padding: 14px 65px;
+                margin-top: -22px;
+                margin-bottom: 35px;
+            }
+
+            .question-area {
+                height: 105px;
+            }
+
+            .question-area h2 {
+                font-size: 50px;
+            }
+
+            .options-grid {
+                gap: 28px;
+                padding: 0 25px;
+                margin: 32px 0 38px;
+            }
+
+            .option-card {
+                padding: 26px 18px;
+                border-radius: 34px;
+            }
+
+            .option-img {
+                width: 125px;
+                height: 125px;
+                padding: 11px;
+            }
+
+            .option-text {
+                font-size: 50px;
+                padding: 7px 22px;
+            }
+
+            .nav-buttons {
+                gap: 28px;
+            }
+
+            .nav-buttons button {
+                padding: 16px 35px;
+                font-size: 22px;
+            }
+
+            .kid-card {
+                width: 360px;
+                padding: 28px;
+            }
+
+            .kid-icon {
+                font-size: 4.8em;
+            }
+
+            .kid-card h3 {
+                font-size: 2.2em;
+            }
+
+            .final-kid-box {
+                width: 480px;
+                padding: 32px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 2.3em;
+            }
+        }
+
+        /* ULTRA WIDE / 4K (1921px and above) */
+        @media screen and (min-width: 1921px) {
+            body {
+                padding: 50px;
+            }
+
+            .main-container {
+                width: 1000px;
+            }
+
+            .instruction {
+                font-size: 35px;
+                padding: 16px 70px;
+                margin-top: -25px;
+                margin-bottom: 40px;
+            }
+
+            .question-area {
+                height: 110px;
+            }
+
+            .question-area h2 {
+                font-size: 50px;
+            }
+
+            .options-grid {
+                gap: 32px;
+                padding: 0 30px;
+                margin: 35px 0 42px;
+            }
+
+            .option-card {
+                padding: 28px 20px;
+                border-radius: 36px;
+            }
+
+            .option-img {
+                width: 140px;
+                height: 140px;
+                padding: 12px;
+            }
+
+            .option-text {
+                font-size: 50px;
+                padding: 8px 25px;
+            }
+
+            .nav-buttons {
+                gap: 32px;
+            }
+
+            .nav-buttons button {
+                padding: 18px 40px;
+                font-size: 24px;
+            }
+
+            .kid-card {
+                width: 400px;
+                padding: 32px;
+            }
+
+            .kid-icon {
+                font-size: 5.5em;
+            }
+
+            .kid-card h3 {
+                font-size: 2.5em;
+            }
+
+            .final-kid-box {
+                width: 520px;
+                padding: 38px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 2.6em;
+            }
+
+            .final-kid-box p {
+                font-size: 1.4em;
+            }
+
+            #stars {
+                font-size: 2.5em;
+            }
+
+            .playAgain-btn {
+                padding: 16px 42px;
+                font-size: 1.3em;
+            }
+        }
+
+        /* LANDSCAPE MODE FOR MOBILES */
+        @media screen and (max-width: 768px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .question-area {
+                min-height: 45px;
+                margin-bottom: 5px;
+            }
+
+            .question-area h2 {
+                font-size: 16px;
+            }
+
+            .options-grid {
+                gap: 12px;
+                margin: 10px 0 15px;
+            }
+
+            .option-card {
+                padding: 10px 8px;
+            }
+
+            .option-img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .option-text {
+                font-size: 16px;
+                padding: 2px 8px;
+            }
+
+            .nav-buttons {
+                margin-top: 5px;
+            }
+
+            .nav-buttons button {
+                padding: 6px 15px;
+                font-size: 14px;
+            }
+        }
+
+        /* FOLDABLE DEVICES (Galaxy Fold, etc. up to 280px) */
+        @media screen and (max-width: 320px) {
+            body {
+                padding: 8px;
+            }
+
+            .instruction {
+                font-size: 11px;
+                padding: 5px 10px;
+                margin-bottom: 10px;
+            }
+
+            .question-area h2 {
+                font-size: 14px;
+            }
+
+            .options-grid {
+                gap: 8px;
+                margin: 10px 0;
+            }
+
+            .option-img {
+                width: 45px;
+                height: 45px;
+            }
+
+            .option-text {
+                font-size: 14px;
+                padding: 2px 6px;
+            }
+
+            .option-card {
+                padding: 8px 6px;
+            }
+
+            .nav-buttons button {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+
+            .kid-card {
+                width: 240px;
+                padding: 15px;
+            }
+
+            .final-kid-box {
+                padding: 15px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 1.2em;
+            }
+        }
+
+        /* TABLET LANDSCAPE (768px - 1024px landscape) */
+        @media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+            .main-container {
+                width: 90%;
+                max-width: 850px;
+            }
+
+            .options-grid {
+                gap: 20px;
+            }
+
+            .option-img {
+                width: 90px;
+                height: 90px;
+            }
+
+            .option-text {
+                font-size: 40px;
+            }
+        }
+
+        /* HIGH DPI / RETINA DISPLAYS */
+        @media (-webkit-min-device-pixel-ratio: 2),
+        (min-resolution: 192dpi) {
+            .option-img {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+            }
+        }
+
+        /* TOUCH DEVICES OPTIMIZATION */
+        @media (hover: none) and (pointer: coarse) {
+            .option-card:active {
+                transform: scale(0.97);
+            }
+
+            .nav-buttons button:active {
+                transform: translateY(2px);
+            }
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+                height: auto;
+                overflow: visible;
+            }
+
+            .option-card,
+            .nav-buttons,
+            .kid-popup,
+            #finalPopup {
+                display: none;
+            }
+
+            .question-area h2 {
+                color: black;
+            }
+        }
+
+        /* DARK MODE PREFERENCE (keeps original light theme) */
+        @media (prefers-color-scheme: dark) {
+            /* Maintaining original light theme - no changes */
+        }
+    </style>
+    <link rel="stylesheet" href="../assets/CSS/walkman-font.css">
+</head>
+
+<body>
+    <div class="main-container">
+        <div class="instruction">
+            निम्नलिखित अक्षरों के बीच वाला अक्षर चुनिए।
+        </div>
+        <div class="quiz-container">
+            <div class="question-area">
+                <h2 id="questionText"></h2>
+            </div>
+
+            <!-- IMAGE AREA REMOVED -->
+            <!-- INPUT AREA REMOVED -->
+
+            <!-- 4 BIG OPTIONS WITH IMAGES (2 ROWS, 2 OPTIONS EACH) -->
+            <div class="options-grid" id="optionsGrid"></div>
+
+            <div class="nav-buttons">
+                <button id="prevBtn"><i style="margin-right: 5px;" class="fa-solid fa-angles-left"></i> पिछला </button>
+                <button id="nextBtn">अगला <i style="margin-left: 5px;" class="fa-solid fa-angles-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎊 कमाल कर दिया!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()"> पुनः खेलें</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        // ==================== QUESTIONS (with 4 options each) ====================
+        const questions = [
+            { question: "Q1. अ ______ इ", answer: "आ", options: ["आ", "ई", "उ", "अ"], images: ["../assets/images/aam.png", "../assets/images/ekha.png", "../assets/images/ullu.png", "../assets/images/anar.png"] },
+            { question: "Q2. आ ______ ई", answer: "इ", options: ["इ", "ऊ", "ई", "आ"], images: ["../assets/images/imli.png", "../assets/images/un.png", "../assets/images/ekha.png", "../assets/images/aam.png"] },
+            { question: "Q3. इ ______ उ", answer: "ई", options: ["ई", "ऋ", "उ", "इ"], images: ["../assets/images/ekha.png", "../assets/images/rishi.png", "../assets/images/ullu.png", "../assets/images/imli.png"] },
+            { question: "Q4. ई ______ ऊ", answer: "उ", options: ["उ", "इ", "ऊ", "ई"], images: ["../assets/images/ullu.png", "../assets/images/imli.png", "../assets/images/un.png", "../assets/images/ekha.png"] },
+            { question: "Q5. उ ______ ऋ", answer: "ऊ", options: ["ऊ", "ऐ", "ऋ", "उ"], images: ["../assets/images/un.png", "../assets/images/enak.png", "../assets/images/rishi.png", "../assets/images/ullu.png"] },
+            { question: "Q6. ऊ ______ ए", answer: "ऋ", options: ["ऋ", "उ", "ए", "ऊ"], images: ["../assets/images/rishi.png", "../assets/images/ullu.png", "../assets/images/edi.png", "../assets/images/un.png"] },
+            { question: "Q7. ऋ ______ ऐ", answer: "ए", options: ["ए", "ओ", "ऐ", "ऋ"], images: ["../assets/images/edi.png", "../assets/images/okhali.png", "../assets/images/enak.png", "../assets/images/rishi.png"] },
+            { question: "Q8. ए ______ ओ", answer: "ऐ", options: ["ऐ", "औ", "ओ", "ए"], images: ["../assets/images/enak.png", "../assets/images/aurat.png", "../assets/images/okhali.png", "../assets/images/edi.png"] },
+            { question: "Q9. ओ ______ अं", answer: "औ", options: ["औ", "ए", "अं", "ओ"], images: ["../assets/images/aurat.png", "../assets/images/edi.png", "../assets/images/angur.png", "../assets/images/okhali.png"] },
+            { question: "Q10. औ ______ अः", answer: "अं", options: ["अं", "ओ", "अः", "औ"], images: ["../assets/images/angur.png", "../assets/images/okhali.png", "../assets/images/boy-think.png", "../assets/images/aurat.png"] },
+            { question: "Q11. ट ______ ड", answer: "ठ", options: ["ठ", "ढ", "ड", "ट"], images: ["../assets/images/thathera.png", "../assets/images/dhakkan.png", "../assets/images/damaru.png", "../assets/images/tamater.png"] },
+            { question: "Q12. ठ ______ ढ", answer: "ड", options: ["ड", "ट", "ढ", "ठ"], images: ["../assets/images/damaru.png", "../assets/images/tamater.png", "../assets/images/dhakkan.png", "../assets/images/thathera.png"] },
+            { question: "Q13. प ______ ब", answer: "फ", options: ["फ", "भ", "ब", "प"], images: ["../assets/images/fal.png", "../assets/images/bhalu.png", "../assets/images/bakri.png", "../assets/images/patang.png"] },
+            { question: "Q14. त ______ द", answer: "थ", options: ["थ", "ध", "द", "त"], images: ["../assets/images/tharmas.png", "../assets/images/dhanush.png", "../assets/images/dant.png", "../assets/images/tarbuj.png"] },
+            { question: "Q15. थ ______ ध", answer: "द", options: ["द", "त", "ध", "थ"], images: ["../assets/images/dant.png", "../assets/images/tarbuj.png", "../assets/images/dhanush.png", "../assets/images/tharmas.png"] },
+            { question: "Q16. ब ______ म", answer: "भ", options: ["भ", "प", "म", "ब"], images: ["../assets/images/bhalu.png", "../assets/images/patang.png", "../assets/images/machhli.png", "../assets/images/bakri.png"] },
+            { question: "Q17. व ______ ष", answer: "श", options: ["श", "ह", "ष", "व"], images: ["../assets/images/saljam.png", "../assets/images/hal.png", "../assets/images/satkond2.png", "../assets/images/lattu.png"] },
+            { question: "Q18. क्ष ______ ज्ञ", answer: "त्र", options: ["त्र", "ल", "ज्ञ", "क्ष"], images: ["../assets/images/trisul.png", "../assets/images/lattu.png", "../assets/images/rishi.png", "../assets/images/trisul.png"] },
+            { question: "Q19. ष ______ ह", answer: "स", options: ["स", "र", "ह", "ष"], images: ["../assets/images/sun.png", "../assets/images/rath.png", "../assets/images/hal.png", "../assets/images/satkond2.png"] },
+            { question: "Q20. य ______ ल", answer: "र", options: ["र", "श", "ल", "य"], images: ["../assets/images/rassi.png", "../assets/images/sahad.png", "../assets/images/lattu.png", "../assets/images/yagya.png"] },
+            { question: "Q21. र ______ व", answer: "ल", options: ["ल", "त्र", "व", "र"], images: ["../assets/images/laddu.png", "../assets/images/trisul.png", "../assets/images/lattu.png", "../assets/images/rassi.png"] }
+        ];
+
+        // Image URL mapping for additional letters
+        function getOptionImage(letter) {
+            const imgMap = {
+                "आ": "../assets/images/aam.png", "इ": "../assets/images/imli.png", "उ": "../assets/images/ullu.png", "अ": "../assets/images/anar.png",
+                "ई": "../assets/images/ekha.png", "ऊ": "../assets/images/un.png", "ऋ": "../assets/images/rishi.png", "ए": "../assets/images/edi.png",
+                "ऐ": "../assets/images/enak.png", "ओ": "../assets/images/okhali.png", "औ": "../assets/images/aurat.png", "अं": "../assets/images/angur.png",
+                "अः": "../assets/images/boy-think.png", "क": "../assets/images/kamal.png", "ख": "../assets/images/khargosh.png", "ग": "../assets/images/gamla.png",
+                "घ": "../assets/images/ghadi.png", "ड़": "../assets/images/damaru.png", "च": "../assets/images/chamach.png", "छ": "../assets/images/chhata.png",
+                "ज": "../assets/images/jahaj.png", "झ": "../assets/images/jhula.png", "ट": "../assets/images/tamater.png", "ठ": "../assets/images/thathera.png",
+                "ड": "../assets/images/damaru.png", "ढ": "../assets/images/dhakkan.png", "ण": "../assets/images/boy-think.png", "त": "../assets/images/tarbuj.png",
+                "थ": "../assets/images/tharmas.png", "द": "../assets/images/dant.png", "ध": "../assets/images/dhanush.png", "न": "../assets/images/nal.png",
+                "प": "../assets/images/patang.png", "फ": "../assets/images/fal.png", "ब": "../assets/images/bakri.png", "भ": "../assets/images/bhalu.png",
+                "म": "../assets/images/machhli.png", "य": "../assets/images/yagya.png", "र": "../assets/images/rassi.png", "ल": "../assets/images/lattu.png",
+                "व": "../assets/images/lattu.png", "श": "../assets/images/saljam.png", "ष": "../assets/images/satkond2.png", "स": "../assets/images/sun.png",
+                "ह": "../assets/images/hal.png", "त्र": "../assets/images/trisul.png", "क्ष": "../assets/images/trisul.png", "ज्ञ": "../assets/images/rishi.png"
+            };
+            return imgMap[letter] || "../assets/images/kamal.png";
+        }
+
+        let currentQuestion = 0;
+        let score = 0;
+        const answers = new Array(questions.length).fill(null);
+        const optionsGrid = document.getElementById("optionsGrid");
+        const questionText = document.getElementById("questionText");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+        // ===== AUDIO =====
+
+
+        function playCorrectSound() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.frequency.value = 880;
+                gainNode.gain.value = 0.2;
+                oscillator.type = "sine";
+
+                oscillator.start();
+
+                gainNode.gain.exponentialRampToValueAtTime(
+                    0.00001,
+                    audioCtx.currentTime + 0.5,
+                );
+
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {
+                console.log("Audio error:", e);
+            }
+        }
+
+        function playWrongSound() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.frequency.value = 440;
+                gainNode.gain.value = 0.25;
+                oscillator.type = "sawtooth";
+
+                oscillator.start();
+
+                gainNode.gain.exponentialRampToValueAtTime(
+                    0.00001,
+                    audioCtx.currentTime + 0.4,
+                );
+
+                oscillator.stop(audioCtx.currentTime + 0.4);
+            } catch (e) {
+                console.log("Audio error:", e);
+            }
+        }
+
+        // Initialize audio
+        function initAudioOnFirstClick() {
+            if (audioCtx) return;
+
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const source = audioCtx.createBufferSource();
+
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start();
+            } catch (e) {
+                console.log("Audio init error:", e);
+            }
+        }
+
+        document.body.addEventListener("click", initAudioOnFirstClick, { once: true });
+
+        function smallConfetti() { confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } }); }
+        function bigConfetti() { confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } }); }
+
+        function showPopup(isCorrect) {
+            const popup = document.getElementById("answerPopup");
+            const icon = document.getElementById("popupIcon");
+            const title = document.getElementById("popupTitle");
+            const msg = document.getElementById("popupMsg");
+            popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+            popup.style.display = "flex";
+            if (isCorrect) {
+                icon.textContent = "🐵";
+                title.textContent = "वाह!";
+                msg.textContent = "आपने कमाल कर दिया!";
+            } else {
+                icon.textContent = "🙈";
+                title.textContent = "अरे!";
+                msg.textContent = "थोड़ा और सोचिए!";
+            }
+            setTimeout(() => { popup.style.display = "none"; }, 1400);
+        }
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            questionText.innerText = q.question;
+            optionsGrid.innerHTML = "";
+
+            // If already answered, show all options disabled with correct highlighted
+            if (answers[currentQuestion] !== null) {
+                let opts = [...q.options];
+                // shuffle for variety
+                for (let i = opts.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [opts[i], opts[j]] = [opts[j], opts[i]];
+                }
+                opts.forEach(opt => {
+                    const card = document.createElement("div");
+                    card.className = "option-card disabled-opt";
+                    if (opt === q.answer) {
+                        card.classList.add("correct-selected");
+                    }
+                    const img = document.createElement("img");
+                    img.src = getOptionImage(opt);
+                    img.alt = opt;
+                    img.className = "option-img";
+                    const textSpan = document.createElement("div");
+                    textSpan.className = "option-text";
+                    textSpan.innerText = opt;
+                    card.appendChild(img);
+                    card.appendChild(textSpan);
+                    optionsGrid.appendChild(card);
+                });
+                prevBtn.disabled = currentQuestion === 0;
+                nextBtn.disabled = answers[currentQuestion] === null;
+                return;
+            }
+
+            // Not answered - create clickable options
+            let opts = [...q.options];
+            for (let i = opts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [opts[i], opts[j]] = [opts[j], opts[i]];
+            }
+
+            opts.forEach(opt => {
+                const card = document.createElement("div");
+                card.className = "option-card";
+                const img = document.createElement("img");
+                img.src = getOptionImage(opt);
+                img.alt = opt;
+                img.className = "option-img";
+                const textSpan = document.createElement("div");
+                textSpan.className = "option-text";
+                textSpan.innerText = opt;
+                card.appendChild(img);
+                card.appendChild(textSpan);
+
+                card.onclick = () => {
+                    if (answers[currentQuestion] !== null) return;
+
+                    if (opt === q.answer) {
+                        // CORRECT ANSWER
+                        answers[currentQuestion] = opt;
+                        score++;
+                        playCorrectSound();
+                        smallConfetti();
+                        showPopup(true);
+
+                        // Mark correct card and disable all
+                        const allCards = document.querySelectorAll(".option-card");
+                        allCards.forEach(c => {
+                            c.onclick = null;
+                            c.classList.add("disabled-opt");
+                            const text = c.querySelector(".option-text").innerText;
+                            if (text === q.answer) {
+                                c.classList.add("correct-selected");
+                            }
+                        });
+
+                        nextBtn.disabled = false;
+
+                        if (answers.every(a => a !== null)) {
+                            setTimeout(showFinal, 800);
+                        }
+                    } else {
+                        // WRONG ANSWER - flash wrong only, don't disable
+                        playWrongSound();
+                        showPopup(false);
+                        card.classList.add("wrong-highlight");
+                        setTimeout(() => {
+                            card.classList.remove("wrong-highlight");
+                        }, 500);
+                    }
+                };
+                optionsGrid.appendChild(card);
+            });
+
+            prevBtn.disabled = currentQuestion === 0;
+            nextBtn.disabled = answers[currentQuestion] === null;
+        }
+
+        function showFinal() {
+            const popup = document.getElementById("finalPopup");
+            document.getElementById("finalScore").textContent = `आपके अंक: ${score} / ${questions.length}`;
+            let starsMsg = "👌👌👌";
+            if (score === questions.length) starsMsg = "🌟🌟🌟🌟🌟 🎉";
+            else if (score >= 18) starsMsg = "🌟🌟🌟🌟 ⭐";
+            else if (score >= 12) starsMsg = "🌟🌟🌟 ✨";
+            document.getElementById("stars").textContent = starsMsg;
+            popup.style.display = "flex";
+            bigConfetti();
+        }
+
+        nextBtn.onclick = function () {
+            if (currentQuestion < questions.length - 1 && answers[currentQuestion] !== null) {
+                currentQuestion++;
+                loadQuestion();
+            } else if (currentQuestion === questions.length - 1 && answers[currentQuestion] !== null) {
+                if (answers.every(a => a !== null)) showFinal();
+            }
+        };
+
+        prevBtn.onclick = function () {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        };
+
+        // Initialize Audio
+        let audioCtx = null;
+        function initAudioOnFirstClick() {
+            if (audioCtx) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start();
+            } catch (e) { }
+        }
+        document.body.addEventListener("click", initAudioOnFirstClick, { once: true });
+
+        loadQuestion();
+    </script>
+</body>
+
+</html>

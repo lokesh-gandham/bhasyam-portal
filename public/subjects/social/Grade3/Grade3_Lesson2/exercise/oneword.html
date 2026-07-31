@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="/auth-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Digital Assessments</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Livvic';
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* MAIN */
+        .quiz-box {
+            width: 100%;
+            height: 100%;
+            padding: 10px 20px 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* QUESTION */
+        .question {
+            max-width: 1200px;
+            width: 100%;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+            font-size: 30px;
+            line-height: 1.1;
+            color: #2f4f4f;
+            text-align: left;
+            height: 80px;
+            overflow: hidden;
+        }
+
+        /* IMAGE */
+        .image-box {
+            margin-top: 2px;
+            margin-bottom: 5px;
+        }
+
+        .image-box img {
+            width: 250px;
+            height: 170px;
+            object-fit: contain;
+            animation: floatImage 2.5s ease-in-out infinite;
+        }
+
+        /* LETTER CONTAINER */
+        .letter-container {
+
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+
+            gap: 12px;
+
+            max-width: 1000px;
+
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* LETTER */
+        .letter {
+
+            width: 68px;
+            height: 68px;
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 28px;
+            font-weight: 600;
+            line-height: 68px;
+
+            color: #2f4f4f;
+
+            background:
+                linear-gradient(135deg,
+                    #b8f2e6,
+                    #aed9e0);
+
+            border: 4px solid #ffffff;
+
+            box-shadow:
+                0 6px 0 #7bdff2;
+
+            transition: .25s;
+
+            text-align: center;
+
+            outline: none;
+
+            overflow: hidden;
+
+            /* ✅ ONLY POINTER */
+            cursor: pointer;
+
+            /* ✅ REMOVE BLACK LINE */
+            caret-color: #1d3557;
+
+            /* ✅ FIX */
+            user-select: none;
+
+        }
+
+        /* FIX CONTENTEDITABLE CURSOR */
+        /* REMOVE TEXT CURSOR */
+        .letter:empty:before {
+
+            content: none;
+
+        }
+
+        /* CORRECT */
+        .letter.correct {
+
+            background:
+                linear-gradient(135deg,
+                    #caffbf,
+                    #a0f4c3);
+
+            box-shadow:
+                0 6px 0 #2d6a4f;
+
+            color: #14532d;
+        }
+
+        /* WRONG */
+        .letter.wrong {
+
+            background:
+                linear-gradient(135deg,
+                    #ffccd5,
+                    #ffafcc);
+
+            box-shadow:
+                0 6px 0 #d90429;
+
+            color: #7f1d1d;
+
+            animation: shake .3s;
+        }
+
+        /* SHAKE */
+        @keyframes shake {
+
+            0% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            50% {
+                transform: translateX(5px);
+            }
+
+            75% {
+                transform: translateX(-5px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+
+        }
+
+        /* NAVIGATION */
+        .nav-wrapper {
+
+            position: absolute;
+
+            bottom: 20px;
+            left: 0;
+
+            width: 100%;
+
+            padding: 0 35px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* NAV BUTTON */
+        .nav-btn {
+
+
+            min-width: 130px;
+            height: 50px;
+
+            border: none;
+
+            border-radius: 50px;
+
+            font-size: 20px;
+
+            cursor: pointer;
+
+            color: white;
+
+            transition: .25s;
+        }
+
+        /* PREV */
+        .prev-btn {
+
+            background:
+                linear-gradient(135deg,
+                    #43aa8b,
+                    #90d7b8);
+
+        }
+
+        /* NEXT */
+        .next-btn {
+
+            background:
+                linear-gradient(135deg,
+                    #ff7b7b,
+                    #ffb4a2);
+
+        }
+
+        /* DISABLED */
+        .nav-btn:disabled {
+
+            background: #cccccc;
+
+            cursor: not-allowed;
+
+        }
+
+        /* POPUP */
+        .popup {
+
+            position: fixed;
+
+            top: 50%;
+            left: 50%;
+
+            transform:
+                translate(-50%, -50%) scale(0.5);
+
+            width: 380px;
+
+            padding: 30px 20px;
+
+            border-radius: 45px;
+
+            display: none;
+
+            z-index: 9999;
+
+            text-align: center;
+
+            animation: popupAnim .35s forwards;
+
+            border: 4px solid white;
+        }
+
+        /* CORRECT */
+        .correct-popup {
+
+            background:
+                linear-gradient(135deg,
+                    #caffbf,
+                    #a0f4c3);
+        }
+
+        /* WRONG */
+        .wrong-popup {
+
+            background:
+                linear-gradient(135deg,
+                    #ffcad4,
+                    #ffafcc);
+        }
+
+        /* FINAL */
+        .final-popup {
+
+            background:
+                linear-gradient(135deg,
+                    #fff1b6,
+                    #ffe066);
+        }
+
+        /* POPUP ANIMATION */
+        @keyframes popupAnim {
+
+            to {
+                transform:
+                    translate(-50%, -50%) scale(1);
+            }
+
+        }
+
+        /* EMOJI */
+        .popup-emoji {
+
+            font-size: 85px;
+
+            margin-bottom: 18px;
+        }
+
+        /* TITLE */
+        .popup-title {
+
+            font-size: 42px;
+
+            margin-bottom: 12px;
+
+            color: #222;
+        }
+
+        /* SUB */
+        .popup-sub {
+
+            font-size: 26px;
+
+            color: #333;
+        }
+
+        /* PLAY AGAIN */
+        .play-btn {
+
+            margin-top: 28px;
+
+            padding: 15px 28px;
+
+            border: none;
+
+            border-radius: 40px;
+
+            font-size: 20px;
+
+            cursor: pointer;
+
+            background:
+                linear-gradient(135deg,
+                    #06d6a0,
+                    #1b9aaa);
+
+            color: white;
+        }
+
+        /* ================= MOBILE ================= */
+
+        @media screen and (max-width:768px) {
+
+            body {
+                overflow: hidden;
+            }
+
+            /* MAIN */
+            .quiz-box {
+
+                height: auto;
+
+                padding: 18px 14px 90px;
+
+                justify-content: center;
+
+            }
+
+            /* QUESTION */
+            .question {
+
+                font-size: 20px;
+
+                line-height: 1.5;
+
+                height: auto;
+
+                margin-top: 0;
+
+                padding: 0 10px;
+
+                text-align: center;
+
+            }
+
+            /* IMAGE */
+            .image-box {
+
+                margin-top: 15px;
+
+                margin-bottom: 18px;
+
+            }
+
+            .image-box img {
+
+                width: 220px;
+
+                height: 160px;
+
+            }
+
+            /* LETTER CONTAINER */
+            .letter-container {
+
+                gap: 10px;
+
+                max-width: 100%;
+
+                margin-top: 8px;
+
+            }
+
+            /* LETTER */
+            .letter {
+
+                width: 48px;
+
+                height: 48px;
+
+                font-size: 22px;
+
+                border-radius: 50%;
+
+            }
+
+            /* NAVIGATION */
+            .nav-wrapper {
+
+                position: static;
+
+                margin-top: 28px;
+
+                padding: 0;
+
+            }
+
+            /* BUTTON */
+            .nav-btn {
+
+                font-size: 15px;
+
+                padding: 10px 18px;
+
+            }
+
+            /* POPUP */
+            .popup {
+
+                width: 220px;
+
+                padding: 18px 14px;
+
+                border-radius: 24px;
+
+            }
+
+            /* EMOJI */
+            .popup-emoji {
+
+                font-size: 48px;
+
+                margin-bottom: 8px;
+
+            }
+
+            /* TITLE */
+            .popup-title {
+
+                font-size: 24px;
+
+                margin-bottom: 4px;
+
+            }
+
+            /* SUBTITLE */
+            .popup-sub {
+
+                font-size: 15px;
+
+            }
+
+            /* PLAY BUTTON */
+            .play-btn {
+
+                font-size: 14px;
+
+                padding: 10px 18px;
+
+                margin-top: 16px;
+
+            }
+
+        }
+
+        /* ================= SMALL MOBILE ================= */
+
+        @media screen and (max-width:390px) {
+
+            /* MAIN */
+            .quiz-box {
+
+                padding: 12px 10px 80px;
+
+            }
+
+            /* CENTER WHOLE PAGE */
+            .quiz-box {
+
+                min-height: 100vh;
+
+                display: flex;
+
+                flex-direction: column;
+
+                justify-content: center;
+
+                align-items: center;
+
+            }
+
+            /* QUESTION */
+            .question {
+
+                font-size: 22px;
+
+                line-height: 1.4;
+
+                padding: 0 4px;
+
+                margin-top: 0;
+
+                height: auto;
+
+            }
+
+            /* IMAGE */
+            .image-box {
+
+                margin-top: 10px;
+
+                margin-bottom: 14px;
+
+            }
+
+            .image-box img {
+
+                width: 170px;
+
+                height: 120px;
+
+            }
+
+            /* LETTER CONTAINER */
+            .letter-container {
+
+                gap: 8px;
+
+                margin-top: 8px;
+                margin-bottom: 10px;
+
+                max-width: 100%;
+
+            }
+
+            /* LETTER */
+            .letter {
+
+                width: 38px;
+
+                height: 38px;
+
+                font-size: 16px;
+
+                border-width: 2px;
+
+                box-shadow:
+                    0 4px 0 #7bdff2;
+
+            }
+
+            /* NAVIGATION */
+            .nav-wrapper {
+
+                margin-top: 18px;
+
+                padding: 0;
+
+            }
+
+            /* BUTTON */
+            .nav-btn {
+
+                font-size: 18px;
+
+                padding: 10px 18px;
+
+            }
+
+            /* POPUP */
+            .popup {
+
+                width: 190px;
+
+                padding: 14px 10px;
+
+                border-radius: 20px;
+
+            }
+
+            /* EMOJI */
+            .popup-emoji {
+
+                font-size: 40px;
+
+                margin-bottom: 6px;
+
+            }
+
+            /* TITLE */
+            .popup-title {
+
+                font-size: 20px;
+
+                margin-bottom: 2px;
+
+            }
+
+            /* SUBTITLE */
+            .popup-sub {
+
+                font-size: 13px;
+
+            }
+
+            /* PLAY BUTTON */
+            .play-btn {
+
+                font-size: 12px;
+
+                padding: 8px 14px;
+
+                margin-top: 12px;
+
+                border-radius: 16px;
+
+            }
+
+        }
+
+        /* ================= TABLET ================= */
+
+        @media screen and (min-width:769px) and (max-width:800px) {
+
+            .quiz-box {
+
+                padding: 24px;
+
+            }
+
+            /* QUESTION */
+            .question {
+
+                font-size: 25px;
+
+                height: auto;
+
+                line-height: 1.4;
+
+                margin-top: 5px;
+
+            }
+
+            /* IMAGE */
+            .image-box img {
+
+                width: 300px;
+
+                height: 210px;
+
+            }
+
+            /* LETTER CONTAINER */
+            .letter-container {
+
+                gap: 14px;
+
+                margin-top: 18px;
+                margin-bottom: 10px;
+
+            }
+
+            /* LETTER */
+            .letter {
+
+                width: 62px;
+
+                height: 62px;
+
+                font-size: 28px;
+
+            }
+
+            /* BUTTON */
+            .nav-btn {
+
+                font-size: 20px;
+
+                padding: 14px 24px;
+
+            }
+
+            /* POPUP */
+            .popup {
+
+                width: 320px;
+
+                padding: 28px 22px;
+
+                border-radius: 34px;
+
+            }
+
+            .popup-emoji {
+
+                font-size: 68px;
+
+            }
+
+            .popup-title {
+
+                font-size: 38px;
+
+            }
+
+            .popup-sub {
+
+                font-size: 22px;
+
+            }
+
+        }
+
+        @media screen and (min-width:900px) and (max-width:1000px) {
+            .question {
+                font-size: 30px;
+            }
+        }
+
+        @media screen and (min-width:1001px) {
+            .question {
+                font-size: 40px;
+            }
+        }
+
+
+        /* ================= LARGE MONITORS ================= */
+
+        @media screen and (min-width:1441px) and (max-width:1920px) {
+
+            /* MAIN */
+            .quiz-box {
+
+                padding: 10px 45px 100px;
+
+            }
+
+            /* QUESTION */
+            .question {
+
+                max-width: 1800px;
+
+                font-size: 40px;
+
+                height: 100px;
+
+                line-height: 1.2;
+
+                margin-top: 0;
+
+            }
+
+            /* IMAGE */
+            .image-box {
+
+
+                margin-bottom: 5px;
+
+            }
+
+            .image-box img {
+
+                width: 380px;
+
+                height: 260px;
+
+            }
+
+            /* LETTER CONTAINER */
+            .letter-container {
+
+                gap: 22px;
+
+                max-width: 1900px;
+
+                margin-top: 20px;
+                margin-bottom: 15px;
+
+            }
+
+            /* LETTER */
+            .letter {
+
+                width: 100px;
+
+                height: 100px;
+
+                font-size: 46px;
+
+                border-width: 5px;
+
+                box-shadow:
+                    0 10px 0 #7bdff2;
+
+            }
+
+            /* NAVIGATION */
+            .nav-wrapper {
+
+                padding: 0 65px;
+
+                bottom: 2px;
+
+            }
+
+            /* BUTTON */
+            .nav-btn {
+
+                font-size: 30px;
+
+
+                min-width: 180px;
+                height: 70px;
+
+            }
+
+            /* POPUP */
+            .popup {
+
+                width: 500px;
+
+                padding: 50px 40px;
+
+                border-radius: 65px;
+
+            }
+
+            /* EMOJI */
+            .popup-emoji {
+
+                font-size: 140px;
+
+                margin-bottom: 28px;
+
+            }
+
+            /* TITLE */
+            .popup-title {
+
+                font-size: 80px;
+
+            }
+
+            /* SUBTITLE */
+            .popup-sub {
+
+                font-size: 40px;
+
+            }
+
+            /* PLAY BUTTON */
+            .play-btn {
+
+                font-size: 32px;
+
+                padding: 24px 50px;
+
+                border-radius: 60px;
+
+            }
+        }
+
+        /* ================= EXTRA LARGE / 4K ================= */
+
+        @media screen and (min-width:1921px) {
+
+            /* MAIN */
+            .quiz-box {
+
+                padding: 10px 70px 130px;
+
+            }
+
+            /* QUESTION */
+            .question {
+
+                max-width: 2400px;
+
+                font-size: 60px;
+
+                height: 200px;
+
+                line-height: 1.4;
+
+                margin-top: 10px;
+
+            }
+
+            /* IMAGE */
+            .image-box {
+
+                margin-top: 35px;
+
+                margin-bottom: 10px;
+
+            }
+
+            .image-box img {
+
+                width: 760px;
+
+                height: 450px;
+
+            }
+
+            /* LETTER CONTAINER */
+            .letter-container {
+
+                gap: 28px;
+
+                max-width: 2500px;
+
+                margin-top: 28px;
+                margin-bottom: 20px;
+
+            }
+
+            /* LETTER */
+            .letter {
+
+                width: 130px;
+
+                height: 130px;
+
+                font-size: 58px;
+
+                border-width: 6px;
+
+                box-shadow:
+                    0 14px 0 #7bdff2;
+
+            }
+
+            /* NAVIGATION */
+            .nav-wrapper {
+
+                padding: 0 90px;
+
+                bottom: 40px;
+
+            }
+
+            /* BUTTON */
+            .nav-btn {
+
+                font-size: 30px;
+
+
+                min-width: 180px;
+                height: 70px;
+
+            }
+
+            /* POPUP */
+            .popup {
+
+                width: 780px;
+
+                padding: 90px 65px;
+
+                border-radius: 80px;
+
+            }
+
+            /* EMOJI */
+            .popup-emoji {
+
+                font-size: 190px;
+
+                margin-bottom: 35px;
+
+            }
+
+            /* TITLE */
+            .popup-title {
+
+                font-size: 110px;
+
+            }
+
+            /* SUBTITLE */
+            .popup-sub {
+
+                font-size: 60px;
+
+            }
+
+            /* PLAY BUTTON */
+            .play-btn {
+
+                font-size: 46px;
+
+                padding: 30px 60px;
+
+                border-radius: 70px;
+
+            }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz-box">
+
+        <!-- QUESTION -->
+        <div class="question" id="question"></div>
+
+        <!-- IMAGE -->
+        <div class="image-box">
+            <img id="questionImage">
+        </div>
+
+        <!-- LETTERS -->
+        <div class="letter-container" id="letters"></div>
+
+        <!-- NAV -->
+        <div class="nav-wrapper">
+
+            <button class="nav-btn prev-btn" id="prevBtn" onclick="prevQ()" disabled>
+                ← Prev
+            </button>
+
+            <button class="nav-btn next-btn" id="nextBtn" onclick="nextQ()" disabled>
+                Next →
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- CORRECT -->
+    <div id="correctPopup" class="popup correct-popup">
+
+        <div class="popup-emoji">
+            😊
+        </div>
+
+        <div class="popup-title">
+            Great!
+        </div>
+
+        <div class="popup-sub">
+            Correct Answer
+        </div>
+
+    </div>
+
+    <!-- WRONG -->
+    <div id="wrongPopup" class="popup wrong-popup">
+
+        <div class="popup-emoji">
+            😢
+        </div>
+
+        <div class="popup-title">
+            Oops!
+        </div>
+
+        <div class="popup-sub">
+            Wrong Answer
+        </div>
+
+    </div>
+
+    <!-- FINAL -->
+    <div id="finalPopup" class="popup final-popup">
+
+        <div class="popup-emoji">
+            🏆
+        </div>
+
+        <div class="popup-title">
+            Awesome!
+        </div>
+
+        <div class="popup-sub" id="finalText">
+        </div>
+
+        <button class="play-btn" onclick="restartQuiz()">
+            🔄 Play Again
+        </button>
+
+    </div>
+    <script>
+
+        /* QUESTIONS */
+        const questions = [
+
+            {
+                q: "Q1. It is the smallest ocean.",
+                a: "arcticocean",
+                img: "../images/ow1.png"
+            },
+
+            {
+                q: "Q2. This needle always points towards the north.",
+                a: "compass",
+                img: "../images/ow22.png"
+            },
+
+            {
+                q: "Q3. It is used to follow from a point of origin towards a destination.",
+                a: "direction",
+                img: "../images/ow33.png"
+            },
+
+            {
+                q: "Q4. It is a huge body of salt water.",
+                a: "ocean",
+                img: "../images/ow44.png"
+            },
+
+            {
+                q: "Q5. It is known as the model of the Earth.",
+                a: "globe",
+                img: "../images/ow55.png"
+            }
+
+        ];
+
+        let current = 0;
+
+        let score = 0;
+
+        let userAnswers =
+            new Array(questions.length)
+                .fill(null);
+        let quizEnded = false;
+        const question =
+            document.getElementById("question");
+
+        const questionImage =
+            document.getElementById("questionImage");
+
+        const letters =
+            document.getElementById("letters");
+
+        const nextBtn =
+            document.getElementById("nextBtn");
+
+        const prevBtn =
+            document.getElementById("prevBtn");
+
+        /* SPEECH */
+        function speak(text) {
+
+            window.speechSynthesis.cancel();
+
+            const speech =
+                new SpeechSynthesisUtterance(text);
+
+            speech.lang = "en-UK";
+
+            speech.rate = 1;
+
+            speech.pitch = 1;
+
+            speech.volume = 0.25;
+
+            speechSynthesis.speak(speech);
+
+        }
+
+        /* LOAD QUESTION */
+        /* LOAD QUESTION */
+        function loadQuestion() {
+
+            const q = questions[current];
+
+            question.innerHTML = q.q;
+
+            questionImage.src = q.img;
+
+            letters.innerHTML = "";
+
+            /* BUTTONS */
+            prevBtn.disabled = current === 0;
+
+            nextBtn.disabled = !userAnswers[current];
+
+            let answer = q.a.replace(/\s/g, "");
+
+            /* CREATE LETTER BOXES */
+            answer.split("").forEach(() => {
+
+                letters.innerHTML += `
+            <div class="letter" contenteditable="true"></div>
+        `;
+
+            });
+
+            const allLetters = document.querySelectorAll(".letter");
+
+            // Auto focus first letter box
+            if (!userAnswers[current] && allLetters.length > 0) {
+                setTimeout(() => {
+                    allLetters[0].focus();
+
+                    // Place cursor inside the box
+                    const range = document.createRange();
+                    const sel = window.getSelection();
+
+                    range.selectNodeContents(allLetters[0]);
+                    range.collapse(false);
+
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }, 50);
+            }
+
+            /* RESTORE */
+            if (userAnswers[current]) {
+
+                let saved = userAnswers[current].toUpperCase();
+
+                allLetters.forEach((box, i) => {
+
+                    box.innerText = saved[i] || "";
+
+                    box.classList.add("correct");
+
+                    box.contentEditable = false;
+
+                    box.style.pointerEvents = "none";
+
+                });
+
+                nextBtn.disabled = false;
+
+            }
+
+            /* NEW INPUT */
+            else {
+
+                allLetters.forEach((box, index) => {
+
+                    /* INPUT */
+                    box.addEventListener("input", function () {
+
+                        this.innerText = this.innerText
+                            .toUpperCase()
+                            .replace(/[^A-Z]/g, "")
+                            .slice(0, 1);
+
+                        /* NEXT FOCUS */
+                        if (this.innerText !== "" &&
+                            index < allLetters.length - 1) {
+
+                            allLetters[index + 1].focus();
+
+                        }
+
+                        checkAnswer();
+
+                    });
+
+                    /* DESKTOP BACKSPACE */
+                    box.addEventListener("keydown", function (e) {
+
+                        if (e.key === "Backspace") {
+
+                            if (this.innerText === "") {
+
+                                if (index > 0) {
+
+                                    allLetters[index - 1].innerText = "";
+
+                                    allLetters[index - 1].focus();
+
+                                }
+
+                            } else {
+
+                                this.innerText = "";
+
+                            }
+
+                            e.preventDefault();
+
+                        }
+
+                    });
+
+                    /* MOBILE TAP TO DELETE */
+                    box.addEventListener("click", function () {
+
+                        if (userAnswers[current]) return;
+
+                        if (this.innerText !== "") {
+
+                            this.innerText = "";
+
+                            this.classList.remove("wrong", "correct");
+
+                            this.focus();
+
+                        }
+
+                    });
+
+                });
+
+            }
+
+        }
+        /* CHECK ANSWER */
+        function checkAnswer() {
+
+            const allLetters =
+                document.querySelectorAll(".letter");
+
+            let word = "";
+
+            allLetters.forEach(box => {
+
+                word += box.innerText;
+
+            });
+
+            word =
+                word.toLowerCase();
+
+            let correct =
+                questions[current]
+                    .a
+                    .replace(/\s/g, "")
+                    .toLowerCase();
+
+            /* WAIT FULL */
+            if (word.length !== correct.length)
+                return;
+
+            /* CORRECT */
+            if (word === correct) {
+
+                allLetters.forEach(box => {
+
+                    box.classList.remove("wrong");
+
+                    box.classList.add("correct");
+
+                    box.contentEditable = false;
+
+                    box.style.pointerEvents = "none";
+
+                });
+
+                userAnswers[current] = word;
+
+                nextBtn.disabled = false;
+
+                score++;
+
+                showPopup("correctPopup");
+
+                speak("Correct");
+                /* RESET OLD CONFETTI */
+                confetti.reset();
+
+                /* SHOW NEW CONFETTI */
+                confetti({
+
+                    particleCount: 140,
+
+                    spread: 90,
+
+                    origin: {
+                        y: 0.6
+                    }
+
+                });
+
+                /* AUTO STOP */
+                setTimeout(() => {
+
+                    confetti.reset();
+
+                }, 500);
+
+                /* FINAL */
+                if (current === questions.length - 1) {
+
+                    setTimeout(showFinal, 1200);
+
+                }
+
+            }
+
+            /* WRONG */
+            else {
+
+                allLetters.forEach(box => {
+
+                    box.classList.add("wrong");
+
+                });
+
+                showPopup("wrongPopup");
+
+                speak("Try again");
+
+                setTimeout(() => {
+
+                    allLetters.forEach(box => {
+
+                        box.innerText = "";
+
+                        box.classList.remove("wrong");
+
+                    });
+
+                    allLetters[0].focus();
+
+                }, 900);
+
+            }
+
+        }
+
+        /* POPUP */
+        function showPopup(id) {
+
+            const popup =
+                document.getElementById(id);
+
+            popup.style.display = "block";
+
+            setTimeout(() => {
+
+                popup.style.display = "none";
+
+            }, 1200);
+
+        }
+
+        /* NEXT */
+        function nextQ() {
+
+            if (quizEnded) return;
+
+            /* STOP CONFETTI */
+            confetti.reset();
+
+            if (current < questions.length - 1) {
+
+                current++;
+
+                loadQuestion();
+
+            }
+
+        }
+
+        /* PREV */
+        function prevQ() {
+
+            if (quizEnded) return;
+
+            /* STOP CONFETTI */
+            confetti.reset();
+
+            if (current > 0) {
+
+                current--;
+
+                loadQuestion();
+
+            }
+
+        }
+
+        /* FINAL */
+        function showFinal() {
+
+            quizEnded = true;
+
+            // Disable Previous button
+            prevBtn.disabled = true;
+            prevBtn.style.pointerEvents = "none";
+            prevBtn.style.cursor = "not-allowed";
+            prevBtn.style.opacity = "0.5";
+
+            // Disable Next button
+            nextBtn.disabled = true;
+            nextBtn.style.pointerEvents = "none";
+            nextBtn.style.cursor = "not-allowed";
+            nextBtn.style.opacity = "0.5";
+
+            // Disable all letter boxes
+            document.querySelectorAll(".letter").forEach(box => {
+                box.contentEditable = false;
+                box.style.pointerEvents = "none";
+            });
+
+            document.getElementById("finalPopup").style.display = "block";
+
+            document.getElementById("finalText").innerHTML =
+                `Score : ${score}/${questions.length}`;
+
+            confetti({
+                particleCount: 220,
+                spread: 120
+            });
+
+        }
+
+        /* RESTART */
+        function restartQuiz() {
+
+            // Reset quiz state
+            current = 0;
+            score = 0;
+            quizEnded = false;
+
+            userAnswers = new Array(questions.length).fill(null);
+
+            // Hide popup
+            document.getElementById("finalPopup").style.display = "none";
+
+            // Enable buttons again
+            prevBtn.disabled = true;
+            prevBtn.style.pointerEvents = "auto";
+            prevBtn.style.opacity = "1";
+
+            nextBtn.disabled = true;
+            nextBtn.style.pointerEvents = "auto";
+            nextBtn.style.opacity = "1";
+
+            // Stop any speech/confetti
+            speechSynthesis.cancel();
+            confetti.reset();
+
+            // Load first question
+            loadQuestion();
+        }
+        /* START */
+        loadQuestion();
+
+    </script>
+</body>
+
+</html>

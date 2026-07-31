@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Livvic", sans-serif;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 15px 30px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .stage-title {
+            text-align: center;
+            font-size: 28px;
+            color: #ff1493;
+            font-weight: bold;
+            background: white;
+            display: inline-block;
+            margin: 0 auto 20px;
+            padding: 8px 35px;
+            border-radius: 60px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .match-wrapper {
+            position: relative;
+            /* flex: 1; */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .matching-area {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 100px;
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        .left-side,
+        .right-side,
+        .center-side {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .left-side {
+            align-items: flex-end;
+        }
+
+        .right-side {
+            align-items: flex-start;
+        }
+
+        .center-side {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .left-item,
+        .right-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .left-item {
+            justify-content: flex-end;
+        }
+
+        .right-item {
+            justify-content: flex-start;
+        }
+
+        .number {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ff6b6b;
+            min-width: 50px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .image-box {
+            width: 120px;
+            height: 120px;
+            background: #fff5ea;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all .3s ease;
+            overflow: hidden;
+            padding: 12px;
+        }
+
+        .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .image-box.selected {
+            border: 3px solid #ff1493;
+            transform: scale(1.03);
+            box-shadow: 0 0 0 4px rgba(255, 20, 147, 0.2);
+        }
+
+        .image-box.correct {
+            border: 3px solid #2ecc71;
+            background: #e8f8f0;
+            cursor: default;
+            opacity: .7;
+        }
+
+        .word {
+            background: #fcecf4;
+            min-width: 170px;
+            border-radius: 50px;
+            padding: 14px 28px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .3s ease;
+            color: #5a3e2b;
+        }
+
+        .word:hover {
+            transform: translateY(-2px);
+            background: #ffe0f0;
+        }
+
+        .word.correct {
+            background: #c7ffdb;
+            border: 3px solid #2ecc71;
+            cursor: default;
+            opacity: .7;
+        }
+
+        svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        svg line {
+            stroke: #ff1493;
+            stroke-width: 3;
+            stroke-dasharray: 8, 6;
+            stroke-linecap: round;
+        }
+
+        .next-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+        }
+
+        .nav-btn {
+            width: 150px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            padding: 0px !important;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        #prevBtn {
+            background: #f97316;
+            /* box-shadow:0 5px 0 #c0392b; */
+        }
+
+        #nextBtn {
+            background: linear-gradient(135deg, #4facfe, #00c6fb);
+        }
+
+        .nav-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .final-overlay-luxury {
+            position: fixed;
+            inset: 0;
+            backdrop-filter: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            visibility: hidden;
+            opacity: 0;
+            transition: .25s ease;
+        }
+
+        .final-overlay-luxury.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .final-card-modern {
+            background: linear-gradient(135deg, #fff7e8, #fff0dd);
+            border-radius: 50px;
+            padding: 1.6rem 2rem;
+            text-align: center;
+            max-width: 360px;
+            width: 90%;
+            border: 5px solid #ffbc6e;
+            box-shadow: 0 20px 30px rgba(0, 0, 0, .25), 0 0 0 10px #ffdd9e;
+            animation: floatWin .55s cubic-bezier(.34, 1.2, .55, 1);
+        }
+
+        @keyframes floatWin {
+            0% {
+                transform: scale(.1) rotate(-10deg);
+                opacity: 0;
+            }
+
+            70% {
+                transform: scale(1.02);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .final-card-modern h2 {
+            font-size: 1.5rem;
+            color: #c94f1f;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+
+        .final-stars {
+            font-size: 2.2rem;
+            letter-spacing: 8px;
+            margin: 12px 0;
+            color: #f5b042;
+            text-shadow: 1px 1px 0 #e67e22;
+        }
+
+
+        .final-card-modern p {
+            font-size: 1.1rem;
+            margin: 7px 0;
+            color: #5a3e2b;
+            font-weight: 600;
+        }
+
+
+        .btn-replay-luxury {
+            background: #ffac30;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #4a2a0e;
+            cursor: pointer;
+            margin-top: 14px;
+            box-shadow: 0 6px 0 #b46f2a;
+        }
+
+        .btn-replay-luxury:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #b46f2a;
+        }
+
+        @media(max-width:767px) {
+
+            .matching-area {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .left-side,
+            .right-side,
+            .center-side {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .image-box {
+                width: 78px;
+                height: 78px;
+            }
+
+            .word {
+                min-width: 100px;
+                font-size: 15px;
+                padding: 9px 16px;
+            }
+
+            .nav-btn {
+                padding: 8px 25px;
+                font-size: .9rem;
+            }
+
+            .final-card-modern {
+                padding: 30px 20px;
+            }
+
+            .final-card-modern h2 {
+                font-size: 1.8rem;
+            }
+
+            .final-stars {
+                font-size: 2.2rem;
+            }
+
+            .final-card-modern p {
+                font-size: 1.2rem;
+            }
+
+            .btn-replay-luxury {
+                font-size: 1.1rem;
+                padding: 10px 28px;
+            }
+        }
+
+        /* =========================================================
+   320px — 479px
+========================================================= */
+
+        @media (min-width:320px) and (max-width:479px) {
+
+            .container {
+                padding: 8px 10px;
+            }
+
+            .stage-title {
+                font-size: 16px;
+                padding: 6px 18px;
+                margin-bottom: 10px;
+            }
+
+            .matching-area {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .left-side,
+            .right-side,
+            .center-side {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .left-item,
+            .right-item {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .image-box {
+                width: 64px;
+                height: 64px;
+                padding: 6px;
+                border-radius: 14px;
+            }
+
+            .word {
+                min-width: 85px;
+                font-size: 12px;
+                padding: 8px 12px;
+                border-radius: 35px;
+            }
+
+            .number {
+                font-size: 12px;
+                min-width: auto;
+            }
+
+            .next-buttons {
+                gap: 15px;
+                margin-top: 12px;
+            }
+
+            .nav-btn {
+                min-width: 95px;
+                font-size: .8rem;
+                padding: 7px 14px;
+            }
+
+            .final-card-modern {
+                padding: 24px 16px;
+                border-radius: 40px;
+            }
+
+            .final-card-modern h2 {
+                font-size: 1.4rem;
+            }
+
+            .final-stars {
+                font-size: 1.7rem;
+                letter-spacing: 5px;
+            }
+
+            .final-card-modern p {
+                font-size: 1rem;
+            }
+
+            .btn-replay-luxury {
+                font-size: 1rem;
+                padding: 10px 22px;
+            }
+        }
+
+        /* =========================================================
+   480px — 767px
+========================================================= */
+
+        @media (min-width:480px) and (max-width:767px) {
+
+            .container {
+                padding: 10px 15px;
+            }
+
+            .stage-title {
+                font-size: 20px;
+                padding: 7px 24px;
+            }
+
+            .matching-area {
+                grid-template-columns: 1fr;
+                gap: 22px;
+            }
+
+            .left-side,
+            .right-side,
+            .center-side {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 12px;
+            }
+
+            .left-item,
+            .right-item {
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .image-box {
+                width: 78px;
+                height: 78px;
+                padding: 8px;
+            }
+
+            .word {
+                min-width: 100px;
+                font-size: 15px;
+                padding: 9px 16px;
+            }
+
+            .number {
+                font-size: 14px;
+            }
+
+            .nav-btn {
+                min-width: 120px;
+                font-size: .9rem;
+                padding: 8px 24px;
+            }
+
+            .final-card-modern {
+                padding: 28px 20px;
+                border-radius: 50px;
+            }
+
+            .final-card-modern h2 {
+                font-size: 1.8rem;
+            }
+
+            .final-stars {
+                font-size: 2.2rem;
+                letter-spacing: 6px;
+            }
+
+            .final-card-modern p {
+                font-size: 1.15rem;
+            }
+        }
+
+        /* =========================================================
+   768px — 991px
+========================================================= */
+
+        @media (min-width:768px) and (max-width:991px) {
+
+            .container {
+                padding: 12px 20px;
+            }
+
+            .matching-area {
+                gap: 35px;
+            }
+
+            .image-box {
+                width: 95px;
+                height: 95px;
+                padding: 10px;
+            }
+
+            .word {
+                min-width: 130px;
+                font-size: 25px;
+                padding: 11px 18px;
+            }
+
+            .number {
+                font-size: 18px;
+            }
+
+            .left-side,
+            .right-side,
+            .center-side {
+                gap: 10px;
+            }
+
+            .nav-btn {
+                padding: 10px 30px;
+                font-size: 1rem;
+                min-width: 140px;
+            }
+
+            .final-card-modern {
+                max-width: 500px;
+            }
+        }
+
+        /* =========================================================
+   992px — 1199px
+========================================================= */
+
+        @media (min-width:992px) and (max-width:1199px) {
+
+            .matching-area {
+                gap: 50px;
+            }
+
+            .image-box {
+                width: 110px;
+                height: 110px;
+                padding: 11px;
+            }
+
+            .word {
+                min-width: 155px;
+                font-size: 19px;
+                padding: 12px 22px;
+            }
+
+            .number {
+                font-size: 19px;
+            }
+
+            .left-side,
+            .right-side,
+            .center-side {
+                gap: 10px;
+            }
+
+            .nav-btn {
+                font-size: 18px;
+                padding: 10px 35px;
+            }
+        }
+
+        /* =========================================================
+   1200px — 1399px
+========================================================= */
+
+        /* @media (min-width:1200px) and (max-width:1399px){
+
+    .matching-area{
+        gap:80px;
+    }
+
+    .image-box{
+        width:130px;
+        height:130px;
+        padding:14px;
+    }
+
+    .word{
+        min-width:175px;
+        font-size:22px;
+        padding:15px 30px;
+    }
+
+    .number{
+        font-size:22px;
+    }
+
+    .left-side,
+    .right-side,
+    .center-side{
+        gap:22px;
+    }
+
+    .nav-btn{
+        font-size:1.1rem;
+        padding:12px 38px;
+    }
+} */
+
+        /* =========================================================
+   1400px — 1599px
+========================================================= */
+
+        @media (min-width:1400px) and (max-width:1599px) {
+
+            .matching-area {
+                gap: 100px;
+                max-width: 1500px;
+            }
+
+            .image-box {
+                width: 145px;
+                height: 145px;
+                padding: 15px;
+            }
+
+            .word {
+                min-width: 200px;
+                font-size: 30px;
+                padding: 16px 34px;
+            }
+
+            .number {
+                font-size: 24px;
+            }
+
+            .left-side,
+            .right-side,
+            .center-side {
+                gap: 20px;
+            }
+
+            .nav-btn {
+                padding: 12px 42px;
+                font-size: 20px;
+            }
+
+
+        }
+
+        /* =========================================================
+   1600px — 1920px
+========================================================= */
+
+        @media (min-width:1600px) and (max-width:1920px) {
+
+            .container {
+                max-width: 1800px;
+            }
+
+            .matching-area {
+                gap: 120px;
+                max-width: 1700px;
+            }
+
+            .stage-title {
+                font-size: 34px;
+                padding: 10px 42px;
+            }
+
+            .image-box {
+                width: 165px;
+                height: 165px;
+                padding: 18px;
+                border-radius: 24px;
+            }
+
+            .word {
+                min-width: 240px;
+                font-size: 30px;
+                padding: 18px 38px;
+                border-radius: 60px;
+            }
+
+            .number {
+                font-size: 28px;
+            }
+
+            .left-side,
+            .right-side,
+            .center-side {
+                gap: 28px;
+            }
+
+            .nav-btn {
+                font-size: 1.4rem;
+                padding: 16px 48px;
+                /* min-width:200px; */
+            }
+
+        }
+    </style>
+    <link rel="stylesheet" href="../assets/CSS/walkman-font.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="stage-title" id="stageTitle">
+            पृष्ठ 1 / 3
+        </div>
+
+        <div class="match-wrapper">
+
+            <svg id="svgLines"></svg>
+
+            <div class="matching-area">
+
+                <div class="left-side" id="leftSide"></div>
+
+                <div class="center-side" id="centerWords"></div>
+
+                <div class="right-side" id="rightSide"></div>
+
+            </div>
+
+        </div>
+
+        <div class="next-buttons">
+
+            <button class="nav-btn" id="prevBtn">
+                पिछला
+            </button>
+
+            <button class="nav-btn" id="nextBtn" disabled>
+                अगला
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- FINAL POPUP -->
+
+    <div id="finalPopupOverlay" class="final-overlay-luxury">
+
+        <div class="final-card-modern">
+
+            <h2>🎉 बहुत बहुत बधाई! 🎉</h2>
+
+            <div class="final-stars">⭐⭐⭐⭐⭐</div>
+
+            <p>आपने सभी प्रश्न सही किए!</p>
+
+            <p>✨ आप होशियार हो! ✨</p>
+
+            <button class="btn-replay-luxury" id="finalPlayAgainBtn">
+
+                🔄 फिर से खेलें
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        // ======================== SPEECH ========================
+
+        function speakHindi(text) {
+
+            if (!("speechSynthesis" in window)) return;
+
+            speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+
+            utterance.lang = "hi-IN";
+
+            utterance.rate = 0.9;
+
+            utterance.pitch = 1.1;
+
+            speechSynthesis.speak(utterance);
+        }
+
+        // ======================== SOUNDS ========================
+        let audioCtx = null;
+
+        function playCorrect() {
+
+            try {
+
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+
+                const gain = audioCtx.createGain();
+
+                osc.connect(gain);
+
+                gain.connect(audioCtx.destination);
+
+                osc.frequency.value = 880;
+
+                gain.gain.value = 0.2;
+
+                osc.type = "sine";
+
+                osc.start();
+
+                gain.gain.exponentialRampToValueAtTime(
+                    0.00001,
+                    audioCtx.currentTime + 0.45
+                );
+
+                osc.stop(audioCtx.currentTime + 0.45);
+
+            } catch (e) { }
+
+        }
+
+        function playWrong() {
+
+            try {
+
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+
+                const gain = audioCtx.createGain();
+
+                osc.connect(gain);
+
+                gain.connect(audioCtx.destination);
+
+                osc.frequency.value = 480;
+
+                gain.gain.value = 0.2;
+
+                osc.type = "triangle";
+
+                osc.start();
+
+                gain.gain.exponentialRampToValueAtTime(
+                    0.00001,
+                    audioCtx.currentTime + 0.4
+                );
+
+                osc.stop(audioCtx.currentTime + 0.4);
+
+            } catch (e) { }
+
+        }
+
+        function initAudioOnce() {
+
+            if (audioCtx) return;
+
+            try {
+
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+
+                const src = audioCtx.createBufferSource();
+
+                src.buffer = buffer;
+
+                src.connect(audioCtx.destination);
+
+                src.start();
+
+            } catch (e) { }
+
+        }
+
+
+
+
+
+        // ======================== CONFETTI ========================
+
+        function triggerConfetti() {
+
+            confetti({
+                particleCount: 350,
+                spread: 130,
+                origin: { y: 0.5 }
+            });
+
+        }
+
+        // ======================== QUESTIONS ========================
+
+        const allQuestions = [
+
+            { image: "../assets/images/mom.png", word: "अम्मा" },
+            { image: "../assets/images/baby.png", word: "बच्चा" },
+            { image: "../assets/images/sand.png", word: "मिट्टी" },
+            { image: "../assets/images/balloon.png", word: "गुब्बारा" },
+            { image: "../assets/images/corn.png", word: "मक्का" },
+            { image: "../assets/images/grain.png", word: "अन्न" },
+
+            { image: "../assets/images/bed.png", word: "बिस्तर" },
+            { image: "../assets/images/fly.png", word: "मक्खी" },
+            { image: "../assets/images/letter.png", word: "चिट्ठी" },
+            { image: "../assets/images/cup.png", word: "प्याला" },
+            { image: "../assets/images/doctor.png", word: "डॉक्टर" },
+            { image: "../assets/images/stone.png", word: "पत्थर" },
+
+            { image: "../assets/images/truck.png", word: "ट्रक" },
+            { image: "../assets/images/sun.png", word: "सूर्य" },
+            { image: "../assets/images/moon.png", word: "चंद्रमा" },
+            { image: "../assets/images/map.png", word: "राष्ट्र" },
+            { image: "../assets/images/mountain.png", word: "पर्वत" },
+            { image: "../assets/images/lamp.png", word: "प्रकाश" }
+
+        ];
+
+        const QUESTIONS_PER_PAGE = 6;
+
+        const TOTAL_PAGES =
+            Math.ceil(allQuestions.length / QUESTIONS_PER_PAGE);
+
+        let currentPage = 0;
+
+        let solvedStatus =
+            new Array(allQuestions.length).fill(false);
+
+        let selectedImageIndex = null;
+
+        const leftSide = document.getElementById("leftSide");
+
+        const rightSide = document.getElementById("rightSide");
+
+        const centerWords = document.getElementById("centerWords");
+
+        const stageTitle = document.getElementById("stageTitle");
+
+        const nextBtn = document.getElementById("nextBtn");
+
+        const prevBtn = document.getElementById("prevBtn");
+
+        const svg = document.getElementById("svgLines");
+
+        // ======================== HELPERS ========================
+
+        function shuffleArray(arr) {
+
+            for (let i = arr.length - 1; i > 0; i--) {
+
+                const j = Math.floor(Math.random() * (i + 1));
+
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+
+            return arr;
+        }
+
+        function getCurrentPageQuestions() {
+
+            const start = currentPage * QUESTIONS_PER_PAGE;
+
+            const end =
+                Math.min(start + QUESTIONS_PER_PAGE, allQuestions.length);
+
+            return allQuestions.slice(start, end).map((q, idx) => ({
+
+                ...q,
+
+                globalIndex: start + idx
+
+            }));
+        }
+
+        // ======================== DRAW LINE ========================
+        function drawLine(imageElem, wordElem) {
+
+            const svgRect = svg.getBoundingClientRect();
+
+            const imgRect = imageElem.getBoundingClientRect();
+
+            const wordRect = wordElem.getBoundingClientRect();
+
+            const isLeftSide =
+                imageElem.closest(".left-side") !== null;
+
+            let x1, y1, x2, y2;
+
+            if (isLeftSide) {
+
+                // LEFT IMAGE → LEFT SIDE WORD
+
+                x1 = imgRect.right - svgRect.left;
+
+                y1 = imgRect.top +
+                    imgRect.height / 2 -
+                    svgRect.top;
+
+                x2 = wordRect.left -
+                    svgRect.left -
+                    6;
+
+                y2 = wordRect.top +
+                    wordRect.height / 2 -
+                    svgRect.top;
+
+            } else {
+
+                // RIGHT IMAGE → RIGHT SIDE WORD
+
+                x1 = imgRect.left -
+                    svgRect.left;
+
+                y1 = imgRect.top +
+                    imgRect.height / 2 -
+                    svgRect.top;
+
+                x2 = wordRect.right -
+                    svgRect.left +
+                    6;
+
+                y2 = wordRect.top +
+                    wordRect.height / 2 -
+                    svgRect.top;
+            }
+
+            const line =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "line"
+                );
+
+            line.setAttribute("x1", x1);
+            line.setAttribute("y1", y1);
+            line.setAttribute("x2", x2);
+            line.setAttribute("y2", y2);
+
+            line.setAttribute("stroke", "#ff1493");
+            line.setAttribute("stroke-width", "3");
+            line.setAttribute("stroke-dasharray", "8,6");
+            line.setAttribute("stroke-linecap", "round");
+
+            svg.appendChild(line);
+        }
+        // ======================== NAV ========================
+
+        function updateNavButtons() {
+
+            const start =
+                currentPage * QUESTIONS_PER_PAGE;
+
+            const end =
+                Math.min(start + QUESTIONS_PER_PAGE, allQuestions.length);
+
+            let allSolved = true;
+
+            for (let i = start; i < end; i++) {
+
+                if (!solvedStatus[i]) {
+
+                    allSolved = false;
+
+                    break;
+                }
+            }
+
+            nextBtn.disabled = !allSolved;
+
+            prevBtn.disabled = currentPage === 0;
+
+            stageTitle.textContent =
+                `पृष्ठ ${currentPage + 1} / ${TOTAL_PAGES}`;
+        }
+
+        // ======================== FINAL POPUP ========================
+
+        function checkAndShowFinalPopup() {
+
+            const allFinished =
+                solvedStatus.every(status => status === true);
+
+            if (allFinished) {
+
+                // speakHindi("बधाई हो! आपने सभी प्रश्न पूरे कर लिए");
+
+                triggerConfetti();
+
+                const finalOverlay =
+                    document.getElementById("finalPopupOverlay");
+
+                finalOverlay.classList.add("active");
+
+                document.getElementById("finalPlayAgainBtn").onclick = () => {
+
+                    location.reload();
+
+                };
+            }
+        }
+
+        // ======================== RENDER ========================
+
+        function renderPage() {
+
+            leftSide.innerHTML = "";
+
+            rightSide.innerHTML = "";
+
+            centerWords.innerHTML = "";
+
+            svg.innerHTML = "";
+
+            selectedImageIndex = null;
+
+            const questions = getCurrentPageQuestions();
+
+            const half = Math.ceil(questions.length / 2);
+
+            const leftItems = questions.slice(0, half);
+
+            const rightItems = questions.slice(half);
+
+            leftItems.forEach((item, idx) => {
+
+                const div = document.createElement("div");
+
+                div.className = "left-item";
+
+                div.innerHTML = `
+            <div class="number">${idx + 1}) ●</div>
+
+            <div class="image-box"
+                 data-index="${item.globalIndex}">
+                <img src="${item.image}">
+            </div>
+        `;
+
+                leftSide.appendChild(div);
+
+            });
+
+            rightItems.forEach((item, idx) => {
+
+                const div = document.createElement("div");
+
+                div.className = "right-item";
+
+                div.innerHTML = `
+            <div class="image-box"
+                 data-index="${item.globalIndex}">
+                <img src="${item.image}">
+            </div>
+
+            <div class="number">
+                ● ${half + idx + 1})
+            </div>
+        `;
+
+                rightSide.appendChild(div);
+
+            });
+
+            shuffleArray([...questions]).forEach(item => {
+
+                const word = document.createElement("div");
+
+                word.className = "word";
+
+                word.dataset.word = item.word;
+
+                word.dataset.index = item.globalIndex;
+
+                word.textContent = item.word;
+
+                centerWords.appendChild(word);
+
+            });
+
+            addEvents();
+            // ===== RESTORE LOCKED ANSWERS =====
+
+            questions.forEach(item => {
+
+                if (solvedStatus[item.globalIndex]) {
+
+                    const image =
+                        document.querySelector(
+                            `.image-box[data-index="${item.globalIndex}"]`
+                        );
+
+                    const word =
+                        document.querySelector(
+                            `.word[data-index="${item.globalIndex}"]`
+                        );
+
+                    if (image && word) {
+
+                        image.classList.add("correct");
+
+                        word.classList.add("correct");
+
+                        image.style.pointerEvents = "none";
+
+                        word.style.pointerEvents = "none";
+
+                        drawLine(image, word);
+
+                    }
+
+                }
+
+            });
+
+            updateNavButtons();
+        }
+
+        // ======================== EVENTS ========================
+
+        function addEvents() {
+
+            const imageBoxes =
+                document.querySelectorAll(".image-box");
+
+            const words =
+                document.querySelectorAll(".word");
+
+            imageBoxes.forEach(box => {
+
+                box.onclick = () => {
+
+                    document
+                        .querySelectorAll(".image-box")
+                        .forEach(b => b.classList.remove("selected"));
+
+                    box.classList.add("selected");
+
+                    selectedImageIndex =
+                        parseInt(box.dataset.index);
+                };
+            });
+
+            words.forEach(word => {
+
+                word.onclick = () => {
+
+                    if (selectedImageIndex === null) {
+
+                        // speakHindi("पहले चित्र चुनें");
+
+                        return;
+                    }
+
+                    const question =
+                        allQuestions[selectedImageIndex];
+
+                    if (question.word === word.dataset.word) {
+
+                        solvedStatus[selectedImageIndex] = true;
+
+                        // speakHindi("सही");
+                        playCorrect();
+
+                        triggerConfetti();
+
+                        // speakHindi("सही उत्तर");
+
+                        const image =
+                            document.querySelector(
+                                `.image-box[data-index="${selectedImageIndex}"]`
+                            );
+
+                        image.classList.add("correct");
+
+                        image.classList.remove("selected");
+
+                        word.classList.add("correct");
+
+                        drawLine(image, word);
+
+                        selectedImageIndex = null;
+
+                        updateNavButtons();
+
+                        checkAndShowFinalPopup();
+
+                    } else {
+
+
+
+                        //  speakHindi("गलत");
+                        playWrong();
+
+                        word.style.backgroundColor = "#ffe0e0";
+
+                        setTimeout(() => {
+
+                            word.style.backgroundColor = "";
+
+                        }, 300);
+                    }
+                };
+            });
+        }
+
+        // ======================== NAVIGATION ========================
+
+        prevBtn.onclick = () => {
+
+            if (currentPage > 0) {
+
+                currentPage--;
+
+                renderPage();
+            }
+        };
+
+        nextBtn.onclick = () => {
+
+            if (currentPage < TOTAL_PAGES - 1) {
+
+                currentPage++;
+
+                renderPage();
+
+            } else {
+
+                checkAndShowFinalPopup();
+            }
+        };
+
+        // ======================== START ========================
+
+        renderPage();
+
+    </script>
+
+</body>
+
+</html>

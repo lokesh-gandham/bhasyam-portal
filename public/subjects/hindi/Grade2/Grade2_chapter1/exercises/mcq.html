@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Tiro Devanagari Hindi";
+
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .quiz {
+            width: 95%;
+            max-width: 950px;
+            border-radius: 40px;
+            padding: 40px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #question {
+            margin-top: 5px;
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            display: none;
+        }
+
+        .instruction {
+            font-size: 30px;
+            position: relative;
+            width: fit-content;
+            padding: 10px 60px;
+            margin-top: -20px;
+            border-radius: 24px;
+            font-weight: 400;
+            color: #4b4b63;
+            background: #fdd1d1;
+            backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 8px 24px rgba(120, 120, 180, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            overflow: hidden;
+            margin: auto;
+            text-align: center;
+        }
+
+        .question-image {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0 25px;
+        }
+
+        .question-image img {
+            width: 200px;
+            height: 140px;
+            object-fit: contain;
+        }
+
+        .options {
+            width: 80%;
+            margin-inline: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+
+            padding: 16px 20px;
+            border-radius: 20px;
+
+            font-size: 20px;
+            text-transform: capitalize;
+            font-weight: 500;
+            cursor: pointer;
+
+            background: #faecec;
+            border: 2px solid #d68c8c;
+
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+            transition: 0.25s;
+        }
+
+        .option:hover {
+            transform: translateY(-4px) scale(1.02);
+            background: #ffdada;
+            border-color: #d8a9a9;
+        }
+
+        .option-img {
+            width: 100px;
+            height: 70px;
+            font-weight: 400;
+        }
+
+        .option {
+
+            justify-content: center;
+
+            text-align: center;
+        }
+
+        .option-img {
+
+            width: 90px;
+            height: 90px;
+
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            font-size: 42px;
+
+            font-weight: 500;
+
+            border-radius: 50%;
+
+            /* background:#fff5f5;
+
+    border:3px solid #b8a5a5; */
+        }
+
+        /* .o1 {
+      background: linear-gradient(90deg, #c7e3fa, #b8e8fd);
+    }
+
+    .o2 {
+      background: linear-gradient(90deg, #fde7a8, #fddc7a);
+    }
+
+    .o3 {
+      background: linear-gradient(90deg, #f7c0a9, #fabfa6);
+    }
+
+    .o4 {
+      background: linear-gradient(90deg, #ffb9d6, #fa96c0);
+    } */
+
+        .option.correct {
+            background: #c4ffd0;
+            border: 2px solid #42d366;
+        }
+
+        .option.wrong {
+            background: #ffdede;
+            border: 2px solid #e9a4a4;
+        }
+
+        @keyframes smoothWrongBlink {
+
+            0%,
+            40%,
+            65%,
+            100% {
+                background: #fadcdc;
+                border-color: #ff9a9a;
+                box-shadow: 0 6px 0 #f3afaf;
+            }
+        }
+
+        .option.disabled {
+            opacity: 0.4;
+            transform: scale(0.98);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+
+        .controls button {
+            width: 150px;
+            height: 60px;
+            padding: 14px 28px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            border-radius: 15px;
+            border: 3px solid #ffffff;
+
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+
+            cursor: pointer;
+
+            background-size: 200% 200%;
+
+            transition: .15s ease;
+        }
+
+        .prev {
+            background: linear-gradient(#86cfe5, #66b6d2);
+            box-shadow: 0 4px 0 #3e9dbb;
+        }
+
+        .next {
+            background: linear-gradient(#ffc37a, #f7a24f);
+            box-shadow: 0 4px 0 #e08634;
+        }
+
+        .prev:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #3e9dbb;
+        }
+
+        .next:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #e08634;
+        }
+
+        .controls button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            /* background: rgba(255, 255, 255, 0.4); */
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .kid-card {
+            background: #ffffff;
+            width: 320px;
+            padding: 25px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 15px 0 #ffd966, 0 25px 40px rgba(0, 0, 0, 0.2);
+            animation: kidPop 0.6s ease;
+        }
+
+        .kid-icon {
+            font-size: 4.5em;
+            margin-bottom: 10px;
+            animation: emojiBounce 0.9s infinite alternate;
+        }
+
+        .kid-card h3 {
+            font-size: 2em;
+            font-family: "Livvic";
+            margin-bottom: 8px;
+        }
+
+        .kid-card p {
+            font-size: 1.2em;
+            font-family: "Livvic";
+        }
+
+        /* Correct */
+        .kid-correct .kid-card {
+            background: #e6fffa;
+            border: 6px solid #38d9a9;
+        }
+
+        .kid-correct h3 {
+            color: #2f9e44;
+        }
+
+        .kid-correct p {
+            color: #1c7c54;
+        }
+
+        /* Wrong */
+        .kid-wrong .kid-card {
+            background: #fff5f5;
+            border: 6px solid #ffa8a8;
+        }
+
+        .kid-wrong h3 {
+            color: #e03131;
+        }
+
+        .kid-wrong p {
+            color: #c92a2a;
+        }
+
+        /* Animations */
+        @keyframes kidPop {
+            0% {
+                transform: scale(0.3) rotate(-10deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.1) rotate(5deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0);
+            }
+
+            to {
+                transform: translateY(-15px);
+            }
+        }
+
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            /* background: rgba(255, 255, 255, 0.4); */
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 4000;
+        }
+
+        .final-kid-box {
+            background: linear-gradient(135deg, #fff7d6, #e6fff5);
+            padding: 30px 35px;
+            border-radius: 35px;
+            text-align: center;
+            width: 450px;
+            animation: finalBounce 0.8s ease;
+            box-shadow: 0 20px 0 #ffd43b, 0 30px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.2em;
+            font-family: "Livvic";
+            color: #2f9e44;
+            margin-bottom: 10px;
+        }
+
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-family: "Livvic";
+            font-weight: 600;
+        }
+
+        #stars {
+            font-size: 2.3em;
+            margin: 12px 0;
+        }
+
+        /* Play Again Button */
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 14px 34px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: 400;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .playAgain-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #1c7ed6;
+        }
+
+        /* Animation */
+        @keyframes finalBounce {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.15);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width:768px) {
+
+            body {
+                padding: 20px;
+                overflow: auto;
+                height: auto;
+                align-items: center;
+            }
+
+            .quiz {
+                width: 100%;
+                max-width: 700px;
+                padding: 25px;
+            }
+
+            .instruction {
+                font-size: 18px;
+                padding: 10px 30px;
+                margin-top: 10px;
+            }
+
+            #question {
+                font-size: 24px;
+                height: auto;
+                padding: 10px;
+            }
+
+            .question-image img {
+                width: 180px;
+                height: 130px;
+            }
+
+            .options {
+                width: 100%;
+                gap: 16px;
+            }
+
+            .option {
+                font-size: 18px;
+                padding: 12px;
+            }
+
+            .option-img {
+                width: 55px;
+                height: 55px;
+                font-size: 22px;
+            }
+
+            .controls button {
+                padding: 10px 20px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width:550px) {
+
+            .options {
+                gap: 12px;
+            }
+
+            .option {
+                font-size: 16px;
+                padding: 10px;
+            }
+
+            .option-img {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .kid-card {
+                width: 320px;
+                padding: 25px;
+            }
+
+            .kid-icon {
+                font-size: 4.5em;
+            }
+
+            .kid-card h3 {
+                font-size: 2em;
+            }
+
+            .kid-card p {
+                font-size: 1.2em;
+            }
+
+            .final-kid-box {
+                width: 450px;
+                max-width: 90%;
+                padding: 30px 35px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 2.2em;
+            }
+
+            .final-kid-box p {
+                font-size: 1.3em;
+            }
+
+            #stars {
+                font-size: 2.3em;
+            }
+
+            .playAgain-btn {
+                font-size: 1.1em;
+                padding: 14px 34px;
+            }
+        }
+
+        @media screen and (min-width:1025px) and (max-width:1280px) {
+
+            body {
+                padding: 30px;
+            }
+
+            .quiz {
+                max-width: 1150px;
+            }
+
+            .instruction {
+                font-size: 30px;
+                padding: 12px 50px;
+                margin-bottom: 32px;
+            }
+
+            #question {
+                font-size: 28px;
+            }
+
+            .question-image img {
+                width: 260px;
+                height: 170px;
+            }
+
+            .options {
+                gap: 22px;
+            }
+
+            .option {
+                font-size: 20px;
+                padding: 20px 14px;
+            }
+
+            .option-img {
+                width: 80px;
+                height: 80px;
+                font-size: 40px;
+            }
+
+            .controls {
+                margin-top: 25px;
+            }
+
+            .controls button {
+                padding: 14px 30px;
+                font-size: 20px;
+            }
+        }
+
+        @media screen and (min-width:1281px) and (max-width:1440px) {
+
+            body {
+                padding: 35px;
+            }
+
+            .quiz {
+                max-width: 1100px;
+            }
+
+            .instruction {
+                font-size: 30px;
+                padding: 12px 55px;
+                margin-bottom: 35px;
+            }
+
+            #question {
+                font-size: 30px;
+            }
+
+            .question-image img {
+                width: 280px;
+                height: 180px;
+            }
+
+            .options {
+                gap: 24px;
+            }
+
+            .option {
+                font-size: 21px;
+                padding: 22px 15px;
+            }
+
+            .option-img {
+                width: 85px;
+                height: 85px;
+                font-size: 40px;
+            }
+
+            .controls {
+                margin-top: 28px;
+            }
+
+            .controls button {
+                padding: 15px 32px;
+                font-size: 21px;
+            }
+        }
+
+        @media screen and (min-width:1441px) and (max-width:1600px) {
+
+            body {
+                padding: 40px;
+            }
+
+            .quiz {
+                max-width: 1250px;
+            }
+
+            .instruction {
+                font-size: 35px;
+                padding: 12px 60px;
+                margin-bottom: 38px;
+            }
+
+            #question {
+                font-size: 40px;
+            }
+
+            .question-image img {
+                width: 320px;
+                height: 210px;
+            }
+
+            .options {
+                gap: 26px;
+            }
+
+            .option {
+                font-size: 22px;
+                padding: 24px 16px;
+            }
+
+            .option-img {
+                width: 90px;
+                height: 90px;
+                font-size: 50px;
+            }
+
+            .controls {
+                margin-top: 30px;
+            }
+
+            .controls button {
+                padding: 16px 35px;
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width:1601px) and (max-width:1920px) {
+
+            body {
+                padding: 45px;
+            }
+
+            .quiz {
+                max-width: 1000px;
+            }
+
+            .instruction {
+                font-size: 35px;
+                padding: 14px 65px;
+                margin-bottom: 40px;
+            }
+
+            #question {
+                font-size: 50px;
+            }
+
+            .question-image img {
+                width: 340px;
+                height: 220px;
+            }
+
+            .options {
+                gap: 28px;
+            }
+
+            .option {
+                font-size: 24px;
+                padding: 26px 18px;
+            }
+
+            .option-img {
+                width: 95px;
+                height: 95px;
+                font-size: 50px;
+            }
+
+            .controls {
+                margin-top: 32px;
+            }
+
+            .controls button {
+                padding: 18px 38px;
+                font-size: 24px;
+            }
+
+            .kid-card {
+                width: 380px;
+                padding: 30px;
+            }
+
+            .kid-icon {
+                font-size: 5em;
+            }
+
+            .kid-card h3 {
+                font-size: 2.2em;
+            }
+
+            .final-kid-box {
+                width: 500px;
+                padding: 35px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 2.5em;
+            }
+        }
+
+        @media screen and (min-width:1921px) {
+
+            body {
+                padding: 50px;
+            }
+
+            .quiz {
+                max-width: 1100px;
+            }
+
+            .instruction {
+                font-size: 35px;
+                padding: 16px 70px;
+                margin-bottom: 45px;
+            }
+
+            #question {
+                font-size: 38px;
+            }
+
+            .question-image img {
+                width: 360px;
+                height: 240px;
+            }
+
+            .options {
+                gap: 32px;
+            }
+
+            .option {
+                font-size: 26px;
+                padding: 28px 20px;
+            }
+
+            .option-img {
+                width: 105px;
+                height: 105px;
+                font-size: 50px;
+            }
+
+            .controls {
+                margin-top: 35px;
+            }
+
+            .controls button {
+                padding: 20px 42px;
+                font-size: 26px;
+            }
+
+            .kid-card {
+                width: 420px;
+                padding: 35px;
+            }
+
+            .kid-icon {
+                font-size: 5.5em;
+            }
+
+            .kid-card h3 {
+                font-size: 2.5em;
+            }
+
+            .final-kid-box {
+                width: 550px;
+                padding: 40px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 2.8em;
+            }
+        }
+
+        @media screen and (max-width:768px) and (orientation:landscape) {
+
+            body {
+                padding: 10px;
+            }
+
+            #question {
+                font-size: 18px;
+                height: auto;
+            }
+
+            .options {
+                gap: 12px;
+            }
+
+            .option {
+                padding: 10px 8px;
+                font-size: 16px;
+            }
+
+            .option-img {
+                width: 45px;
+                height: 45px;
+                font-size: 16px;
+            }
+
+            .controls button {
+                padding: 6px 14px;
+                font-size: 14px;
+            }
+        }
+
+        @media (hover:hover) {
+            .option:hover {
+                transform: translateY(-5px);
+            }
+        }
+
+        @media (hover:none) {
+            .option:active {
+                transform: scale(.98);
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="../assets/CSS/walkman-font.css">
+</head>
+
+<body>
+
+    <div class="quiz">
+        <div class="instruction">
+            जो एक जैसे हैं, उन पर (✓) निशान लगाइए।
+        </div>
+        <div class="header">
+            <h2 id="question"></h2>
+            <div class="question-image">
+                <img id="questionImg" src="" alt="">
+            </div>
+        </div>
+
+        <div class="options" id="options"></div>
+
+        <div class="controls">
+            <button class="prev" id="prevBtn"><i style="margin-right: 5px;" class="fa-solid fa-angles-left"></i> पिछला
+            </button>
+            <button class="next" id="nextBtn">अगला <i style="margin-left: 5px;"
+                    class="fa-solid fa-angles-right"></i></button>
+        </div>
+
+    </div>
+
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎊 कमाल कर दिया!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()">
+                पुनः खेलें
+            </button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <!-- <script src="../assets/JavaScript/mcq.js"></script> -->
+    <script>
+        const quizData = [
+            {
+                q: "1)",
+                img: "../assets/images/oo.png",
+                options: ["अ", "आ", "उ", "ऊ"],
+                a: 3, // "ऊ" is the 4th option (index 3)
+            },
+            {
+                q: "2)",
+                img: "../assets/images/e.png",
+                options: ["ए", "ओ", "ऐ", "औ"],
+                a: 2, // "ऐ" is the 3rd option (index 2)
+            },
+            {
+                q: "3)",
+                img: "../assets/images/aha.png",
+                options: ["अ", "अः", "ऊ", "औ"],
+                a: 1, // "अः" is the 2nd option (index 1)
+            },
+            {
+                q: "4)",
+                img: "../assets/images/kha.png",
+                options: ["क", "ख", "ग", "घ"],
+                a: 1,
+            },
+            {
+                q: "5)",
+                img: "../assets/images/ja.png",
+                options: ["च", "छ", "ज", "झ"],
+                a: 2,
+            },
+            {
+                q: "6)",
+                img: "../assets/images/gha.png",
+                options: ["क", "ख", "ग", "घ"],
+                a: 3,
+            },
+            {
+                q: "7)",
+                img: "../assets/images/nya.png",
+                options: ["छ", "ज", "झ", "ञ"],
+                a: 3,
+            },
+            {
+                q: "8)",
+                img: "../assets/images/tha.png",
+                options: ["ट", "ठ", "ड", "ढ"],
+                a: 1,
+            },
+            {
+                q: "9)",
+                img: "../assets/images/dha.png",
+                options: ["ढ", "ट", "ठ", "ड"],
+                a: 0,
+            },
+            {
+                q: "10)",
+                img: "../assets/images/taa.png",
+                options: ["थ", "त", "द", "ध"],
+                a: 1,
+            },
+            {
+                q: "11)",
+                img: "../assets/images/pa.png",
+                options: ["भ", "द", "प", "त"],
+                a: 2,
+            },
+            {
+                q: "12)",
+                img: "../assets/images/shaa.png",
+                options: ["फ", "ब", "ष", "त"],
+                a: 2,
+            },
+            {
+                q: "13)",
+                img: "../assets/images/ya.png",
+                options: ["ल", "व", "य", "र"],
+                a: 2,
+            },
+            {
+                q: "14)",
+                img: "../assets/images/va.png",
+                options: ["य", "र", "ल", "व"],
+                a: 3,
+            },
+            {
+                q: "15)",
+                img: "../assets/images/tra.png",
+                options: ["प", "त्र", "भ", "म"],
+                a: 1,
+            },
+        ];
+
+        let current = 0;
+        let score = 0;
+        let answered = Array(quizData.length).fill(null);
+
+        const qEl = document.getElementById("question");
+        const imgEl = document.getElementById("questionImg");
+        const optEl = document.getElementById("options");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+        // ===== AUDIO =====
+        let audioCtx = null;
+
+        function playCorrectSound() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.frequency.value = 880;
+                gainNode.gain.value = 0.2;
+                oscillator.type = "sine";
+
+                oscillator.start();
+
+                gainNode.gain.exponentialRampToValueAtTime(
+                    0.00001,
+                    audioCtx.currentTime + 0.5,
+                );
+
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {
+                console.log("Audio error:", e);
+            }
+        }
+
+        function playWrongSound() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.frequency.value = 440;
+                gainNode.gain.value = 0.25;
+                oscillator.type = "sawtooth";
+
+                oscillator.start();
+
+                gainNode.gain.exponentialRampToValueAtTime(
+                    0.00001,
+                    audioCtx.currentTime + 0.4,
+                );
+
+                oscillator.stop(audioCtx.currentTime + 0.4);
+            } catch (e) {
+                console.log("Audio error:", e);
+            }
+        }
+
+        // Initialize audio
+        function initAudioOnFirstClick() {
+            if (audioCtx) return;
+
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const source = audioCtx.createBufferSource();
+
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start();
+            } catch (e) {
+                console.log("Audio init error:", e);
+            }
+        }
+
+        document.body.addEventListener("click", initAudioOnFirstClick, { once: true });
+
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+        }
+
+        function loadQuestion() {
+            const q = quizData[current];
+            qEl.textContent = q.q;
+            imgEl.src = q.img;
+            optEl.innerHTML = "";
+            nextBtn.disabled = answered[current] === null;
+
+            q.options.forEach((t, i) => {
+                const d = document.createElement("div");
+                d.className = "option o" + ((i % 4) + 1);
+
+                d.innerHTML = `
+   <div class="option-img">
+      ${t}
+   </div>
+`;
+
+                if (answered[current] !== null) {
+                    if (i === q.a) d.classList.add("correct");
+                    else d.classList.add("disabled");
+                }
+
+                d.onclick = () => {
+                    if (answered[current] !== null) return;
+
+                    if (i === q.a) {
+                        answered[current] = i;
+                        score++;
+
+                        d.classList.add("correct");
+                        [...optEl.children].forEach((o) => {
+                            if (o !== d) o.classList.add("disabled");
+                        });
+
+                        // speak("Correct");
+                        playCorrectSound();
+                        smallConfetti();
+                        showPopup(true);
+                        nextBtn.disabled = false;
+
+                        if (answered.every((a) => a !== null)) setTimeout(showFinal, 1600);
+                    } else {
+                        // speak("Wrong");
+                        playWrongSound();
+                        showPopup(false);
+                        d.classList.add("wrong");
+
+                        setTimeout(() => {
+                            d.classList.remove("wrong");
+                        }, 700);
+                    }
+                };
+
+                optEl.appendChild(d);
+            });
+
+            prevBtn.disabled = current === 0;
+        }
+
+        prevBtn.onclick = () => {
+            current--;
+            loadQuestion();
+        };
+
+        nextBtn.onclick = () => {
+            current++;
+            loadQuestion();
+        };
+
+        function showPopup(isCorrect) {
+            const popup = document.getElementById("answerPopup");
+            const icon = document.getElementById("popupIcon");
+            const title = document.getElementById("popupTitle");
+            const msg = document.getElementById("popupMsg");
+
+            popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+            popup.style.display = "flex";
+
+            if (isCorrect) {
+                icon.textContent = "🐵";
+
+                title.textContent = "वाह!";
+
+                msg.textContent = "आपने कमाल कर दिया!";
+            } else {
+                icon.textContent = "🙈";
+
+                title.textContent = "अरे!";
+
+                msg.textContent = "थोड़ा और सोचिए!";
+            }
+            setTimeout(() => {
+                popup.style.display = "none";
+            }, 1400);
+        }
+
+        function showFinal() {
+            const popup = document.getElementById("finalPopup");
+
+            document.getElementById("finalScore").textContent =
+                `आपके अंक: ${score} / ${quizData.length}`;
+
+            document.getElementById("stars").textContent = "👌👌👌";
+
+            popup.style.display = "flex";
+            bigConfetti();
+        }
+
+        loadQuestion();
+
+    </script>
+
+</body>
+
+</html>

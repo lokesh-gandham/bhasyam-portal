@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Livvic",sans-serif;
+}
+
+body{
+    background: linear-gradient(145deg,#fef5e7 0%,#fae8f0 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;          /* NO SCROLL ANYWHERE */
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+.container{
+    max-width: 1600px;
+    width: 94%;
+    margin: 0 auto;
+    height: auto;
+    max-height: 98vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* QUESTION BOX */
+.question-box{
+    width: 80%;
+    margin: 0 auto 15px auto;
+    background: #fff2f0;
+    border: 1px solid #ffcdd9;
+    border-radius: 60px;
+    padding: 12px 25px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: #bc5f7a;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.05);
+    flex-shrink: 0;
+}
+
+/* MATCH WRAPPER */
+.match-wrapper{
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.matching-area{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    width: 100%;
+    height: 100%;
+    align-items: start;
+    padding: 8px 12px 8px 12px;
+    overflow-y: auto;          /* inner scroll only if needed, but content fits */
+    overflow-x: hidden;
+    max-height: 82vh;
+}
+
+/* custom scroll inside matching-area but NEVER scroll on body/html */
+.matching-area::-webkit-scrollbar {
+    width: 6px;
+}
+.matching-area::-webkit-scrollbar-track {
+    background: #ffe4e9;
+    border-radius: 12px;
+}
+.matching-area::-webkit-scrollbar-thumb {
+    background: #ff88b0;
+    border-radius: 12px;
+}
+
+/* SIDES */
+.left-side,
+.right-side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ITEM: image + word side by side */
+.item {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(255,245,235,0.6);
+    border-radius: 40px;
+    padding: 6px 18px 6px 12px;
+    transition: all 0.2s;
+    backdrop-filter: blur(2px);
+}
+
+.left-side .item {
+    justify-content: flex-start;
+}
+
+.right-side .item {
+    justify-content: flex-start;
+    flex-direction: row;
+}
+
+/* NUMBER BADGE */
+.number {
+    font-size: 24px;
+    font-weight: 800;
+    background: #ffd9e6;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 60px;
+    color: #c23b6e;
+    box-shadow: inset 0 -1px 0 #ffb0c3, 0 2px 6px rgba(0,0,0,0.05);
+    flex-shrink: 0;
+}
+
+/* IMAGE BOX */
+.image-box {
+    width: 100px;
+    height: 100px;
+    background: #fff5ea;
+    border-radius: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 4px solid transparent;
+    transition: 0.2s ease;
+    overflow: hidden;
+    box-shadow: 0 12px 22px rgba(0,0,0,0.08);
+    flex-shrink: 0;
+}
+
+.image-box img {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+}
+
+.image-box:hover:not([data-matched="true"]) {
+    transform: scale(1.02);
+    background: #fff0e2;
+}
+
+/* WORD BOX (attached to same row) */
+.word {
+    background: #fcecf4;
+    border-radius: 60px;
+    padding: 12px 24px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+    flex: 1;
+    min-width: 130px;
+    letter-spacing: 1px;
+    color: #3f2e3a;
+    border: 2px solid transparent;
+}
+
+.word:hover:not(.correct) {
+    transform: translateY(-3px);
+    background: #ffe0ef;
+    border-color: #ff99bb;
+}
+
+.word.correct {
+    background: #c7ffdb;
+    border: 2px solid #2ecc71;
+    color: #1e5a2e;
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.9;
+    box-shadow: 0 4px 12px rgba(46,204,113,0.3);
+}
+
+/* SVG LINES */
+svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+}
+
+/* EMOJI POPUP */
+.emoji-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background: white;
+    border-radius: 100px;
+    padding: 32px 55px;
+    text-align: center;
+    z-index: 1500;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 30px 55px rgba(0,0,0,0.3);
+    min-width: 240px;
+    pointer-events: none;
+}
+
+.emoji-popup.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.emoji-popup-correct {
+    background: linear-gradient(135deg, #e8f8f0, #d4efdf);
+    border: 5px solid #2ecc71;
+}
+
+.emoji-popup-wrong {
+    background: linear-gradient(135deg, #fdeded, #fadbd8);
+    border: 5px solid #e74c3c;
+}
+
+.popup-emoji {
+    font-size: 5rem;
+    line-height: 1.2;
+}
+
+/* FINAL POPUP */
+.final-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.25s ease;
+}
+
+.final-popup-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.final-popup {
+    background: linear-gradient(135deg, #fff9e6, #fff0e0);
+    border-radius: 70px;
+    padding: 38px 48px;
+    text-align: center;
+    max-width: 460px;
+    width: 85%;
+    box-shadow: 0 30px 45px rgba(0,0,0,0.25), 0 0 0 8px #ffd966, 0 0 0 14px #ff9f4a;
+}
+
+.final-popup h2 {
+    font-size: 2.5rem;
+    color: #d45a2b;
+    margin-bottom: 15px;
+    font-weight: 800;
+}
+
+.final-stars {
+    font-size: 3.5rem;
+    letter-spacing: 15px;
+    margin: 18px 0;
+    color: #ffc107;
+}
+
+.final-popup p {
+    font-size: 1.5rem;
+    color: #5a3e2b;
+    margin: 15px 0;
+    font-weight: 500;
+}
+
+.popup-playagain-btn {
+    background: #ffac30;
+    border: none;
+    padding: 14px 34px;
+    border-radius: 50px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    margin-top: 15px;
+    box-shadow: 0 6px 0 #b4621a;
+    transition: 0.07s linear;
+}
+
+.popup-playagain-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #b4621a;
+}
+
+/* --- RESPONSIVE: NO SCROLL, sizes adjust --- */
+@media (max-width: 1100px) {
+    .matching-area {
+        gap: 35px;
+    }
+    .image-box {
+        width: 85px;
+        height: 85px;
+        border-radius: 26px;
+    }
+    .word {
+        font-size: 20px;
+        padding: 10px 18px;
+        min-width: 110px;
+    }
+    .number {
+        width: 38px;
+        height: 38px;
+        font-size: 20px;
+    }
+    .question-box {
+        font-size: 24px;
+        padding: 8px 20px;
+    }
+    .item {
+        gap: 14px;
+        padding: 6px 12px;
+    }
+}
+
+@media (max-width: 850px) {
+    .matching-area {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        max-height: 78vh;
+    }
+    .left-side, .right-side {
+        gap: 14px;
+    }
+    .image-box {
+        width: 75px;
+        height: 75px;
+    }
+    .word {
+        font-size: 18px;
+        padding: 8px 16px;
+    }
+    .question-box {
+        font-size: 20px;
+        width: 95%;
+    }
+    .number {
+        width: 34px;
+        height: 34px;
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 550px) {
+    .image-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 20px;
+    }
+    .word {
+        font-size: 14px;
+        padding: 6px 12px;
+        min-width: 85px;
+    }
+    .number {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+    .item {
+        gap: 10px;
+        padding: 4px 8px;
+    }
+    .question-box {
+        font-size: 16px;
+        padding: 6px 12px;
+        margin-bottom: 8px;
+    }
+    .final-popup {
+        padding: 24px 20px;
+    }
+    .final-popup h2 {
+        font-size: 1.6rem;
+    }
+    .popup-emoji {
+        font-size: 3rem;
+    }
+}
+
+/* fixed size for very large screens, no overflow */
+@media (min-width: 1600px) {
+    .container {
+        max-width: 1700px;
+    }
+    .image-box {
+        width: 120px;
+        height: 120px;
+    }
+    .word {
+        font-size: 28px;
+        padding: 14px 28px;
+    }
+    .number {
+        width: 52px;
+        height: 52px;
+        font-size: 26px;
+    }
+    .item {
+        gap: 26px;
+    }
+    .question-box {
+        font-size: 34px;
+    }
+}
+
+</style>
+  <link rel="stylesheet" href="../assets/CSS/walkman-font.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="question-box">
+        🖼️ चित्रों को उनके सही नामों से मिलाइए — बाएँ/दाएँ कॉलम में शब्द चुनें
+    </div>
+
+    <div class="match-wrapper">
+        <svg id="svgLines"></svg>
+        <div class="matching-area">
+            <!-- LEFT SIDE : images + words placed side by side -->
+            <div class="left-side" id="leftSide"></div>
+            <!-- RIGHT SIDE : images + words placed side by side -->
+            <div class="right-side" id="rightSide"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- POPUP EMOJI -->
+<div id="emojiPopup" class="emoji-popup">
+    <div class="popup-emoji" id="popupEmoji">😊</div>
+</div>
+
+<!-- FINAL OVERLAY -->
+<div id="finalPopup" class="final-popup-overlay">
+    <div class="final-popup">
+        <h2>🎉 बहुत बहुत बधाई! 🎉</h2>
+        <div class="final-stars">⭐⭐⭐⭐⭐</div>
+        <p>आपने सभी मिलान सही किए!</p>
+        <button class="popup-playagain-btn" onclick="location.reload()">
+            🔄 फिर से खेलें
+        </button>
+    </div>
+</div>
+
+<script>
+// ----------------------------------------------
+// UPDATED DATA: Each question has image + correct word
+// We split items between LEFT and RIGHT columns equally
+// Each item gets its word option RIGHT NEXT to the image (no middle column)
+// ----------------------------------------------
+
+const stagesData = [
+    {
+        stage: 1,
+        questions: [
+            { image: "../assets/images/cow.png", word: "थन" },
+            { image: "../assets/images/tap.png", word: "नल" },
+            { image: "../assets/images/jug.png", word: "जग" },
+            { image: "../assets/images/cup.png", word: "कप" },
+            { image: "../assets/images/bas.png", word: "बस" },
+            { image: "../assets/images/mango.png", word: "फल" },
+            { image: "../assets/images/bucket.png", word: "टब" },
+            { image: "../assets/images/elephant.png", word: "गज" }
+        ]
+    },
+    {
+        stage: 2,
+        questions: [
+            { image: "../assets/images/eye.png", word: "नयन" },
+            { image: "../assets/images/duck.png", word: "बतख" },
+            { image: "../assets/images/kalash.png", word: "कलश" },
+            { image: "../assets/images/foot.png", word: "चरण" },
+            { image: "../assets/images/honey.png", word: "शहद" },
+            { image: "../assets/images/building.png", word: "भवन" }
+        ]
+    },
+    {
+        stage: 3,
+        questions: [
+            { image: "../assets/images/ghar.png", word: "घर" },
+            { image: "../assets/images/bird.png", word: "चिड़िया" },
+            { image: "../assets/images/rose.png", word: "गुलाब" },
+            { image: "../assets/images/deer.png", word: "मृग" },
+            { image: "../assets/images/carrot.png", word: "गाजर" },
+            { image: "../assets/images/chita.png", word: "चीता" },
+            { image: "../assets/images/peacock.png", word: "मोर" },
+            { image: "../assets/images/seb.png", word: "सेब" }
+        ]
+    }
+];
+
+let currentStageIndex = 0;        // start from stage 1
+let stageCompletion = [];          // each stage stores { matchedIndices: [], matchedWordsMap }
+
+// DOM elements
+const leftSide = document.getElementById("leftSide");
+const rightSide = document.getElementById("rightSide");
+const svg = document.getElementById("svgLines");
+
+// Helper: init stage completion tracker
+function initCompletionTracker() {
+    stageCompletion = stagesData.map(() => ({
+        matchedIndices: new Set(),      // store indices of matched images
+        matchedWordMap: new Map()       // imageIndex -> correctWord
+    }));
+}
+
+// sound functions
+function playCorrectSound() {
+    try {
+        const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+        audio.volume = 0.4;
+        audio.play().catch(e => console.log("audio err"));
+    } catch(e) {}
+}
+
+function playWrongSound() {
+    try {
+        const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg");
+        audio.volume = 0.4;
+        audio.play().catch(e => console.log("audio err"));
+    } catch(e) {}
+}
+
+// popup
+function showPopup(isCorrect) {
+    const popup = document.getElementById("emojiPopup");
+    const popupEmoji = document.getElementById("popupEmoji");
+    popup.classList.remove("emoji-popup-correct", "emoji-popup-wrong");
+    if (isCorrect) {
+        popupEmoji.innerHTML = "😊✨ सही! ✨";
+        popup.classList.add("emoji-popup-correct");
+        playCorrectSound();
+    } else {
+        popupEmoji.innerHTML = "😢💔 ग़लत!";
+        popup.classList.add("emoji-popup-wrong");
+        playWrongSound();
+    }
+    popup.classList.add("active");
+    setTimeout(() => popup.classList.remove("active"), 950);
+}
+
+// draw animated snake line between image and word (both elements)
+function drawConnection(imageElement, wordElement) {
+    const svgRect = svg.getBoundingClientRect();
+    const imgRect = imageElement.getBoundingClientRect();
+    const wordRect = wordElement.getBoundingClientRect();
+
+    const x1 = imgRect.left + imgRect.width / 2 - svgRect.left;
+    const y1 = imgRect.top + imgRect.height / 2 - svgRect.top;
+    const x2 = wordRect.left + wordRect.width / 2 - svgRect.left;
+    const y2 = wordRect.top + wordRect.height / 2 - svgRect.top;
+
+    // determine curve control points
+    const midX = (x1 + x2) / 2;
+    const offsetY = Math.min(Math.abs(y2 - y1) * 0.6, 80);
+    const ctrl1Y = y1 - offsetY;
+    const ctrl2Y = y2 + offsetY;
+    const d = `M ${x1} ${y1} C ${midX} ${ctrl1Y}, ${midX} ${ctrl2Y}, ${x2} ${y2}`;
+
+    // glow path (thick semi-transparent)
+    const glow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    glow.setAttribute("d", d);
+    glow.setAttribute("stroke", "rgba(46,204,113,0.28)");
+    glow.setAttribute("stroke-width", "16");
+    glow.setAttribute("fill", "none");
+    glow.setAttribute("stroke-linecap", "round");
+    svg.appendChild(glow);
+
+    // main snake body (dashed pattern for moving effect)
+    const mainPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    mainPath.setAttribute("d", d);
+    mainPath.setAttribute("stroke", "#4caf50");
+    mainPath.setAttribute("stroke-width", "6");
+    mainPath.setAttribute("fill", "none");
+    mainPath.setAttribute("stroke-linecap", "round");
+    mainPath.setAttribute("stroke-dasharray", "12 10");
+    svg.appendChild(mainPath);
+
+    let offset = 0;
+    function animateSnake() {
+        offset = (offset + 2.5) % 44;
+        mainPath.style.strokeDashoffset = offset;
+        requestAnimationFrame(animateSnake);
+    }
+    animateSnake();
+
+    // head (circle)
+    const head = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    head.setAttribute("cx", x2);
+    head.setAttribute("cy", y2);
+    head.setAttribute("r", "10");
+    head.setAttribute("fill", "#2e7d32");
+    svg.appendChild(head);
+
+    // eyes
+    const eyeL = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    eyeL.setAttribute("cx", x2 - 3.5);
+    eyeL.setAttribute("cy", y2 - 2.5);
+    eyeL.setAttribute("r", "2");
+    eyeL.setAttribute("fill", "white");
+    svg.appendChild(eyeL);
+    const eyeR = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    eyeR.setAttribute("cx", x2 + 3.5);
+    eyeR.setAttribute("cy", y2 - 2.5);
+    eyeR.setAttribute("r", "2");
+    eyeR.setAttribute("fill", "white");
+    svg.appendChild(eyeR);
+
+    // tongue
+    const tongue = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    tongue.setAttribute("d", `M ${x2} ${y2 + 6} L ${x2 - 4} ${y2 + 14} M ${x2} ${y2 + 6} L ${x2 + 4} ${y2 + 14}`);
+    tongue.setAttribute("stroke", "#e63946");
+    tongue.setAttribute("stroke-width", "2.5");
+    tongue.setAttribute("stroke-linecap", "round");
+    svg.appendChild(tongue);
+}
+
+// load current stage: split questions between left and right columns, attach words directly beside each image
+function loadStage() {
+    // clear everything
+    leftSide.innerHTML = "";
+    rightSide.innerHTML = "";
+    svg.innerHTML = "";
+
+    const questions = stagesData[currentStageIndex].questions;
+    const total = questions.length;
+    const half = Math.ceil(total / 2);
+    const leftItems = questions.slice(0, half);
+    const rightItems = questions.slice(half);
+
+    // Helper to create a row with image + its word button (side by side)
+    function createItemRow(item, idx, isLeftSide, globalIndex) {
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "item";
+        // number badge
+        const numberSpan = document.createElement("div");
+        numberSpan.className = "number";
+        numberSpan.textContent = (globalIndex + 1) + ")";
+        
+        const imageBox = document.createElement("div");
+        imageBox.className = "image-box";
+        imageBox.setAttribute("data-index", globalIndex);
+        imageBox.setAttribute("data-matched", "false");
+        const img = document.createElement("img");
+        img.src = item.image;
+        img.alt = item.word;
+        imageBox.appendChild(img);
+        
+        const wordBtn = document.createElement("div");
+        wordBtn.className = "word";
+        wordBtn.setAttribute("data-word", item.word);
+        wordBtn.setAttribute("data-img-index", globalIndex);
+        wordBtn.textContent = item.word;
+        
+        rowDiv.appendChild(numberSpan);
+        rowDiv.appendChild(imageBox);
+        rowDiv.appendChild(wordBtn);
+        
+        // store reference for matching later
+        return { rowDiv, imageBox, wordBtn, globalIndex, correctWord: item.word };
+    }
+    
+    // populate left side
+    leftItems.forEach((item, idx) => {
+        const globalIdx = idx;  // because left side starts from 0
+        const { rowDiv, imageBox, wordBtn, globalIndex, correctWord } = createItemRow(item, idx, true, globalIdx);
+        leftSide.appendChild(rowDiv);
+        attachItemEvents(imageBox, wordBtn, globalIndex, correctWord);
+    });
+    
+    // populate right side
+    rightItems.forEach((item, idx) => {
+        const globalIdx = half + idx;
+        const { rowDiv, imageBox, wordBtn, globalIndex, correctWord } = createItemRow(item, idx, false, globalIdx);
+        rightSide.appendChild(rowDiv);
+        attachItemEvents(imageBox, wordBtn, globalIndex, correctWord);
+    });
+    
+    // restore already matched pairs for this stage
+    const tracker = stageCompletion[currentStageIndex];
+    if (tracker.matchedIndices.size > 0) {
+        const allImageBoxes = document.querySelectorAll(".image-box");
+        const allWordBtns = document.querySelectorAll(".word");
+        for (let matchedIdx of tracker.matchedIndices) {
+            const imgBox = Array.from(allImageBoxes).find(box => parseInt(box.dataset.index) === matchedIdx);
+            const matchedWordText = tracker.matchedWordMap.get(matchedIdx);
+            const wordElem = Array.from(allWordBtns).find(btn => btn.dataset.word === matchedWordText && parseInt(btn.dataset.imgIndex) === matchedIdx);
+            if (imgBox && wordElem) {
+                imgBox.style.border = "4px solid #2ecc71";
+                imgBox.setAttribute("data-matched", "true");
+                wordElem.classList.add("correct");
+                // redraw connection line for persistence
+                drawConnection(imgBox, wordElem);
+            }
+        }
+    }
+    
+    // check if stage is fully completed -> automatically show final if last stage OR if all matched
+    const totalQuestions = questions.length;
+    if (tracker.matchedIndices.size === totalQuestions) {
+        // if it's last stage, show final popup after small delay, otherwise stage automatically completed but no next/prev needed
+        if (currentStageIndex === stagesData.length - 1) {
+            setTimeout(() => {
+                document.getElementById("finalPopup").classList.add("active");
+            }, 300);
+        }
+    }
+}
+
+let currentSelectedImage = null;
+let currentSelectedIndex = null;
+
+function attachItemEvents(imageBox, wordBtn, globalIndex, correctWord) {
+    // image click (select)
+    imageBox.onclick = (e) => {
+        e.stopPropagation();
+        const isAlreadyMatched = stageCompletion[currentStageIndex].matchedIndices.has(globalIndex);
+        if (isAlreadyMatched) return;
+        // reset previous selection borders
+        document.querySelectorAll(".image-box").forEach(box => {
+            if (!box.getAttribute("data-matched") === "true" && box !== imageBox) {
+                box.style.border = "4px solid transparent";
+                box.style.transform = "scale(1)";
+            } else if (box !== imageBox) {
+                // keep matched border green
+            }
+        });
+        imageBox.style.border = "4px solid #ff1493";
+        imageBox.style.transform = "scale(1.03)";
+        currentSelectedImage = imageBox;
+        currentSelectedIndex = globalIndex;
+    };
+    
+    // word click (match attempt)
+    wordBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (!currentSelectedImage) return;
+        if (wordBtn.classList.contains("correct")) return;
+        const selectedImgIdx = currentSelectedIndex;
+        const isAlreadyPaired = stageCompletion[currentStageIndex].matchedIndices.has(selectedImgIdx);
+        if (isAlreadyPaired) {
+            // clear selection
+            currentSelectedImage.style.border = "4px solid transparent";
+            currentSelectedImage = null;
+            return;
+        }
+        
+        const expectedWord = stagesData[currentStageIndex].questions[selectedImgIdx].word;
+        const clickedWord = wordBtn.dataset.word;
+        
+        if (expectedWord === clickedWord && parseInt(wordBtn.dataset.imgIndex) === selectedImgIdx) {
+            // CORRECT MATCH
+            wordBtn.classList.add("correct");
+            currentSelectedImage.style.border = "4px solid #2ecc71";
+            currentSelectedImage.setAttribute("data-matched", "true");
+            // store completion
+            const tracker = stageCompletion[currentStageIndex];
+            tracker.matchedIndices.add(selectedImgIdx);
+            tracker.matchedWordMap.set(selectedImgIdx, expectedWord);
+            // draw fancy line
+            drawConnection(currentSelectedImage, wordBtn);
+            showPopup(true);
+            // reset selection
+            if (currentSelectedImage) {
+                currentSelectedImage.style.transform = "scale(1)";
+            }
+            currentSelectedImage = null;
+            currentSelectedIndex = null;
+            
+            // check stage completion
+            const totalQ = stagesData[currentStageIndex].questions.length;
+            if (tracker.matchedIndices.size === totalQ) {
+                if (currentStageIndex === stagesData.length - 1) {
+                    setTimeout(() => {
+                        document.getElementById("finalPopup").classList.add("active");
+                    }, 500);
+                } else {
+                    // automatically go to next stage? but no prev/next. But we can auto-advance?
+                    // According to requirement: remove next/prev but keep functionality? Actually full game: user completes all stages in order.
+                    // For better experience, after stage 1 completes we move to stage 2 automatically.
+                    if (currentStageIndex + 1 < stagesData.length) {
+                        setTimeout(() => {
+                            currentStageIndex++;
+                            loadStage();
+                        }, 1000);
+                    }
+                }
+            }
+        } else {
+            showPopup(false);
+            // wrong match effect
+            wordBtn.style.transform = "scale(0.98)";
+            setTimeout(() => { wordBtn.style.transform = ""; }, 200);
+            // clear active image border but keep selection active? just flash wrong
+            if (currentSelectedImage) {
+                currentSelectedImage.style.border = "4px solid #ff1493";
+                setTimeout(() => {
+                    if (currentSelectedImage && !stageCompletion[currentStageIndex].matchedIndices.has(currentSelectedIndex)) {
+                        currentSelectedImage.style.border = "4px solid #ff1493";
+                    }
+                }, 100);
+            }
+        }
+    };
+}
+
+// after window load, init and start
+window.addEventListener("load", () => {
+    initCompletionTracker();
+    loadStage();
+});
+
+// optional: resize re-draw lines for already matched connections
+window.addEventListener("resize", () => {
+    // redraw all matched lines (preserve)
+    svg.innerHTML = "";
+    const tracker = stageCompletion[currentStageIndex];
+    if (tracker && tracker.matchedIndices.size > 0) {
+        const images = document.querySelectorAll(".image-box");
+        const words = document.querySelectorAll(".word.correct");
+        for (let idx of tracker.matchedIndices) {
+            const imgBox = Array.from(images).find(img => parseInt(img.dataset.index) === idx);
+            const matchedWord = tracker.matchedWordMap.get(idx);
+            const wordElem = Array.from(words).find(w => w.dataset.word === matchedWord);
+            if (imgBox && wordElem) {
+                drawConnection(imgBox, wordElem);
+            }
+        }
+    }
+});
+</script>
+
+</body>
+</html>

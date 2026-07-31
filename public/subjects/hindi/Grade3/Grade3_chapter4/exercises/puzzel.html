@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Tiro Devanagari Hindi";
+        }
+
+        body {
+
+            width: 100%;
+            min-height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            /* background: #f5f5f5; */
+        }
+
+        .app {
+
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            /* padding: 20px; */
+        }
+
+        .template {
+
+            width: 100%;
+            max-width: 1200px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            gap: 30px;
+        }
+
+        .instruction {
+
+             font-size: .9rem;
+            font-weight: 700;
+            color: #bc5f7a;
+            background: #fff2f0;
+            padding: 0.7rem 1.6rem;
+            width: 50%;
+            margin: auto;
+            border-radius: 60px;
+            text-align: center;
+            border: 1px solid #ffcdd9;
+            width: fit-content;
+           
+
+    /* margin-bottom:40px; */
+        }
+
+        .game-wrap {
+
+            width: 100%;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            gap: 40px;
+
+            position: relative;
+        }
+
+        .side-images {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 35px;
+        }
+
+        .item {
+
+            position: relative;
+        }
+
+        .item img {
+
+            width: 120px;
+
+            height: 100px;
+
+            object-fit: contain;
+        }
+
+        .number {
+
+            position: absolute;
+
+            top: -8px;
+
+            left: -8px;
+
+            width: 26px;
+
+            height: 26px;
+
+            border-radius: 50%;
+
+            background: #ff1493;
+
+            color: white;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            font-size: 14px;
+
+            font-weight: 700;
+        }
+
+        .grid {
+
+            display: grid;
+
+            grid-template-columns: repeat(7, 60px);
+
+            background: #f8cddd;
+
+            border: 2px solid #ff6ba5;
+        }
+
+        .cell {
+
+            width: 60px;
+
+            height: 60px;
+
+            border: 1px solid #f0adc3;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            font-size: 28px;
+
+            font-weight: 400;
+
+            background: #f8dce6;
+
+            cursor: pointer;
+
+            user-select: none;
+
+            position: relative;
+        }
+
+        .cell:nth-child(even) {
+            background: #f4e6ec;
+        }
+
+        .cell.selected {
+
+            background: #ffeaa7 !important;
+
+            border: 2px solid #ffb300;
+        }
+
+        .cell.correct {
+
+            background: #d8ffd8 !important;
+
+            border: 3px solid #1fb655 !important;
+        }
+
+        .cell.wrong {
+
+            background: #ffd6d6 !important;
+
+            border: 2px solid red !important;
+        }
+
+        .inside-number {
+
+            position: absolute;
+
+            top: -10px;
+
+            left: -10px;
+
+            width: 22px;
+
+            height: 22px;
+
+            border-radius: 50%;
+
+            background: #ff1493;
+
+            color: white;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            font-size: 12px;
+
+            font-weight: 700;
+        }
+
+/* EMOJI POPUP */
+
+.emoji-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    z-index: 1500;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+    background: #fff6e8;
+    padding: 0.8rem 2rem;
+    border-radius: 80px;
+    border: 5px solid #ffcd7e;
+    box-shadow: 0 15px 0 #c4833a;
+}
+
+.emoji-popup.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.popup-emoji {
+    font-size: 3.5rem;
+    line-height: 1;
+    animation: popEmoji 0.4s ease;
+    text-align: center;
+}
+
+@keyframes popEmoji {
+
+    0% {
+        transform: scale(0.2) rotate(-10deg);
+        opacity: 0;
+    }
+
+    70% {
+        transform: scale(1.2) rotate(2deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0);
+    }
+}
+
+/* FINAL POPUP */
+
+.final-overlay {
+    position: fixed;
+    inset: 0;
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.2s ease;
+}
+
+.final-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.final-popup-box {
+    background: #fff8eb;
+    border-radius: 70px;
+    padding: 1.5rem 1.8rem;
+    text-align: center;
+    max-width: 400px;
+    width: 85%;
+    border: 8px solid #ffc471;
+    box-shadow: 0 25px 0 #b87a38;
+    animation: legoFinal 0.5s cubic-bezier(0.34, 1.2, 0.55, 1);
+}
+
+@keyframes legoFinal {
+
+    0% {
+        transform: scale(0.2) rotate(-5deg);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.medals-row {
+    font-size: 1.8rem;
+    letter-spacing: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.final-heading {
+    font-size: 1.5rem;
+    color: #e67e22;
+    margin-bottom: 0.3rem;
+}
+
+.final-sub {
+    color: #785d37;
+    font-size: 1rem;
+    margin-bottom: 0.7rem;
+}
+
+.final-stars {
+    font-size: 1.7rem;
+    letter-spacing: 5px;
+    color: #f7b32b;
+    margin: 0.5rem 0;
+}
+
+.final-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.final-btn {
+    border: none;
+    padding: 10px 24px;
+    border-radius: 60px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 7px 0 #b87232;
+    transition: 0.05s linear;
+    font-family: inherit;
+}
+
+.playagain-btn {
+    background: #ffe2a4;
+    color: #6b451f;
+}
+
+.final-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #b87232;
+}
+
+        @media(max-width:768px) {
+
+            .game-wrap {
+
+                gap: 15px;
+            }
+
+            .item img {
+
+                width: 60px;
+                height: 60px;
+            }
+
+            .grid {
+
+                grid-template-columns: repeat(7, 42px);
+            }
+
+            .cell {
+
+                width: 42px;
+                height: 42px;
+
+                font-size: 20px;
+            }
+        }
+
+
+        /* Responsive Media Queries for 320px to 1920px */
+
+/* Base styles (mobile-first, up to 480px) */
+@media (max-width: 480px) {
+    .game-wrap {
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .side-images {
+        flex-direction: row;
+        justify-content: center;
+        gap: 20px;
+        width: 100%;
+        order: 1;
+    }
+
+    .side-images:first-child {
+        order: 0;
+    }
+
+    .side-images:last-child {
+        order: 2;
+    }
+
+    .grid {
+        order: 1;
+        grid-template-columns: repeat(7, 48px);
+    }
+
+    .cell {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
+    .item img {
+        width: 55px;
+        height: 55px;
+    }
+
+    .number {
+        width: 22px;
+        height: 22px;
+        font-size: 12px;
+        top: -6px;
+        left: -6px;
+    }
+
+    .instruction {
+        font-size: 0.85rem;
+        padding: 0.5rem 1.2rem;
+    }
+
+    .popup-emoji-large {
+        font-size: 4rem;
+    }
+
+    .final-popup {
+        padding: 30px 25px;
+        border-radius: 50px;
+    }
+
+    .final-stars {
+        font-size: 2rem;
+        letter-spacing: 6px;
+    }
+}
+
+/* Small tablets (481px to 640px) */
+@media (min-width: 481px) and (max-width: 640px) {
+    .game-wrap {
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .side-images {
+        flex-direction: row;
+        gap: 30px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .grid {
+        grid-template-columns: repeat(7, 60px);
+    }
+
+    .cell {
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+    }
+
+    .item img {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+/* Tablets (641px to 768px) */
+@media (min-width: 641px) and (max-width: 768px) {
+    .game-wrap {
+        gap: 25px;
+    }
+
+    .grid {
+        grid-template-columns: repeat(7, 70px);
+    }
+
+    .cell {
+        width: 70px;
+        height: 70px;
+        font-size: 26px;
+    }
+
+    .item img {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+/* Small laptops (769px to 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .grid {
+        grid-template-columns: repeat(7, 60px);
+    }
+
+    .cell {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+
+    .item img {
+        width: 85px;
+        height: 85px;
+    }
+}
+
+/* Desktops (1025px to 1366px) */
+/* @media (min-width: 1025px) and (max-width: 1366px) {
+    .grid {
+        grid-template-columns: repeat(6, 85px);
+    }
+
+    .cell {
+        width: 85px;
+        height: 85px;
+        font-size: 30px;
+    }
+
+    .item img {
+        width: 95px;
+        height: 95px;
+    }
+} */
+
+/* Large desktops (1367px to 1600px) */
+@media (min-width: 1367px) and (max-width: 1440px) {
+
+     .instruction {
+       font-size: .9rem;
+        padding: 0.8rem 2rem;
+    }
+    .grid {
+        grid-template-columns: repeat(7, 80px);
+    }
+
+    .cell {
+        width: 80px;
+        height: 80px;
+        font-size: 34px;
+    }
+
+    .item img {
+        width: 130px;
+        height: 130px;
+    }
+
+    .template {
+        max-width: 1300px;
+    }
+}
+
+/* Ultra-wide / Full HD to 1920px (1601px to 1920px) */
+@media (min-width: 1601px) and (max-width: 1920px) {
+    .grid {
+        grid-template-columns: repeat(7, 100px);
+    }
+
+    .cell {
+        width: 100px;
+        height: 100px;
+        font-size: 40px;
+    }
+
+    .item img {
+        width: 130px;
+        height: 130px;
+    }
+
+    .template {
+        max-width: 1400px;
+    }
+
+    .instruction {
+       font-size: 1.2rem;
+                padding: 16px 32px;
+    }
+
+    .number {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+        top: -10px;
+        left: -10px;
+    }
+}
+
+/* Landscape orientation fix for mobile devices */
+@media (max-width: 900px) and (orientation: landscape) {
+    .game-wrap {
+        gap: 15px;
+    }
+
+    .side-images {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .item img {
+        width: 50px;
+        height: 50px;
+    }
+
+    .grid {
+        grid-template-columns: repeat(7, 45px);
+    }
+
+    .cell {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+}
+
+/* High DPI / Retina screens - fine adjustments */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .cell {
+        border-width: 0.5px;
+    }
+    
+    .cell.correct {
+        border-width: 2px;
+    }
+}
+
+/* Dark mode support (optional, respects system preference) */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+    }
+    
+    .instruction {
+        background: #2c3e50;
+        color: #f1c40f;
+        border-color: #f1c40f;
+    }
+    
+    .grid {
+        background: #2d1b24;
+        border-color: #ff6ba5;
+    }
+    
+    .cell {
+        background: #3d2a33;
+        border-color: #5c3a48;
+        color: #ffe0e8;
+    }
+    
+    .cell:nth-child(even) {
+        background: #35242e;
+    }
+    
+    .cell.selected {
+        background: #5c4a1a !important;
+        border-color: #ffcc00 !important;
+    }
+}
+
+/* Reduced motion preference - disable animations */
+@media (prefers-reduced-motion: reduce) {
+    .emoji-popup-simple,
+    .final-popup,
+    .popup-emoji-large {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .cell.wrong {
+        transition: none !important;
+    }
+}
+
+/* Print styles (optional, for saving puzzle) */
+@media print {
+    body {
+        background: white;
+        padding: 0;
+    }
+    
+    .instruction {
+        border: 1px solid #ccc;
+        background: white;
+        color: black;
+    }
+    
+    .popup-playagain-btn,
+    .final-popup-overlay,
+    #simpleEmojiPopup {
+        display: none !important;
+    }
+    
+    .cell {
+        border: 1px solid black;
+        background: white !important;
+        color: black;
+    }
+}
+    </style>
+
+    <link rel="stylesheet" href="../assets/CSS/walkman-font.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <div class="template">
+
+            <div class="instruction">
+                चित्र देख कर उसके नाम पर गोला लगाकर लिखिए।
+            </div>
+
+            <div class="game-wrap">
+
+                <!-- LEFT -->
+
+                <div class="side-images">
+
+                    <div class="item">
+                        <div class="number">1</div>
+                        <img src="../assets/images/jungle.png">
+                    </div>
+
+                    <div class="item">
+                        <div class="number">2</div>
+                        <img src="../assets/images/bird.png">
+                    </div>
+
+                    <div class="item">
+                        <div class="number">3</div>
+                        <img src="../assets/images/net.png">
+                    </div>
+
+                </div>
+
+                <!-- GRID -->
+
+                <div class="grid" id="grid"></div>
+
+                <!-- RIGHT -->
+
+                <div class="side-images">
+
+                    <div class="item">
+                        <div class="number">4</div>
+                        <img src="../assets/images/tree.png">
+                    </div>
+
+                    <div class="item">
+                        <div class="number">5</div>
+                        <img src="../assets/images/rat.png">
+                    </div>
+
+                    <div class="item">
+                        <div class="number">6</div>
+                        <img src="../assets/images/sky.png">
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- POPUP -->
+
+ <!-- SIMPLE EMOJI POPUP -->
+
+<!-- EMOJI POPUP -->
+<div id="emojiPopup" class="emoji-popup">
+    <div class="popup-emoji" id="popupEmoji">
+        🎉
+    </div>
+</div>
+
+<!-- FINAL POPUP -->
+<div id="finalPopup" class="final-overlay">
+
+    <div class="final-popup-box">
+
+        <div class="medals-row">
+            🏅 🥇 🏅
+        </div>
+
+        <h2 class="final-heading">
+            बधाई हो!
+        </h2>
+
+        <p class="final-sub">
+            आपने सभी शब्द खोज लिए!
+        </p>
+
+        <div class="final-stars" id="finalStars">
+            ⭐⭐⭐⭐⭐
+        </div>
+
+        <div class="final-buttons">
+
+            <button
+                class="final-btn playagain-btn"
+                id="playAgainFinalBtn"
+                onclick="location.reload()"
+            >
+                🔄 फिर से खेलें
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+    <script>
+   const gameData = {
+   gridLetters: [
+    ["क", "आ", "स", "मा", "न", "ख", "ग"],
+
+    ["जं", "ग", "ल", "घ", "ऊ", "जा", "च"],
+
+    ["छ", "क", "ज", "झ", "ज", "ल", "ट"],
+
+    ["ठ", "बू", "ड़", "चू", "हा", "ढ़", "णा"],
+
+    ["प", "त", "फ", "ब", "भ", "म", "स"],
+
+   ["श", "र", "ष", "ह", "पे", "ड़", "क्ष"]
+],
+answers: [
+    { number: 1, word: "जंगल" },   // row 1: जं→ग→ल ✅
+    { number: 2, word: "कबूतर" },  // row 2: क→बू→त→र ✅
+    { number: 3, word: "जाल" },    // row 1: जा→ल? ❌ need to fix
+    { number: 4, word: "पेड़" },    // row 5: पे→ड़ ✅
+    { number: 5, word: "चूहा" },   // row 3: चू→हा ✅
+    { number: 6, word: "आसमान" }   // row 0: आ→स→मा→न ✅
+]
+       
+    };
+        const grid =
+            document.getElementById("grid");
+
+        let currentSelection = [];
+
+        let solvedWords = 0;
+
+        const totalWords =
+            gameData.answers.length;
+
+        gameData.gridLetters.forEach((row) => {
+
+            row.forEach((letter) => {
+
+                const cell =
+                    document.createElement("div");
+
+                cell.className = "cell";
+
+                cell.textContent = letter;
+
+                cell.onclick = () =>
+                    selectLetter(cell, letter);
+
+                grid.appendChild(cell);
+
+            });
+
+        });
+
+        function selectLetter(cell, letter) {
+
+            if (cell.classList.contains("correct")) return;
+
+            if (cell.classList.contains("selected")) return;
+
+            const cells =
+                [...document.querySelectorAll(".cell")];
+
+            const currentIndex =
+                cells.indexOf(cell);
+
+            const cols = 7;
+
+            const currentRow =
+                Math.floor(currentIndex / cols);
+
+            const currentCol =
+                currentIndex % cols;
+
+            if (currentSelection.length > 0) {
+
+                const lastCell =
+                    currentSelection[
+                        currentSelection.length - 1
+                    ].element;
+
+                const lastIndex =
+                    cells.indexOf(lastCell);
+
+                const lastRow =
+                    Math.floor(lastIndex / cols);
+
+                const lastCol =
+                    lastIndex % cols;
+
+                const isNextHorizontal =
+                    currentRow === lastRow &&
+                    currentCol === lastCol + 1;
+
+                const isNextVertical =
+                    currentCol === lastCol &&
+                    currentRow === lastRow + 1;
+
+                if (!isNextHorizontal &&
+                    !isNextVertical) {
+                    return;
+                }
+            }
+
+            cell.classList.add("selected");
+
+            currentSelection.push({
+                letter,
+                element: cell
+            });
+
+            checkWord();
+        }
+
+        function checkWord() {
+
+            const formedWord =
+                currentSelection
+                .map(x => x.letter)
+                .join("");
+
+            let matched = false;
+
+            gameData.answers.forEach((ans) => {
+
+               if (formedWord === ans.word) {
+
+    matched = true;
+
+    currentSelection.forEach((x, index) => {
+
+        x.element.classList.remove("selected");
+
+        x.element.classList.add("correct");
+
+        if (index === 0) {
+
+            const badge =
+                document.createElement("div");
+
+            badge.className =
+                "inside-number";
+
+            badge.textContent =
+                ans.number;
+
+            x.element.appendChild(badge);
+        }
+
+    });
+
+    solvedWords++;
+
+    showPopup(true);
+
+    currentSelection = [];
+
+    if (solvedWords === totalWords) {
+
+        setTimeout(showFinal, 1000);
+
+    }
+}
+            });
+
+            const possible =
+                gameData.answers.some(a =>
+                    a.word.startsWith(formedWord)
+                );
+
+            if (!matched && !possible) {
+
+                wrongSelection();
+            }
+        }
+function wrongSelection() {
+
+    currentSelection.forEach((x) => {
+
+        x.element.classList.add("wrong");
+
+        setTimeout(() => {
+
+            x.element.classList.remove("wrong");
+
+            x.element.classList.remove("selected");
+
+        }, 500);
+
+    });
+
+    showPopup(false);
+
+    currentSelection = [];
+}
+      /* AUDIO */
+
+let audioCtx = null;
+
+function playCorrectSound(){
+
+    try{
+
+        if(!audioCtx){
+
+            audioCtx =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+        }
+
+        const oscillator =
+        audioCtx.createOscillator();
+
+        const gainNode =
+        audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+
+        gainNode.connect(
+            audioCtx.destination
+        );
+
+        oscillator.frequency.value =
+        880;
+
+        gainNode.gain.value =
+        0.2;
+
+        oscillator.type =
+        "sine";
+
+        oscillator.start();
+
+        gainNode.gain
+        .exponentialRampToValueAtTime(
+            0.00001,
+            audioCtx.currentTime + 0.5
+        );
+
+        oscillator.stop(
+            audioCtx.currentTime + 0.5
+        );
+
+    }catch(e){}
+
+}
+
+function playWrongSound(){
+
+    try{
+
+        if(!audioCtx){
+
+            audioCtx =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+        }
+
+        const oscillator =
+        audioCtx.createOscillator();
+
+        const gainNode =
+        audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+
+        gainNode.connect(
+            audioCtx.destination
+        );
+
+        oscillator.frequency.value =
+        440;
+
+        gainNode.gain.value =
+        0.25;
+
+        oscillator.type =
+        "sawtooth";
+
+        oscillator.start();
+
+        gainNode.gain
+        .exponentialRampToValueAtTime(
+            0.00001,
+            audioCtx.currentTime + 0.4
+        );
+
+        oscillator.stop(
+            audioCtx.currentTime + 0.4
+        );
+
+    }catch(e){}
+
+}
+
+/* POPUP */
+
+function showPopup(correct = true) {
+
+    const popup =
+        document.getElementById(
+            "emojiPopup"
+        );
+
+    const emoji =
+        document.getElementById(
+            "popupEmoji"
+        );
+
+    if (correct) {
+
+        emoji.innerHTML = "🥳";
+
+        playCorrectSound();
+
+        confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+
+    } else {
+
+        emoji.innerHTML = "😢";
+
+        playWrongSound();
+
+    }
+
+    popup.classList.add(
+        "active"
+    );
+
+    setTimeout(() => {
+
+        popup.classList.remove(
+            "active"
+        );
+
+    }, 1000);
+
+}
+
+/* BIG CONFETTI */
+
+function bigConfetti(){
+
+    confetti({
+        particleCount:200,
+        spread:110,
+        origin:{y:0.5}
+    });
+
+    setTimeout(()=>{
+
+        confetti({
+            particleCount:120,
+            spread:130,
+            origin:{
+                y:0.4,
+                x:0.2
+            }
+        });
+
+        confetti({
+            particleCount:120,
+            spread:130,
+            origin:{
+                y:0.4,
+                x:0.8
+            }
+        });
+
+    },150);
+
+}
+
+/* FINAL POPUP */
+
+let finalPopupShown = false;
+
+function showFinal(){
+
+    if(finalPopupShown)
+    return;
+
+    finalPopupShown = true;
+
+    bigConfetti();
+
+    setTimeout(()=>{
+
+        document
+        .getElementById(
+            "finalPopup"
+        )
+        .classList.add(
+            "active"
+        );
+
+    },500);
+
+}
+    </script>
+
+</body>
+
+</html>

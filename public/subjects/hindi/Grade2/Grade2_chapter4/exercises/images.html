@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+    <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Tiro Devanagari Hindi";
+
+        }
+
+        body {
+            min-height: 100vh;
+            /* background: linear-gradient(145deg, #fef5e7 0%, #fae8f0 100%); */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            /* padding: 30px 20px; */
+        }
+
+        .quiz-container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title {
+            font-size: 22px;
+            font-weight: 500;
+            color: #bc5f7a;
+            background: #fff2f0;
+            display: inline-block;
+            padding: 12px 35px;
+            border-radius: 60px;
+            border: 2px solid #ffcdd9;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Two Images Row */
+        .images-row {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+            margin-inline: 30px;
+        }
+
+        .image-card {
+            flex: 1;
+            min-width: 280px;
+            text-align: center;
+            background: white;
+            border-radius: 40px;
+            padding: 5px 10px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+            border: 5px solid #ffd4a5;
+            transition: all 0.3s ease;
+        }
+
+        .image-card.completed {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            border-color: #28a745;
+        }
+
+        .word-image {
+            width: 100%;
+            max-width: 200px;
+            height: 160px;
+            object-fit: contain;
+            /* background: #fff8f0; */
+            border-radius: 30px;
+            padding: 12px;
+            /* border: 2px solid #ffaa55; */
+            margin-bottom: 20px;
+        }
+
+        /* Answer Boxes */
+        .answer-section {
+            margin-top: 10px;
+            min-height: 100px;
+        }
+
+        .blank-group {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 10px;
+            /* background: rgba(255, 242, 240, 0.5); */
+            border-radius: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .blank-box {
+            width: 55px;
+            height: 55px;
+            border-radius: 12px;
+            border: 3px dashed #2F4F4F;
+            background: rgba(255, 255, 255, 0.95);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .blank-box.filled {
+            border-style: solid;
+            background: #fff9e8;
+        }
+
+        .blank-box.correct {
+            border-color: #28a745;
+            background: #d8f5d8;
+            pointer-events: none;
+        }
+
+        .blank-box.wrong {
+            border-color: #dc3545;
+            border-style: solid;
+            background: #ffe0e0;
+        }
+
+        /* Complete Word Display - शब्द पूरा होने पर दिखेगा */
+        .complete-word {
+            display: none;
+            font-size: 2rem;
+            font-weight: 500;
+            color: #28a745;
+            background: #d8f5d8;
+            padding: 15px 20px;
+            border-radius: 50px;
+            text-align: center;
+            margin-top: 10px;
+            border: 2px solid #28a745;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+            letter-spacing: 2px;
+        }
+
+        .complete-word.show {
+            display: block;
+            animation: wordPop 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+        }
+
+        @keyframes wordPop {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Hide blank group when answer is correct */
+        .blank-group.hide {
+            display: none;
+        }
+
+        /* Mini Popup */
+        .mini-popup {
+            position: absolute;
+            top: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 3px solid #333;
+            border-radius: 15px;
+            padding: 8px;
+            display: none;
+            gap: 8px;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .mini-popup.show {
+            display: flex;
+            animation: popIn 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) scale(1);
+            }
+        }
+
+        .letter-choice {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            border: 2px solid #333;
+            font-size: 22px;
+            font-weight: 500;
+            cursor: pointer;
+            background: white;
+            transition: all 0.1s ease;
+        }
+
+        .letter-choice:hover {
+            background: #ffebcc;
+            transform: scale(1.05);
+        }
+
+        /* Navigation Buttons */
+        .nav-area {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .nav-btn {
+            width: 150px;
+            background: #ffb347;
+            border: none;
+            font-size: 20px;
+            font-weight: 500;
+            color: white;
+            padding: 12px 32px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 6px 0 #c25d1a;
+            transition: .07s linear;
+        }
+
+        /* .prev-btn {
+            background: linear-gradient(135deg, #ff9aa2, #ff6f91);
+            box-shadow: 0 5px 0 #c25d6a;
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #b39ddb, #9575cd);
+            box-shadow: 0 5px 0 #7a5ea0;
+        } */
+
+        .nav-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #c25d1a;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Page Indicator */
+        .page-indicator {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #ff6f91;
+            display: none;
+        }
+
+        /* EMOJI POPUP */
+
+        .emoji-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(.8);
+            background: white;
+            border-radius: 100px;
+            padding: 35px 50px;
+            text-align: center;
+            z-index: 1500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all .2s ease;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, .3);
+            min-width: 200px;
+        }
+
+        .emoji-popup.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .emoji-popup-correct {
+            background: linear-gradient(135deg, #e8f8f0, #d4efdf);
+            border: 5px solid #2ecc71;
+        }
+
+        .emoji-popup-wrong {
+            background: linear-gradient(135deg, #fdeded, #fadbd8);
+            border: 5px solid #e74c3c;
+        }
+
+        .popup-emoji {
+            font-size: 5.5rem;
+            line-height: 1.2;
+        }
+
+        /* FINAL POPUP */
+
+        .final-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* background: rgba(0, 0, 0, .6); */
+            /* backdrop-filter: blur(5px); */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all .25s ease;
+        }
+
+        .final-popup-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .final-popup {
+            background: linear-gradient(135deg, #fff9e6, #fff0e0);
+            border-radius: 70px;
+            padding: 35px 45px;
+            text-align: center;
+            max-width: 450px;
+            width: 85%;
+            box-shadow:
+                0 30px 45px rgba(0, 0, 0, .25),
+                0 0 0 8px #ffd966,
+                0 0 0 14px #ff9f4a;
+        }
+
+        .final-popup h2 {
+            font-size: 2.6rem;
+            color: #d45a2b;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+
+        .final-stars {
+            font-size: 3.8rem;
+            letter-spacing: 15px;
+            margin: 18px 0;
+            color: #ffc107;
+        }
+
+        .final-popup p {
+            font-size: 1.5rem;
+            color: #5a3e2b;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+
+        .popup-playagain-btn {
+            background: #ffac30;
+            border: none;
+            padding: 14px 34px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 6px 0 #b4621a;
+        }
+
+        /* =========================================
+📱 TABLETS
+========================================= */
+
+        @media (max-width: 900px) {
+
+            body {
+                overflow-x: hidden;
+                padding: 12px;
+            }
+
+            .images-row {
+                gap: 16px;
+                flex-wrap: nowrap;
+                justify-content: center;
+            }
+
+            .image-card {
+                min-width: 240px;
+                max-width: 260px;
+                padding: 16px 12px;
+                border-radius: 24px;
+            }
+
+            .word-image {
+                max-width: 130px;
+                height: 110px;
+                margin-bottom: 14px;
+            }
+
+            .blank-group {
+                gap: 6px;
+                padding: 8px;
+            }
+
+            .blank-box {
+                width: 42px;
+                height: 44px;
+                font-size: 18px;
+            }
+
+            .letter-choice {
+                width: 34px;
+                height: 34px;
+                font-size: 15px;
+            }
+
+            .title {
+                font-size: 1.2rem;
+                padding: 8px 18px;
+            }
+
+            .complete-word {
+                font-size: 1.1rem;
+                padding: 8px 12px;
+            }
+
+            .nav-btn {
+                font-size: .9rem;
+                padding: 8px 18px;
+            }
+        }
+
+        /* =========================================
+📱 MOBILE
+========================================= */
+
+        @media (max-width: 768px) {
+
+            body {
+                overflow-x: hidden;
+                padding: 10px 6px;
+            }
+
+            .images-row {
+                flex-direction: row !important;
+                align-items: flex-start;
+                justify-content: center;
+                gap: 10px;
+                flex-wrap: nowrap;
+            }
+
+            .image-card {
+                flex: 1;
+                min-width: 160px;
+                max-width: 400px;
+                padding: 12px 8px;
+                border-radius: 18px;
+            }
+
+            .word-image {
+                max-width: 90px;
+                height: 80px;
+                padding: 6px;
+                margin-bottom: 10px;
+            }
+
+            .blank-group {
+                gap: 4px;
+                padding: 6px;
+                border-radius: 18px;
+            }
+
+            .blank-box {
+                width: 30px;
+                height: 34px;
+                font-size: 14px;
+                border-width: 2px;
+                border-radius: 8px;
+            }
+
+            .letter-choice {
+                width: 26px;
+                height: 26px;
+                font-size: 12px;
+            }
+
+            .mini-popup {
+                gap: 3px;
+                padding: 3px;
+            }
+
+            .title {
+                font-size: 1rem;
+                padding: 6px 14px;
+            }
+
+            .complete-word {
+                font-size: .9rem;
+                padding: 8px;
+            }
+
+            .nav-area {
+                gap: 10px;
+                margin-top: 18px;
+            }
+
+            .nav-btn {
+                font-size: .8rem;
+                padding: 7px 14px;
+                gap: 4px;
+            }
+
+            .emoji-large {
+                font-size: 3.5rem;
+            }
+        }
+
+        /* =========================================
+📱 SMALL PHONES
+========================================= */
+
+        @media (max-width: 480px) {
+
+            .images-row {
+                gap: 6px;
+            }
+
+            .image-card {
+                min-width: 145px;
+                max-width: 160px;
+                padding: 10px 6px;
+            }
+
+            .word-image {
+                max-width: 75px;
+                height: 68px;
+            }
+
+            .blank-box {
+                width: 26px;
+                height: 30px;
+                font-size: 12px;
+            }
+
+            .letter-choice {
+                width: 22px;
+                height: 22px;
+                font-size: 10px;
+            }
+
+            .title {
+                font-size: .9rem;
+            }
+
+            .nav-btn {
+                font-size: .72rem;
+                padding: 6px 12px;
+            }
+
+            .complete-word {
+                font-size: .8rem;
+            }
+        }
+
+        /* =========================================================
+💻 LAPTOPS
+========================================================= */
+
+        @media screen and (min-width:1025px) and (max-width:1440px) {
+
+            body {
+                overflow-x: hidden;
+            }
+
+            .quiz-container {
+                max-width: 1150px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .image-card {
+                padding: 24px;
+            }
+
+            .word-image {
+                max-width: 200px;
+                height: 170px;
+            }
+
+            .blank-box {
+                width: 60px;
+                height: 65px;
+                font-size: 26px;
+            }
+        }
+
+        /* =========================================================
+🖥️ LARGE MONITORS
+========================================================= */
+
+        @media screen and (min-width:1441px) and (max-width:1920px) {
+
+            body {
+                overflow-x: hidden;
+            }
+
+            .quiz-container {
+                max-width: 1400px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .word-image {
+                max-width: 240px;
+                height: 210px;
+            }
+
+            .blank-box {
+                width: 75px;
+                height: 75px;
+                font-size: 32px;
+            }
+
+            .letter-choice {
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+            }
+        }
+
+        /* =========================================================
+📺 4K / EXTRA LARGE
+========================================================= */
+
+        @media screen and (min-width:1921px) {
+
+            body {
+                overflow-x: hidden;
+            }
+
+            .quiz-container {
+                max-width: 1600px;
+            }
+
+            .title {
+                font-size: 3rem;
+                padding: 20px 50px;
+            }
+
+            .image-card {
+                max-width: 550px;
+                padding: 40px;
+            }
+
+            .word-image {
+                max-width: 300px;
+                height: 240px;
+            }
+
+            .blank-box {
+                width: 85px;
+                height: 85px;
+                font-size: 38px;
+            }
+
+            .letter-choice {
+                width: 70px;
+                height: 70px;
+                font-size: 32px;
+            }
+
+            .complete-word {
+                font-size: 2.8rem;
+            }
+
+            .nav-btn {
+                font-size: 1.8rem;
+                padding: 18px 40px;
+            }
+        }
+
+        @media (max-width:900px) {
+
+            .title {
+                font-size: 24px;
+                width: auto;
+                padding: 10px 22px;
+            }
+
+            .nav-btn {
+                font-size: 16px;
+                padding: 10px 18px;
+                min-width: 130px;
+                height: 48px;
+            }
+        }
+
+        @media (max-width:768px) {
+
+            .title {
+                font-size: 20px;
+                line-height: 1.4;
+                padding: 10px 18px;
+            }
+
+            .nav-btn {
+                min-width: 115px;
+                height: 44px;
+                font-size: 15px;
+                padding: 8px 14px;
+            }
+        }
+
+        @media (max-width:480px) {
+
+            .title {
+                font-size: 17px;
+                padding: 10px 14px;
+            }
+
+            .nav-btn {
+                min-width: 95px;
+                height: 38px;
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+        }
+
+        @media screen and (min-width:1025px) and (max-width:1440px) {
+
+            .title {
+                font-size: 30px;
+            }
+
+            .nav-btn {
+                width: 150px;
+                font-size: 20px;
+                padding: 14px 26px;
+            }
+        }
+
+        @media screen and (min-width:1441px) and (max-width:1920px) {
+
+            .title {
+                font-size: 38px;
+            }
+
+            .nav-btn {
+                width: 170px;
+                height: 60px;
+                font-size: 20px;
+                padding: 14px 26px;
+            }
+        }
+
+        @media screen and (min-width:1921px) {
+
+            .title {
+                font-size: 44px;
+            }
+
+            .nav-btn {
+                min-width: 180px;
+                height: 65px;
+                font-size: 24px;
+                padding: 18px 28px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="../assets/CSS/walkman-font.css">
+</head>
+
+<body>
+
+    <div class="quiz-container">
+        <div class="header">
+            <div class="title">📝 चित्रों के नाम लिखिए! 📝</div>
+        </div>
+
+        <div class="images-row" id="imagesRow"></div>
+
+        <div class="nav-area">
+            <button class="nav-btn prev-btn" id="prevBtn">◀ पिछला</button>
+            <button class="nav-btn next-btn" id="nextBtn">अगला ▶</button>
+        </div>
+        <div class="page-indicator" id="pageIndicator"></div>
+    </div>
+
+    <!-- POPUP -->
+
+    <div id="emojiPopup" class="emoji-popup">
+
+        <div class="popup-emoji" id="popupEmoji">
+            😊
+        </div>
+
+    </div>
+
+    <!-- FINAL -->
+
+    <div id="finalPopup" class="final-popup-overlay">
+
+        <div class="final-popup">
+
+            <h2>🎉 बहुत बहुत बधाई! 🎉</h2>
+
+            <div class="final-stars">
+                ⭐⭐⭐⭐
+            </div>
+
+            <p>
+                आपने सभी प्रश्न सही किए!
+            </p>
+
+            <p>
+                ✨ आप होशियार हो! ✨
+            </p>
+
+            <button class="popup-playagain-btn" id="finalPlayAgainBtn">
+
+                🔄 फिर से खेलें
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <script>
+        // ============================================
+        // 10 QUESTIONS - चित्रों के नाम (Picture Names)
+        // ============================================
+        const QUESTIONS = [
+            { id: 1, word: "खुशी", letters: ["ख", "ु", "श", "ी"], image: "../assets/images/khushi.png" },
+            { id: 2, word: "कुठार", letters: ["क", "ु", "ठ", "ा", "र"], image: "../assets/images/kuthar.png" },
+            { id: 3, word: "घुटना", letters: ["घ", "ु", "ट", "न", "ा"], image: "../assets/images/ghutna.png" },
+            { id: 4, word: "कुली", letters: ["क", "ु", "ल", "ी"], image: "../assets/images/kuli.png" },
+            { id: 5, word: "पुल", letters: ["प", "ु", "ल"], image: "../assets/images/pul.png" },
+            { id: 6, word: "झाड़ू", letters: ["झ", "ा", "ड़", "ू"], image: "../assets/images/jhadu.png" },
+            { id: 7, word: "नाखून", letters: ["न", "ा", "ख", "ू", "न"], image: "../assets/images/nakhun.png" },
+            { id: 8, word: "तरबूज", letters: ["त", "र", "ब", "ू", "ज"], image: "../assets/images/tarbuj.png" },
+            { id: 9, word: "चाकू", letters: ["च", "ा", "क", "ू"], image: "../assets/images/chaku.png" },
+            { id: 10, word: "खरबूजा", letters: ["ख", "र", "ब", "ू", "ज", "ा"], image: "../assets/images/kharbuja.png" }
+        ];
+
+        let userStates = [];
+        let currentPage = 0;
+        const QUESTIONS_PER_PAGE = 2;
+        const totalPages = Math.ceil(QUESTIONS.length / QUESTIONS_PER_PAGE);
+
+        let popupTimeout = null;
+        let isAnimating = false;
+
+        // DOM Elements
+        const imagesRow = document.getElementById("imagesRow");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const pageIndicator = document.getElementById("pageIndicator");
+
+        // Initialize States
+        function initStates() {
+            userStates = [];
+            for (let i = 0; i < QUESTIONS.length; i++) {
+                userStates.push({
+                    filledLetters: new Array(QUESTIONS[i].letters.length).fill(null),
+                    isCorrect: false
+                });
+            }
+        }
+        initStates();
+
+        /* POPUP */
+
+        function showPopup(isCorrect) {
+
+            const popup =
+                document.getElementById("emojiPopup");
+
+            const popupEmoji =
+                document.getElementById("popupEmoji");
+
+            popup.classList.remove(
+                "emoji-popup-correct",
+                "emoji-popup-wrong"
+            );
+
+            if (isCorrect) {
+
+                popupEmoji.innerHTML = "😊✨";
+
+                popup.classList.add(
+                    "emoji-popup-correct"
+                );
+                playCorrectSound();
+
+            } else {
+
+                popupEmoji.innerHTML = "😢💔";
+
+                popup.classList.add(
+                    "emoji-popup-wrong"
+                );
+                playWrongSound();
+            }
+
+
+            popup.classList.add("active");
+
+            setTimeout(() => {
+
+                popup.classList.remove("active");
+
+            }, 1000);
+        }
+
+
+        //sound
+        let audioCtx = null;
+
+        // ✅ CORRECT SOUND
+        function playCorrectSound() {
+
+            try {
+
+                if (!audioCtx) {
+
+                    audioCtx =
+                        new (
+                            window.AudioContext ||
+                            window.webkitAudioContext
+                        )();
+                }
+
+                const now =
+                    audioCtx.currentTime;
+
+                // MAIN SOUND
+                const osc1 =
+                    audioCtx.createOscillator();
+
+                const gain1 =
+                    audioCtx.createGain();
+
+                osc1.type = "triangle";
+
+                osc1.frequency.setValueAtTime(
+                    650,
+                    now
+                );
+
+                osc1.frequency.exponentialRampToValueAtTime(
+                    1250,
+                    now + 0.22
+                );
+
+                gain1.gain.setValueAtTime(
+                    0.18,
+                    now
+                );
+
+                gain1.gain.exponentialRampToValueAtTime(
+                    0.0001,
+                    now + 0.28
+                );
+
+                osc1.connect(gain1);
+
+                gain1.connect(
+                    audioCtx.destination
+                );
+
+                osc1.start(now);
+
+                osc1.stop(now + 0.28);
+
+                // SPARKLE SOUND
+                const osc2 =
+                    audioCtx.createOscillator();
+
+                const gain2 =
+                    audioCtx.createGain();
+
+                osc2.type = "sine";
+
+                osc2.frequency.value = 1700;
+
+                gain2.gain.setValueAtTime(
+                    0.08,
+                    now + 0.12
+                );
+
+                gain2.gain.exponentialRampToValueAtTime(
+                    0.0001,
+                    now + 0.4
+                );
+
+                osc2.connect(gain2);
+
+                gain2.connect(
+                    audioCtx.destination
+                );
+
+                osc2.start(now + 0.12);
+
+                osc2.stop(now + 0.4);
+
+            } catch (e) {
+
+                console.log(e);
+            }
+        }
+
+
+        // ❌ WRONG SOUND
+        function playWrongSound() {
+
+            try {
+
+                if (!audioCtx) {
+
+                    audioCtx =
+                        new (
+                            window.AudioContext ||
+                            window.webkitAudioContext
+                        )();
+                }
+
+                const now =
+                    audioCtx.currentTime;
+
+                const osc =
+                    audioCtx.createOscillator();
+
+                const gain =
+                    audioCtx.createGain();
+
+                osc.type = "square";
+
+                osc.frequency.setValueAtTime(
+                    240,
+                    now
+                );
+
+                osc.frequency.exponentialRampToValueAtTime(
+                    110,
+                    now + 0.25
+                );
+
+                gain.gain.setValueAtTime(
+                    0.14,
+                    now
+                );
+
+                gain.gain.exponentialRampToValueAtTime(
+                    0.0001,
+                    now + 0.3
+                );
+
+                osc.connect(gain);
+
+                gain.connect(
+                    audioCtx.destination
+                );
+
+                osc.start(now);
+
+                osc.stop(now + 0.3);
+
+            } catch (e) {
+
+                console.log(e);
+            }
+        }
+
+
+        // 🔊 AUDIO INIT
+        function initAudio() {
+
+            if (audioCtx) return;
+
+            try {
+
+                audioCtx =
+                    new (
+                        window.AudioContext ||
+                        window.webkitAudioContext
+                    )();
+
+                const buffer =
+                    audioCtx.createBuffer(1, 1, 22050);
+
+                const source =
+                    audioCtx.createBufferSource();
+
+                source.buffer = buffer;
+
+                source.connect(
+                    audioCtx.destination
+                );
+
+                source.start();
+
+            } catch (e) { }
+        }
+
+        document.body.addEventListener(
+            "click",
+            initAudio,
+            { once: true }
+        );
+
+        /* CONFETTI */
+
+        function launchConfetti() {
+
+            confetti({
+
+                particleCount: 180,
+
+                spread: 90,
+
+                origin: {
+                    y: 0.6
+                }
+
+            });
+
+            setTimeout(() => {
+
+                confetti({
+
+                    particleCount: 120,
+
+                    spread: 120,
+
+                    origin: {
+                        y: 0.5
+                    }
+
+                });
+
+            }, 300);
+        }
+
+
+        // Check if current page has both questions correct
+        function isCurrentPageComplete() {
+            const startIdx = currentPage * QUESTIONS_PER_PAGE;
+            const endIdx = Math.min(startIdx + QUESTIONS_PER_PAGE, QUESTIONS.length);
+            for (let i = startIdx; i < endIdx; i++) {
+                if (!userStates[i].isCorrect) return false;
+            }
+            return true;
+        }
+
+        // Update next button state
+        function updateNextButtonState() {
+            if (currentPage === totalPages - 1) {
+                const allCorrect = userStates.every(s => s.isCorrect);
+                nextBtn.disabled = allCorrect;
+            } else {
+                nextBtn.disabled = !isCurrentPageComplete();
+            }
+        }
+
+        // Check all completed and show final popup
+        function checkAllComplete() {
+            const allCorrect = userStates.every(s => s.isCorrect);
+            if (allCorrect) {
+                setTimeout(() => {
+                    finalPopup.classList.add("active");
+                    launchConfetti();
+                    playCorrectSound();
+                }, 300);
+            }
+        }
+
+        // Create popup with letter choices
+        function createPopupForBox(box, correctLetter, questionIndex, letterIndex) {
+            const oldPopup = box.querySelector('.mini-popup');
+            if (oldPopup) oldPopup.remove();
+
+            const popup = document.createElement("div");
+            popup.className = "mini-popup";
+
+            const wrongLetters = ["अ", "आ", "इ", "ई", "उ", "ऊ", "ए", "ऐ", "ओ", "औ", "क", "ख", "ग", "घ", "च", "छ", "ज", "झ", "ट", "ठ", "ड", "ढ", "त", "थ", "द", "ध", "न", "प", "फ", "ब", "भ", "म", "य", "र", "ल", "व", "श", "ष", "स", "ह", "ा", "ि", "ी", "ु", "ू", "े", "ै", "ो", "ौ", "ं", "ः", "़", "ृ", "ँ"];
+            let choices = [correctLetter];
+            while (choices.length < 3) {
+                let r = wrongLetters[Math.floor(Math.random() * wrongLetters.length)];
+                if (!choices.includes(r) && r !== correctLetter) choices.push(r);
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach(ch => {
+                const btn = document.createElement("button");
+                btn.className = "letter-choice";
+                btn.textContent = ch;
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const state = userStates[questionIndex];
+                    if (state.isCorrect) return;
+
+                    box.textContent = ch;
+                    box.classList.add("filled");
+                    box.classList.remove("wrong");
+                    state.filledLetters[letterIndex] = ch;
+                    popup.classList.remove("show");
+
+                    const allFilled = state.filledLetters.every(l => l !== null);
+                    if (allFilled) {
+                        checkAnswer(questionIndex);
+                    }
+                };
+                popup.appendChild(btn);
+            });
+            box.appendChild(popup);
+            return popup;
+        }
+
+        function removeLetterAtIndex(questionIndex, letterIndex, boxElement) {
+            const state = userStates[questionIndex];
+            if (state.isCorrect) return;
+            if (state.filledLetters[letterIndex] === null) return;
+
+            state.filledLetters[letterIndex] = null;
+            boxElement.textContent = "?";
+            boxElement.classList.remove("filled", "wrong");
+
+            const correctLetter = boxElement.getAttribute("data-correct");
+            let popup = boxElement.querySelector('.mini-popup');
+            if (!popup) {
+                createPopupForBox(boxElement, correctLetter, questionIndex, letterIndex);
+            }
+        }
+
+        function checkAnswer(questionIndex) {
+            const q = QUESTIONS[questionIndex];
+            const state = userStates[questionIndex];
+            if (state.filledLetters.includes(null)) return;
+
+            const formedWord = state.filledLetters.join("");
+            const isCorrect = (formedWord === q.word);
+
+            if (isCorrect) {
+                state.isCorrect = true;
+                const card = document.getElementById(`card-${questionIndex}`);
+                if (card) {
+                    // Hide the blank group (letter boxes)
+                    const blankGroup = card.querySelector('.blank-group');
+                    if (blankGroup) blankGroup.classList.add('hide');
+
+                    // Hide any open popups
+                    const popups = card.querySelectorAll('.mini-popup');
+                    popups.forEach(p => p.classList.remove('show'));
+
+                    // Show the complete word display
+                    const completeWordDiv = card.querySelector('.complete-word');
+                    if (completeWordDiv) {
+                        completeWordDiv.textContent = q.word;
+                        completeWordDiv.classList.add('show');
+                    }
+
+                    card.classList.add("completed");
+                }
+                showPopup(true);
+
+                confetti({
+                    particleCount: 40,
+                    spread: 70,
+                    origin: { y: 0.7 }
+                });
+                updateNextButtonState();
+                checkAllComplete();
+            } else {
+                showPopup(false);
+                const card = document.getElementById(`card-${questionIndex}`);
+                const boxes = card.querySelectorAll('.blank-box');
+                boxes.forEach(b => b.classList.add("wrong"));
+
+                setTimeout(() => {
+                    for (let i = 0; i < state.filledLetters.length; i++) {
+                        state.filledLetters[i] = null;
+                    }
+                    const freshBoxes = card.querySelectorAll('.blank-box');
+                    freshBoxes.forEach((box, idx) => {
+                        box.textContent = "?";
+                        box.classList.remove("filled", "wrong");
+                        const correctL = box.getAttribute("data-correct");
+                        let pop = box.querySelector('.mini-popup');
+                        if (!pop) {
+                            createPopupForBox(box, correctL, questionIndex, idx);
+                        }
+                    });
+                    card.querySelectorAll('.mini-popup').forEach(p => p.classList.remove("show"));
+                }, 1000);
+            }
+        }
+
+        // Render current page (2 questions)
+        function renderCurrentPage() {
+            imagesRow.innerHTML = "";
+            const startIdx = currentPage * QUESTIONS_PER_PAGE;
+            const endIdx = Math.min(startIdx + QUESTIONS_PER_PAGE, QUESTIONS.length);
+
+            for (let i = startIdx; i < endIdx; i++) {
+                const q = QUESTIONS[i];
+                const state = userStates[i];
+
+                const card = document.createElement("div");
+                card.className = "image-card";
+                if (state.isCorrect) card.classList.add("completed");
+                card.id = `card-${i}`;
+
+                const imgHtml = `
+                <div style="text-align:center;">
+                    <img src="${q.image}" alt="चित्र" class="word-image" onerror="this.src='https://placehold.co/200x160?text=🖼️'">
+                </div>
+                <div class="answer-section">
+                    <div class="blank-group ${state.isCorrect ? 'hide' : ''}" id="blankGroup-${i}"></div>
+                    <div class="complete-word ${state.isCorrect ? 'show' : ''}" id="completeWord-${i}">${state.isCorrect ? q.word : ''}</div>
+                </div>
+            `;
+                card.innerHTML = imgHtml;
+
+                // Only create letter boxes if not already correct
+                if (!state.isCorrect) {
+                    const blankGroup = card.querySelector(`#blankGroup-${i}`);
+
+                    q.letters.forEach((correctLetter, letterIdx) => {
+                        const box = document.createElement("span");
+                        box.className = "blank-box";
+                        box.setAttribute("data-index", letterIdx);
+                        box.setAttribute("data-correct", correctLetter);
+
+                        if (state.filledLetters[letterIdx]) {
+                            box.textContent = state.filledLetters[letterIdx];
+                            box.classList.add("filled");
+                        } else {
+                            box.textContent = "?";
+                        }
+
+                        createPopupForBox(box, correctLetter, i, letterIdx);
+
+                        box.onclick = (e) => {
+                            if (state.isCorrect) return;
+                            e.stopPropagation();
+                            document.querySelectorAll(".mini-popup").forEach(p => p.classList.remove("show"));
+
+                            if (box.classList.contains("filled") && !state.isCorrect) {
+                                removeLetterAtIndex(i, letterIdx, box);
+                                return;
+                            }
+                            const boxPopup = box.querySelector('.mini-popup');
+                            if (boxPopup) boxPopup.classList.add("show");
+                        };
+
+                        blankGroup.appendChild(box);
+                    });
+                }
+
+                imagesRow.appendChild(card);
+            }
+
+            // Update navigation buttons
+            prevBtn.disabled = (currentPage === 0);
+            updateNextButtonState();
+            pageIndicator.innerHTML = `पृष्ठ ${currentPage + 1} / ${totalPages}`;
+        }
+
+        // Reset all
+        function resetAll() {
+            initStates();
+            currentPage = 0;
+            renderCurrentPage();
+            finalPopup.classList.remove("active");
+            document.querySelectorAll(".mini-popup").forEach(p => p.classList.remove("show"));
+        }
+
+        // Navigation
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                renderCurrentPage();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function nextPage() {
+            if (isCurrentPageComplete() && currentPage < totalPages - 1) {
+                currentPage++;
+                renderCurrentPage();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Event Listeners
+        prevBtn.addEventListener("click", prevPage);
+        nextBtn.addEventListener("click", nextPage);
+        finalPlayAgainBtn.addEventListener("click", resetAll);
+
+        // Audio initialization on first click
+        function initAudio() {
+            if (audioCtx) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const buffer = audioCtx.createBuffer(1, 1, 22050);
+                const source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(audioCtx.destination);
+                source.start();
+            } catch (e) { }
+        }
+        document.body.addEventListener('click', initAudio, { once: true });
+
+        // Close popups when clicking outside
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.blank-box') && !e.target.closest('.letter-choice')) {
+                document.querySelectorAll(".mini-popup").forEach(p => p.classList.remove("show"));
+            }
+        });
+
+        // Start rendering
+        renderCurrentPage();
+    </script>
+</body>
+
+</html>

@@ -76,6 +76,41 @@ const scienceHtmlPath = (grade: number, lesson: number): string => {
   return `/subjects/science/${g}/${g}_chapter${l}/${g}_Lesson${l}.html`;
 };
 
+const hindiHtmlPath = (grade: number, lesson: number): string | undefined => {
+  const paths: Record<number, Record<number, string>> = {
+    1: {
+      1: "/subjects/hindi/Grade1/Grade1_chapter1/Grade1_Chapter1.html",
+      2: "/subjects/hindi/Grade1/Grade1_chapter2/Grade1_Chapter2.html",
+      3: "/subjects/hindi/Grade1/Grade1_chapter3/Grade1_Chapter3.html",
+      4: "/subjects/hindi/Grade1/Grade1_chapter4/Grade1_Chapter4.html",
+    },
+    2: {
+      1: "/subjects/hindi/Grade2/Grade2_chapter1/Grade2_Chapter1.html",
+      2: "/subjects/hindi/Grade2/Grade2_chapter2/Grade2_Chapter2.html",
+      3: "/subjects/hindi/Grade2/Grade2_chapter3/Grade2_Chapter3.html",
+      4: "/subjects/hindi/Grade2/Grade2_chapter4/Grade2_Chapter4.html",
+    },
+    3: {
+      1: "/subjects/hindi/Grade3/Grade3_chapter1/Grade3_Chapter1.html",
+      2: "/subjects/hindi/Grade3/Grade3_chapter2/grade3_chapter2.html",
+      3: "/subjects/hindi/Grade3/Grade3_chapter3/Grade3_chapter3.html",
+      4: "/subjects/hindi/Grade3/Grade3_chapter4/Grade3_Lesson4.html",
+    },
+    4: {
+      1: "/subjects/hindi/Grade4/Grade4_chapter1/Grade4_Lesson1.html",
+      3: "/subjects/hindi/Grade4/Grade4_chapter3/Grade4_lesson3.html",
+      4: "/subjects/hindi/Grade4/Grade4_chapter4/Grade4_Lesson4.html",
+    },
+    5: {
+      1: "/subjects/hindi/Grade5/Grade5_chapter1/Grade5_lesson1.html",
+      2: "/subjects/hindi/Grade5/Grade5_chapter2/Grade5_lesson2.html",
+      3: "/subjects/hindi/Grade5/Grade5_chapter3/Grade5_lesson3.html",
+      4: "/subjects/hindi/Grade5/Grade5_chapter4/Grade5_Lesson4.html",
+    },
+  };
+  return paths[grade]?.[lesson];
+};
+
 const socialHtmlPath = (grade: number, lesson: number): string | undefined => {
   if (grade === 1 || grade === 2) return undefined;
   if (grade === 3) {
@@ -150,22 +185,22 @@ const subjectsFor = (grade: number): Subject[] => [
         "स्वर और व्यंजन",
         "शब्दों का निर्माण",
         "वाक्य बनाना",
-      ]),
+      ], hindiHtmlPath(grade, 1)),
       mkLesson(`g${grade}-hin-2`, "सरल गद्यांश", "छोटे गद्यांश पढ़कर प्रश्नों के उत्तर देना।", [
         "मुख्य विचार पहचानना",
         "विवरण खोजना",
         "शब्दों के अर्थ समझना",
-      ]),
+      ], hindiHtmlPath(grade, 2)),
       mkLesson(`g${grade}-hin-3`, "कहानी पढ़ना", "छोटी कहानियाँ पढ़ना और समझना।", [
         "कहानी के पात्र",
         "घटनाओं का क्रम",
         "कहानी से सीख",
-      ]),
+      ], hindiHtmlPath(grade, 3)),
       mkLesson(`g${grade}-hin-4`, "सरल कविता", "सरल कविताएँ पढ़ना और उनका आनंद लेना।", [
         "कविता की लय",
         "शब्दों का चयन",
         "कविता का भाव",
-      ]),
+      ], hindiHtmlPath(grade, 4)),
     ],
   },
   {

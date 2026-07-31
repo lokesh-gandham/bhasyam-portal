@@ -1,0 +1,427 @@
+/* =============================================
+   BASE RESET & FONT
+   ============================================= */
+* {
+    box-sizing: border-box;
+    font-family: 'Livvic', sans-serif;
+    user-select: none;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;           /* never scroll */
+    background: transparent;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* =============================================
+   ROOT TOKENS (JS overrides --row-h / --row-gap
+   per viewport so content always fits, no scroll)
+   ============================================= */
+:root {
+    --row-h: clamp(46px, 6.2vh, 78px);
+    --row-gap: clamp(10px, 1.6vh, 20px);
+    --col-w: clamp(220px, 30vw, 420px);
+    --gap-between: clamp(56px, 6vw, 100px);
+    --dot-size: clamp(16px, 1.3vw + 1vh, 26px);
+    --item-gap: clamp(12px, 1.4vw, 20px); /* NEW: consistent inner spacing */
+}
+
+/* =============================================
+   SCREEN WRAPPER
+   ============================================= */
+.screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 1300px;
+    padding: clamp(14px, 3vh, 40px) clamp(16px, 4vw, 48px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;   /* center the whole block vertically */
+    overflow: hidden;          /* extra safety against overflow */
+}
+
+.home {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: #7ab7f5;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: clamp(13px, 1.1vw, 17px);
+    cursor: pointer;
+}
+
+/* =============================================
+   QUESTION / TITLE
+   ============================================= */
+.question {
+    text-align: center;
+    font-weight: 600;
+    color: #2f4f4f;
+    font-size: clamp(20px, 1.6vw + 1.6vh, 40px);
+    margin-bottom: clamp(14px, 3vh, 40px);
+    line-height: 1.25;
+    display:none;
+}
+
+/* =============================================
+   MATCH WRAP — two columns, both absolutely
+   positioned internally so rows can animate
+   smoothly between positions
+   ============================================= */
+.match-wrap {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: var(--gap-between);
+    width: 100%;
+    flex: 0 0 auto;   /* size to its own content, don't stretch — lets .screen center it */
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.col {
+    position: relative;
+    width: var(--col-w);
+}
+
+/* =============================================
+   ITEM CARDS
+   ============================================= */
+.match-item {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: var(--row-h);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--item-gap);      /* was 10px — now a bit more breathing room */
+    /* text-align: center; */
+    padding: 0 clamp(10px, 1.2vw, 22px);
+    font-size: 24px !important;
+    font-weight: 500;
+    color: #33475b;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: top 0.5s cubic-bezier(0.34, 1.1, 0.4, 1),
+                transform 0.5s cubic-bezier(0.34, 1.1, 0.4, 1),
+                background 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+    
+}
+
+/* =============================================
+   UNIFIED CONTENT ORDER (both columns identical):
+   1) image  2) badge (letter/number)  3) text
+   This uses flexbox `order` so it works regardless
+   of how the badge/img/text are ordered in your
+   HTML/JS markup — no markup changes needed.
+   ============================================= */
+.match-item img {
+    order: 2 !important;
+}
+
+.match-label {
+    order: 1 !important;
+}
+
+.match-item span {
+    order: 3;
+}
+
+/* =============================================
+   LABEL BADGES (A, B, C… / 1, 2, 3…)
+   ============================================= */
+.match-label {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    color: #fff;
+    background: #7ab7f5;
+}
+
+/* Both columns: image fills the card the same way */
+.left-col .match-item img,
+.right-col .match-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 8px;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+/* connector "plug" circle — sits on the facing edge of each card */
+.match-item::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: var(--dot-size);
+    height: var(--dot-size);
+    border-radius: 50%;
+    transform: translateY(-50%);
+    transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+    z-index: 2;
+}
+
+.left-col .match-item::after  {
+    right: calc(-1 * var(--dot-size) / 2);
+    background: #fff;               /* peg — solid */
+    border: 3px solid #c9cfe0;
+}
+
+.right-col .match-item::after {
+    left: calc(-1 * var(--dot-size) / 2);
+    background: transparent;        /* socket — hollow until matched */
+    border: 3px solid #c9cfe0;
+}
+
+/* =============================================
+   LEFT COLUMN — light blue
+   ============================================= */
+.left-col .match-item {
+    background: #e6f0ff;
+    justify-content: flex-start;
+     font-size: 24px;
+     font-weight: 500;
+}
+
+.left-col .match-item:hover:not(.locked) {
+    box-shadow: 4px 4px 14px rgba(0, 0, 0, 0.08);
+    transform: translateX(4px);
+}
+
+.left-col .match-item.selected {
+    border-color: #7ab7f5;
+    box-shadow: 0 0 0 4px rgba(122, 183, 245, 0.28);
+}
+
+/* =============================================
+   RIGHT COLUMN — neutral, pale lavender
+   ============================================= */
+.right-col .match-item {
+    background: #f4f3fb;
+    justify-content: flex-start;   /* center image + text together */
+    align-items: center;
+    padding-left: 40px;
+    font-size: 24px;
+     font-weight: 500;
+    /* text-align: center; */
+}
+
+.right-col .match-item:hover:not(.locked) {
+    box-shadow: -4px 4px 14px rgba(0, 0, 0, 0.08);
+    transform: translateX(-4px);
+}
+
+/* =============================================
+   MATCHED / LOCKED STATE — the "puzzle attach"
+   ============================================= */
+.match-item.locked {
+    background: #fff5cc;
+    border-color: #f0d264;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* right piece slides left until its socket meets the left peg —
+   remaining gap equals one dot's width, so the two circles interlock */
+.right-col .match-item.attached {
+    transform: translateX(calc(-1 * (var(--gap-between) - var(--dot-size))));
+    z-index: 5;
+    box-shadow: -6px 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+.match-item.locked::after {
+    background: #4caf50;
+    border-color: #4caf50;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.28);
+}
+
+/* =============================================
+   WRONG SHAKE
+   ============================================= */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-8px); }
+    40%      { transform: translateX(8px); }
+    60%      { transform: translateX(-6px); }
+    80%      { transform: translateX(6px); }
+}
+
+.match-item.wrong {
+    animation: shake 0.45s ease;
+    border-color: #e57373;
+    background: #ffe3e3 !important;
+}
+
+/* =============================================
+   FINAL POPUP
+   ============================================= */
+#finalPopup {
+    position: fixed;
+    inset: 0;
+    /* background: rgba(0, 0, 0, 0.35); */
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.finalpopup-box {
+    background: #fff;
+    padding: 40px 52px;
+    border-radius: 24px;
+    text-align: center;
+    /* box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2); */
+    animation: popIn 0.45s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+}
+
+@keyframes popIn {
+    0%   { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1);   opacity: 1; }
+}
+
+.final-heading {
+    font-size: 2.4em;
+    font-weight: 700;
+    color: #2f4f4f;
+    margin: 0 0 12px;
+}
+
+#finalScore {
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #555;
+    margin: 0;
+}
+
+#stars {
+    font-size: 44px;
+    margin-top: 14px;
+    letter-spacing: 4px;
+}
+
+.playAgain-btn {
+    width: 170px;
+    background: #1fb36b;
+    color: #fff;
+    border: none;
+    padding: 14px 36px;
+    border-radius: 24px;
+    font-size: 18px;
+    font-family: 'Livvic', sans-serif;
+    font-weight: 700;
+    margin-top: 16px;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.playAgain-btn:hover {
+    transform: scale(1.05);
+}
+
+/* =============================================
+   TABLET (max-width: 900px)
+   ============================================= */
+@media (max-width: 900px) {
+    :root {
+        --col-w: clamp(180px, 34vw, 320px);
+        --gap-between: clamp(36px, 8vw, 70px);
+    }
+
+    .screen {
+        padding: clamp(12px, 2.5vh, 28px) clamp(12px, 3vw, 28px);
+    }
+
+    .question {
+        font-size: clamp(18px, 2.4vw + 1.4vh, 30px);
+        margin-bottom: clamp(12px, 2.4vh, 26px);
+    }
+}
+
+/* =============================================
+   MOBILE (max-width: 480px) — tighten columns so
+   both sides still fit without scroll/wrap
+   ============================================= */
+@media (max-width: 480px) {
+    :root {
+        --col-w: 44vw;
+        --gap-between: 6vw;
+        --item-gap: 8px;
+    }
+
+    .match-item {
+        font-size: clamp(11px, 3vw, 15px);
+        padding: 0 8px;
+        border-radius: 12px;
+    }
+
+    .home {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+}
+
+/* =============================================
+   DESKTOP (min-width: 1440px) — use the extra
+   room instead of staying laptop-sized
+   ============================================= */
+@media (min-width: 1440px) {
+    :root {
+        --col-w: 480px;
+        --gap-between: 110px;
+        --dot-size: 30px;
+        --row-h: 80px !important;   /* fixed, safe height — overrides JS's inline value */
+        --row-gap: 24px !important; /* fixed, safe gap — overrides JS's inline value */
+        --item-gap: 18px;
+    }
+
+    .screen {
+        padding: 40px 64px;
+    }
+
+    .question {
+        font-size: 40px;
+        margin-bottom: 40px;
+    }
+
+    .match-item {
+        height: var(--row-h);
+        font-size: 24px !important;
+        padding: 0 24px;
+        border-radius: 18px;
+    }
+
+    /* Same image size in both columns */
+    .left-col .match-item img,
+    .right-col .match-item img {
+        width: 70px !important;
+        height: 70px !important;
+        object-fit: contain;
+    }
+
+    .left-col .match-item span,
+    .right-col .match-item span {
+        font-size: 26px;
+    }
+}
