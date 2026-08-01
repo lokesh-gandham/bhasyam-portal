@@ -188,7 +188,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
             <ArrowLeft className="size-4" /> Back
           </button>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4 stagger">
           {subject.lessons.map((l, i) => (
             <button
               key={l.id}
@@ -219,7 +219,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
 
   if (grade) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6 pt-8 animate-view-in">
         <div className="text-center">
           <div className="inline-flex items-center justify-center size-20 mb-4">
             <GraduationCap className="size-12 text-primary" />
@@ -235,7 +235,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
             <ArrowLeft className="size-4" /> Back
           </button>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
           {grade.subjects.filter((s) => allowedSubjectIds.includes(s.id)).map((s) => (
             <button
               key={s.id}
@@ -262,7 +262,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
   }
 
   return (
-    <div className="space-y-6 pt-8">
+    <div className="space-y-6 pt-8 animate-view-in">
       <div className="text-center">
         <div className="inline-flex items-center justify-center size-20 mb-4">
           <GraduationCap className="size-12 text-primary" />
@@ -271,7 +271,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
         <p className="text-sm text-muted-foreground mt-2">Select a grade to explore its subjects and lessons</p>
         <p className="text-sm text-muted-foreground mt-1">{grades.length} Total Grades</p>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-4 stagger">
         {grades.map((g) => (
           <button
             key={g.id}
@@ -294,7 +294,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
 
 function LessonList({ lessons, onOpen }: { lessons: Lesson[]; onOpen: (l: Lesson) => void }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 stagger">
       {lessons.map((l, i) => (
         <button
           key={l.id}
@@ -332,7 +332,7 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
   if (subject) {
     const gradeLabel = grades.find((g) => g.id === selectedGrade)?.label;
     return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-8 animate-view-in">
         <div className="text-center">
           <div className="inline-flex items-center justify-center size-20 mb-4">
             {subject.iconImage ? (
@@ -353,7 +353,7 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
             <ArrowLeft className="size-4" /> Back
           </button>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4 stagger">
           {subject.lessons.map((l, i) => (
             <button
               key={l.id}
@@ -386,7 +386,7 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
   if (selectedSubject) {
     const subjectData = allSubjects.find((s) => s.id === selectedSubject);
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pt-8 animate-view-in">
         <div className="text-center">
           <div className="inline-flex items-center justify-center size-20 mb-4">
             {subjectData?.iconImage ? (
@@ -407,7 +407,7 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
             <ArrowLeft className="size-4" /> Back
           </button>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4 stagger">
           {grades.map((g) => (
             <button
               key={g.id}
@@ -434,7 +434,7 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
     .filter((s, i, arr) => arr.findIndex((x) => x.id === s.id) === i);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 pt-8 animate-view-in">
       <div className="text-center">
         <div className="inline-flex items-center justify-center size-20 mb-4">
           <BookOpen className="size-12 text-primary" />
