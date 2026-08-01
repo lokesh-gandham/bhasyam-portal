@@ -85,7 +85,7 @@ function DashboardScreen() {
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto px-2 py-3 sidebar-scroll">
             {!collapsed && (
-              <div className="px-2 mb-1 text-[10px] font-semibold uppercase tracking-widest text-foreground/60">
+              <div className="px-2.5 mb-2 text-xs font-medium uppercase tracking-wider text-foreground/50">
                 Workspace
               </div>
             )}
@@ -110,16 +110,16 @@ function DashboardScreen() {
                         }
                         setActive(item.id);
                       }}
-                      className={`group relative w-full h-9 ${collapsed ? "justify-center px-0" : "px-2.5"} rounded-md flex items-center gap-2.5 text-sm transition-all duration-200 active:scale-[0.98] ${
+                      className={`group relative w-full h-10 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-3 text-sm transition-all duration-200 active:scale-[0.98] ${
                         isActive
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-foreground hover:bg-muted hover:translate-x-0.5"
+                          ? "bg-primary/10 text-primary font-medium shadow-sm"
+                          : "text-foreground/70 hover:bg-muted hover:text-foreground hover:translate-x-0.5"
                       }`}
                     >
                       {isActive && (
-                        <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-primary" />
+                        <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-primary" />
                       )}
-                      <Icon className={`size-4 shrink-0 transition-transform ${isActive ? "text-primary" : "text-foreground"} group-hover:scale-110`} />
+                      <Icon className={`size-[18px] shrink-0 transition-all ${isActive ? "text-primary" : "text-foreground/50 group-hover:text-foreground/80"} group-hover:scale-105`} />
                       {!collapsed && (
                         <>
                           <span className="flex-1 text-left truncate">{item.label}</span>
@@ -139,7 +139,7 @@ function DashboardScreen() {
             {/* Grades accordion in sidebar */}
             {!collapsed && active === "grades" && (
               <div className="mt-3 space-y-1">
-                <div className="px-2 mb-1 text-[10px] font-semibold uppercase tracking-widest text-foreground/60">
+                <div className="px-2.5 mb-2 text-xs font-medium uppercase tracking-wider text-foreground/50">
                   Select a Grade
                 </div>
                 {grades.map((g) => {
@@ -149,15 +149,15 @@ function DashboardScreen() {
                     <div key={g.id}>
                       <button
                         onClick={() => setExpandedGrade(isExpanded ? null : g.id)}
-                        className="w-full px-2.5 py-2 flex items-center gap-2.5 rounded-md text-sm hover:bg-muted transition-colors"
+                        className="w-full px-3 py-2.5 flex items-center gap-2.5 rounded-lg text-sm hover:bg-muted transition-all"
                       >
-                        <span className={`size-6 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0 ${
+                        <span className={`size-7 rounded-lg flex items-center justify-center text-[11px] font-semibold shrink-0 transition-colors ${
                           isExpanded ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
                         }`}>
                           {g.level}
                         </span>
-                        <span className="flex-1 text-left">Grade {g.level}</span>
-                        <ChevronDown className={`size-3.5 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                        <span className="flex-1 text-left font-medium">Grade {g.level}</span>
+                        <ChevronDown className={`size-3.5 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                       </button>
                       {isExpanded && (
                         <div className="ml-5 pl-3 border-l border-border space-y-0.5 py-1">
@@ -233,7 +233,7 @@ function DashboardScreen() {
               <button
                 onClick={() => setCollapsed((c) => !c)}
                 title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                className="h-8 w-8 rounded-md border border-border hover:bg-muted flex items-center justify-center transition-all active:scale-95"
+                className="h-8 w-8 rounded-lg border border-border hover:bg-muted hover:border-foreground/20 flex items-center justify-center transition-all active:scale-95"
               >
                 {collapsed ? (
                   <PanelLeftOpen className="size-4 text-muted-foreground" />
@@ -242,9 +242,9 @@ function DashboardScreen() {
                 )}
               </button>
               <div className="h-5 w-px bg-border" />
-              <span className="text-muted-foreground">Workspace</span>
-              <ChevronRight className="size-3.5 text-muted-foreground" />
-              <span className="font-semibold capitalize">{active}</span>
+              <span className="text-muted-foreground/80">Workspace</span>
+              <ChevronRight className="size-3.5 text-muted-foreground/60" />
+              <span className="font-medium capitalize text-foreground">{active}</span>
             </div>
           </div>
 

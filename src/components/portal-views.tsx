@@ -221,11 +221,11 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
     return (
       <div className="space-y-4">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center size-16 mb-3 bg-primary/10 rounded-full">
-            <GraduationCap className="size-8 text-primary" />
+          <div className="inline-flex items-center justify-center size-20 mb-4">
+            <GraduationCap className="size-12 text-primary" />
           </div>
-          <h2 className="text-2xl tracking-tight">{grade.label} - Subjects</h2>
-          <p className="text-sm text-muted-foreground mt-1">Choose a subject to explore lessons</p>
+          <h2 className="text-3xl tracking-tight">{grade.label} - Subjects</h2>
+          <p className="text-sm text-muted-foreground mt-2">Choose a subject to explore lessons</p>
         </div>
         <div>
           <button
@@ -271,18 +271,20 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
         <p className="text-sm text-muted-foreground mt-2">Select a grade to explore its subjects and lessons</p>
         <p className="text-sm text-muted-foreground mt-1">{grades.length} Total Grades</p>
       </div>
-      <div className="grid grid-cols-5 gap-4">
+      <div className="space-y-4">
         {grades.map((g) => (
           <button
             key={g.id}
             onClick={() => setNavTracked({ gradeId: g.id })}
-            className="bg-card border border-border rounded-xl p-6 text-left hover:shadow-sm hover:border-primary/40 transition-all group"
+            className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
           >
-            <div className="text-base font-semibold uppercase tracking-wider">Grade</div>
-            <div className="text-3xl tracking-tight mt-2">{g.level}</div>
-            <div className="text-sm text-primary font-medium inline-flex items-center gap-1 mt-3 group-hover:gap-2 transition-all">
+            <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
+              {String(g.level).padStart(2, "0")}
+            </span>
+            <span className="text-base font-medium flex-1 text-left">Grade {g.level}</span>
+            <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
               Open <ChevronRight className="size-4" />
-            </div>
+            </span>
           </button>
         ))}
       </div>
@@ -386,15 +388,15 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center size-16 mb-3">
+          <div className="inline-flex items-center justify-center size-20 mb-4">
             {subjectData?.iconImage ? (
-              <img src={subjectData.iconImage} alt={subjectData.name} className="size-16 object-contain" />
+              <img src={subjectData.iconImage} alt={subjectData.name} className="size-20 object-contain" />
             ) : (
-              <span className="text-5xl">{subjectData?.icon}</span>
+              <span className="text-6xl">{subjectData?.icon}</span>
             )}
           </div>
-          <h2 className="text-2xl tracking-tight">{subjectData?.name} - Grades</h2>
-          <p className="text-sm text-muted-foreground mt-1">Choose a grade to explore subjects and lessons</p>
+          <h2 className="text-3xl tracking-tight">{subjectData?.name} - Grades</h2>
+          <p className="text-sm text-muted-foreground mt-2">Choose a grade to explore subjects and lessons</p>
           <p className="text-sm text-muted-foreground mt-1">5 Total Grades</p>
         </div>
         <div>
@@ -405,18 +407,20 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
             <ArrowLeft className="size-4" /> Back
           </button>
         </div>
-        <div className="grid grid-cols-5 gap-4">
+        <div className="space-y-4">
           {grades.map((g) => (
             <button
               key={g.id}
               onClick={() => setSelectedGrade(g.id)}
-              className="bg-card border border-border rounded-xl p-6 text-left hover:shadow-sm hover:border-primary/40 transition-all group"
+              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
             >
-            <div className="text-sm font-semibold uppercase tracking-wider">Grade</div>
-            <div className="text-5xl tracking-tight mt-2">{g.level}</div>
-              <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-3 group-hover:gap-2 transition-all">
-                Open <ChevronRight className="size-3" />
-              </div>
+              <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
+                {String(g.level).padStart(2, "0")}
+              </span>
+              <span className="text-base font-medium flex-1 text-left">Grade {g.level}</span>
+              <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
+                Open <ChevronRight className="size-4" />
+              </span>
             </button>
           ))}
         </div>
@@ -432,8 +436,11 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
   return (
     <div className="space-y-4">
       <div className="text-center">
-          <h2 className="text-xl tracking-tight">Subjects</h2>
-        <p className="text-sm text-muted-foreground">Select a subject to explore its grades and lessons.</p>
+        <div className="inline-flex items-center justify-center size-20 mb-4">
+          <BookOpen className="size-12 text-primary" />
+        </div>
+        <h2 className="text-3xl tracking-tight">Subjects</h2>
+        <p className="text-sm text-muted-foreground mt-2">Select a subject to explore its grades and lessons.</p>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {uniqueSubjects.map((s) => (
