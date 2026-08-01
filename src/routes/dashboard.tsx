@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   BookOpen,
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { GradesView, SubjectsView, OverviewView } from "@/components/portal-views";
 import { grades, allSubjects } from "@/lib/curriculum";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -44,6 +45,17 @@ function DashboardScreen() {
   const [subjectsKey, setSubjectsKey] = useState(0);
   const [currentNav, setCurrentNav] = useState<{ gradeId?: string; subjectId?: string }>({});
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate({ to: "/", replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-background text-foreground flex flex-col">
@@ -200,7 +212,10 @@ function DashboardScreen() {
               )}
             </div>
             <button
-              onClick={() => navigate({ to: "/" })}
+              onClick={() => {
+                logout();
+                navigate({ to: "/" });
+              }}
               title={collapsed ? "Log out" : undefined}
               className={`w-full h-9 ${collapsed ? "justify-center px-0" : "px-2.5"} rounded-md flex items-center gap-2.5 text-sm text-foreground/80 hover:bg-destructive/10 hover:text-destructive transition-colors active:scale-[0.98]`}
             >

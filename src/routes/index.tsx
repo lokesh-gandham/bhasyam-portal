@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, Mail, Lock } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({
   component: LoginScreen,
@@ -11,7 +12,18 @@ function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [stage, setStage] = useState<"logo" | "form">("logo");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated, login } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate({ to: "/dashboard", replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 grid-bg flex flex-col text-foreground selection:bg-primary/20 overflow-hidden">
@@ -140,7 +152,16 @@ function LoginScreen() {
                 className="px-8 pb-6 space-y-3"
                 onSubmit={(e) => {
                   e.preventDefault();
-                  navigate({ to: "/dashboard" });
+                  setError("");
+                  setIsLoading(true);
+
+                  const result = login(username, password);
+                  if (result.success) {
+                    navigate({ to: "/dashboard" });
+                  } else {
+                    setError(result.error || "Login failed");
+                    setIsLoading(false);
+                  }
                 }}
               >
                 <motion.div
@@ -162,6 +183,11 @@ function LoginScreen() {
                       type="text"
                       autoComplete="username"
                       placeholder="admin@bhasyam.edu"
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setError("");
+                      }}
                       className="w-full h-9 pl-9 pr-3 bg-background border border-border rounded-lg text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
                     />
                   </div>
@@ -200,6 +226,11 @@ function LoginScreen() {
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setError("");
+                      }}
                       className="w-full h-9 pl-9 pr-3 bg-background border border-border rounded-lg text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
                     />
                   </div>
@@ -236,15 +267,35 @@ function LoginScreen() {
                   </a>
                 </motion.div>
 
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="px-3 py-2 bg-destructive/10 border border-destructive/20 rounded-lg"
+                  >
+                    <p className="text-xs text-destructive font-medium">{error}</p>
+                  </motion.div>
+                )}
+
                 <motion.button
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6, duration: 0.4 }}
                   type="submit"
-                  className="btn-shine group w-full h-10 bg-foreground text-white rounded-lg text-sm font-semibold tracking-wide transition-all hover:bg-black/90 active:scale-[0.98] shadow-lg shadow-black/10 mt-1 inline-flex items-center justify-center gap-2"
+                  disabled={isLoading}
+                  className="btn-shine group w-full h-10 bg-foreground text-white rounded-lg text-sm font-semibold tracking-wide transition-all hover:bg-black/90 active:scale-[0.98] shadow-lg shadow-black/10 mt-1 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Sign In to Portal
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                  {isLoading ? (
+                    <>
+                      <div className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Signing In...
+                    </>
+                  ) : (
+                    <>
+                      Sign In to Portal
+                      <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                    </>
+                  )}
                 </motion.button>
               </form>
 

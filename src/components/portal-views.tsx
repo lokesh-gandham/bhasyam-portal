@@ -75,13 +75,13 @@ function SubjectCard({ subject, onOpen, gradeLabel }: { subject: Subject; onOpen
           subject.icon
         )}
       </div>
-      <div className="mt-3 text-sm">{subject.name}</div>
+      <div className="mt-3 text-base font-semibold">{subject.name}</div>
       {gradeLabel && (
-        <div className="font-mono-ui text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5">
+        <div className="font-mono-ui text-[10px] uppercase tracking-widest mt-0.5">
           {gradeLabel}
         </div>
       )}
-      <div className="mt-2 text-xs text-muted-foreground">{subject.lessons.length} lessons</div>
+      <div className="mt-2 text-xs">{subject.lessons.length} lessons</div>
       <div className="mt-3 text-xs text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         Open <ChevronRight className="size-3" />
       </div>
@@ -99,12 +99,12 @@ function GradeCard({ grade, onOpen }: { grade: Grade; onOpen: () => void }) {
         <div className="inline-flex items-center justify-center size-12 rounded-lg bg-primary/10 text-primary">
           <GraduationCap className="size-6" />
         </div>
-        <span className="font-mono-ui text-[10px] uppercase tracking-widest text-muted-foreground">
+        <span className="font-mono-ui text-[10px] uppercase tracking-widest font-semibold">
           Level 0{grade.level}
         </span>
       </div>
-      <div className="mt-3 text-base">{grade.label}</div>
-      <div className="text-xs text-muted-foreground mt-0.5">{grade.subjects.length} subjects available</div>
+      <div className="mt-3 text-base font-semibold">{grade.label}</div>
+      <div className="text-xs mt-0.5">{grade.subjects.length} subjects available</div>
       <div className="mt-3 flex -space-x-1">
         {grade.subjects.slice(0, 5).map((s) => (
           <span
@@ -237,8 +237,8 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                   <span className="text-4xl">{s.icon}</span>
                 )}
               </div>
-              <div className="text-lg">{s.name}</div>
-              <div className="text-sm text-muted-foreground mt-1">{s.description}</div>
+              <div className="text-lg font-semibold">{s.name}</div>
+              <div className="text-sm mt-1">{s.description}</div>
               <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-4 group-hover:gap-2 transition-all">
                 Explore <ChevronRight className="size-3" />
               </div>
@@ -266,7 +266,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
             onClick={() => setNavTracked({ gradeId: g.id })}
             className="bg-card border border-border rounded-xl p-6 text-left hover:shadow-sm hover:border-primary/40 transition-all group"
           >
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Grade</div>
+            <div className="text-[10px] font-semibold uppercase tracking-wider">Grade</div>
             <div className="text-3xl tracking-tight mt-2">{g.level}</div>
             <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-3 group-hover:gap-2 transition-all">
               Open <ChevronRight className="size-3" />
@@ -398,7 +398,7 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
               onClick={() => setSelectedGrade(g.id)}
               className="bg-card border border-border rounded-xl p-6 text-left hover:shadow-sm hover:border-primary/40 transition-all group"
             >
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Grade</div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider">Grade</div>
             <div className="text-3xl tracking-tight mt-2">{g.level}</div>
               <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-3 group-hover:gap-2 transition-all">
                 Open <ChevronRight className="size-3" />
@@ -435,8 +435,8 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
                 <span className="text-5xl">{s.icon}</span>
               )}
             </div>
-            <div className="text-lg">{s.name}</div>
-            <div className="text-sm text-muted-foreground mt-1">{s.description}</div>
+            <div className="text-lg font-semibold">{s.name}</div>
+            <div className="text-sm mt-1">{s.description}</div>
             <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-4 group-hover:gap-2 transition-all">
               Explore <ChevronRight className="size-3" />
             </div>
@@ -571,8 +571,8 @@ export function OverviewView({ onOpenSubject }: { onOpenSubject?: (subjectId: st
                   <span className="text-4xl">{s.icon}</span>
                 )}
               </div>
-              <div className="text-sm text-center">{s.name}</div>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">5 grades</span>
+              <div className="text-sm font-semibold text-center">{s.name}</div>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-muted">5 grades</span>
             </button>
           ))}
         </div>
