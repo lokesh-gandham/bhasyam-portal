@@ -35,6 +35,8 @@ function Crumbs({ items }: { items: { label: string; onClick?: () => void }[] })
 }
 
 function LessonReader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
+  const [selected, setSelected] = useState<Record<number, number>>({});
+
   return (
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="px-6 py-4 border-b border-border flex items-center justify-between">
@@ -62,6 +64,47 @@ function LessonReader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }
             ))}
           </ul>
         </div>
+        {lesson.quiz.length > 0 && (
+          <div className="pt-2">
+            <h3 className="text-sm font-semibold mb-3">Quiz</h3>
+            <div className="space-y-4">
+              {lesson.quiz.map((q, qi) => {
+                const answered = selected[qi] !== undefined;
+                return (
+                  <div key={qi} className="border border-border rounded-lg p-4">
+                    <p className="text-sm font-medium mb-3">
+                      {qi + 1}. {q.q}
+                    </p>
+                    <div className="space-y-2">
+                      {q.options.map((opt, oi) => {
+                        const chosen = selected[qi] === oi;
+                        const isCorrect = oi === q.answer;
+                        return (
+                          <button
+                            key={oi}
+                            onClick={() => setSelected((s) => ({ ...s, [qi]: oi }))}
+                            disabled={answered}
+                            className={`w-full text-left px-3 py-2 rounded-md border text-sm transition-colors ${
+                              answered
+                                ? isCorrect
+                                  ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 font-medium"
+                                  : chosen
+                                    ? "border-destructive/50 bg-destructive/10 text-destructive font-medium"
+                                    : "border-border opacity-50"
+                                : "border-border hover:border-primary/40 hover:bg-muted"
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -273,30 +316,21 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
         <p className="text-sm 2xl:text-base text-foreground mt-1 font-semibold">{grades.length} Total Grades</p>
       </div>
       <div className="space-y-4 stagger">
-        {grades.map((g) => {
-          const isComingSoon = g.subjects.some((s) => showComingSoon(s.id, g.id) && allowedSubjectIds.includes(s.id));
-          return (
-            <button
-              key={g.id}
-              onClick={() => {
-                if (isComingSoon) return;
-                setNavTracked({ gradeId: g.id });
-              }}
-              disabled={isComingSoon}
-              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-100 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
-            >
-              <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
-                {String(g.level).padStart(2, "0")}
-              </span>
-              <span className="text-base 2xl:text-xl font-medium flex-1 text-left">Grade {g.level}</span>
-              <span className="text-sm font-medium text-white inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-primary/15 disabled:hover:bg-primary/15 disabled:text-primary disabled:border disabled:border-primary/30 disabled:font-semibold">
-
-
-                {isComingSoon ? "Coming Soon" : <><ChevronRight className="size-4" /> Open</>}
-              </span>
-            </button>
-          );
-        })}
+        {grades.map((g) => (
+          <button
+            key={g.id}
+            onClick={() => setNavTracked({ gradeId: g.id })}
+            className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
+          >
+            <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
+              {String(g.level).padStart(2, "0")}
+            </span>
+            <span className="text-base 2xl:text-xl font-medium flex-1 text-left">Grade {g.level}</span>
+            <span className="text-sm font-medium text-white inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
+              <ChevronRight className="size-4" /> Open
+            </span>
+          </button>
+        ))}
       </div>
     </div>
   );

@@ -65,16 +65,16 @@ function DashboardScreen() {
       <div className="flex-1 flex min-h-0">
         {/* Sidebar */}
         <aside
-          className={`${collapsed ? "w-16" : "w-64"} shrink-0 border-r border-border bg-card flex flex-col transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden`}
+          className={`${collapsed ? "w-16" : "w-72 2xl:w-80"} shrink-0 border-r border-border bg-card flex flex-col transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden`}
         >
           {/* Brand */}
-          <div className="px-3 py-4 border-b border-border flex items-center gap-3 h-[73px]">
-            <div className="size-10 rounded-lg bg-background border border-border flex items-center justify-center overflow-hidden shrink-0">
-              <img src="/images/bhasyam-logo.png" alt="Bhasyam" className="h-8 w-8 object-contain" />
+          <div className="px-4 py-5 border-b border-border flex items-center gap-3 h-24 2xl:h-28">
+            <div className="size-14 2xl:size-16 rounded-xl bg-background border border-border flex items-center justify-center overflow-hidden shrink-0">
+              <img src="/images/bhasyam-logo.png" alt="Bhasyam" className="h-12 w-12 2xl:h-14 2xl:w-14 object-contain" />
             </div>
             {!collapsed && (
               <div className="min-w-0 animate-fade-in-up">
-                <div className="text-sm font-semibold tracking-tight leading-tight truncate">
+                <div className="text-xl 2xl:text-2xl font-bold tracking-tight leading-tight truncate">
                   Assessment CMS
                 </div>
               </div>
@@ -110,7 +110,7 @@ function DashboardScreen() {
                         }
                         setActive(item.id);
                       }}
-                      className={`group relative w-full h-10 2xl:h-11 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-3 text-sm 2xl:text-base font-medium transition-all duration-200 active:scale-[0.98] ${
+                      className={`group relative w-full h-11 2xl:h-12 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-3 text-base 2xl:text-lg font-medium transition-all duration-200 active:scale-[0.98] ${
                         isActive
                           ? "bg-primary/10 text-primary font-medium 2xl:font-semibold shadow-sm"
                           : "text-foreground hover:bg-muted hover:translate-x-0.5"
@@ -119,7 +119,7 @@ function DashboardScreen() {
                       {isActive && (
                         <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-primary" />
                       )}
-                      <Icon className={`size-[18px] shrink-0 transition-all ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"} group-hover:scale-105`} />
+                      <Icon className={`size-5 shrink-0 transition-all ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"} group-hover:scale-105`} />
                       {!collapsed && (
                         <>
                           <span className="flex-1 text-left truncate">{item.label}</span>
@@ -138,8 +138,8 @@ function DashboardScreen() {
 
             {/* Grades accordion in sidebar */}
             {!collapsed && (active === "grades" || !isMobile) && (
-              <div className="mt-3 space-y-1">
-                <div className="px-2.5 mb-2 text-sm 2xl:text-base font-semibold tracking-wider text-muted-foreground">
+              <div className="mt-3 space-y-1.5">
+                <div className="px-2.5 mb-2 text-base 2xl:text-lg font-semibold tracking-wider text-muted-foreground">
                   Select a Grade
                 </div>
                 {grades.map((g) => {
@@ -149,15 +149,15 @@ function DashboardScreen() {
                     <div key={g.id}>
                       <button
                         onClick={() => setExpandedGrade(isExpanded ? null : g.id)}
-                        className="w-full px-3 py-2.5 flex items-center gap-2.5 rounded-lg text-sm hover:bg-muted transition-all"
+                        className="w-full px-3 py-3 2xl:py-3.5 flex items-center gap-3 2xl:gap-3.5 rounded-lg text-base 2xl:text-lg hover:bg-muted transition-all"
                       >
-                        <span className={`size-7 rounded-lg flex items-center justify-center text-[11px] font-semibold shrink-0 transition-colors ${
+                        <span className={`size-8 2xl:size-9 rounded-lg flex items-center justify-center text-xs 2xl:text-sm font-semibold shrink-0 transition-colors ${
                           isExpanded ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
                         }`}>
                           {g.level}
                         </span>
                         <span className="flex-1 text-left font-medium">Grade {g.level}</span>
-                        <ChevronDown className={`size-3.5 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                        <ChevronDown className={`size-5 2xl:size-6 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                       </button>
                       {isExpanded && (
                         <div className="ml-5 pl-3 border-l border-border space-y-0.5 py-1">
@@ -171,13 +171,13 @@ function DashboardScreen() {
                                 setGradesKey((k) => k + 1);
                                 setActive("grades");
                               }}
-                              className={`w-full px-2 py-1.5 flex items-center gap-2 rounded-md text-xs transition-colors text-left ${isSelected ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"}`}
+                              className={`w-full px-2 py-2 2xl:py-2.5 flex items-center gap-2.5 2xl:gap-3 rounded-md text-base 2xl:text-lg font-medium text-foreground transition-colors text-left ${isSelected ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"}`}
                             >
-                              <div className="size-5 flex items-center justify-center shrink-0">
+                              <div className="size-7 2xl:size-8 flex items-center justify-center shrink-0">
                                 {s.iconImage ? (
-                                  <img src={s.iconImage} alt={s.name} className="size-5 object-contain" />
+                                  <img src={s.iconImage} alt={s.name} className="size-7 2xl:size-8 object-contain" />
                                 ) : (
-                                  <span className="text-sm">{s.icon}</span>
+                                  <span className="text-lg 2xl:text-xl leading-none">{s.icon}</span>
                                 )}
                               </div>
                               <span>{s.name}</span>
@@ -194,17 +194,17 @@ function DashboardScreen() {
           </nav>
 
           {/* Admin details + logout at bottom */}
-          <div className="border-t border-border p-3 space-y-2">
-            <div className={`flex items-center gap-2.5 ${collapsed ? "justify-center px-0" : "px-2"} py-2 rounded-md hover:bg-muted transition-colors`}>
-              <div className="size-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold shrink-0 ring-2 ring-background">
+          <div className="border-t border-border p-3.5 space-y-2.5">
+            <div className={`flex items-center gap-3 ${collapsed ? "justify-center px-0" : "px-2"} py-2 rounded-md hover:bg-muted transition-colors`}>
+              <div className="size-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shrink-0 ring-2 ring-background">
                 AD
               </div>
               {!collapsed && (
                 <>
                   <div className="min-w-0 flex-1 animate-fade-in-up">
-                    <div className="text-xs font-semibold truncate">Admin</div>
+                    <div className="text-base font-semibold truncate">Admin</div>
                   </div>
-                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
                 </>
               )}
             </div>
@@ -214,9 +214,9 @@ function DashboardScreen() {
                 navigate({ to: "/" });
               }}
               title={collapsed ? "Log out" : undefined}
-              className={`w-full h-9 ${collapsed ? "justify-center px-0" : "px-2.5"} rounded-md flex items-center gap-2.5 text-sm text-foreground hover:bg-destructive/10 hover:text-destructive transition-colors active:scale-[0.98]`}
+              className={`w-full h-11 ${collapsed ? "justify-center px-0" : "px-2.5"} rounded-md flex items-center gap-3 text-base text-foreground hover:bg-destructive/10 hover:text-destructive transition-colors active:scale-[0.98]`}
             >
-              <LogOut className="size-4 shrink-0" />
+              <LogOut className="size-5 shrink-0" />
               {!collapsed && <span>Log out</span>}
             </button>
           </div>
