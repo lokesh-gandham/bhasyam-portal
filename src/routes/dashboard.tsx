@@ -17,10 +17,10 @@ import { useAuth } from "@/hooks/use-auth";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — Bhasyam Assessment CMS" },
-      { name: "description", content: "Bhasyam Assessment CMS admin dashboard." },
-      { property: "og:title", content: "Dashboard — Bhasyam Assessment CMS" },
-      { property: "og:description", content: "Bhasyam Assessment CMS admin dashboard." },
+      { title: "Assessment CMS" },
+      { name: "description", content: "Assessment CMS admin dashboard." },
+      { property: "og:title", content: "Assessment CMS" },
+      { property: "og:description", content: "Assessment CMS admin dashboard." },
     ],
   }),
   component: DashboardScreen,
@@ -28,8 +28,8 @@ export const Route = createFileRoute("/dashboard")({
 
 const nav = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: null as string | null },
-  { id: "subjects", label: "Subjects", icon: BookOpen, badge: String(allSubjects.length) },
-  { id: "grades", label: "Grades", icon: GraduationCap, badge: String(grades.length) },
+  { id: "subjects", label: "Subjects", icon: BookOpen, badge: null as string | null },
+  { id: "grades", label: "Grades", icon: GraduationCap, badge: null as string | null },
 ];
 
 const allowedSubjectIds = ["science", "hindi", "social", "english"];
@@ -113,13 +113,13 @@ function DashboardScreen() {
                       className={`group relative w-full h-9 ${collapsed ? "justify-center px-0" : "px-2.5"} rounded-md flex items-center gap-2.5 text-sm transition-all duration-200 active:scale-[0.98] ${
                         isActive
                           ? "bg-primary/10 text-primary font-medium"
-                          : "text-foreground/80 hover:bg-muted hover:translate-x-0.5"
+                          : "text-foreground hover:bg-muted hover:translate-x-0.5"
                       }`}
                     >
                       {isActive && (
                         <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-primary" />
                       )}
-                      <Icon className={`size-4 shrink-0 transition-transform ${isActive ? "text-primary" : "text-foreground/60"} group-hover:scale-110`} />
+                      <Icon className={`size-4 shrink-0 transition-transform ${isActive ? "text-primary" : "text-foreground"} group-hover:scale-110`} />
                       {!collapsed && (
                         <>
                           <span className="flex-1 text-left truncate">{item.label}</span>
