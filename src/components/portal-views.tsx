@@ -2,6 +2,16 @@ import { useEffect, useState } from "react";
 import { ChevronRight, ArrowLeft, GraduationCap, BookOpen, FileText } from "lucide-react";
 import { grades, allSubjects, allLessons, type Lesson, type Subject, type Grade } from "@/lib/curriculum";
 
+function showComingSoon(subjectId: string, gradeId?: string): boolean {
+  if (subjectId === "english") return true;
+  if (subjectId === "social" && gradeId && (gradeId === "grade-1" || gradeId === "grade-2")) return true;
+  return false;
+}
+
+function comingSoonAlert() {
+  alert("🚧 Coming Soon — Stay Tuned! This content is under development and will be available shortly.");
+}
+
 type Nav = {
   gradeId?: string;
   subjectId?: string;
@@ -183,7 +193,9 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
             <button
               key={l.id}
               onClick={() => {
-                if (l.htmlPath) {
+                if (showComingSoon(subject.id, grade!.id)) {
+                  comingSoonAlert();
+                } else if (l.htmlPath) {
                   window.open(l.htmlPath, "_blank");
                 } else {
                   setNavTracked({ gradeId: grade!.id, subjectId: subject.id, lessonId: l.id });
@@ -344,7 +356,9 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
             <button
               key={l.id}
               onClick={() => {
-                if (l.htmlPath) {
+                if (showComingSoon(subject.id, subject.gradeId)) {
+                  comingSoonAlert();
+                } else if (l.htmlPath) {
                   window.open(l.htmlPath, "_blank");
                 } else {
                   onOpenLesson({ gradeId: subject.gradeId, subjectId: subject.id, lessonId: l.id });
@@ -482,7 +496,9 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
             <li key={`${l.gradeId}-${l.subjectId}-${l.id}`}>
               <button
                 onClick={() => {
-                  if (l.htmlPath) {
+                  if (showComingSoon(l.subjectId, l.gradeId)) {
+                    comingSoonAlert();
+                  } else if (l.htmlPath) {
                     window.open(l.htmlPath, "_blank");
                   } else {
                     onOpenLesson({ gradeId: l.gradeId, subjectId: l.subjectId, lessonId: l.id });
@@ -499,8 +515,12 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
                 </div>
                 <div className="col-span-3 text-sm">{l.subjectName}</div>
                 <div className="col-span-2 text-sm text-muted-foreground">{l.gradeLabel}</div>
-                <div className="col-span-1 text-right font-mono-ui text-[10px] text-muted-foreground">
-                  {l.quiz.length}Q
+                <div className="col-span-1 text-right">
+                  {showComingSoon(l.subjectId, l.gradeId) ? (
+                    <span className="font-mono-ui text-[10px] text-orange-500 font-semibold">SOON</span>
+                  ) : (
+                    <span className="font-mono-ui text-[10px] text-muted-foreground">{l.quiz.length}Q</span>
+                  )}
                 </div>
               </button>
             </li>
