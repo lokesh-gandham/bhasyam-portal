@@ -278,10 +278,10 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
             onClick={() => setNavTracked({ gradeId: g.id })}
             className="bg-card border border-border rounded-xl p-6 text-left hover:shadow-sm hover:border-primary/40 transition-all group"
           >
-            <div className="text-[10px] font-semibold uppercase tracking-wider">Grade</div>
+            <div className="text-base font-semibold uppercase tracking-wider">Grade</div>
             <div className="text-3xl tracking-tight mt-2">{g.level}</div>
-            <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-3 group-hover:gap-2 transition-all">
-              Open <ChevronRight className="size-3" />
+            <div className="text-sm text-primary font-medium inline-flex items-center gap-1 mt-3 group-hover:gap-2 transition-all">
+              Open <ChevronRight className="size-4" />
             </div>
           </button>
         ))}
@@ -412,8 +412,8 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
               onClick={() => setSelectedGrade(g.id)}
               className="bg-card border border-border rounded-xl p-6 text-left hover:shadow-sm hover:border-primary/40 transition-all group"
             >
-              <div className="text-[10px] font-semibold uppercase tracking-wider">Grade</div>
-            <div className="text-3xl tracking-tight mt-2">{g.level}</div>
+            <div className="text-sm font-semibold uppercase tracking-wider">Grade</div>
+            <div className="text-5xl tracking-tight mt-2">{g.level}</div>
               <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-3 group-hover:gap-2 transition-all">
                 Open <ChevronRight className="size-3" />
               </div>
@@ -582,17 +582,17 @@ export function OverviewView({ onOpenSubject }: { onOpenSubject?: (subjectId: st
             <button
               key={s.id}
               onClick={() => onOpenSubject?.(s.id)}
-              className="rounded-xl border border-border p-5 flex flex-col items-center gap-3 hover:shadow-sm hover:border-primary/40 transition-all cursor-pointer group"
+              className="rounded-xl border border-border p-8 flex flex-col items-center gap-4 hover:shadow-sm hover:border-primary/40 transition-all cursor-pointer group"
             >
-              <div className="size-16 flex items-center justify-center">
+              <div className="size-24 flex items-center justify-center">
                 {s.iconImage ? (
-                  <img src={s.iconImage} alt={s.name} className="size-16 object-contain" />
+                  <img src={s.iconImage} alt={s.name} className="size-24 object-contain" />
                 ) : (
-                  <span className="text-4xl">{s.icon}</span>
+                  <span className="text-5xl">{s.icon}</span>
                 )}
               </div>
-              <div className="text-sm font-semibold text-center">{s.name}</div>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-muted">5 grades</span>
+              <div className="text-lg font-semibold text-center">{s.name}</div>
+              <span className="text-sm px-3 py-1 rounded-full bg-muted">5 grades</span>
             </button>
           ))}
         </div>
