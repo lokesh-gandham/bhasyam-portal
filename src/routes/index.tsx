@@ -284,7 +284,6 @@ function LoginScreen() {
         <div className="flex items-center gap-1.5">
           <img
             src="/images/icon.png"
-            srcSet="/images/icon.png 1x, /images/icon@2x.png 2x, /images/icon@4x.png 4x"
             alt="Wise Wings"
             className="h-4 md:h-5 2xl:h-6 w-4 md:w-5 2xl:w-6 rounded-sm object-contain"
           />
