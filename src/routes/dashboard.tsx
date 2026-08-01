@@ -84,7 +84,7 @@ function DashboardScreen() {
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto px-2 py-3 sidebar-scroll">
             {!collapsed && (
-              <div className="px-2.5 mb-2 text-xs md:text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="px-2.5 mb-2 text-xs 2xl:text-sm font-medium 2xl:font-semibold uppercase tracking-wider text-muted-foreground">
                 Workspace
               </div>
             )}
@@ -110,9 +110,9 @@ function DashboardScreen() {
                         }
                         setActive(item.id);
                       }}
-                      className={`group relative w-full h-10 md:h-11 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-3 text-sm md:text-base font-medium transition-all duration-200 active:scale-[0.98] ${
+                      className={`group relative w-full h-10 2xl:h-11 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-3 text-sm 2xl:text-base font-medium transition-all duration-200 active:scale-[0.98] ${
                         isActive
-                          ? "bg-primary/10 text-primary font-semibold shadow-sm"
+                          ? "bg-primary/10 text-primary font-medium 2xl:font-semibold shadow-sm"
                           : "text-foreground hover:bg-muted hover:translate-x-0.5"
                       }`}
                     >
@@ -139,7 +139,7 @@ function DashboardScreen() {
             {/* Grades accordion in sidebar */}
             {!collapsed && (active === "grades" || !isMobile) && (
               <div className="mt-3 space-y-1">
-                <div className="px-2.5 mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <div className="px-2.5 mb-2 text-sm 2xl:text-base font-semibold tracking-wider text-muted-foreground">
                   Select a Grade
                 </div>
                 {grades.map((g) => {
@@ -226,22 +226,22 @@ function DashboardScreen() {
         <div className="flex-1 min-w-0 flex flex-col">
           {/* Content header */}
           <div className="h-14 border-b border-border bg-card flex items-center px-4 md:px-6 shrink-0">
-            <div className="flex items-center gap-3 text-sm md:text-lg">
+            <div className="flex items-center gap-3 text-sm 2xl:text-lg">
               <button
                 onClick={() => setCollapsed((c) => !c)}
                 title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                 aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                className="group h-9 w-9 md:h-10 md:w-10 rounded-lg border border-primary/20 bg-primary/10 text-primary shadow-sm hover:bg-primary hover:border-primary hover:text-white hover:shadow-md hover:shadow-primary/25 flex items-center justify-center transition-all duration-200 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                className="group h-9 w-9 2xl:h-10 2xl:w-10 rounded-lg border border-primary/20 bg-primary/10 text-primary shadow-sm hover:bg-primary hover:border-primary hover:text-white hover:shadow-md hover:shadow-primary/25 flex items-center justify-center transition-all duration-200 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               >
                 {collapsed ? (
-                  <PanelLeftOpen className="size-4 md:size-5 text-primary group-hover:text-white group-hover:scale-110 transition-all duration-200" />
+                  <PanelLeftOpen className="size-4 2xl:size-5 text-primary group-hover:text-white group-hover:scale-110 transition-all duration-200" />
                 ) : (
-                  <PanelLeftClose className="size-4 md:size-5 text-primary group-hover:text-white group-hover:scale-110 group-hover:-rotate-180 transition-all duration-300" />
+                  <PanelLeftClose className="size-4 2xl:size-5 text-primary group-hover:text-white group-hover:scale-110 group-hover:-rotate-180 transition-all duration-300" />
                 )}
               </button>
-              <div className="h-5 md:h-6 w-px bg-border" />
+              <div className="h-5 2xl:h-6 w-px bg-border" />
               <span className="text-foreground font-medium">Workspace</span>
-              <ChevronRight className="size-3.5 md:size-4 text-muted-foreground" />
+              <ChevronRight className="size-3.5 2xl:size-4 text-muted-foreground" />
               <span className="font-bold capitalize text-foreground">{active}</span>
             </div>
           </div>
@@ -275,18 +275,18 @@ function DashboardScreen() {
 
 
           {/* Footer */}
-          <footer className="h-10 border-t border-border bg-card px-6 flex items-center justify-center gap-2 shrink-0">
-            <span className="font-mono-ui text-[10px] text-muted-foreground tracking-tight uppercase">
+          <footer className="h-10 md:h-12 2xl:h-14 border-t border-border bg-card px-6 flex items-center justify-center gap-2 shrink-0">
+            <span className="text-xs md:text-sm 2xl:text-base text-muted-foreground">
               &copy; 2026 Assessment CMS · All rights reserved by
             </span>
             <div className="flex items-center gap-1.5">
               <img
                 src="/images/icon.png"
-                srcSet="/images/icon.png 1x, /images/icon@2x.png 2x"
+                srcSet="/images/icon.png 1x, /images/icon@2x.png 2x, /images/icon@4x.png 4x"
                 alt="Wise Wings"
-                className="h-4 w-4 rounded-sm object-contain"
+                className="h-4 md:h-5 2xl:h-6 w-4 md:w-5 2xl:w-6 rounded-sm object-contain"
               />
-              <span className="font-bold text-[11px] tracking-tighter text-foreground uppercase">
+              <span className="font-semibold text-xs md:text-sm 2xl:text-base text-foreground">
                 wise wings
               </span>
             </div>

@@ -278,17 +278,17 @@ function LoginScreen() {
         transition={{ delay: 0.3, duration: 0.5 }}
         className="h-8 2xl:h-12 border-t border-border bg-card px-6 flex items-center justify-center gap-2 shrink-0"
       >
-        <span className="font-mono-ui text-xs 2xl:text-sm text-muted-foreground tracking-tight uppercase">
+        <span className="text-sm md:text-base 2xl:text-lg text-muted-foreground">
           &copy; 2026 Assessment CMS · All rights reserved by
         </span>
         <div className="flex items-center gap-1.5">
           <img
             src="/images/icon.png"
-            srcSet="/images/icon.png 1x, /images/icon@2x.png 2x"
+            srcSet="/images/icon.png 1x, /images/icon@2x.png 2x, /images/icon@4x.png 4x"
             alt="Wise Wings"
-            className="h-4 2xl:h-5 w-4 2xl:w-5 rounded-sm object-contain"
+            className="h-4 md:h-5 2xl:h-6 w-4 md:w-5 2xl:w-6 rounded-sm object-contain"
           />
-          <span className="font-bold text-xs 2xl:text-sm tracking-tighter text-foreground uppercase">
+          <span className="font-semibold text-sm md:text-base 2xl:text-lg text-foreground">
             wise wings
           </span>
         </div>
