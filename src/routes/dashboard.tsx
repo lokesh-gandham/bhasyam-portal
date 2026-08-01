@@ -284,6 +284,7 @@ function DashboardScreen() {
             <div className="flex items-center gap-1.5">
               <img
                 src="/images/icon.png"
+                srcSet="/images/icon.png 1x, /images/icon@2x.png 2x"
                 alt="Wise Wings"
                 className="h-4 w-4 rounded-sm object-contain"
               />

@@ -8,10 +8,6 @@ function showComingSoon(subjectId: string, gradeId?: string): boolean {
   return false;
 }
 
-function comingSoonAlert() {
-  alert("🚧 Coming Soon — Stay Tuned! This content is under development and will be available shortly.");
-}
-
 type Nav = {
   gradeId?: string;
   subjectId?: string;
@@ -189,29 +185,32 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
           </button>
         </div>
         <div className="space-y-4 stagger">
-          {subject.lessons.map((l, i) => (
-            <button
-              key={l.id}
-              onClick={() => {
-                if (showComingSoon(subject.id, grade!.id)) {
-                  comingSoonAlert();
-                } else if (l.htmlPath) {
-                  window.open(l.htmlPath, "_blank");
-                } else {
-                  setNavTracked({ gradeId: grade!.id, subjectId: subject.id, lessonId: l.id });
-                }
-              }}
-              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
-            >
-              <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="text-base font-medium flex-1 text-left">Lesson {i + 1}</span>
-              <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
-                Open <ChevronRight className="size-4" />
-              </span>
-            </button>
-          ))}
+          {subject.lessons.map((l, i) => {
+            const isComingSoon = showComingSoon(subject.id, grade!.id);
+            return (
+              <button
+                key={l.id}
+                onClick={() => {
+                  if (isComingSoon) return;
+                  if (l.htmlPath) {
+                    window.open(l.htmlPath, "_blank");
+                  } else {
+                    setNavTracked({ gradeId: grade!.id, subjectId: subject.id, lessonId: l.id });
+                  }
+                }}
+                disabled={isComingSoon}
+                className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
+              >
+                <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="text-base font-medium flex-1 text-left">Lesson {i + 1}</span>
+                <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-muted disabled:hover:bg-muted disabled:text-muted-foreground">
+                  {isComingSoon ? "Coming Soon" : <><ChevronRight className="size-4" /> Open</>}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     );
@@ -272,21 +271,28 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
         <p className="text-sm text-muted-foreground mt-1">{grades.length} Total Grades</p>
       </div>
       <div className="space-y-4 stagger">
-        {grades.map((g) => (
-          <button
-            key={g.id}
-            onClick={() => setNavTracked({ gradeId: g.id })}
-            className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
-          >
-            <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
-              {String(g.level).padStart(2, "0")}
-            </span>
-            <span className="text-base font-medium flex-1 text-left">Grade {g.level}</span>
-            <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
-              Open <ChevronRight className="size-4" />
-            </span>
-          </button>
-        ))}
+        {grades.map((g) => {
+          const isComingSoon = g.subjects.some((s) => showComingSoon(s.id, g.id) && allowedSubjectIds.includes(s.id));
+          return (
+            <button
+              key={g.id}
+              onClick={() => {
+                if (isComingSoon) return;
+                setNavTracked({ gradeId: g.id });
+              }}
+              disabled={isComingSoon}
+              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
+            >
+              <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
+                {String(g.level).padStart(2, "0")}
+              </span>
+              <span className="text-base font-medium flex-1 text-left">Grade {g.level}</span>
+              <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-muted disabled:hover:bg-muted disabled:text-muted-foreground">
+                {isComingSoon ? "Coming Soon" : <><ChevronRight className="size-4" /> Open</>}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
@@ -354,29 +360,32 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
           </button>
         </div>
         <div className="space-y-4 stagger">
-          {subject.lessons.map((l, i) => (
-            <button
-              key={l.id}
-              onClick={() => {
-                if (showComingSoon(subject.id, subject.gradeId)) {
-                  comingSoonAlert();
-                } else if (l.htmlPath) {
-                  window.open(l.htmlPath, "_blank");
-                } else {
-                  onOpenLesson({ gradeId: subject.gradeId, subjectId: subject.id, lessonId: l.id });
-                }
-              }}
-              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
-            >
-              <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="text-base font-medium flex-1 text-left">Lesson {i + 1}</span>
-              <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
-                Open <ChevronRight className="size-4" />
-              </span>
-            </button>
-          ))}
+          {subject.lessons.map((l, i) => {
+            const isComingSoon = showComingSoon(subject.id, subject.gradeId);
+            return (
+              <button
+                key={l.id}
+                onClick={() => {
+                  if (isComingSoon) return;
+                  if (l.htmlPath) {
+                    window.open(l.htmlPath, "_blank");
+                  } else {
+                    onOpenLesson({ gradeId: subject.gradeId, subjectId: subject.id, lessonId: l.id });
+                  }
+                }}
+                disabled={isComingSoon}
+                className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
+              >
+                <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="text-base font-medium flex-1 text-left">Lesson {i + 1}</span>
+                <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-muted disabled:hover:bg-muted disabled:text-muted-foreground">
+                  {isComingSoon ? "Coming Soon" : <><ChevronRight className="size-4" /> Open</>}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     );
@@ -408,21 +417,28 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
           </button>
         </div>
         <div className="space-y-4 stagger">
-          {grades.map((g) => (
-            <button
-              key={g.id}
-              onClick={() => setSelectedGrade(g.id)}
-              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group"
-            >
-              <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
-                {String(g.level).padStart(2, "0")}
-              </span>
-              <span className="text-base font-medium flex-1 text-left">Grade {g.level}</span>
-              <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
-                Open <ChevronRight className="size-4" />
-              </span>
-            </button>
-          ))}
+          {grades.map((g) => {
+            const isComingSoon = showComingSoon(selectedSubject!, g.id);
+            return (
+              <button
+                key={g.id}
+                onClick={() => {
+                  if (isComingSoon) return;
+                  setSelectedGrade(g.id);
+                }}
+                disabled={isComingSoon}
+                className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
+              >
+                <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
+                  {String(g.level).padStart(2, "0")}
+                </span>
+                <span className="text-base font-medium flex-1 text-left">Grade {g.level}</span>
+                <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-muted disabled:hover:bg-muted disabled:text-muted-foreground">
+                  {isComingSoon ? "Coming Soon" : <><ChevronRight className="size-4" /> Open</>}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     );
@@ -499,39 +515,42 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
           <div className="col-span-1 text-right">Quiz</div>
         </div>
         <ul className="divide-y divide-border">
-          {filtered.map((l) => (
-            <li key={`${l.gradeId}-${l.subjectId}-${l.id}`}>
-              <button
-                onClick={() => {
-                  if (showComingSoon(l.subjectId, l.gradeId)) {
-                    comingSoonAlert();
-                  } else if (l.htmlPath) {
-                    window.open(l.htmlPath, "_blank");
-                  } else {
-                    onOpenLesson({ gradeId: l.gradeId, subjectId: l.subjectId, lessonId: l.id });
-                  }
-                }}
-                className="w-full grid grid-cols-12 px-4 py-3 hover:bg-muted/40 transition-colors text-left items-center"
-              >
-                <div className="col-span-6 min-w-0">
-                  <div className="text-sm font-medium truncate flex items-center gap-2">
-                    <FileText className="size-3.5 text-muted-foreground shrink-0" />
-                    {l.title}
+          {filtered.map((l) => {
+            const isComingSoon = showComingSoon(l.subjectId, l.gradeId);
+            return (
+              <li key={`${l.gradeId}-${l.subjectId}-${l.id}`}>
+                <button
+                  onClick={() => {
+                    if (isComingSoon) return;
+                    if (l.htmlPath) {
+                      window.open(l.htmlPath, "_blank");
+                    } else {
+                      onOpenLesson({ gradeId: l.gradeId, subjectId: l.subjectId, lessonId: l.id });
+                    }
+                  }}
+                  disabled={isComingSoon}
+                  className="w-full grid grid-cols-12 px-4 py-3 hover:bg-muted/40 transition-colors text-left items-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                >
+                  <div className="col-span-6 min-w-0">
+                    <div className="text-sm font-medium truncate flex items-center gap-2">
+                      <FileText className="size-3.5 text-muted-foreground shrink-0" />
+                      {l.title}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate ml-5">{l.summary}</div>
                   </div>
-                  <div className="text-xs text-muted-foreground truncate ml-5">{l.summary}</div>
-                </div>
-                <div className="col-span-3 text-sm">{l.subjectName}</div>
-                <div className="col-span-2 text-sm text-muted-foreground">{l.gradeLabel}</div>
-                <div className="col-span-1 text-right">
-                  {showComingSoon(l.subjectId, l.gradeId) ? (
-                    <span className="font-mono-ui text-[10px] text-orange-500 font-semibold">SOON</span>
-                  ) : (
-                    <span className="font-mono-ui text-[10px] text-muted-foreground">{l.quiz.length}Q</span>
-                  )}
-                </div>
-              </button>
-            </li>
-          ))}
+                  <div className="col-span-3 text-sm">{l.subjectName}</div>
+                  <div className="col-span-2 text-sm text-muted-foreground">{l.gradeLabel}</div>
+                  <div className="col-span-1 text-right">
+                    {isComingSoon ? (
+                      <span className="font-mono-ui text-[10px] text-orange-500 font-semibold">SOON</span>
+                    ) : (
+                      <span className="font-mono-ui text-[10px] text-muted-foreground">{l.quiz.length}Q</span>
+                    )}
+                  </div>
+                </button>
+              </li>
+            );
+          })}
           {filtered.length === 0 && (
             <li className="p-6 text-center text-sm text-muted-foreground">No lessons match "{q}".</li>
           )}

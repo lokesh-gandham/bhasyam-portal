@@ -10,7 +10,6 @@ export const Route = createFileRoute("/")({
 
 function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
   const [stage, setStage] = useState<"logo" | "form">("logo");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -54,6 +53,7 @@ function LoginScreen() {
               >
                 <motion.img
                   src="/images/bhasyam-logo.png"
+                  srcSet="/images/bhasyam-logo.png 1x, /images/bhasyam-logo@2x.png 2x"
                   alt="Bhasyam"
                   className="h-28 w-auto object-contain drop-shadow-lg"
                   initial={{ rotate: -5 }}
@@ -110,8 +110,9 @@ function LoginScreen() {
                 >
                   <img
                     src="/images/bhasyam-logo.png"
+                    srcSet="/images/bhasyam-logo.png 1x, /images/bhasyam-logo@2x.png 2x"
                     alt="Bhasyam"
-                    className="h-12 2xl:h-20 w-auto object-contain drop-shadow-sm"
+                    className="h-16 md:h-20 lg:h-24 2xl:h-28 w-auto object-contain drop-shadow-sm"
                   />
                 </motion.div>
                 <motion.h1
@@ -124,21 +125,13 @@ function LoginScreen() {
                   <br />
                   Management System
                 </motion.h1>
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.35, duration: 0.4 }}
-                  className="text-sm 2xl:text-base text-muted-foreground mt-1"
-                >
-                  Secure. Reliable. Built for Education.
-                </motion.p>
                 <motion.div
                   initial={{ opacity: 0, scaleX: 0 }}
                   animate={{ opacity: 1, scaleX: 1 }}
                   transition={{ delay: 0.4, duration: 0.4 }}
                   className="mt-3 pt-3 border-t border-border"
                 >
-                  <h2 className="text-sm font-semibold tracking-tight">
+                  <h2 className="text-xl 2xl:text-2xl font-semibold tracking-tight">
                     Portal Login
                   </h2>
                   <p className="text-sm text-muted-foreground mt-0.5">
@@ -236,37 +229,6 @@ function LoginScreen() {
                   </div>
                 </motion.div>
 
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.55, duration: 0.4 }}
-                  className="flex items-center justify-between"
-                >
-                  <label className="flex items-center gap-1.5 group cursor-pointer">
-                    <span className="relative flex items-center">
-                      <input
-                        type="checkbox"
-                        className="peer sr-only"
-                        checked={remember}
-                        onChange={(e) => setRemember(e.target.checked)}
-                      />
-                      <span className="size-3.5 2xl:size-4 border border-border rounded bg-background peer-checked:bg-primary peer-checked:border-primary transition-colors" />
-                      <span className="absolute inset-0 flex items-center justify-center opacity-0 peer-checked:opacity-100">
-                        <span className="w-1 h-1 rounded-full bg-primary-foreground" />
-                      </span>
-                    </span>
-                    <span className="text-xs 2xl:text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                      Remember this session
-                    </span>
-                  </label>
-                  <a
-                    href="#"
-                    className="text-xs 2xl:text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
-                  >
-                    Forgot password?
-                  </a>
-                </motion.div>
-
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, y: -5 }}
@@ -322,6 +284,7 @@ function LoginScreen() {
         <div className="flex items-center gap-1.5">
           <img
             src="/images/icon.png"
+            srcSet="/images/icon.png 1x, /images/icon@2x.png 2x"
             alt="Wise Wings"
             className="h-4 2xl:h-5 w-4 2xl:w-5 rounded-sm object-contain"
           />
