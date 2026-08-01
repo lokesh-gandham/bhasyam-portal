@@ -75,7 +75,7 @@ function DashboardScreen() {
                 <div className="text-sm font-semibold tracking-tight leading-tight truncate">
                   Assessment CMS
                 </div>
-                <div className="font-mono-ui text-[10px] uppercase tracking-widest text-muted-foreground truncate">
+                <div className="font-mono-ui text-xs uppercase tracking-widest text-muted-foreground truncate">
                   Bhasyam
                 </div>
               </div>
@@ -85,7 +85,7 @@ function DashboardScreen() {
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto px-2 py-3 sidebar-scroll">
             {!collapsed && (
-              <div className="px-2.5 mb-2 text-xs font-medium uppercase tracking-wider text-foreground/50">
+              <div className="px-2.5 mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Workspace
               </div>
             )}
@@ -113,13 +113,13 @@ function DashboardScreen() {
                       className={`group relative w-full h-10 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-3 text-sm transition-all duration-200 active:scale-[0.98] ${
                         isActive
                           ? "bg-primary/10 text-primary font-medium shadow-sm"
-                          : "text-foreground/70 hover:bg-muted hover:text-foreground hover:translate-x-0.5"
+                          : "text-foreground hover:bg-muted hover:translate-x-0.5"
                       }`}
                     >
                       {isActive && (
                         <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-primary" />
                       )}
-                      <Icon className={`size-[18px] shrink-0 transition-all ${isActive ? "text-primary" : "text-foreground/50 group-hover:text-foreground/80"} group-hover:scale-105`} />
+                      <Icon className={`size-[18px] shrink-0 transition-all ${isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"} group-hover:scale-105`} />
                       {!collapsed && (
                         <>
                           <span className="flex-1 text-left truncate">{item.label}</span>
@@ -139,7 +139,7 @@ function DashboardScreen() {
             {/* Grades accordion in sidebar */}
             {!collapsed && active === "grades" && (
               <div className="mt-3 space-y-1">
-                <div className="px-2.5 mb-2 text-xs font-medium uppercase tracking-wider text-foreground/50">
+                <div className="px-2.5 mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Select a Grade
                 </div>
                 {grades.map((g) => {
@@ -217,7 +217,7 @@ function DashboardScreen() {
                 navigate({ to: "/" });
               }}
               title={collapsed ? "Log out" : undefined}
-              className={`w-full h-9 ${collapsed ? "justify-center px-0" : "px-2.5"} rounded-md flex items-center gap-2.5 text-sm text-foreground/80 hover:bg-destructive/10 hover:text-destructive transition-colors active:scale-[0.98]`}
+              className={`w-full h-9 ${collapsed ? "justify-center px-0" : "px-2.5"} rounded-md flex items-center gap-2.5 text-sm text-foreground hover:bg-destructive/10 hover:text-destructive transition-colors active:scale-[0.98]`}
             >
               <LogOut className="size-4 shrink-0" />
               {!collapsed && <span>Log out</span>}
@@ -242,8 +242,8 @@ function DashboardScreen() {
                 )}
               </button>
               <div className="h-5 w-px bg-border" />
-              <span className="text-muted-foreground/80">Workspace</span>
-              <ChevronRight className="size-3.5 text-muted-foreground/60" />
+              <span className="text-foreground">Workspace</span>
+              <ChevronRight className="size-3.5 text-muted-foreground" />
               <span className="font-medium capitalize text-foreground">{active}</span>
             </div>
           </div>
