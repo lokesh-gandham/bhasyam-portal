@@ -68,8 +68,8 @@ function DashboardScreen() {
           className={`${collapsed ? "w-16" : "w-72 2xl:w-80"} shrink-0 border-r border-border bg-card flex flex-col transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden`}
         >
           {/* Brand */}
-          <div className="px-4 py-5 border-b border-border flex items-center gap-3 h-24 2xl:h-28">
-            <div className="size-14 2xl:size-16 rounded-xl bg-background border border-border flex items-center justify-center overflow-hidden shrink-0">
+          <div className={`${collapsed ? "justify-center px-0" : "px-4"} py-5 border-b border-border flex items-center gap-3 h-24 2xl:h-28 shrink-0`}>
+            <div className="size-14 2xl:size-16 rounded-xl bg-gradient-to-br from-primary/15 via-background to-background border border-border ring-1 ring-primary/10 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
               <img src="/images/bhasyam-logo.png" alt="Bhasyam" className="h-12 w-12 2xl:h-14 2xl:w-14 object-contain" />
             </div>
             {!collapsed && (
@@ -84,8 +84,11 @@ function DashboardScreen() {
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto px-2 py-3 sidebar-scroll">
             {!collapsed && (
-              <div className="px-2.5 mb-2 text-xs 2xl:text-sm font-medium 2xl:font-semibold uppercase tracking-wider text-muted-foreground">
-                Workspace
+              <div className="flex items-center gap-2.5 px-2.5 mb-2">
+                <span className="text-base 2xl:text-lg font-semibold tracking-wider text-muted-foreground">
+                  Workspace
+                </span>
+                <span className="h-px flex-1 bg-border" />
               </div>
             )}
             <ul className="space-y-0.5">
@@ -112,7 +115,7 @@ function DashboardScreen() {
                       }}
                       className={`group relative w-full h-11 2xl:h-12 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-3 text-base 2xl:text-lg font-medium transition-all duration-200 active:scale-[0.98] ${
                         isActive
-                          ? "bg-primary/10 text-primary font-medium 2xl:font-semibold shadow-sm"
+                          ? "bg-primary/10 text-primary font-medium 2xl:font-semibold shadow-sm ring-1 ring-primary/10"
                           : "text-foreground hover:bg-muted hover:translate-x-0.5"
                       }`}
                     >
@@ -138,9 +141,12 @@ function DashboardScreen() {
 
             {/* Grades accordion in sidebar */}
             {!collapsed && (active === "grades" || !isMobile) && (
-              <div className="mt-3 space-y-1.5">
-                <div className="px-2.5 mb-2 text-base 2xl:text-lg font-semibold tracking-wider text-muted-foreground">
-                  Select a Grade
+              <div className="mt-4 space-y-1.5">
+                <div className="flex items-center gap-2.5 px-2.5 mb-2">
+                  <span className="text-base 2xl:text-lg font-semibold tracking-wider text-muted-foreground">
+                    Select a Grade
+                  </span>
+                  <span className="h-px flex-1 bg-border" />
                 </div>
                 {grades.map((g) => {
                   const isExpanded = expandedGrade === g.id;
@@ -149,18 +155,20 @@ function DashboardScreen() {
                     <div key={g.id}>
                       <button
                         onClick={() => setExpandedGrade(isExpanded ? null : g.id)}
-                        className="w-full px-3 py-3 2xl:py-3.5 flex items-center gap-3 2xl:gap-3.5 rounded-lg text-base 2xl:text-lg hover:bg-muted transition-all"
+                        className={`w-full px-3 py-3 2xl:py-3.5 flex items-center gap-3 2xl:gap-3.5 rounded-lg text-base 2xl:text-lg transition-all duration-200 ${
+                          isExpanded ? "bg-primary/10 ring-1 ring-primary/20" : "hover:bg-muted"
+                        }`}
                       >
                         <span className={`size-8 2xl:size-9 rounded-lg flex items-center justify-center text-xs 2xl:text-sm font-semibold shrink-0 transition-colors ${
-                          isExpanded ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+                          isExpanded ? "bg-primary text-primary-foreground shadow-sm" : "bg-primary/10 text-primary"
                         }`}>
                           {g.level}
                         </span>
                         <span className="flex-1 text-left font-medium">Grade {g.level}</span>
-                        <ChevronDown className={`size-5 2xl:size-6 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                        <ChevronDown className={`size-5 2xl:size-6 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180 text-primary" : ""}`} />
                       </button>
                       {isExpanded && (
-                        <div className="ml-5 pl-3 border-l border-border space-y-0.5 py-1">
+                        <div className="ml-5 pl-3 border-l border-border space-y-0.5 py-1 animate-slide-in-left">
                           {allowedSubjects.map((s) => {
                             const isSelected = currentNav.gradeId === g.id && currentNav.subjectId === s.id;
                             return (
@@ -173,7 +181,7 @@ function DashboardScreen() {
                               }}
                               className={`w-full px-2 py-2 2xl:py-2.5 flex items-center gap-2.5 2xl:gap-3 rounded-md text-base 2xl:text-lg font-medium text-foreground transition-colors text-left ${isSelected ? "bg-primary/10 text-primary font-semibold" : "hover:bg-muted"}`}
                             >
-                              <div className="size-7 2xl:size-8 flex items-center justify-center shrink-0">
+                              <div className={`size-7 2xl:size-8 flex items-center justify-center shrink-0 rounded-md ${isSelected ? "bg-primary/10" : ""}`}>
                                 {s.iconImage ? (
                                   <img src={s.iconImage} alt={s.name} className="size-7 2xl:size-8 object-contain" />
                                 ) : (
@@ -195,14 +203,15 @@ function DashboardScreen() {
 
           {/* Admin details + logout at bottom */}
           <div className="border-t border-border p-3.5 space-y-2.5">
-            <div className={`flex items-center gap-3 ${collapsed ? "justify-center px-0" : "px-2"} py-2 rounded-md hover:bg-muted transition-colors`}>
-              <div className="size-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold shrink-0 ring-2 ring-background">
+            <div className={`flex items-center gap-3 ${collapsed ? "justify-center px-0" : "px-2"} py-2 rounded-lg hover:bg-muted transition-colors`}>
+              <div className="size-11 rounded-full bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center text-sm font-semibold shrink-0 ring-2 ring-primary/20 shadow-sm">
                 AD
               </div>
               {!collapsed && (
                 <>
                   <div className="min-w-0 flex-1 animate-fade-in-up">
                     <div className="text-base font-semibold truncate">Admin</div>
+                    <div className="text-xs text-muted-foreground truncate">Administrator</div>
                   </div>
                   <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
                 </>

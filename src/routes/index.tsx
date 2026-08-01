@@ -119,7 +119,7 @@ function LoginScreen() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25, duration: 0.4 }}
-                  className="text-base font-semibold tracking-tight leading-snug"
+                  className="text-xl 2xl:text-2xl font-semibold tracking-tight leading-snug"
                 >
                   Assessment Content
                   <br />
