@@ -173,15 +173,15 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
             )}
           </div>
           <h2 className="text-3xl tracking-tight">{grade!.label} - {subject.name}</h2>
-          <p className="text-sm text-muted-foreground mt-2">Complete all lessons to master this subject</p>
-          <p className="text-sm text-muted-foreground mt-1">{subject.lessons.length} Total Lessons</p>
+          <p className="text-sm 2xl:text-base text-foreground mt-2">Complete all lessons to master this subject</p>
+          <p className="text-sm 2xl:text-base text-foreground mt-1 font-semibold">{subject.lessons.length} Total Lessons</p>
         </div>
         <div>
           <button
             onClick={() => setNavTracked({ gradeId: grade!.id })}
-            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors"
+            className="text-sm md:text-base lg:text-lg text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors font-medium"
           >
-            <ArrowLeft className="size-4" /> Back
+            <ArrowLeft className="size-4 md:size-5" /> Back
           </button>
         </div>
         <div className="space-y-4 stagger">
@@ -199,13 +199,15 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                   }
                 }}
                 disabled={isComingSoon}
-                className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
+                className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-100 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
               >
                 <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="text-base font-medium flex-1 text-left">Lesson {i + 1}</span>
-                <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-muted disabled:hover:bg-muted disabled:text-muted-foreground">
+                <span className="text-base md:text-lg lg:text-xl font-medium flex-1 text-left">Lesson {i + 1}</span>
+                <span className="text-sm font-medium text-white inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-primary/15 disabled:hover:bg-primary/15 disabled:text-primary disabled:border disabled:border-primary/30 disabled:font-semibold">
+
+
                   {isComingSoon ? "Coming Soon" : <><ChevronRight className="size-4" /> Open</>}
                 </span>
               </button>
@@ -224,14 +226,14 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
             <GraduationCap className="size-12 text-primary" />
           </div>
           <h2 className="text-3xl tracking-tight">{grade.label} - Subjects</h2>
-          <p className="text-sm text-muted-foreground mt-2">Choose a subject to explore lessons</p>
+          <p className="text-sm 2xl:text-base text-foreground mt-2">Choose a subject to explore lessons</p>
         </div>
         <div>
           <button
             onClick={() => setNavTracked({})}
-            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors"
+            className="text-sm md:text-base lg:text-lg text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors font-medium"
           >
-            <ArrowLeft className="size-4" /> Back
+            <ArrowLeft className="size-4 md:size-5" /> Back
           </button>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
@@ -248,10 +250,10 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                   <span className="text-4xl">{s.icon}</span>
                 )}
               </div>
-              <div className="text-lg font-semibold">{s.name}</div>
-              <div className="text-sm mt-1">{s.description}</div>
-              <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-4 group-hover:gap-2 transition-all">
-                Explore <ChevronRight className="size-3" />
+              <div className="text-lg md:text-xl lg:text-2xl font-semibold">{s.name}</div>
+              <div className="text-sm md:text-base lg:text-lg mt-1">{s.description}</div>
+              <div className="text-xs md:text-sm lg:text-base text-primary font-semibold inline-flex items-center gap-1 mt-4 group-hover:gap-2 transition-all">
+                Explore <ChevronRight className="size-3 md:size-4" />
               </div>
             </button>
           ))}
@@ -267,8 +269,8 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
           <GraduationCap className="size-12 text-primary" />
         </div>
         <h2 className="text-3xl tracking-tight">Grades</h2>
-        <p className="text-sm text-muted-foreground mt-2">Select a grade to explore its subjects and lessons</p>
-        <p className="text-sm text-muted-foreground mt-1">{grades.length} Total Grades</p>
+        <p className="text-sm 2xl:text-base text-foreground mt-2">Select a grade to explore its subjects and lessons</p>
+        <p className="text-sm 2xl:text-base text-foreground mt-1 font-semibold">{grades.length} Total Grades</p>
       </div>
       <div className="space-y-4 stagger">
         {grades.map((g) => {
@@ -281,13 +283,15 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                 setNavTracked({ gradeId: g.id });
               }}
               disabled={isComingSoon}
-              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
+              className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-100 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
             >
               <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
                 {String(g.level).padStart(2, "0")}
               </span>
-              <span className="text-base font-medium flex-1 text-left">Grade {g.level}</span>
-              <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-muted disabled:hover:bg-muted disabled:text-muted-foreground">
+              <span className="text-base md:text-lg lg:text-xl font-medium flex-1 text-left">Grade {g.level}</span>
+              <span className="text-sm font-medium text-white inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-primary/15 disabled:hover:bg-primary/15 disabled:text-primary disabled:border disabled:border-primary/30 disabled:font-semibold">
+
+
                 {isComingSoon ? "Coming Soon" : <><ChevronRight className="size-4" /> Open</>}
               </span>
             </button>
@@ -316,7 +320,7 @@ function LessonList({ lessons, onOpen }: { lessons: Lesson[]; onOpen: (l: Lesson
           <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
             {String(i + 1).padStart(2, "0")}
           </span>
-          <span className="text-base font-medium flex-1 text-left">Lesson {i + 1}</span>
+          <span className="text-base md:text-lg lg:text-xl font-medium flex-1 text-left">Lesson {i + 1}</span>
           <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors">
             Open <ChevronRight className="size-4" />
           </span>
@@ -348,15 +352,15 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
             )}
           </div>
           <h2 className="text-3xl tracking-tight">{gradeLabel} - {subject.name}</h2>
-          <p className="text-sm text-muted-foreground mt-2">Complete all lessons to master this subject</p>
-          <p className="text-sm text-muted-foreground mt-1">{subject.lessons.length} Total Lessons</p>
+          <p className="text-sm 2xl:text-base text-foreground mt-2">Complete all lessons to master this subject</p>
+          <p className="text-sm 2xl:text-base text-foreground mt-1 font-semibold">{subject.lessons.length} Total Lessons</p>
         </div>
         <div>
           <button
             onClick={() => setSelectedGrade(null)}
-            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors"
+            className="text-sm md:text-base lg:text-lg text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors font-medium"
           >
-            <ArrowLeft className="size-4" /> Back
+            <ArrowLeft className="size-4 md:size-5" /> Back
           </button>
         </div>
         <div className="space-y-4 stagger">
@@ -374,13 +378,15 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
                   }
                 }}
                 disabled={isComingSoon}
-                className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
+                className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-100 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
               >
                 <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="text-base font-medium flex-1 text-left">Lesson {i + 1}</span>
-                <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-muted disabled:hover:bg-muted disabled:text-muted-foreground">
+                <span className="text-base md:text-lg lg:text-xl font-medium flex-1 text-left">Lesson {i + 1}</span>
+                <span className="text-sm font-medium text-white inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-primary/15 disabled:hover:bg-primary/15 disabled:text-primary disabled:border disabled:border-primary/30 disabled:font-semibold">
+
+
                   {isComingSoon ? "Coming Soon" : <><ChevronRight className="size-4" /> Open</>}
                 </span>
               </button>
@@ -405,15 +411,15 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
             )}
           </div>
           <h2 className="text-3xl tracking-tight">{subjectData?.name} - Grades</h2>
-          <p className="text-sm text-muted-foreground mt-2">Choose a grade to explore subjects and lessons</p>
-          <p className="text-sm text-muted-foreground mt-1">5 Total Grades</p>
+          <p className="text-sm 2xl:text-base text-foreground mt-2">Choose a grade to explore subjects and lessons</p>
+          <p className="text-sm 2xl:text-base text-foreground mt-1 font-semibold">5 Total Grades</p>
         </div>
         <div>
           <button
             onClick={() => setSelectedSubject(null)}
-            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors"
+            className="text-sm md:text-base lg:text-lg text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors font-medium"
           >
-            <ArrowLeft className="size-4" /> Back
+            <ArrowLeft className="size-4 md:size-5" /> Back
           </button>
         </div>
         <div className="space-y-4 stagger">
@@ -427,13 +433,15 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
                   setSelectedGrade(g.id);
                 }}
                 disabled={isComingSoon}
-                className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
+                className="w-full bg-card border border-border rounded-2xl px-6 py-5 flex items-center gap-5 hover:shadow-sm hover:border-primary/40 transition-all group disabled:opacity-100 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:hover:border-border"
               >
                 <span className="size-12 rounded-full bg-primary/10 text-primary font-semibold flex items-center justify-center shrink-0">
                   {String(g.level).padStart(2, "0")}
                 </span>
-                <span className="text-base font-medium flex-1 text-left">Grade {g.level}</span>
-                <span className="text-sm text-white font-medium inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-muted disabled:hover:bg-muted disabled:text-muted-foreground">
+                <span className="text-base md:text-lg lg:text-xl font-medium flex-1 text-left">Grade {g.level}</span>
+                <span className="text-sm font-medium text-white inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary hover:bg-primary/90 transition-colors disabled:bg-primary/15 disabled:hover:bg-primary/15 disabled:text-primary disabled:border disabled:border-primary/30 disabled:font-semibold">
+
+
                   {isComingSoon ? "Coming Soon" : <><ChevronRight className="size-4" /> Open</>}
                 </span>
               </button>
@@ -456,7 +464,7 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
           <BookOpen className="size-12 text-primary" />
         </div>
         <h2 className="text-3xl tracking-tight">Subjects</h2>
-        <p className="text-sm text-muted-foreground mt-2">Select a subject to explore its grades and lessons.</p>
+        <p className="text-sm 2xl:text-base text-foreground mt-2">Select a subject to explore its grades and lessons.</p>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {uniqueSubjects.map((s) => (
@@ -465,17 +473,17 @@ export function SubjectsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId:
             onClick={() => setSelectedSubject(s.id)}
             className="text-left bg-card border border-border rounded-xl p-6 hover:shadow-md hover:border-primary/40 transition-all group"
           >
-            <div className="size-16 flex items-center justify-center mb-4">
+            <div className="size-16 md:size-20 flex items-center justify-center mb-4">
               {s.iconImage ? (
-                <img src={s.iconImage} alt={s.name} className="size-16 object-contain" />
+                <img src={s.iconImage} alt={s.name} className="size-16 md:size-20 object-contain" />
               ) : (
-                <span className="text-5xl">{s.icon}</span>
+                <span className="text-5xl md:text-6xl">{s.icon}</span>
               )}
             </div>
-            <div className="text-lg font-semibold">{s.name}</div>
-            <div className="text-sm mt-1">{s.description}</div>
-            <div className="text-xs text-primary font-medium inline-flex items-center gap-1 mt-4 group-hover:gap-2 transition-all">
-              Explore <ChevronRight className="size-3" />
+            <div className="text-lg md:text-xl lg:text-2xl font-semibold">{s.name}</div>
+            <div className="text-sm md:text-base lg:text-lg mt-1">{s.description}</div>
+            <div className="text-xs md:text-sm lg:text-base text-primary font-semibold inline-flex items-center gap-1 mt-4 group-hover:gap-2 transition-all">
+              Explore <ChevronRight className="size-3 md:size-4" />
             </div>
           </button>
         ))}
@@ -529,7 +537,7 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
                     }
                   }}
                   disabled={isComingSoon}
-                  className="w-full grid grid-cols-12 px-4 py-3 hover:bg-muted/40 transition-colors text-left items-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                  className="w-full grid grid-cols-12 px-4 py-3 hover:bg-muted/40 transition-colors text-left items-center disabled:opacity-100 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                 >
                   <div className="col-span-6 min-w-0">
                     <div className="text-sm font-medium truncate flex items-center gap-2">
@@ -573,24 +581,24 @@ export function OverviewView({ onOpenSubject }: { onOpenSubject?: (subjectId: st
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl tracking-tight">Welcome back, Admin</h1>
-        <p className="text-sm text-muted-foreground mt-1">Bhasyam Assessment CMS — Curriculum for Grades 1 – 5</p>
+      <div className="text-center">
+        <h1 className="text-2xl 2xl:text-3xl font-medium tracking-tight">Welcome back, Admin</h1>
+        <p className="text-sm 2xl:text-base text-foreground mt-1">Bhasyam Assessment CMS — Curriculum for Grades 1 – 5</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {stats.map((s) => {
           const Icon = s.icon;
           return (
-            <div key={s.label} className="bg-card border border-border rounded-xl p-5 flex items-start justify-between">
+            <div key={s.label} className="bg-card border border-border rounded-xl p-5 md:p-6 flex items-start justify-between">
               <div>
-                <div className="text-sm text-muted-foreground">{s.label}</div>
+                <div className="text-sm md:text-base lg:text-lg text-muted-foreground font-semibold">{s.label}</div>
                 <div className="mt-3 flex items-baseline gap-2">
-                  <div className="text-4xl tracking-tight">{s.value}</div>
-                  <div className="text-sm text-muted-foreground">{s.delta}</div>
+                  <div className="text-4xl md:text-5xl lg:text-6xl tracking-tight">{s.value}</div>
+                  <div className="text-sm md:text-base lg:text-lg text-muted-foreground">{s.delta}</div>
                 </div>
               </div>
-              <div className={`size-10 rounded-lg ${s.iconBg} flex items-center justify-center shrink-0`}>
-                <Icon className="size-5" />
+              <div className={`size-10 md:size-12 lg:size-14 rounded-lg ${s.iconBg} flex items-center justify-center shrink-0`}>
+                <Icon className="size-5 md:size-6 lg:size-7" />
               </div>
             </div>
           );
@@ -598,10 +606,10 @@ export function OverviewView({ onOpenSubject }: { onOpenSubject?: (subjectId: st
       </div>
       <div className="bg-card border border-border rounded-xl p-5">
         <div className="flex items-center gap-2 mb-4">
-          <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-            <BookOpen className="size-4" />
+          <div className="size-8 md:size-10 lg:size-12 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+            <BookOpen className="size-4 md:size-5 lg:size-6" />
           </div>
-          <div className="text-base">Jump into a subject</div>
+          <div className="text-base md:text-lg lg:text-2xl font-semibold">Jump into a subject</div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {uniqueSubjects.map((s) => (
@@ -610,15 +618,15 @@ export function OverviewView({ onOpenSubject }: { onOpenSubject?: (subjectId: st
               onClick={() => onOpenSubject?.(s.id)}
               className="rounded-xl border border-border p-8 flex flex-col items-center gap-4 hover:shadow-sm hover:border-primary/40 transition-all cursor-pointer group"
             >
-              <div className="size-24 flex items-center justify-center">
+              <div className="size-24 md:size-28 lg:size-32 flex items-center justify-center">
                 {s.iconImage ? (
-                  <img src={s.iconImage} alt={s.name} className="size-24 object-contain" />
+                  <img src={s.iconImage} alt={s.name} className="size-24 md:size-28 lg:size-32 object-contain" />
                 ) : (
-                  <span className="text-5xl">{s.icon}</span>
+                  <span className="text-5xl md:text-6xl">{s.icon}</span>
                 )}
               </div>
-              <div className="text-lg font-semibold text-center">{s.name}</div>
-              <span className="text-sm px-3 py-1 rounded-full bg-muted">5 grades</span>
+              <div className="text-lg md:text-xl lg:text-2xl font-semibold text-center">{s.name}</div>
+              <span className="text-sm md:text-base px-3 py-1 rounded-full bg-muted">5 grades</span>
             </button>
           ))}
         </div>

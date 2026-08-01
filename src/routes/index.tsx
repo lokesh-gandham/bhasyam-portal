@@ -167,7 +167,7 @@ function LoginScreen() {
                     htmlFor="identifier"
                     className="text-xs 2xl:text-sm font-semibold uppercase tracking-wider text-muted-foreground ml-0.5"
                   >
-                    Username or Email
+                    Username
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 2xl:size-4 text-muted-foreground" />
@@ -175,7 +175,7 @@ function LoginScreen() {
                       id="identifier"
                       type="text"
                       autoComplete="username"
-                      placeholder="admin@bhasyam.edu"
+                      placeholder="Enter your username"
                       value={username}
                       onChange={(e) => {
                         setUsername(e.target.value);

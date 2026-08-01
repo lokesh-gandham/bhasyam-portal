@@ -13,6 +13,7 @@ import {
 import { GradesView, SubjectsView, OverviewView } from "@/components/portal-views";
 import { grades, allSubjects } from "@/lib/curriculum";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -46,6 +47,7 @@ function DashboardScreen() {
   const [currentNav, setCurrentNav] = useState<{ gradeId?: string; subjectId?: string }>({});
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -75,9 +77,6 @@ function DashboardScreen() {
                 <div className="text-sm font-semibold tracking-tight leading-tight truncate">
                   Assessment CMS
                 </div>
-                <div className="font-mono-ui text-xs uppercase tracking-widest text-muted-foreground truncate">
-                  Bhasyam
-                </div>
               </div>
             )}
           </div>
@@ -85,7 +84,7 @@ function DashboardScreen() {
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto px-2 py-3 sidebar-scroll">
             {!collapsed && (
-              <div className="px-2.5 mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              <div className="px-2.5 mb-2 text-xs md:text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                 Workspace
               </div>
             )}
@@ -101,6 +100,7 @@ function DashboardScreen() {
                         if (item.id === "grades") {
                           setInitialGradeNav(undefined);
                           setGradesKey((k) => k + 1);
+                          setExpandedGrade(null);
                         }
                         if (item.id === "subjects") {
                           setSubjectsKey((k) => k + 1);
@@ -110,9 +110,9 @@ function DashboardScreen() {
                         }
                         setActive(item.id);
                       }}
-                      className={`group relative w-full h-10 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-3 text-sm transition-all duration-200 active:scale-[0.98] ${
+                      className={`group relative w-full h-10 md:h-11 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-3 text-sm md:text-base font-medium transition-all duration-200 active:scale-[0.98] ${
                         isActive
-                          ? "bg-primary/10 text-primary font-medium shadow-sm"
+                          ? "bg-primary/10 text-primary font-semibold shadow-sm"
                           : "text-foreground hover:bg-muted hover:translate-x-0.5"
                       }`}
                     >
@@ -137,7 +137,7 @@ function DashboardScreen() {
             </ul>
 
             {/* Grades accordion in sidebar */}
-            {!collapsed && active === "grades" && (
+            {!collapsed && (active === "grades" || !isMobile) && (
               <div className="mt-3 space-y-1">
                 <div className="px-2.5 mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Select a Grade
@@ -202,10 +202,7 @@ function DashboardScreen() {
               {!collapsed && (
                 <>
                   <div className="min-w-0 flex-1 animate-fade-in-up">
-                    <div className="text-xs font-semibold truncate">Admin Desai</div>
-                    <div className="text-[10px] text-muted-foreground truncate">
-                      admin@bhasyam.edu
-                    </div>
+                    <div className="text-xs font-semibold truncate">Admin</div>
                   </div>
                   <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 </>
@@ -229,22 +226,23 @@ function DashboardScreen() {
         <div className="flex-1 min-w-0 flex flex-col">
           {/* Content header */}
           <div className="h-14 border-b border-border bg-card flex items-center px-4 md:px-6 shrink-0">
-            <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-3 text-sm md:text-lg">
               <button
                 onClick={() => setCollapsed((c) => !c)}
                 title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                className="h-8 w-8 rounded-lg border border-border hover:bg-muted hover:border-foreground/20 flex items-center justify-center transition-all active:scale-95"
+                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                className="group h-9 w-9 md:h-10 md:w-10 rounded-lg border border-primary/20 bg-primary/10 text-primary shadow-sm hover:bg-primary hover:border-primary hover:text-white hover:shadow-md hover:shadow-primary/25 flex items-center justify-center transition-all duration-200 active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               >
                 {collapsed ? (
-                  <PanelLeftOpen className="size-4 text-muted-foreground" />
+                  <PanelLeftOpen className="size-4 md:size-5 text-primary group-hover:text-white group-hover:scale-110 transition-all duration-200" />
                 ) : (
-                  <PanelLeftClose className="size-4 text-muted-foreground" />
+                  <PanelLeftClose className="size-4 md:size-5 text-primary group-hover:text-white group-hover:scale-110 group-hover:-rotate-180 transition-all duration-300" />
                 )}
               </button>
-              <div className="h-5 w-px bg-border" />
-              <span className="text-foreground">Workspace</span>
-              <ChevronRight className="size-3.5 text-muted-foreground" />
-              <span className="font-medium capitalize text-foreground">{active}</span>
+              <div className="h-5 md:h-6 w-px bg-border" />
+              <span className="text-foreground font-medium">Workspace</span>
+              <ChevronRight className="size-3.5 md:size-4 text-muted-foreground" />
+              <span className="font-bold capitalize text-foreground">{active}</span>
             </div>
           </div>
 
