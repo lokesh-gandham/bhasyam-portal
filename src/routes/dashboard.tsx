@@ -103,7 +103,7 @@ function DashboardScreen() {
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto px-3 py-4 sidebar-scroll">
             {!collapsed && (
-              <div className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold px-3 mb-3">
+              <div className="text-[10px] uppercase tracking-widest text-gray-600 font-semibold px-3 mb-3">
                 Menu
               </div>
             )}
@@ -132,10 +132,10 @@ function DashboardScreen() {
                         }
                         setActive(item.id);
                       }}
-                      className={`group relative w-full h-12 ${collapsed ? "justify-center px-0" : "px-3"} rounded-xl flex items-center gap-3 text-sm font-medium overflow-hidden transition-colors duration-300 ${
+                      className={`group relative w-full h-12 ${collapsed ? "justify-center px-0" : "px-3"} rounded-xl flex items-center gap-3 text-sm font-semibold overflow-hidden transition-colors duration-300 ${
                         isActive
                           ? "text-green-700"
-                          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100/70"
+                          : "text-gray-700 hover:text-gray-900 hover:bg-gray-100/70"
                       }`}
                     >
                       {isActive && (
@@ -150,7 +150,7 @@ function DashboardScreen() {
                         transition={{ duration: 0.4, ease: "easeOut" }}
                         className="relative z-10 shrink-0"
                       >
-                        <Icon className={`size-5 ${isActive ? "text-green-600" : "text-gray-400 group-hover:text-gray-600"}`} />
+                        <Icon className={`size-5 ${isActive ? "text-green-600" : "text-gray-600 group-hover:text-gray-800"}`} />
                       </motion.div>
                       {!collapsed && (
                         <span className="relative z-10 flex-1 text-left">{item.label}</span>
@@ -178,7 +178,7 @@ function DashboardScreen() {
                   exit={{ opacity: 0, height: 0 }}
                   className="mt-5 overflow-hidden"
                 >
-                  <div className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold px-3 mb-3">
+                  <div className="text-[10px] uppercase tracking-widest text-gray-600 font-semibold px-3 mb-3">
                     Select Grade
                   </div>
                   <div className="space-y-1">
@@ -207,12 +207,12 @@ function DashboardScreen() {
                             }`}
                           >
                             <span className={`size-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-                              isExpanded ? gs.badge : "bg-gray-100 text-gray-500"
+                              isExpanded ? gs.badge : "bg-gray-100 text-gray-700"
                             } transition-all`}>
                               {g.level}
                             </span>
                             <span className="flex-1 text-left font-medium">Grade {g.level}</span>
-                            <ChevronDown className={`size-4 transition-transform duration-200 ${isExpanded ? "rotate-180 text-gray-700" : "text-gray-400"}`} />
+                            <ChevronDown className={`size-4 transition-transform duration-200 ${isExpanded ? "rotate-180 text-gray-700" : "text-gray-600"}`} />
                           </button>
                           <AnimatePresence>
                             {isExpanded && (
@@ -234,7 +234,7 @@ function DashboardScreen() {
                                         setActive("grades");
                                       }}
                                       className={`w-full px-2 py-2 flex items-center gap-2.5 rounded-lg text-sm font-medium transition-all ${
-                                        isSelected ? "bg-yellow-50 text-yellow-700" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                                        isSelected ? "bg-yellow-50 text-yellow-700" : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                                       }`}
                                     >
                                       <div className="size-6 flex items-center justify-center shrink-0">
@@ -273,7 +273,7 @@ function DashboardScreen() {
                 {!collapsed && (
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-gray-800 truncate">Admin</div>
-                    <div className="text-[11px] text-gray-400 truncate">Administrator</div>
+                    <div className="text-[11px] text-gray-600 truncate">Administrator</div>
                   </div>
                 )}
               </div>
@@ -285,7 +285,7 @@ function DashboardScreen() {
                   navigate({ to: "/" });
                 }}
                 title={collapsed ? "Log out" : undefined}
-                className={`w-full mt-2 h-9 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-2 text-xs text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all`}
+                className={`w-full mt-2 h-9 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-2 text-xs text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all`}
               >
                 <LogOut className="size-4 shrink-0" />
                 {!collapsed && <span>Log out</span>}
@@ -313,15 +313,15 @@ function DashboardScreen() {
               </motion.button>
               <div className="h-6 w-px bg-gray-200 mx-1 shrink-0" />
               <div className="flex items-center gap-1 bg-gray-50 rounded-full px-3 py-1.5 border border-gray-100 min-w-0 overflow-hidden">
-                <button onClick={() => { setActive("dashboard"); setCurrentNav({}); }} className="text-gray-500 hover:text-indigo-600 transition-colors font-medium px-2 py-0.5 rounded-full hover:bg-indigo-50">Workspace</button>
+                <button onClick={() => { setActive("dashboard"); setCurrentNav({}); }} className="text-gray-700 hover:text-indigo-600 transition-colors font-semibold px-2 py-0.5 rounded-full hover:bg-indigo-50">Workspace</button>
                 <ChevronRight className="size-3 text-gray-300" />
                 {active === "subjects" && (
                   <>
-                    <button onClick={() => { setInitialSubjectsNav(undefined); setSubjectsKey((k) => k + 1); setActive("subjects"); setCurrentNav({}); }} className={`transition-colors px-2 py-0.5 rounded-full ${currentNav.subjectId || currentNav.gradeId ? 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 font-medium' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>Subjects</button>
+                    <button onClick={() => { setInitialSubjectsNav(undefined); setSubjectsKey((k) => k + 1); setActive("subjects"); setCurrentNav({}); }} className={`transition-colors px-2 py-0.5 rounded-full ${currentNav.subjectId || currentNav.gradeId ? 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 font-semibold' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>Subjects</button>
                     {currentNav.subjectId && (
                       <>
                         <ChevronRight className="size-3 text-gray-300" />
-                        <button onClick={() => { setInitialSubjectsNav({ subjectId: currentNav.subjectId }); setSubjectsKey((k) => k + 1); setActive("subjects"); setCurrentNav({ subjectId: currentNav.subjectId }); }} className={`transition-colors px-2 py-0.5 rounded-full capitalize ${currentNav.gradeId ? 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 font-medium' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>{currentNav.subjectId}</button>
+                        <button onClick={() => { setInitialSubjectsNav({ subjectId: currentNav.subjectId }); setSubjectsKey((k) => k + 1); setActive("subjects"); setCurrentNav({ subjectId: currentNav.subjectId }); }} className={`transition-colors px-2 py-0.5 rounded-full capitalize ${currentNav.gradeId ? 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 font-semibold' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>{currentNav.subjectId}</button>
                       </>
                     )}
                     {currentNav.gradeId && (
@@ -334,11 +334,11 @@ function DashboardScreen() {
                 )}
                 {active === "grades" && (
                   <>
-                    <button onClick={() => { setInitialGradeNav(undefined); setGradesKey((k) => k + 1); setActive("grades"); setCurrentNav({}); }} className={`transition-colors px-2 py-0.5 rounded-full ${currentNav.gradeId ? 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 font-medium' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>Grades</button>
+                    <button onClick={() => { setInitialGradeNav(undefined); setGradesKey((k) => k + 1); setActive("grades"); setCurrentNav({}); }} className={`transition-colors px-2 py-0.5 rounded-full ${currentNav.gradeId ? 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 font-semibold' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>Grades</button>
                     {currentNav.gradeId && (
                       <>
                         <ChevronRight className="size-3 text-gray-300" />
-                        <button onClick={() => { setGradesKey((k) => k + 1); setInitialGradeNav({ gradeId: currentNav.gradeId! }); }} className={`transition-colors px-2 py-0.5 rounded-full ${currentNav.subjectId ? 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 font-medium' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>Grade {grades.find((g) => g.id === currentNav.gradeId)?.level || currentNav.gradeId}</button>
+                        <button onClick={() => { setGradesKey((k) => k + 1); setInitialGradeNav({ gradeId: currentNav.gradeId! }); }} className={`transition-colors px-2 py-0.5 rounded-full ${currentNav.subjectId ? 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 font-semibold' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>Grade {grades.find((g) => g.id === currentNav.gradeId)?.level || currentNav.gradeId}</button>
                       </>
                     )}
                     {currentNav.subjectId && (
@@ -401,14 +401,14 @@ function DashboardScreen() {
 
           {/* Footer */}
           <footer className="h-12 border-t border-gray-200 bg-white px-6 flex items-center justify-center gap-2 shrink-0">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-700">
               &copy; 2026 Assessment CMS · All rights reserved by
             </span>
             <div className="flex items-center gap-1.5">
               <img
                 src="/images/icon.png"
                 alt="Wise Wings"
-                className="h-5 w-5 rounded-sm object-contain"
+                className="h-8 w-8 rounded-sm object-contain"
               />
               <span className="font-semibold text-sm text-gray-700">
                 wise wings

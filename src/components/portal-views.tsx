@@ -19,10 +19,10 @@ type Nav = {
 
 function Crumbs({ items }: { items: { label: string; onClick?: () => void }[] }) {
   return (
-    <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap bg-muted/50 rounded-lg px-3 py-2 border border-border/50">
+        <div className="flex items-center gap-2 text-sm text-gray-600 flex-wrap bg-gray-50 rounded-lg px-3 py-2 border border-border/50">
       {items.map((it, i) => (
         <span key={i} className="flex items-center gap-2">
-          {i > 0 && <ChevronRight className="size-4 text-muted-foreground/60" />}
+          {i > 0 && <ChevronRight className="size-4 text-gray-600/60" />}
           {it.onClick ? (
             <button onClick={it.onClick} className="text-foreground font-medium hover:text-primary hover:underline transition-colors">
               {it.label}
@@ -152,7 +152,7 @@ function SubjectLessonView({
     <div className="space-y-6 animate-view-in">
       <button
         onClick={onBack}
-        className="text-sm text-gray-500 hover:text-gray-800 inline-flex items-center gap-1.5 transition-colors font-medium"
+        className="text-sm text-gray-600 hover:text-gray-800 inline-flex items-center gap-1.5 transition-colors font-medium"
       >
         <ArrowLeft className="size-4" /> Back to Grades
       </button>
@@ -206,7 +206,7 @@ function SubjectLessonView({
               <Clock className="size-8 text-amber-500" />
             </div>
             <h4 className="text-lg font-bold text-gray-800">Coming Soon</h4>
-            <p className="text-sm text-gray-500 mt-1.5">Lessons for this subject are being prepared. Stay tuned!</p>
+            <p className="text-sm text-gray-700 mt-1.5">Lessons for this subject are being prepared. Stay tuned!</p>
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -247,7 +247,7 @@ function SubjectLessonView({
                     {isComingSoon ? (
                       <span className="text-xs font-semibold text-amber-500 mt-1 inline-block">Coming Soon</span>
                     ) : (
-                      <span className="text-xs text-gray-400 mt-0.5 inline-block">Click to open</span>
+                      <span className="text-xs text-gray-600 mt-0.5 inline-block">Click to open</span>
                     )}
                   </div>
                   {!isComingSoon && (
@@ -271,7 +271,7 @@ function LessonReader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }
     <div className="bg-card border border-border rounded-lg overflow-hidden">
       <div className="px-6 py-4 border-b border-border flex items-center justify-between">
         <div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground font-mono-ui">Lesson</div>
+          <div className="text-xs uppercase tracking-widest text-gray-600 font-mono-ui">Lesson</div>
           <h2 className="text-lg font-semibold tracking-tight mt-0.5">{lesson.title}</h2>
         </div>
         <button
@@ -282,7 +282,7 @@ function LessonReader({ lesson, onBack }: { lesson: Lesson; onBack: () => void }
         </button>
       </div>
       <div className="p-6 space-y-4">
-        <p className="text-sm text-muted-foreground">{lesson.summary}</p>
+        <p className="text-sm text-gray-600">{lesson.summary}</p>
         <div>
           <h3 className="text-sm font-semibold mb-2">Key points</h3>
           <ul className="space-y-1.5">
@@ -408,18 +408,18 @@ function GradeCard({ grade, onOpen, index }: { grade: Grade; onOpen: () => void;
           <GraduationCap className={`size-8 ${c.iconText}`} />
         </motion.div>
         <h3 className={`text-xl font-bold ${c.title}`}>Grade {grade.level}</h3>
-        <p className="text-sm text-gray-500 mt-2 leading-relaxed h-10">{gradeDescriptions[grade.level] || "Explore and learn"}</p>
+        <p className="text-sm text-gray-600 mt-2 leading-relaxed h-10">{gradeDescriptions[grade.level] || "Explore and learn"}</p>
         <div className="flex items-center justify-center gap-5 mt-4">
           <div className="flex items-center gap-1.5">
-            <BookOpen className="size-3.5 text-gray-400" />
+            <BookOpen className="size-4 text-gray-600" />
             <span className="text-sm font-semibold text-gray-700">{grade.subjects.length}</span>
-            <span className="text-xs text-gray-400">Subjects</span>
+            <span className="text-xs text-gray-600">Subjects</span>
           </div>
           <div className="w-px h-3 bg-gray-200" />
           <div className="flex items-center gap-1.5">
-            <FileText className="size-3.5 text-gray-400" />
+            <FileText className="size-4 text-gray-600" />
             <span className="text-sm font-semibold text-gray-700">{totalLessons}</span>
-            <span className="text-xs text-gray-400">Lessons</span>
+            <span className="text-xs text-gray-600">Lessons</span>
           </div>
         </div>
         <div className="mt-auto pt-5">
@@ -518,7 +518,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
           <div className="absolute left-0">
             <button
               onClick={() => setNavTracked({})}
-              className="text-sm 2xl:text-base text-gray-500 hover:text-gray-800 inline-flex items-center gap-1.5 transition-colors font-medium"
+              className="text-sm 2xl:text-base text-gray-600 hover:text-gray-800 inline-flex items-center gap-1.5 transition-colors font-medium"
             >
               <ArrowLeft className="size-4 2xl:size-5" /> Back to Grades
             </button>
@@ -569,7 +569,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                       )}
                     </div>
                     <h3 className="text-lg 2xl:text-xl font-bold text-gray-800">{s.name}</h3>
-                    <p className="text-xs 2xl:text-sm text-gray-400 mt-1">{s.description}</p>
+                    <p className="text-xs 2xl:text-sm text-gray-600 mt-1">{s.description}</p>
                   </div>
                   <div className="mt-auto">
                     <button
@@ -597,7 +597,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
           className="text-center shrink-0"
         >
           <h2 className="text-3xl 2xl:text-4xl font-semibold tracking-tight text-gray-800">Grades</h2>
-          <p className="text-sm 2xl:text-base text-gray-500 mt-1.5">Select a grade to explore subjects and lessons</p>
+          <p className="text-sm 2xl:text-base text-gray-700 mt-1.5">Select a grade to explore subjects and lessons</p>
           <div className="flex items-center justify-center gap-2 mt-3">
             <div className="w-8 h-0.5 bg-gray-300 rounded-full" />
             <Star className="size-3 text-amber-400 fill-amber-400" />
@@ -608,7 +608,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
         <div className="flex justify-center mt-8 sm:mt-12 2xl:mt-16 pb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 2xl:gap-6 w-full max-w-5xl">
             {grades.map((g, i) => (
-              <GradeCard key={g.id} grade={g} index={i} onOpen={() => setNavTracked({ gradeId: g.id })} />
+              <GradeCard key={g.id} grade={g} index={i} onOpen={() => setNavTracked({ gradeId: g.id, subjectId: nav.subjectId })} />
             ))}
           </div>
         </div>
@@ -735,7 +735,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
             </div>
             <div>
               <h2 className="text-3xl 2xl:text-4xl font-semibold tracking-tight text-gray-800">{subjectData?.name}</h2>
-              <p className="text-sm 2xl:text-base text-gray-500 mt-0.5">Select a grade to explore lessons and subjects</p>
+              <p className="text-sm 2xl:text-base text-gray-600 mt-0.5">Select a grade to explore lessons and subjects</p>
             </div>
           </div>
         </div>
@@ -772,16 +772,16 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
 
                   {/* Title */}
                   <h3 className={`text-lg font-bold ${c.text}`}>Grade {g.level}</h3>
-                  <p className="text-xs text-gray-400 mt-1.5 leading-relaxed hidden sm:block">{gradeDescriptions[g.level]}</p>
+                  <p className="text-xs text-gray-600 mt-1.5 leading-relaxed hidden sm:block">{gradeDescriptions[g.level]}</p>
 
                   {/* Stats */}
                   <div className="flex items-center gap-3 mt-4">
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
                       <BookOpen className="size-3.5" />
                       <span className="font-semibold">{g.subjects.length}</span>
                       <span className="hidden sm:inline">Subjects</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
                       <FileText className="size-3.5" />
                       <span className="font-semibold">{totalLessons}</span>
                       <span className="hidden sm:inline">Lessons</span>
@@ -810,7 +810,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
           <span className="text-4xl">🏆</span>
           <div>
             <p className="text-sm font-semibold text-gray-700">Every grade is carefully designed to help students learn, practice and grow step by step.</p>
-            <p className="text-sm text-gray-500 mt-0.5">Choose a grade to get started on an exciting learning journey!</p>
+            <p className="text-sm text-gray-600 mt-0.5">Choose a grade to get started on an exciting learning journey!</p>
           </div>
         </motion.div>
       </div>
@@ -852,7 +852,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
     <div className="flex flex-col flex-1 animate-view-in min-h-0">
       <div className="text-center shrink-0 mb-4">
         <h2 className="text-3xl 2xl:text-4xl font-semibold tracking-tight text-gray-800">Choose a Subject</h2>
-        <p className="text-sm 2xl:text-base text-gray-500 mt-2">Pick a subject to see available grades and lessons</p>
+        <p className="text-sm 2xl:text-base text-gray-600 mt-2">Pick a subject to see available grades and lessons</p>
         <div className="flex items-center justify-center gap-2 mt-3">
           <div className="w-8 h-0.5 bg-gray-300 rounded-full" />
           <Star className="size-3 text-amber-400 fill-amber-400" />
@@ -909,7 +909,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                     )}
                   </div>
                   <h3 className={`text-xl sm:text-3xl 2xl:text-4xl font-semibold mb-1 transition-colors duration-500 ${isActive ? c.nameText : 'text-gray-400'}`}>{s.name}</h3>
-                  <p className={`text-sm sm:text-base 2xl:text-lg mb-4 transition-colors duration-500 ${isActive ? 'text-gray-500' : 'text-gray-300'}`}>{s.description}</p>
+                  <p className={`text-sm sm:text-base 2xl:text-lg mb-4 transition-colors duration-500 ${isActive ? 'text-gray-600' : 'text-gray-300'}`}>{s.description}</p>
                   {isActive && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
@@ -974,7 +974,7 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">All Lessons</h2>
-          <p className="text-sm text-muted-foreground">{allLessons.length} lessons across Grades 1 – 5.</p>
+          <p className="text-sm text-gray-600">{allLessons.length} lessons across Grades 1 – 5.</p>
         </div>
         <input
           value={q}
@@ -984,7 +984,7 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
         />
       </div>
       <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="hidden sm:grid grid-cols-12 px-4 py-2 border-b border-border bg-muted/40 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <div className="hidden sm:grid grid-cols-12 px-4 py-2 border-b border-border bg-muted/40 text-[10px] font-semibold uppercase tracking-widest text-gray-600">
           <div className="col-span-6">Lesson</div>
           <div className="col-span-3">Subject</div>
           <div className="col-span-2">Grade</div>
@@ -1009,18 +1009,18 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
                 >
                   <div className="col-span-6 min-w-0">
                     <div className="text-sm font-medium truncate flex items-center gap-2">
-                      <FileText className="size-3.5 text-muted-foreground shrink-0" />
+                      <FileText className="size-3.5 text-gray-600 shrink-0" />
                       {l.title}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate ml-5">{l.summary}</div>
+                    <div className="text-xs text-gray-600 truncate ml-5">{l.summary}</div>
                   </div>
                   <div className="col-span-3 text-sm hidden sm:block">{l.subjectName}</div>
-                  <div className="col-span-2 text-sm text-muted-foreground hidden sm:block">{l.gradeLabel}</div>
+                  <div className="col-span-2 text-sm text-gray-600 hidden sm:block">{l.gradeLabel}</div>
                   <div className="col-span-1 text-right">
                     {isComingSoon ? (
                       <span className="font-mono-ui text-[10px] text-orange-500 font-semibold">SOON</span>
                     ) : (
-                      <span className="font-mono-ui text-[10px] text-muted-foreground">{l.quiz.length}Q</span>
+                      <span className="font-mono-ui text-[10px] text-gray-600">{l.quiz.length}Q</span>
                     )}
                   </div>
                 </button>
@@ -1028,7 +1028,7 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
             );
           })}
           {filtered.length === 0 && (
-            <li className="p-6 text-center text-sm text-muted-foreground">No lessons match "{q}".</li>
+            <li className="p-6 text-center text-sm text-gray-600">No lessons match "{q}".</li>
           )}
         </ul>
       </div>
@@ -1236,7 +1236,7 @@ export function OverviewView({
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-800">{s.value}</div>
-                <div className="text-sm text-gray-500">{s.label}</div>
+                <div className="text-base text-gray-700">{s.label}</div>
               </div>
             </motion.div>
           );
@@ -1251,9 +1251,9 @@ export function OverviewView({
         transition={{ duration: 0.5 }}
       >
         <div className="flex items-center gap-2 mb-1">
-          <h2 className="text-xl font-semibold text-gray-800">Quick Access</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Quick Access</h2>
         </div>
-        <p className="text-sm text-gray-500 mb-5">Navigate to subject content</p>
+        <p className="text-base text-gray-600 mb-5">Navigate to subject content</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { name: "Science", icon: "/images/scicon.png", border: "border-green-300" },
@@ -1266,11 +1266,11 @@ export function OverviewView({
               onClick={() => onOpenSubject?.(s.name.toLowerCase().replace(" ", ""))}
               className={`bg-white border-2 ${s.border} rounded-xl p-5 text-left hover:shadow-md transition-all duration-200 group`}
             >
-              <div className="size-14 bg-gray-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-200 transition-colors">
-                <img src={s.icon} alt={s.name} className="size-9 object-contain" />
+              <div className="size-16 bg-gray-100 rounded-xl flex items-center justify-center mb-3 group-hover:bg-gray-200 transition-colors">
+                <img src={s.icon} alt={s.name} className="size-11 object-contain" />
               </div>
-              <div className="text-sm font-semibold text-gray-800">{s.name}</div>
-              <div className="text-xs text-gray-400 mt-0.5">View lessons</div>
+              <div className="text-base font-semibold text-gray-800">{s.name}</div>
+              <div className="text-sm text-gray-600 mt-0.5">View lessons</div>
             </button>
           ))}
         </div>
@@ -1287,16 +1287,16 @@ export function OverviewView({
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Overview</h2>
-              <p className="text-sm text-gray-500 mt-0.5">Content distribution across grades</p>
+              <p className="text-base text-gray-600 mt-0.5">Content distribution across grades</p>
             </div>
             <div className="flex items-center gap-4 text-xs">
               <div className="flex items-center gap-1.5">
                 <div className="size-2.5 rounded-full bg-blue-500" />
-                <span className="text-gray-500">Subjects</span>
+                <span className="text-gray-700">Subjects</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="size-2.5 rounded-full bg-indigo-400" />
-                <span className="text-gray-500">Lessons</span>
+                <span className="text-gray-700">Lessons</span>
               </div>
             </div>
           </div>

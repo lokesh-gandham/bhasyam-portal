@@ -73,7 +73,7 @@ function LoginScreen() {
                   <h1 className="text-2xl font-semibold tracking-tight text-foreground">
                     Bhasyam
                   </h1>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-gray-600 mt-1">
                     Assessment Content Management System
                   </p>
                 </motion.div>
@@ -132,7 +132,7 @@ function LoginScreen() {
                   <h2 className="text-xl 2xl:text-2xl font-semibold tracking-tight">
                     Portal Login
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">
+                  <p className="text-sm text-gray-600 mt-0.5">
                     Please sign in to continue
                   </p>
                 </motion.div>
@@ -163,12 +163,12 @@ function LoginScreen() {
                 >
                   <label
                     htmlFor="identifier"
-                    className="text-xs 2xl:text-sm font-semibold uppercase tracking-wider text-muted-foreground ml-0.5"
+                    className="text-xs 2xl:text-sm font-semibold uppercase tracking-wider text-gray-600 ml-0.5"
                   >
                     Username
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 2xl:size-4 text-muted-foreground" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 2xl:size-4 text-gray-600" />
                     <input
                       id="identifier"
                       type="text"
@@ -193,7 +193,7 @@ function LoginScreen() {
                   <div className="flex justify-between items-end">
                     <label
                       htmlFor="password"
-                      className="text-xs 2xl:text-sm font-semibold uppercase tracking-wider text-muted-foreground ml-0.5"
+                      className="text-xs 2xl:text-sm font-semibold uppercase tracking-wider text-gray-600 ml-0.5"
                     >
                       Password
                     </label>
@@ -211,7 +211,7 @@ function LoginScreen() {
                     </button>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 2xl:size-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 2xl:size-4 text-gray-600" />
                     <input
                       id="password"
                       type={showPassword ? "text" : "password"}
@@ -260,7 +260,7 @@ function LoginScreen() {
               </form>
 
               <div className="bg-muted/50 border-t border-border px-6 py-2 2xl:py-4 flex justify-center">
-                <p className="text-xs 2xl:text-sm text-muted-foreground font-medium">
+                <p className="text-xs 2xl:text-sm text-gray-600 font-medium">
                   Restricted access for internal staff only
                 </p>
               </div>
@@ -276,7 +276,7 @@ function LoginScreen() {
         transition={{ delay: 0.3, duration: 0.5 }}
         className="h-8 2xl:h-12 border-t border-border bg-card px-6 flex items-center justify-center gap-2 shrink-0"
       >
-        <span className="text-sm md:text-base 2xl:text-lg text-muted-foreground">
+        <span className="text-sm md:text-base 2xl:text-lg text-gray-600">
           &copy; 2026 Assessment CMS · All rights reserved by
         </span>
         <div className="flex items-center gap-1.5">
