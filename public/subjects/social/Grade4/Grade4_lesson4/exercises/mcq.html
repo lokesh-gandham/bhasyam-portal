@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Livvic", sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .quiz {
+            width: 95%;
+            max-width: 1100px;
+            border-radius: 40px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .quiz-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        #question {
+            margin-top: 5px;
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            line-height: 1.3;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: left;
+        }
+
+        .question-image {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .question-image img {
+            width: 300px;
+            height: 270px;
+            object-fit: contain;
+            padding: 14px;
+            border-radius: 50px;
+            /* background: linear-gradient(145deg, #ffffff, #f3f9ff); */
+            /* border: 3px solid #fff; */
+            transition: .3s ease;
+            animation: zoomPulse 2s ease-in-out infinite;
+        }
+
+        .question-image img:hover {
+            transform: translateY(-4px);
+        }
+
+        @keyframes zoomPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .options {
+            width: 80%;
+            margin-inline: auto;
+            display: grid;
+            grid-template-rows: repeat(3, 1fr);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            justify-content: flex-start;
+            gap: 16px;
+            padding: 16px 22px;
+            border-radius: 24px;
+            font-size: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+
+            color: #2f4f4f;
+
+            background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+            border: 3px solid #d8e9ff;
+
+            /* box-shadow:
+        0 5px 0 #b8d6ff,
+        0 12px 22px rgba(82, 136, 255, 0.18),
+        inset 0 2px 0 rgba(255,255,255,.9); */
+
+            transition: all .25s ease;
+        }
+
+        .option:hover {
+            transform: translateY(-6px) scale(1.02);
+
+            box-shadow:
+                0 7px 0 #8fc3ff,
+                0 18px 32px rgba(82, 136, 255, .28),
+                inset 0 2px 0 rgba(255, 255, 255, 1);
+
+            border-color: #7bbcff;
+        }
+
+        .option.o1,
+        .option.o2,
+        .option.o3 {
+            background: linear-gradient(135deg, #ffffff, #ffffff);
+            border-color: #9EDCFF;
+            box-shadow:
+                0 5px 0 #9EDCFF;
+            /* 0 12px 22px rgba(66,165,245,.22); */
+        }
+
+        .option::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg,
+                    transparent,
+                    rgba(255, 255, 255, .7),
+                    transparent);
+            transition: .5s;
+        }
+
+        .option:hover::before {
+            left: 100%;
+        }
+
+
+        .option-img {
+            width: 85px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .option.correct {
+            background: linear-gradient(135deg, #f0fff5, #F2FFF7);
+            border: 3px solid #36C96B;
+
+            box-shadow:
+                0 6px 0 #36C96B;
+            /* 0 16px 28px rgba(54,201,107,.30); */
+
+            transform: translateY(-4px);
+        }
+
+        .option.wrong {
+            background: linear-gradient(135deg, #FFE2E2, #FFF5F5);
+            border: 3px solid #FF8F8F;
+
+            box-shadow:
+                0 6px 0 #FF8F8F,
+                0 14px 24px rgba(255, 110, 110, .25);
+
+            animation: softBlink .6s ease;
+        }
+
+        @keyframes softBlink {
+
+            0%,
+            100% {
+                background: #ffe7e7;
+                border-color: #ff9d9d;
+                box-shadow: 0 8px 20px rgba(255, 120, 120, .25);
+            }
+        }
+
+        .option.disabled {
+            opacity: .55;
+            pointer-events: none;
+            filter: grayscale(.15);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 150px;
+            margin-top: 20px;
+        }
+
+        .controls button {
+            width: 150px;
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            border-radius: 18px;
+            border: none;
+            font-size: 20px;
+            font-weight: 500;
+            color: #fff;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+        .prev {
+            background: linear-gradient(135deg, #67b8ff, #74b2ff);
+        }
+
+        .next {
+            background: linear-gradient(135deg, #ffd86f, #ffb300);
+        }
+
+        .controls button:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.05);
+        }
+
+        .controls button:active {
+            transform: scale(.96);
+        }
+
+        .controls button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        /* ===== NEW POPUP STYLES (from second code) ===== */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #ffffff;
+            width: 300px;
+            border-radius: 28px;
+            padding: 0;
+            text-align: center;
+            box-shadow:
+                0 0 0 1px rgba(0, 0, 0, 0.04),
+                0 4px 10px rgba(0, 0, 0, 0.03),
+                0 14px 28px rgba(26, 26, 46, 0.08),
+                0 30px 60px rgba(26, 26, 46, 0.12),
+                0 60px 100px rgba(26, 26, 46, 0.14);
+            animation: popupSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes popupSlide {
+            0% {
+                transform: scale(0.5) translateY(60px) rotate(-5deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.05) translateY(-8px) rotate(2deg);
+            }
+
+            100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .popup-top {
+            padding: 35px 24px 20px;
+            position: relative;
+        }
+
+        .popup.correct .popup-top {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        }
+
+        .popup.wrong .popup-top {
+            background: linear-gradient(135deg, #fbe9e7, #ffccbc);
+        }
+
+        .popup.final .popup-top {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .popup-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .popup.correct .popup-icon-wrap {
+            background: #4caf50;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowGreen 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.wrong .popup-icon-wrap {
+            background: #ef5350;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowRed 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.final .popup-icon-wrap {
+            background: #ffffff;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowWarm 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowGreen {
+            0% {
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+            }
+        }
+
+        @keyframes glowRed {
+            0% {
+                box-shadow: 0 0 20px rgba(239, 83, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(239, 83, 80, 0.6);
+            }
+        }
+
+        @keyframes glowWarm {
+            0% {
+                box-shadow: 0 0 5px rgba(172, 172, 172, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(163, 163, 163, 0.432);
+            }
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0) rotate(-30deg);
+            }
+
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .popup-icon-wrap span {
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-bottom {
+            padding: 18px 24px 22px;
+            background: #fff;
+        }
+
+        .popup.correct .popup-bottom {
+            border-top: 2px solid #c8e6c9;
+        }
+
+        .popup.wrong .popup-bottom {
+            border-top: 2px solid #ffccbc;
+        }
+
+        .popup.final .popup-bottom {
+            border-top: 2px solid #ffe0b2;
+        }
+
+        .popup-msg {
+            font-size: 15px;
+            font-weight: 500;
+            color: #5a5270;
+            line-height: 1.4;
+        }
+
+        .popup-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2a4a;
+            margin-bottom: 8px;
+        }
+
+        .popup-stars {
+            font-size: 34px;
+            letter-spacing: 6px;
+            animation: starDance 0.8s ease;
+            margin-bottom: 12px;
+        }
+
+        @keyframes starDance {
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .play-again-popup {
+            background: linear-gradient(135deg, #ff922b, #f76707);
+            color: #fff;
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+        }
+
+        .play-again-popup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(247, 103, 7, 0.45);
+        }
+
+        .play-again-popup:active {
+            transform: translateY(0);
+        }
+
+        /* ===== END NEW POPUP STYLES ===== */
+
+        @media (max-width:900px) {
+
+            body {
+                align-items: center;
+                padding: 20px;
+                overflow: auto;
+            }
+
+            .quiz {
+                width: 100%;
+                padding: 25px;
+            }
+
+            .quiz-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .question-image img {
+                width: 240px;
+                height: 210px;
+            }
+
+            .options {
+                grid-template-rows: 1fr;
+                gap: 16px;
+            }
+
+            .option {
+                font-size: 18px;
+                padding: 12px;
+            }
+
+            .option-img {
+                width: 90px;
+                height: 70px;
+            }
+
+            .controls {
+                margin-top: 25px;
+            }
+
+            .controls button {
+                width: 130px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .popup {
+                width: 320px;
+            }
+        }
+
+        @media (max-width:768px) {
+
+            body {
+                padding: 30px 0px 10px;
+                align-items: flex-start;
+                overflow: auto;
+            }
+
+            .quiz {
+                padding: 20px;
+            }
+
+            .quiz-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .question-image img {
+                width: 200px;
+                height: 170px;
+            }
+
+            .options {
+                width: 80%;
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .options .option:nth-child(3) {
+                grid-column: 1 / span 2;
+                justify-self: center;
+                width: calc(50% - 8px);
+            }
+
+            .option {
+                font-size: 16px;
+                padding: 10px;
+                justify-content: center;
+            }
+
+            .option-img {
+                width: 75px;
+                height: 60px;
+            }
+
+            .controls button {
+                width: 120px;
+                height: 45px;
+                /* padding: 8px 20px; */
+                font-size: 16px;
+            }
+
+            .popup {
+                width: 300px;
+            }
+        }
+
+        @media (max-width:480px) {
+            body {
+                padding: 40px 0px 10px;
+            }
+
+            .quiz {
+                padding: 0px 10px;
+            }
+
+            #question {
+                font-size: 22px;
+            }
+
+            .question-image img {
+                width: 160px;
+                height: 130px;
+            }
+
+            .quiz-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .options {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .options .option:nth-child(3) {
+                grid-column: 1 / span 2;
+                justify-self: center;
+                width: calc(50% - 8px);
+            }
+
+            .option {
+                font-size: 15px;
+                padding: 12px;
+            }
+
+            .option-img {
+                width: 65px;
+                height: 50px;
+            }
+
+            .controls {
+                gap: 0;
+                width: 100%;
+                margin-inline: auto;
+                justify-content: space-between;
+                margin-top: 0px;
+            }
+
+            .controls button {
+                /* padding: 8px 20px; */
+                font-size: 15px;
+                width: 110px;
+                height: 42px;
+            }
+
+            .popup {
+                width: 260px;
+            }
+
+            .popup-icon-wrap {
+                width: 75px;
+                height: 75px;
+                font-size: 40px;
+            }
+
+            .popup-title {
+                font-size: 22px;
+            }
+        }
+
+        /* ========================================
+   💻 Desktop / Monitor (1025px – 1440px)
+======================================== */
+        @media screen and (min-width: 1025px) and (max-width: 1440px) {
+
+            .quiz {
+                max-width: 1200px;
+            }
+
+            .question-image img {
+                width: 340px;
+                height: 300px;
+            }
+
+            .option {
+                font-size: 22px;
+                padding: 18px 24px;
+            }
+
+            .option-img {
+                width: 100px;
+                height: 90px;
+            }
+
+            .controls {
+                gap: 180px;
+            }
+
+            .controls button {
+                width: 150px;
+                height: 55px;
+                font-size: 20px;
+                /* padding: 14px 36px; */
+            }
+        }
+
+
+        /* ========================================
+   🖥️ Large Monitors (1441px – 1920px)
+======================================== */
+        @media screen and (min-width: 1441px) and (max-width: 1920px) {
+
+            .quiz {
+                max-width: 1500px;
+            }
+
+            #question {
+                font-size: 40px;
+            }
+
+            .question-image img {
+                width: 380px;
+                height: 330px;
+                margin-top: 40px;
+            }
+
+            .option {
+                font-size: 24px;
+                padding: 20px 26px;
+            }
+
+            .option-img {
+                width: 110px;
+                height: 100px;
+            }
+
+            .controls {
+                gap: 200px;
+            }
+
+            .controls button {
+                width: 160px;
+                height: 60px;
+                font-size: 22px;
+                /* padding: 14px 40px; */
+            }
+        }
+
+
+        /* ========================================
+   📺 Extra Large Screens / 4K (1921px+)
+======================================== */
+        @media screen and (min-width: 1921px) {
+
+            .quiz {
+                max-width: 1400px;
+            }
+
+            #question {
+                font-size: 40px;
+            }
+
+            .question-image img {
+                width: 420px;
+                height: 360px;
+            }
+
+            .option {
+                font-size: 26px;
+                padding: 22px 28px;
+            }
+
+            .option-img {
+                width: 120px;
+                height: 110px;
+            }
+
+            .controls {
+                gap: 240px;
+            }
+
+            .controls button {
+                font-size: 24px;
+                width: 170px;
+                height: 65px;
+                /* padding: 16px 44px; */
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz">
+
+        <div class="quiz-layout">
+
+            <div class="header">
+                <h2 id="question"></h2>
+                <div class="question-image">
+                    <img id="questionImg">
+                </div>
+            </div>
+
+            <div class="options" id="options"></div>
+
+        </div>
+
+        <div class="controls">
+            <button class="prev" id="prevBtn"><i class="fa-solid fa-angles-left"></i> Prev</button>
+            <button class="next" id="nextBtn">Next <i class="fa-solid fa-angles-right"></i></button>
+        </div>
+
+    </div>
+
+    <!-- NEW POPUP OVERLAY (replaces old kid-popup) -->
+    <div class="popup-overlay" id="answerPopup">
+        <div class="popup" id="popupBox"></div>
+    </div>
+
+    <!-- NEW FINAL POPUP OVERLAY (replaces old finalPopup) -->
+    <div class="popup-overlay" id="finalPopup">
+        <div class="popup final" id="finalPopupBox"></div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+
+    <script>
+        const quizData = [{
+            q: "Q1. The Deccan Plateau is surrounded by hill ranges on ______ sides.",
+            img: "../assets/images/mcq1.png",
+            options: [
+                "../assets/images/two.png|Two",
+                "../assets/images/three.png|Three",
+                "../assets/images/one.png|One",
+            ],
+            a: 1,
+        }, {
+            q: "Q2. The hottest months in the Thar Desert are ______ and ______.",
+            img: "../assets/images/mcq2.png",
+            options: [
+                "../assets/images/june-july.png|June and July",
+                "../assets/images/dec-jan.png|December and January",
+                "../assets/images/march-april.png|March and April",
+            ],
+            a: 0,
+        }, {
+            q: "Q3. The capital of Rajasthan is ______.",
+            img: "../assets/images/mcq3.png",
+            options: [
+                "../assets/images/jaisalmer.png|Jaisalmer",
+                "../assets/images/jodhpur.png|Jodhpur",
+                "../assets/images/jaipur.png|Jaipur",
+            ],
+            a: 2,
+        }, {
+            q: "Q4. The land in the Thar Desert is covered with ______ and ______.",
+            img: "../assets/images/mcq4.png",
+            options: [
+                "../assets/images/rocks-sand.png|Rocks and Sand",
+                "../assets/images/sand-water.png|Sand and Water",
+                "../assets/images/sand-stones.png|Sand and Stones",
+            ],
+            a: 0,
+        }, {
+            q: "Q5. Many villages and small towns in the Thar Desert are usually located near an ______.",
+            img: "../assets/images/mcq5.png",
+            options: [
+                "../assets/images/oasis.png|Oasis",
+                "../assets/images/pond.png|Ponds",
+                "../assets/images/river.png|Rivers",
+            ],
+            a: 0,
+        },];
+
+        let current = 0;
+        let score = 0;
+        let answered = Array(quizData.length).fill(null);
+
+        const qEl = document.getElementById("question");
+        const imgEl = document.getElementById("questionImg");
+        const optEl = document.getElementById("options");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+        // New popup elements
+        const popupOverlay = document.getElementById("answerPopup");
+        const popupBox = document.getElementById("popupBox");
+        const finalOverlay = document.getElementById("finalPopup");
+        const finalBox = document.getElementById("finalPopupBox");
+
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-UK";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+        }
+
+        function loadQuestion() {
+            const q = quizData[current];
+            qEl.textContent = q.q;
+            imgEl.src = q.img;
+            optEl.innerHTML = "";
+            nextBtn.disabled = answered[current] === null;
+
+            q.options.forEach((t, i) => {
+                const d = document.createElement("div");
+                d.className = "option o" + ((i % 3) + 1);
+
+                const img = t.split("|")[0];
+                const text = t.split("|")[1];
+
+                d.innerHTML = `<div class="option-img"><img src="${img}"></div>${text}`;
+
+                if (answered[current] !== null) {
+                    if (i === q.a) d.classList.add("correct");
+                    else d.classList.add("disabled");
+                }
+
+                d.onclick = () => {
+                    if (answered[current] !== null) return;
+
+                    if (i === q.a) {
+                        answered[current] = i;
+                        score++;
+
+                        d.classList.add("correct");
+                        [...optEl.children].forEach((o) => {
+                            if (o !== d) o.classList.add("disabled");
+                        });
+
+                        speak("Correct");
+                        smallConfetti();
+                        showPopup(true);
+                        nextBtn.disabled = false;
+
+                        if (answered.every((a) => a !== null)) setTimeout(showFinal, 1600);
+                    } else {
+                        speak("Try again");
+                        showPopup(false);
+                        d.classList.add("wrong");
+                        setTimeout(() => {
+                            d.classList.remove("wrong");
+                        }, 700);
+                    }
+                };
+
+                optEl.appendChild(d);
+            });
+
+            prevBtn.disabled = current === 0;
+        }
+
+        prevBtn.onclick = () => {
+            current--;
+            loadQuestion();
+        };
+
+        nextBtn.onclick = () => {
+            current++;
+            loadQuestion();
+        };
+
+        // ===== NEW POPUP FUNCTIONS =====
+        function showPopup(isCorrect) {
+            popupOverlay.className = 'popup-overlay show';
+            popupBox.className = 'popup ' + (isCorrect ? 'correct' : 'wrong');
+
+            if (isCorrect) {
+                popupBox.innerHTML = `
+                    <div class="popup-top">
+                        <div class="popup-icon-wrap"><span>👍</span></div>
+                        <div class="popup-title">Awesome</div>
+                    </div>
+                    <div class="popup-bottom">
+                        <div class="popup-msg">You got it right! 🎉</div>
+                    </div>
+                `;
+            } else {
+                popupBox.innerHTML = `
+                    <div class="popup-top">
+                        <div class="popup-icon-wrap"><span>💪</span></div>
+                        <div class="popup-title">Keep Trying</div>
+                    </div>
+                    <div class="popup-bottom">
+                        <div class="popup-msg">Don't give up! 💪</div>
+                    </div>
+                `;
+            }
+
+            setTimeout(() => {
+                popupOverlay.classList.remove('show');
+            }, 1500);
+        }
+
+        function showFinal() {
+            let end = Date.now() + (1.5 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+
+            finalOverlay.className = 'popup-overlay show';
+            finalBox.className = 'popup final';
+
+            finalBox.innerHTML = `
+                <div class="popup-top">
+                    <div class="popup-icon-wrap"><span>🏆</span></div>
+                    <div class="popup-title">You Won!</div>
+                </div>
+                <div class="popup-bottom">
+                    <div class="popup-score">Score: ${score} / ${quizData.length}</div>
+                    <div class="popup-stars">${"⭐".repeat(score)}</div>
+                    <button class="play-again-popup" id="playAgainBtn">Play Again</button>
+                </div>
+            `;
+
+            document.getElementById('playAgainBtn').addEventListener('click', () => {
+                location.reload();
+            });
+        }
+
+        loadQuestion();
+    </script>
+</body>
+
+</html>

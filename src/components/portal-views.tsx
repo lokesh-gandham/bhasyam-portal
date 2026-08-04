@@ -408,22 +408,20 @@ function GradeCard({ grade, onOpen, index }: { grade: Grade; onOpen: () => void;
           <GraduationCap className={`size-8 ${c.iconText}`} />
         </motion.div>
         <h3 className={`text-xl font-bold ${c.title}`}>Grade {grade.level}</h3>
-        <p className="text-sm text-gray-600 mt-2 leading-relaxed h-10">{gradeDescriptions[grade.level] || "Explore and learn"}</p>
-        <div className="flex items-center justify-center gap-5 mt-4">
-          <div className="flex items-center gap-1.5">
-            <BookOpen className="size-4 text-gray-600" />
-            <span className="text-sm font-bold text-gray-700">{grade.subjects.length}</span>
-            <span className="text-sm text-gray-600">Subjects</span>
+        <p className="text-xs text-gray-600 mt-2 leading-relaxed">{gradeDescriptions[grade.level] || "Explore and learn"}</p>
+        <div className="flex items-center justify-center gap-3 mt-4">
+          <div className="flex items-center gap-1">
+            <BookOpen className="size-3.5 text-gray-600 shrink-0" />
+            <span className="text-xs font-bold text-gray-700">{grade.subjects.length} Sub</span>
           </div>
           <div className="w-px h-3 bg-gray-200" />
-          <div className="flex items-center gap-1.5">
-            <FileText className="size-4 text-gray-600" />
-            <span className="text-sm font-bold text-gray-700">{totalLessons}</span>
-            <span className="text-sm text-gray-600">Lessons</span>
+          <div className="flex items-center gap-1">
+            <FileText className="size-3.5 text-gray-600 shrink-0" />
+            <span className="text-xs font-bold text-gray-700">{totalLessons} Les</span>
           </div>
         </div>
         <div className="mt-auto pt-5">
-          <div className={`text-base font-bold ${c.btnText} flex items-center justify-center gap-1.5 group-hover:gap-2.5 transition-all`}>
+          <div className={`text-sm font-bold ${c.btnText} flex items-center justify-center gap-1.5 group-hover:gap-2.5 transition-all whitespace-nowrap`}>
             Explore Grade <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
@@ -1323,7 +1321,7 @@ export function OverviewView({
           <h2 className="text-xl font-semibold text-[#2D2D2D]">Grade Overview</h2>
         </div>
         <p className="text-sm text-[#6B6B6B] mb-5">Quick overview of all grades</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-5">
           {grades.map((g, i) => {
             const colors = [
               { bg: "bg-[#FEF3C7]", border: "border-amber-200", iconBg: "bg-[#F97316]", text: "text-[#2D2D2D]" },

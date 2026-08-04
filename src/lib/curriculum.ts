@@ -127,6 +127,7 @@ const socialHtmlPath = (grade: number, lesson: number): string | undefined => {
       1: "/subjects/social/Grade4/Grade4_chapter1/Grade4_lesson1.html",
       2: "/subjects/social/Grade4/Grade4_chapter2/Grade4_Lesson2.html",
       3: "/subjects/social/Grade4/Grade4_chapter3/Grade4_Lesson3.html",
+      4: "/subjects/social/Grade4/Grade4_lesson4/Grade4_Lesson4.html",
     };
     return paths[lesson];
   }

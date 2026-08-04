@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wise Wings</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Livvic", sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* MAIN */
+
+        .main {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* HEADER */
+
+        h1 {
+            font-size: 28px;
+            color: #2f4f4f;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 35px;
+        }
+
+        /* GAME AREA */
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 120px;
+        }
+
+        /* SVG */
+
+        #line-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* COLUMNS */
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            z-index: 2;
+            border-radius: 16px;
+        }
+
+        /* CARD STYLE - left column (text only) */
+
+        .item {
+            width: 340px;
+            height: 80px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 14px 20px;
+            cursor: pointer;
+            font-size: 22px;
+            color: #2f4f4f;
+            text-align: left;
+            background: linear-gradient(145deg, #ffffff, #edf4fe);
+            border: 3px solid #b0cce8;
+            box-shadow: 0 4px 16px rgba(44, 74, 107, 0.08),
+                0 2px 8px rgba(44, 74, 107, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: .25s;
+        }
+
+        /* RIGHT COLUMN — image + text layout */
+        .item-right {
+            width: 340px;
+            height: 80px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 8px 16px 8px 10px;
+            cursor: pointer;
+            font-size: 22px;
+            color: #2f4f4f;
+            text-align: left;
+            background: linear-gradient(145deg, #ffffff, #edf4fe);
+            border: 3px solid #b0cce8;
+            box-shadow: 0 4px 16px rgba(44, 74, 107, 0.08),
+                0 2px 8px rgba(44, 74, 107, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: .25s;
+        }
+
+        .item-right img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .item-right .right-text {
+            flex: 1;
+            font-weight: 500;
+            font-size: 20px;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item:hover:not(.matched),
+        .item-right:hover:not(.matched) {
+            transform: translateY(-3px);
+        }
+
+        .item.active,
+        .item-right.active {
+            background: #fff6f0;
+            border: 3px solid #ffaa5b;
+        }
+
+        .item.matched,
+        .item-right.matched {
+            opacity: 1;
+            cursor: default;
+            background: rgb(218, 255, 218);
+            border: 2px solid rgb(95, 158, 95);
+        }
+
+        .item.error,
+        .item-right.error {
+            border-color: #ef4444;
+            background: #ffe7e7;
+        }
+
+        /* FINAL POPUP - NEW STYLE */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #ffffff;
+            width: 300px;
+            border-radius: 28px;
+            padding: 0;
+            text-align: center;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04),
+                0 4px 10px rgba(0, 0, 0, 0.03),
+                0 14px 28px rgba(26, 26, 46, 0.08),
+                0 30px 60px rgba(26, 26, 46, 0.12),
+                0 60px 100px rgba(26, 26, 46, 0.14);
+            animation: popupSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes popupSlide {
+            0% {
+                transform: scale(0.5) translateY(60px) rotate(-5deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.05) translateY(-8px) rotate(2deg);
+            }
+
+            100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .popup-top {
+            padding: 35px 24px 20px;
+            position: relative;
+        }
+
+        .popup.final .popup-top {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .popup-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            background: #ffffff;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowWarm 1.2s ease-in-out infinite alternate;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        @keyframes glowWarm {
+            0% {
+                box-shadow: 0 0 5px rgba(172, 172, 172, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(163, 163, 163, 0.432);
+            }
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0) rotate(-30deg);
+            }
+
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .popup-icon-wrap span {
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-bottom {
+            padding: 18px 24px 22px;
+            background: #fff;
+        }
+
+        .popup.final .popup-bottom {
+            border-top: 2px solid #ffe0b2;
+        }
+
+        .popup-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2a4a;
+            margin-bottom: 8px;
+        }
+
+        .popup-stars {
+            font-size: 34px;
+            letter-spacing: 6px;
+            animation: starDance 0.8s ease;
+            margin-bottom: 12px;
+        }
+
+        @keyframes starDance {
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .play-again-popup {
+            background: linear-gradient(135deg, #ff922b, #f76707);
+            color: #fff;
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+        }
+
+        .play-again-popup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(247, 103, 7, 0.45);
+        }
+
+        .play-again-popup:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding: 14px;
+                overflow-y: auto;
+                align-items: center;
+                justify-content: flex-start;
+            }
+
+            .main {
+                max-width: 900px;
+                margin-top: 80px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+            }
+
+            .game-container {
+                gap: 100px;
+                width: 95%;
+            }
+
+            .column {
+                width: 42%;
+            }
+
+            .item,
+            .item-right {
+                height: 70px;
+                font-size: 19px;
+                padding: 14px 16px;
+                width: 100%;
+            }
+
+            .item-right img {
+                width: 48px;
+                height: 48px;
+            }
+
+            .item-right .right-text {
+                font-size: 17px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main {
+                max-width: 720px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .subtitle {
+                font-size: 0.8rem;
+            }
+
+            .game-container {
+                gap: 30px;
+                width: 100%;
+            }
+
+            .column {
+                width: 47%;
+                gap: 14px;
+            }
+
+            .item,
+            .item-right {
+                height: 80px;
+                border-radius: 15px;
+                font-size: 18px;
+                padding: 12px 14px;
+                width: 100%;
+            }
+
+            .item-right img {
+                width: 44px;
+                height: 44px;
+            }
+
+            .item-right .right-text {
+                font-size: 16px;
+            }
+
+            .popup {
+                width: 300px;
+            }
+
+            #line-canvas {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 50px 10px 0px;
+                overflow-y: auto;
+                align-items: flex-start;
+            }
+
+            .main {
+                margin-top: 60px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .subtitle {
+                font-size: 0.75rem;
+                margin-bottom: 25px;
+            }
+
+            .game-container {
+                gap: 20px;
+            }
+
+            .column {
+                width: 48%;
+                gap: 12px;
+            }
+
+            .item,
+            .item-right {
+                height: 65px;
+                font-size: 14px;
+                padding: 10px 12px;
+                border-radius: 12px;
+            }
+
+            .item-right img {
+                width: 38px;
+                height: 38px;
+                border-radius: 8px;
+            }
+
+            .item-right .right-text {
+                font-size: 13px;
+                white-space: normal;
+            }
+
+            .popup {
+                width: 260px;
+            }
+
+            .popup-icon-wrap {
+                width: 75px;
+                height: 75px;
+                font-size: 40px;
+            }
+
+            .popup-title {
+                font-size: 22px;
+            }
+
+            #line-canvas {
+                display: none;
+            }
+        }
+
+        /* ========================================
+   💻 Desktop / Monitor (1025px – 1440px)
+======================================== */
+        @media screen and (min-width: 1025px) and (max-width: 1440px) {
+            .main {
+                max-width: 1000px;
+            }
+
+            h1 {
+                font-size: 30px;
+            }
+
+            .subtitle {
+                font-size: 15px;
+            }
+
+            .game-container {
+                gap: 140px;
+            }
+
+            .item,
+            .item-right {
+                width: 400px;
+                height: 85px;
+                font-size: 24px;
+                padding: 8px 16px 8px 25px;
+            }
+
+            .item-right img {
+                width: 80px;
+                height: 65px;
+            }
+
+            .item-right .right-text {
+                font-size: 22px;
+            }
+        }
+
+        /* ========================================
+   🖥️ Large Monitors (1441px – 1920px)
+======================================== */
+        @media screen and (min-width: 1441px) and (max-width: 1920px) {
+            .main {
+                max-width: 1100px;
+            }
+
+            h1 {
+                font-size: 34px;
+            }
+
+            .subtitle {
+                font-size: 16px;
+            }
+
+            .game-container {
+                gap: 160px;
+            }
+
+            .item,
+            .item-right {
+                width: 380px;
+                height: 90px;
+                font-size: 26px;
+                padding: 8px 16px 8px 30px;
+            }
+
+            .item-right img {
+                width: 85px;
+                height: 70px;
+            }
+
+            .item-right .right-text {
+                font-size: 24px;
+            }
+        }
+
+        /* ========================================
+   📺 Extra Large Screens / 4K (1921px+)
+======================================== */
+        @media screen and (min-width: 1921px) {
+            .main {
+                max-width: 1200px;
+            }
+
+            h1 {
+                font-size: 38px;
+            }
+
+            .subtitle {
+                font-size: 18px;
+            }
+
+            .game-container {
+                gap: 180px;
+            }
+
+            .item,
+            .item-right {
+                width: 420px;
+                height: 95px;
+                font-size: 28px;
+                padding: 8px 16px 8px 25px;
+            }
+
+            .item-right img {
+                width: 85px;
+                height: 70px;
+            }
+
+            .item-right .right-text {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main">
+        <div class="game-container">
+
+            <svg id="line-canvas"></svg>
+
+            <div class="column left" id="leftColumn"></div>
+            <div class="column right" id="rightColumn"></div>
+
+        </div>
+    </div>
+
+    <!-- POPUP OVERLAY (final) -->
+    <div class="popup-overlay" id="finalPopup">
+        <div class="popup final" id="finalPopupBox"></div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+
+    <script>
+        // -------- DATA (with image paths) --------
+        const leftData = [
+            { id: "1", text: "1. Sahyadri", match: "e" },
+            { id: "2", text: "2. Anaimalai Hills", match: "d" },
+            { id: "3", text: "3. Nilgiri Hills", match: "b" },
+            { id: "4", text: "4. Aravalli and Vindhya Ranges", match: "c" },
+            { id: "5", text: "5. Peninsular Plateau", match: "a" },
+        ];
+
+        // Right side: image + text (labels without a/b/c...)
+        const rightData = [
+            { match: "a", text: "Southern Plateau", img: "../assets/images/mt1.png" },
+            { match: "b", text: "Karnataka", img: "../assets/images/mt2.png" },
+            { match: "c", text: "Malwa Plateau", img: "../assets/images/mt3.png" },
+            { match: "d", text: "Kerala", img: "../assets/images/mt4.png" },
+            { match: "e", text: "Maharashtra", img: "../assets/images/mt5.png" },
+        ];
+
+        let selectedLeft = null;
+        let matchesFound = 0;
+        let score = 0;
+        let connections = [];
+
+        const leftCol = document.getElementById("leftColumn");
+        const rightCol = document.getElementById("rightColumn");
+        const svg = document.getElementById("line-canvas");
+
+        const finalOverlay = document.getElementById("finalPopup");
+        const finalBox = document.getElementById("finalPopupBox");
+
+        // -------- INIT --------
+        function init() {
+            leftCol.innerHTML = "";
+            rightCol.innerHTML = "";
+
+            // LEFT column (text only)
+            leftData.forEach((item) => {
+                const div = document.createElement("div");
+                div.className = "item";
+                div.dataset.match = item.match;
+                div.textContent = item.text;
+
+                div.onclick = () => {
+                    if (div.classList.contains("matched")) return;
+                    document.querySelectorAll(".left .item").forEach((i) => i.classList.remove("active"));
+                    div.classList.add("active");
+                    selectedLeft = div;
+                };
+
+                leftCol.appendChild(div);
+            });
+
+            // RIGHT column (image + text) — no letters
+            rightData.forEach((item) => {
+                const div = document.createElement("div");
+                div.className = "item-right";
+                div.dataset.id = item.match;
+
+                // image + text wrapper
+                const img = document.createElement("img");
+                img.src = item.img;
+                img.alt = item.text;
+                img.loading = "lazy";
+
+                const textSpan = document.createElement("span");
+                textSpan.className = "right-text";
+                textSpan.textContent = item.text;
+
+                div.appendChild(img);
+                div.appendChild(textSpan);
+
+                div.onclick = () => {
+                    if (!selectedLeft || div.classList.contains("matched")) return;
+
+                    if (selectedLeft.dataset.match === div.dataset.id) {
+                        handleMatch(selectedLeft, div);
+                    } else {
+                        speak("Try again");
+                        div.classList.add("error");
+                        setTimeout(() => div.classList.remove("error"), 400);
+                    }
+                };
+
+                rightCol.appendChild(div);
+            });
+        }
+
+        // -------- HELPERS --------
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-UK";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+        }
+
+        // -------- MATCH LOGIC --------
+        function handleMatch(leftEl, rightEl) {
+            score++;
+
+            leftEl.classList.add("matched");
+            rightEl.classList.add("matched");
+            leftEl.classList.remove("active");
+
+            drawCurve(leftEl, rightEl);
+
+            connections.push({ from: leftEl, to: rightEl });
+
+            selectedLeft = null;
+            matchesFound++;
+            speak("Correct");
+            smallConfetti();
+
+            if (matchesFound === leftData.length) {
+                setTimeout(showFinal, 700);
+            }
+        }
+
+        // -------- DRAW CURVE (SVG) --------
+        function drawCurve(el1, el2) {
+            const rect1 = el1.getBoundingClientRect();
+            const rect2 = el2.getBoundingClientRect();
+            const containerRect = svg.getBoundingClientRect();
+
+            const x1 = rect1.right - containerRect.left;
+            const y1 = rect1.top + rect1.height / 2 - containerRect.top;
+
+            const x2 = rect2.left - containerRect.left;
+            const y2 = rect2.top + rect2.height / 2 - containerRect.top;
+
+            const cx = (x1 + x2) / 2;
+
+            const pathData = `M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+            path.setAttribute("d", pathData);
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", "#22c55e");
+            path.setAttribute("stroke-width", "4");
+            path.setAttribute("stroke-dasharray", "8 6");
+
+            svg.appendChild(path);
+        }
+
+        // -------- FINAL POPUP --------
+        function showFinal() {
+            let end = Date.now() + (1.5 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+
+            finalOverlay.className = 'popup-overlay show';
+            finalBox.className = 'popup final';
+
+            finalBox.innerHTML = `
+                <div class="popup-top">
+                    <div class="popup-icon-wrap"><span>🏆</span></div>
+                    <div class="popup-title">You Won!</div>
+                </div>
+                <div class="popup-bottom">
+                    <div class="popup-score">Score: ${score} / ${leftData.length}</div>
+                    <div class="popup-stars">${"⭐".repeat(score)}</div>
+                    <button class="play-again-popup" id="playAgainBtn">Play Again</button>
+                </div>
+            `;
+
+            document.getElementById('playAgainBtn').addEventListener('click', () => {
+                location.reload();
+            });
+        }
+
+        // -------- RESIZE redraw --------
+        window.addEventListener("resize", () => {
+            svg.innerHTML = "";
+            connections.forEach((c) => drawCurve(c.from, c.to));
+        });
+
+        init();
+    </script>
+</body>
+
+</html>
