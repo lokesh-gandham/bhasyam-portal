@@ -202,7 +202,7 @@ const subjectsFor = (grade: number): Subject[] => [
         "शब्दों का चयन",
         "कविता का भाव",
       ], hindiHtmlPath(grade, 4)),
-    ],
+    ].filter((l) => l.htmlPath),
   },
   ...(grade < 3 ? [{
     id: "social",
