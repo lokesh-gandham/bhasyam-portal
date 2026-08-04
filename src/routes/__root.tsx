@@ -80,14 +80,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Assessment CMS" },
       { property: "og:description", content: "Secure sign-in portal for the Assessment CMS." },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "/images/social bg.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "/images/social bg.jpg" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/images/bhasyam-logo.png", type: "image/png" },
+      { rel: "icon", href: "/images/bhasyam-new-logo.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

@@ -203,10 +203,19 @@ const subjectsFor = (grade: number): Subject[] => [
       ], hindiHtmlPath(grade, 4)),
     ],
   },
-  {
+  ...(grade < 3 ? [{
     id: "social",
-    name: "Social Studies",
-    description: "People & places",
+    name: "Social Studies" as string,
+    description: "People & places" as string,
+    icon: "🌏",
+    iconImage: "/images/sicon.png",
+    color: "bg-indigo-500/10 text-indigo-700",
+    lessons: [] as Lesson[],
+  }] : []),
+  ...(grade >= 3 ? [{
+    id: "social",
+    name: "Social Studies" as string,
+    description: "People & places" as string,
     icon: "🌏",
     iconImage: "/images/sicon.png",
     color: "bg-indigo-500/10 text-indigo-700",
@@ -232,7 +241,7 @@ const subjectsFor = (grade: number): Subject[] => [
         "Farmers and shopkeepers",
       ], socialHtmlPath(grade, 4)),
     ],
-  },
+  }] : []),
   {
     id: "english",
     name: "English",

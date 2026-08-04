@@ -52,10 +52,9 @@ function LoginScreen() {
                 className="flex flex-col items-center gap-6"
               >
                 <motion.img
-                  src="/images/bhasyam-logo.png"
-                  srcSet="/images/bhasyam-logo.png 1x, /images/bhasyam-logo@2x.png 2x"
+                  src="/images/bhasyam-new-logo.png"
                   alt="Bhasyam"
-                  className="h-28 w-auto object-contain drop-shadow-lg"
+                  className="h-32 md:h-36 lg:h-40 2xl:h-44 w-auto object-contain drop-shadow-lg"
                   initial={{ rotate: -5 }}
                   animate={{ rotate: 0 }}
                   transition={{
@@ -109,10 +108,9 @@ function LoginScreen() {
                   className="inline-flex items-center justify-center mb-2"
                 >
                   <img
-                    src="/images/bhasyam-logo.png"
-                    srcSet="/images/bhasyam-logo.png 1x, /images/bhasyam-logo@2x.png 2x"
+                    src="/images/bhasyam-new-logo.png"
                     alt="Bhasyam"
-                    className="h-16 md:h-20 lg:h-24 2xl:h-28 w-auto object-contain drop-shadow-sm"
+                    className="h-20 md:h-24 lg:h-32 2xl:h-36 w-auto object-contain drop-shadow-sm"
                   />
                 </motion.div>
                 <motion.h1
