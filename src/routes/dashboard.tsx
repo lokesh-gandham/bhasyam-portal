@@ -103,7 +103,7 @@ function DashboardScreen() {
           {/* Nav */}
           <nav className="flex-1 overflow-y-auto px-3 py-4 sidebar-scroll">
             {!collapsed && (
-              <div className="text-[10px] uppercase tracking-widest text-gray-600 font-semibold px-3 mb-3">
+<div className="text-sm uppercase tracking-widest text-gray-600 font-bold px-3 mb-3">
                 Menu
               </div>
             )}
@@ -132,7 +132,7 @@ function DashboardScreen() {
                         }
                         setActive(item.id);
                       }}
-                      className={`group relative w-full h-12 ${collapsed ? "justify-center px-0" : "px-3"} rounded-xl flex items-center gap-3 text-sm font-semibold overflow-hidden transition-colors duration-300 ${
+                      className={`group relative w-full h-12 ${collapsed ? "justify-center px-0" : "px-3"} rounded-xl flex items-center gap-3 text-base font-medium overflow-hidden transition-colors duration-300 ${
                         isActive
                           ? "text-green-700"
                           : "text-gray-700 hover:text-gray-900 hover:bg-gray-100/70"
@@ -150,7 +150,7 @@ function DashboardScreen() {
                         transition={{ duration: 0.4, ease: "easeOut" }}
                         className="relative z-10 shrink-0"
                       >
-                        <Icon className={`size-5 ${isActive ? "text-green-600" : "text-gray-600 group-hover:text-gray-800"}`} />
+                        <Icon className={`size-6 ${isActive ? "text-green-600" : "text-gray-600 group-hover:text-gray-800"}`} />
                       </motion.div>
                       {!collapsed && (
                         <span className="relative z-10 flex-1 text-left">{item.label}</span>
@@ -178,7 +178,7 @@ function DashboardScreen() {
                   exit={{ opacity: 0, height: 0 }}
                   className="mt-5 overflow-hidden"
                 >
-                  <div className="text-[10px] uppercase tracking-widest text-gray-600 font-semibold px-3 mb-3">
+<div className="text-sm uppercase tracking-widest text-gray-600 font-bold px-3 mb-3">
                     Select Grade
                   </div>
                   <div className="space-y-1">
@@ -202,7 +202,7 @@ function DashboardScreen() {
                         >
                           <button
                             onClick={() => setExpandedGrade(isExpanded ? null : g.id)}
-                            className={`w-full px-3 py-2.5 flex items-center gap-3 rounded-xl text-sm transition-all duration-200 ${
+                            className={`w-full px-3 py-2.5 flex items-center gap-3 rounded-xl text-base font-semibold transition-all duration-200 ${
                               isExpanded ? gs.active : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
                             }`}
                           >
@@ -233,7 +233,7 @@ function DashboardScreen() {
                                         setGradesKey((k) => k + 1);
                                         setActive("grades");
                                       }}
-                                      className={`w-full px-2 py-2 flex items-center gap-2.5 rounded-lg text-sm font-medium transition-all ${
+                                      className={`w-full px-2 py-2 flex items-center gap-2.5 rounded-lg text-base font-semibold transition-all ${
                                         isSelected ? "bg-yellow-50 text-yellow-700" : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                                       }`}
                                     >
@@ -285,7 +285,7 @@ function DashboardScreen() {
                   navigate({ to: "/" });
                 }}
                 title={collapsed ? "Log out" : undefined}
-                className={`w-full mt-2 h-9 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-2 text-xs text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all`}
+                className={`w-full mt-2 h-9 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-2 text-sm text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all`}
               >
                 <LogOut className="size-4 shrink-0" />
                 {!collapsed && <span>Log out</span>}

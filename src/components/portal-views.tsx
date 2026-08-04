@@ -412,18 +412,18 @@ function GradeCard({ grade, onOpen, index }: { grade: Grade; onOpen: () => void;
         <div className="flex items-center justify-center gap-5 mt-4">
           <div className="flex items-center gap-1.5">
             <BookOpen className="size-4 text-gray-600" />
-            <span className="text-sm font-semibold text-gray-700">{grade.subjects.length}</span>
-            <span className="text-xs text-gray-600">Subjects</span>
+            <span className="text-sm font-bold text-gray-700">{grade.subjects.length}</span>
+            <span className="text-sm text-gray-600">Subjects</span>
           </div>
           <div className="w-px h-3 bg-gray-200" />
           <div className="flex items-center gap-1.5">
             <FileText className="size-4 text-gray-600" />
-            <span className="text-sm font-semibold text-gray-700">{totalLessons}</span>
-            <span className="text-xs text-gray-600">Lessons</span>
+            <span className="text-sm font-bold text-gray-700">{totalLessons}</span>
+            <span className="text-sm text-gray-600">Lessons</span>
           </div>
         </div>
         <div className="mt-auto pt-5">
-          <div className={`text-sm font-semibold ${c.btnText} flex items-center justify-center gap-1.5 group-hover:gap-2.5 transition-all`}>
+          <div className={`text-base font-bold ${c.btnText} flex items-center justify-center gap-1.5 group-hover:gap-2.5 transition-all`}>
             Explore Grade <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
           </div>
         </div>
@@ -772,26 +772,26 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
 
                   {/* Title */}
                   <h3 className={`text-lg font-bold ${c.text}`}>Grade {g.level}</h3>
-                  <p className="text-xs text-gray-600 mt-1.5 leading-relaxed hidden sm:block">{gradeDescriptions[g.level]}</p>
+                  <p className="text-sm text-gray-600 mt-1.5 leading-relaxed hidden sm:block">{gradeDescriptions[g.level]}</p>
 
                   {/* Stats */}
                   <div className="flex items-center gap-3 mt-4">
-                    <div className="flex items-center gap-1 text-xs text-gray-600">
-                      <BookOpen className="size-3.5" />
-                      <span className="font-semibold">{g.subjects.length}</span>
-                      <span className="hidden sm:inline">Subjects</span>
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <BookOpen className="size-4" />
+                      <span className="font-bold">{g.subjects.length}</span>
+                      <span className="hidden sm:inline font-medium">Subjects</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-600">
-                      <FileText className="size-3.5" />
-                      <span className="font-semibold">{totalLessons}</span>
-                      <span className="hidden sm:inline">Lessons</span>
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <FileText className="size-4" />
+                      <span className="font-bold">{totalLessons}</span>
+                      <span className="hidden sm:inline font-medium">Lessons</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Button */}
                 <div className="px-4 pb-4 mt-4">
-                  <div className={`py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors ${isComingSoon ? 'bg-gray-100 text-gray-400' : `${c.btn}`}`}>
+                  <div className={`py-2.5 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-colors ${isComingSoon ? 'bg-gray-100 text-gray-400' : `${c.btn}`}`}>
                     {isComingSoon ? 'Coming Soon' : <>Explore Grade {g.level} <ArrowRight className="size-4" /></>}
                   </div>
                 </div>
