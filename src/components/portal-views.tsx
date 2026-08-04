@@ -148,7 +148,7 @@ function SubjectLessonView({
   };
   const colors = subjectColors[subject.id] || subjectColors.science;
 
-  return (
+    return (
     <div className="space-y-6 animate-view-in">
       <button
         onClick={onBack}
@@ -209,7 +209,7 @@ function SubjectLessonView({
             <p className="text-sm text-gray-500 mt-1.5">Lessons for this subject are being prepared. Stay tuned!</p>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {lessons.map((l, i) => {
             const isComingSoon = showComingSoon(subject.id, gradeId);
             const lessonColors = [
@@ -530,7 +530,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
         </div>
 
         <div className="flex justify-center mt-12 2xl:mt-16 min-h-0" style={{ perspective: "1200px" }}>
-          <div className="flex justify-center gap-5 2xl:gap-6 w-full max-w-6xl">
+          <div className="flex justify-center gap-4 sm:gap-5 2xl:gap-6 w-full max-w-6xl flex-wrap">
             {filteredSubjects.map((s, i) => {
               const sc = subjectStyles[s.id] || subjectStyles.science;
               return (
@@ -542,10 +542,10 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                   whileHover={{ scale: 1.06, rotateY: -8, rotateX: 3, y: -10, boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)" }}
                   whileTap={{ scale: 0.96, rotateY: 0, rotateX: 0 }}
                   onClick={() => setNavTracked({ gradeId: grade.id, subjectId: s.id })}
-                  className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md group flex flex-col cursor-pointer flex-1 min-w-0"
+                  className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md group flex flex-col cursor-pointer flex-1 min-w-0 w-full sm:w-auto"
                   style={{ transformStyle: "preserve-3d" }}
                 >
-                  <div className={`h-44 2xl:h-52 ${sc.iconBg} flex items-center justify-center p-2 relative shrink-0 overflow-hidden`}>
+                  <div className={`h-36 sm:h-44 2xl:h-52 ${sc.iconBg} flex items-center justify-center p-2 relative shrink-0 overflow-hidden`}>
                     {subjectCardImages[s.id] ? (
                       <motion.img
                         src={subjectCardImages[s.id]}
@@ -589,7 +589,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
   }
 
     return (
-      <div className="flex flex-col flex-1 animate-view-in min-h-0">
+      <div className="flex flex-col flex-1 animate-view-in min-h-0 overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -605,8 +605,8 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
           </div>
         </motion.div>
 
-        <div className="flex justify-center mt-12 2xl:mt-16 min-h-0">
-          <div className="grid grid-cols-3 gap-5 2xl:gap-6 w-full max-w-5xl">
+        <div className="flex justify-center mt-8 sm:mt-12 2xl:mt-16 pb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 2xl:gap-6 w-full max-w-5xl">
             {grades.map((g, i) => (
               <GradeCard key={g.id} grade={g} index={i} onOpen={() => setNavTracked({ gradeId: g.id })} />
             ))}
@@ -711,7 +711,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
     };
 
     return (
-      <div className="flex flex-col flex-1 animate-view-in min-h-0 relative">
+      <div className="flex flex-col flex-1 animate-view-in min-h-0 relative overflow-y-auto pb-6">
         {/* Decorative background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-emerald-100/40 to-transparent rounded-full -translate-y-1/2 translate-x-1/3" />
@@ -740,7 +740,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
           </div>
         </div>
 
-        <div className="grid grid-cols-5 gap-4 2xl:gap-5 relative">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 2xl:gap-5 relative">
           {grades.map((g, i) => {
             const isComingSoon = showComingSoon(selectedSubject!, g.id);
             const c = gradeColors[i] || gradeColors[0];
@@ -772,19 +772,19 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
 
                   {/* Title */}
                   <h3 className={`text-lg font-bold ${c.text}`}>Grade {g.level}</h3>
-                  <p className="text-xs text-gray-400 mt-1.5 leading-relaxed">{gradeDescriptions[g.level]}</p>
+                  <p className="text-xs text-gray-400 mt-1.5 leading-relaxed hidden sm:block">{gradeDescriptions[g.level]}</p>
 
                   {/* Stats */}
                   <div className="flex items-center gap-3 mt-4">
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <BookOpen className="size-3.5" />
                       <span className="font-semibold">{g.subjects.length}</span>
-                      <span>Subjects</span>
+                      <span className="hidden sm:inline">Subjects</span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <FileText className="size-3.5" />
                       <span className="font-semibold">{totalLessons}</span>
-                      <span>Lessons</span>
+                      <span className="hidden sm:inline">Lessons</span>
                     </div>
                   </div>
                 </div>
@@ -848,7 +848,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
     return { zIndex: 1, x: wrapped < 0 ? "-90%" : "90%", scale: 0.7, opacity: 0, rotateY: 0, blur: 2 };
   };
 
-  return (
+    return (
     <div className="flex flex-col flex-1 animate-view-in min-h-0">
       <div className="text-center shrink-0 mb-4">
         <h2 className="text-3xl 2xl:text-4xl font-semibold tracking-tight text-gray-800">Choose a Subject</h2>
@@ -860,9 +860,9 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center min-h-0 relative px-16">
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0 relative px-4 sm:px-8 lg:px-16">
         {/* Carousel */}
-        <div className="relative w-full max-w-4xl h-80 2xl:h-96" style={{ perspective: "1200px" }}>
+        <div className="relative w-full max-w-4xl h-72 sm:h-80 2xl:h-96" style={{ perspective: "1200px" }}>
           {uniqueSubjects.map((s, i) => {
             const c = subjectCardStyles[s.id] || subjectCardStyles.science;
             const totalLessons = getSubjectTotalLessons(s.id);
@@ -899,17 +899,17 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                       setActiveSubjectIdx(i);
                     }
                   }}
-                  className={`w-full max-w-md bg-white rounded-3xl p-8 2xl:p-10 text-center transition-all duration-500 ${isActive ? `shadow-2xl ring-2 ${c.ring}` : 'shadow-md border border-gray-100 cursor-default'}`}
+                  className={`w-[85%] sm:w-[70%] max-w-md bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 2xl:p-10 text-center transition-all duration-500 ${isActive ? `shadow-2xl ring-2 ${c.ring}` : 'shadow-md border border-gray-100 cursor-default'}`}
                 >
-                  <div className={`mx-auto size-28 2xl:size-32 rounded-3xl flex items-center justify-center mb-5 transition-all duration-500 ${isActive ? `${c.iconBg} scale-100` : 'bg-gray-50 scale-90'}`}>
+                  <div className={`mx-auto size-20 sm:size-28 2xl:size-32 rounded-2xl sm:rounded-3xl flex items-center justify-center mb-3 sm:mb-5 transition-all duration-500 ${isActive ? `${c.iconBg} scale-100` : 'bg-gray-50 scale-90'}`}>
                     {s.iconImage ? (
-                      <img src={s.iconImage} alt={s.name} className={`size-16 2xl:size-20 object-contain transition-all duration-500 ${isActive ? '' : 'opacity-60'}`} />
+                      <img src={s.iconImage} alt={s.name} className={`size-12 sm:size-16 2xl:size-20 object-contain transition-all duration-500 ${isActive ? '' : 'opacity-60'}`} />
                     ) : (
-                      <span className={`text-6xl 2xl:text-7xl transition-all duration-500 ${isActive ? '' : 'opacity-60 grayscale'}`}>{s.icon}</span>
+                      <span className={`text-4xl sm:text-6xl 2xl:text-7xl transition-all duration-500 ${isActive ? '' : 'opacity-60 grayscale'}`}>{s.icon}</span>
                     )}
                   </div>
-                  <h3 className={`text-3xl 2xl:text-4xl font-semibold mb-1 transition-colors duration-500 ${isActive ? c.nameText : 'text-gray-400'}`}>{s.name}</h3>
-                  <p className={`text-base 2xl:text-lg mb-4 transition-colors duration-500 ${isActive ? 'text-gray-500' : 'text-gray-300'}`}>{s.description}</p>
+                  <h3 className={`text-xl sm:text-3xl 2xl:text-4xl font-semibold mb-1 transition-colors duration-500 ${isActive ? c.nameText : 'text-gray-400'}`}>{s.name}</h3>
+                  <p className={`text-sm sm:text-base 2xl:text-lg mb-4 transition-colors duration-500 ${isActive ? 'text-gray-500' : 'text-gray-300'}`}>{s.description}</p>
                   {isActive && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
@@ -934,15 +934,15 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
         {/* Navigation arrows */}
         <button
           onClick={prevSubject}
-          className="absolute left-4 2xl:left-8 top-1/2 -translate-y-1/2 size-12 2xl:size-14 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:bg-white transition-all z-20"
+          className="absolute left-0 sm:left-4 2xl:left-8 top-1/2 -translate-y-1/2 size-10 sm:size-12 2xl:size-14 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:bg-white transition-all z-20"
         >
-          <ArrowLeft className="size-5 2xl:size-6 text-gray-600" />
+          <ArrowLeft className="size-4 sm:size-5 2xl:size-6 text-gray-600" />
         </button>
         <button
           onClick={nextSubject}
-          className="absolute right-4 2xl:right-8 top-1/2 -translate-y-1/2 size-12 2xl:size-14 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:bg-white transition-all z-20"
+          className="absolute right-0 sm:right-4 2xl:right-8 top-1/2 -translate-y-1/2 size-10 sm:size-12 2xl:size-14 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:bg-white transition-all z-20"
         >
-          <ArrowLeft className="size-5 2xl:size-6 text-gray-600 rotate-180" />
+          <ArrowLeft className="size-4 sm:size-5 2xl:size-6 text-gray-600 rotate-180" />
         </button>
 
         {/* Dots */}
@@ -984,7 +984,7 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
         />
       </div>
       <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="grid grid-cols-12 px-4 py-2 border-b border-border bg-muted/40 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <div className="hidden sm:grid grid-cols-12 px-4 py-2 border-b border-border bg-muted/40 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           <div className="col-span-6">Lesson</div>
           <div className="col-span-3">Subject</div>
           <div className="col-span-2">Grade</div>
@@ -1005,7 +1005,7 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
                     }
                   }}
                   disabled={isComingSoon}
-                  className="w-full grid grid-cols-12 px-4 py-3 hover:bg-muted/40 transition-colors text-left items-center disabled:opacity-100 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                  className="w-full grid grid-cols-1 sm:grid-cols-12 px-4 py-3 hover:bg-muted/40 transition-colors text-left items-center disabled:opacity-100 disabled:cursor-not-allowed disabled:hover:bg-transparent gap-1 sm:gap-0"
                 >
                   <div className="col-span-6 min-w-0">
                     <div className="text-sm font-medium truncate flex items-center gap-2">
@@ -1014,8 +1014,8 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
                     </div>
                     <div className="text-xs text-muted-foreground truncate ml-5">{l.summary}</div>
                   </div>
-                  <div className="col-span-3 text-sm">{l.subjectName}</div>
-                  <div className="col-span-2 text-sm text-muted-foreground">{l.gradeLabel}</div>
+                  <div className="col-span-3 text-sm hidden sm:block">{l.subjectName}</div>
+                  <div className="col-span-2 text-sm text-muted-foreground hidden sm:block">{l.gradeLabel}</div>
                   <div className="col-span-1 text-right">
                     {isComingSoon ? (
                       <span className="font-mono-ui text-[10px] text-orange-500 font-semibold">SOON</span>
@@ -1178,7 +1178,7 @@ export function OverviewView({
             </div>
 
             {/* 3D Floating subject cards */}
-            <div className="hidden xl:flex items-end gap-3 shrink-0" style={{ perspective: "800px" }}>
+            <div className="hidden md:flex items-end gap-3 shrink-0" style={{ perspective: "800px" }}>
               <motion.div
                 initial={{ opacity: 0, y: 40, rotateY: 20 }}
                 animate={{ opacity: 1, y: 0, rotateY: 0 }}

@@ -58,29 +58,19 @@ function DashboardScreen() {
     }
   }, [isAuthenticated, navigate]);
 
+  // Auto-collapse sidebar on small screens
+  useEffect(() => {
+    if (isMobile) {
+      setCollapsed(true);
+    }
+  }, [isMobile]);
+
   if (!isAuthenticated) {
     return null;
   }
 
   return (
     <div className="fixed inset-0 bg-[#FAFAF9] text-foreground flex flex-col">
-      {/* Top Header Bar */}
-      <div className="h-12 bg-gray-100 border-b border-gray-200 flex items-center justify-between px-4 shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="size-6 bg-yellow-500 rounded flex items-center justify-center">
-              <span className="text-xs font-bold text-white">A</span>
-            </div>
-            <span className="text-sm font-semibold text-gray-700 tracking-wide" style={{ fontFamily: "'Georgia', serif" }}>Assessment CMS</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-gray-300" />
-          <div className="w-2 h-2 rounded-full bg-gray-300" />
-          <div className="w-2 h-2 rounded-full bg-gray-300" />
-        </div>
-      </div>
-
       <div className="flex-1 flex min-h-0">
         {/* Sidebar */}
         <aside
@@ -308,12 +298,12 @@ function DashboardScreen() {
         <div className="flex-1 min-w-0 flex flex-col">
           {/* Content header */}
           <div className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0">
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm min-w-0">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setCollapsed((c) => !c)}
-                className="h-10 w-10 rounded-xl bg-indigo-500 text-white shadow-lg shadow-indigo-400/20 flex items-center justify-center transition-all"
+                className="h-10 w-10 shrink-0 rounded-xl bg-indigo-500 text-white shadow-lg shadow-indigo-400/20 flex items-center justify-center transition-all"
               >
                 {collapsed ? (
                   <PanelLeftOpen className="size-4" />
@@ -321,8 +311,8 @@ function DashboardScreen() {
                   <PanelLeftClose className="size-4" />
                 )}
               </motion.button>
-              <div className="h-6 w-px bg-gray-200 mx-1" />
-              <div className="flex items-center gap-1 bg-gray-50 rounded-full px-3 py-1.5 border border-gray-100">
+              <div className="h-6 w-px bg-gray-200 mx-1 shrink-0" />
+              <div className="flex items-center gap-1 bg-gray-50 rounded-full px-3 py-1.5 border border-gray-100 min-w-0 overflow-hidden">
                 <button onClick={() => { setActive("dashboard"); setCurrentNav({}); }} className="text-gray-500 hover:text-indigo-600 transition-colors font-medium px-2 py-0.5 rounded-full hover:bg-indigo-50">Workspace</button>
                 <ChevronRight className="size-3 text-gray-300" />
                 {active === "subjects" && (
