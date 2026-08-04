@@ -409,17 +409,6 @@ function GradeCard({ grade, onOpen, index }: { grade: Grade; onOpen: () => void;
         </motion.div>
         <h3 className={`text-xl font-bold ${c.title}`}>Grade {grade.level}</h3>
         <p className="text-xs text-gray-600 mt-2 leading-relaxed">{gradeDescriptions[grade.level] || "Explore and learn"}</p>
-        <div className="flex items-center justify-center gap-3 mt-4">
-          <div className="flex items-center gap-1">
-            <BookOpen className="size-3.5 text-gray-600 shrink-0" />
-            <span className="text-xs font-bold text-gray-700">{grade.subjects.length} Sub</span>
-          </div>
-          <div className="w-px h-3 bg-gray-200" />
-          <div className="flex items-center gap-1">
-            <FileText className="size-3.5 text-gray-600 shrink-0" />
-            <span className="text-xs font-bold text-gray-700">{totalLessons} Les</span>
-          </div>
-        </div>
         <div className="mt-auto pt-5">
           <div className={`text-sm font-bold ${c.btnText} flex items-center justify-center gap-1.5 group-hover:gap-2.5 transition-all whitespace-nowrap`}>
             Explore Grade <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
@@ -772,17 +761,6 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                   <h3 className={`text-lg font-bold ${c.text}`}>Grade {g.level}</h3>
                   <p className="text-sm text-gray-600 mt-1.5 leading-relaxed hidden sm:block">{gradeDescriptions[g.level]}</p>
 
-                  {/* Stats */}
-                  <div className="flex items-center gap-3 mt-4">
-                    <div className="flex items-center gap-1 text-xs text-gray-600">
-                      <BookOpen className="size-3.5" />
-                      <span className="font-bold">{g.subjects.length} Sub</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-gray-600">
-                      <FileText className="size-3.5" />
-                      <span className="font-bold">{totalLessons} Les</span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Button */}
