@@ -738,7 +738,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 2xl:gap-5 relative">
+        <div className="grid grid-cols-2 sm:grid-cols-3 2xl:grid-cols-5 gap-4 2xl:gap-5 relative">
           {grades.map((g, i) => {
             const isComingSoon = showComingSoon(selectedSubject!, g.id);
             const c = gradeColors[i] || gradeColors[0];
@@ -774,22 +774,20 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
 
                   {/* Stats */}
                   <div className="flex items-center gap-3 mt-4">
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <BookOpen className="size-4" />
-                      <span className="font-bold">{g.subjects.length}</span>
-                      <span className="hidden sm:inline font-medium">Subjects</span>
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <BookOpen className="size-3.5" />
+                      <span className="font-bold">{g.subjects.length} Sub</span>
                     </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <FileText className="size-4" />
-                      <span className="font-bold">{totalLessons}</span>
-                      <span className="hidden sm:inline font-medium">Lessons</span>
+                    <div className="flex items-center gap-1 text-xs text-gray-600">
+                      <FileText className="size-3.5" />
+                      <span className="font-bold">{totalLessons} Les</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Button */}
                 <div className="px-4 pb-4 mt-4">
-                  <div className={`py-2.5 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-colors ${isComingSoon ? 'bg-gray-100 text-gray-400' : `${c.btn}`}`}>
+                  <div className={`py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors ${isComingSoon ? 'bg-gray-100 text-gray-400' : `${c.btn}`}`}>
                     {isComingSoon ? 'Coming Soon' : <>Explore Grade {g.level} <ArrowRight className="size-4" /></>}
                   </div>
                 </div>
@@ -1321,7 +1319,7 @@ export function OverviewView({
           <h2 className="text-xl font-semibold text-[#2D2D2D]">Grade Overview</h2>
         </div>
         <p className="text-sm text-[#6B6B6B] mb-5">Quick overview of all grades</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 2xl:grid-cols-5 gap-5">
           {grades.map((g, i) => {
             const colors = [
               { bg: "bg-[#FEF3C7]", border: "border-amber-200", iconBg: "bg-[#F97316]", text: "text-[#2D2D2D]" },
