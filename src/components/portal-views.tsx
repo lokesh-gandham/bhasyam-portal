@@ -1300,9 +1300,9 @@ export function OverviewView({
               </div>
             </div>
           </div>
-          <div className="h-64" ref={chartRef}>
+          <div className="h-72" ref={chartRef}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} barGap={6}>
+              <BarChart data={chartData} barGap={6} margin={{ top: 20, right: 10, left: -10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} axisLine={false} tickLine={false} />
