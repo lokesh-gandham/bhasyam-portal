@@ -81,11 +81,11 @@ function DashboardScreen() {
           <div className="absolute bottom-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl" />
 
           {/* Brand */}
-          <div className={`${collapsed ? "justify-center px-0 py-6" : "px-5 py-6 2xl:py-8"} relative border-b border-gray-100 flex flex-col items-center gap-3 shrink-0`}>
+          <div className={`${collapsed ? "justify-center px-0 py-4" : "px-5 py-3 2xl:py-4"} relative border-b border-gray-100 flex flex-col items-center gap-2 shrink-0`}>
             <img
               src="/images/bhasyam-new-logo.png"
               alt="Bhasyam"
-              className={`${collapsed ? "h-14 w-14" : "h-32 w-32 2xl:h-40 2xl:w-40"} object-contain relative`}
+              className={`${collapsed ? "h-14 w-14" : "h-40 w-40 2xl:h-48 2xl:w-48"} object-contain relative`}
             />
             {!collapsed && (
               <motion.div
