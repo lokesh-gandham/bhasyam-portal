@@ -443,7 +443,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
             <span className="text-base font-semibold text-[#1a2332]">Subjects in this grade</span>
           </div>
           <div className="cms-card-body">
-            <div className="cms-entity-grid">
+            <div className="cms-grade-grid">
               {filteredSubjects.map((s) => {
                 const lessonCount = s.lessons.length;
                 const isComingSoon = showComingSoon(s.id, grade.id);
@@ -621,7 +621,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
             <span className="text-base font-semibold text-[#1a2332]">Choose a grade for this subject</span>
           </div>
           <div className="cms-card-body">
-            <div className="cms-entity-grid">
+            <div className="cms-grade-grid">
               {grades.map((g) => {
                 const isComingSoon = showComingSoon(selectedSubject!, g.id);
                 const lessonCount = g.subjects.find((s) => s.id === selectedSubject)?.lessons.length || 0;
@@ -689,7 +689,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
           <span className="text-base font-semibold text-[#1a2332]">Curriculum subjects</span>
         </div>
         <div className="cms-card-body">
-          <div className="cms-entity-grid cms-entity-grid-4">
+          <div className="cms-grade-grid">
             {uniqueSubjects.map((s) => {
               const totalLessons = getSubjectTotalLessons(s.id);
               const isComingSoon = showComingSoon(s.id);
