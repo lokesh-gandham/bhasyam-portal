@@ -466,7 +466,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                     </div>
                     <div>
                       <div className="cms-entity-title">{s.name}</div>
-                      <div className="cms-entity-desc" style={s.id === 'hindi' ? { fontWeight: 700 } : undefined}>{s.description}</div>
+                      <div className="cms-entity-desc" data-subject={s.id}>{s.description}</div>
                     </div>
                     <div className="cms-entity-meta">
                       <div>
@@ -713,7 +713,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                   </div>
                   <div>
                     <div className="cms-entity-title">{s.name}</div>
-                      <div className="cms-entity-desc" style={s.id === 'hindi' ? { fontWeight: 700 } : undefined}>{s.description}</div>
+                      <div className="cms-entity-desc" data-subject={s.id}>{s.description}</div>
                     </div>
                     <div className="cms-entity-meta">
                       <div>
