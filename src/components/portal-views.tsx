@@ -209,17 +209,17 @@ function SubjectLessonView({
                   >
                     <div className="cms-lesson-number">
                       <span className="text-xl font-bold leading-none">{i + 1}</span>
-                      <span className="text-sm font-semibold leading-none">Lesson</span>
+                      <span style={{ fontSize: "0.875rem", fontWeight: 600, lineHeight: 1 }}>Lesson</span>
                     </div>
                     <div className="cms-lesson-info">
                       <div className="cms-lesson-title">{subject.name} – Lesson{i + 1}</div>
-                      <div className="text-base font-semibold text-[#1a2332]">
+                      <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#1a2332" }}>
                         Exercise for lesson {i + 1}
                         <span className={`cms-status ${isDisabled ? "cms-status-soon" : "cms-status-active"}`} style={{ marginLeft: "0.5rem", fontSize: "0.75rem" }}>
                           – {isDisabled ? "Inactive" : "Active"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-base font-semibold text-[#1a2332] mt-0.5">
+                      <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#1a2332", display: "flex", alignItems: "center", gap: "0.375rem", marginTop: "0.125rem" }}>
                         <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
@@ -1195,6 +1195,7 @@ export function OverviewView({
           <div className="cms-chart-wrap">
             {renderChart(activeChart, false)}
           </div>
+          <p className="cms-chart-hint">Click any bar to view details</p>
         </div>
       </div>
 
@@ -1216,6 +1217,7 @@ export function OverviewView({
           <div className="cms-chart-wrap">
             {renderChart(inactiveChart, true)}
           </div>
+          <p className="cms-chart-hint">Click any bar to view details</p>
         </div>
       </div>
     </div>
