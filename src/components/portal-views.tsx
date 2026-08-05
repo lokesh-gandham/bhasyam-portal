@@ -475,7 +475,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                       </div>
                       <div>
                         <div className="cms-entity-meta-label">Status</div>
-                        <div className="cms-entity-meta-value">{isComingSoon ? "Soon" : "Active"}</div>
+                        <div className="cms-entity-meta-value">{isComingSoon ? "Soon" : "Live"}</div>
                       </div>
                     </div>
                   </button>
@@ -654,7 +654,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                       </div>
                       <div>
                         <div className="cms-entity-meta-label">Status</div>
-                        <div className="cms-entity-meta-value">{isComingSoon ? "Soon" : "Active"}</div>
+                        <div className="cms-entity-meta-value">{isComingSoon ? "Soon" : "Live"}</div>
                       </div>
                     </div>
                   </button>
@@ -825,13 +825,16 @@ export function OverviewView({
 } = {}) {
   const totalSubjects = allSubjects.filter((s) => allowedSubjectIds.includes(s.id)).length / 5;
 
-  const totalLessons = grades.reduce((acc, g) => acc + g.subjects.reduce((a, s) => a + s.lessons.length, 0), 0);
+  const totalLessons = grades.reduce((acc, g) => acc + g.subjects.filter((s) => !showComingSoon(s.id, g.id)).reduce((a, s) => a + s.lessons.length, 0), 0);
 
-  const finalChartData = grades.map((g) => ({
-    name: `Grade ${g.level}`,
-    subjects: g.subjects.filter((s) => allowedSubjectIds.includes(s.id)).length,
-    lessons: g.subjects.reduce((acc, s) => acc + s.lessons.length, 0),
-  }));
+  const finalChartData = grades.map((g) => {
+    const activeSubjects = g.subjects.filter((s) => allowedSubjectIds.includes(s.id) && !showComingSoon(s.id, g.id));
+    return {
+      name: `Grade ${g.level}`,
+      subjects: activeSubjects.length,
+      lessons: activeSubjects.reduce((acc, s) => acc + s.lessons.length, 0),
+    };
+  });
 
   const [chartData, setChartData] = useState(
     finalChartData.map((d) => ({ ...d, subjects: 0, lessons: 0 }))
