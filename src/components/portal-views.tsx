@@ -1177,7 +1177,7 @@ export function OverviewView({
         })}
       </div>
 
-      <div className="cms-card">
+      <div className="cms-card cms-chart-card">
         <div className="cms-card-header">
           <h2 className="cms-section-title">Active Content Distribution</h2>
           <div className="cms-chart-legend">
@@ -1198,7 +1198,7 @@ export function OverviewView({
         </div>
       </div>
 
-      <div className="cms-card">
+      <div className="cms-card cms-chart-card">
         <div className="cms-card-header">
           <h2 className="cms-section-title">Inactive Content Distribution</h2>
           <div className="cms-chart-legend">
