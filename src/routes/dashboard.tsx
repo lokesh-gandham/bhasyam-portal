@@ -201,27 +201,6 @@ function DashboardScreen() {
             </ul>
           </nav>
 
-          {/* Quick stats */}
-          {!sidebarCollapsed && (
-            <div className="cms-sidebar-stats">
-              <div className="cms-sidebar-section-label">Quick stats</div>
-              <div className="cms-sidebar-stats-card">
-                <div className="cms-sidebar-stat-row">
-                  <span>Grades</span>
-                  <span>{grades.length}</span>
-                </div>
-                <div className="cms-sidebar-stat-row">
-                  <span>Subjects</span>
-                  <span>4</span>
-                </div>
-                <div className="cms-sidebar-stat-row">
-                  <span>Active view</span>
-                  <span className="capitalize">{active}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
           <div className="flex-1 min-h-0" />
 
           {/* Profile footer */}
