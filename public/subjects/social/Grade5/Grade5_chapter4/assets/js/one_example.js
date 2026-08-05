@@ -4,8 +4,8 @@ const quizData = [
 {
   title: "Q1. This place is the largest producer of wool in the world.",
   options: [
-    { text: "Australia", img: "../assets/images/aus.png" },
-    { text: "The Pampas", img: "../assets/images/pampas.png" },
+    { text: "Australia", img: "./../assets/images/aus.png" },
+    { text: "The Pampas", img: "./../assets/images/pampas.png" },
   ],
   answer: "Australia"
 },
@@ -13,8 +13,8 @@ const quizData = [
 {
   title: "Q2. This area experiences mostly humid sub-tropical climate.",
   options: [
-    { text: "The Downs", img: "../assets/images/downs.png" },
-    { text: "The Steppes", img: "../assets/images/fib-2.png" },
+    { text: "The Downs", img: "./../assets/images/downs.png" },
+    { text: "The Steppes", img: "./../assets/images/fib-2.png" },
   ],
   answer: "The Downs"
 },
@@ -22,8 +22,8 @@ const quizData = [
 {
   title: "Q3. This grassland is found in North America.",
   options: [
-    { text: "The Prairies", img: "../assets/images/Prairies.png" },
-    { text: "The Pampas", img: "../assets/images/pampas.png" },
+    { text: "The Prairies", img: "./../assets/images/Prairies.png" },
+    { text: "The Pampas", img: "./../assets/images/pampas.png" },
   ],
   answer: "The Prairies"
 },
@@ -31,8 +31,8 @@ const quizData = [
 {
   title: "Q4. This land has a humid climate making it more suitable to grow grass.",
   options: [
-    { text: "The Pampas", img: "../assets/images/pampas.png" },
-    { text: "The Velds", img: "../assets/images/velds.png" },
+    { text: "The Pampas", img: "./../assets/images/pampas.png" },
+    { text: "The Velds", img: "./../assets/images/velds.png" },
   ],
   answer: "The Pampas"
 },
@@ -40,8 +40,8 @@ const quizData = [
 {
   title: "Q5. Dairy farms and meat-processing factories are well-developed here.",
   options: [
-    { text: "The Prairies", img: "../assets/images/Prairies.png" },
-    { text: "The Velds", img: "../assets/images/velds.png" },
+    { text: "The Prairies", img: "./../assets/images/Prairies.png" },
+    { text: "The Velds", img: "./../assets/images/velds.png" },
   ],
   answer: "The Prairies"
 }

@@ -54,31 +54,31 @@ const questions = [
 {
   q: "Q1. Herders are generally known as ____.",
   a: "Nomads",
-  img: "../assets/images/nomads.png"
+  img: "./../assets/images/nomads.png"
 },
 
 {
   q: "Q2. Very few people live in the ____ as the vegetation is only grass.",
   a: "Steppes",
-  img: "../assets/images/fib-2.png"
+  img: "./../assets/images/fib-2.png"
 },
 
 {
   q: "Q3. The grasslands are home to many ____.",
   a: "Animals",
-  img: "../assets/images/mcq-2.png"
+  img: "./../assets/images/mcq-2.png"
 },
 
 {
   q: "Q4. The grasslands found in Australia are called ____.",
   a: "The Downs",
-  img: "../assets/images/aus.png"
+  img: "./../assets/images/aus.png"
 },
 
 {
   q: "Q5. ____ is one of the most important occupations for the people of Velds.",
   a: "Sheep rearing",
-  img: "../assets/images/velds.png"
+  img: "./../assets/images/velds.png"
 }
 
 ];

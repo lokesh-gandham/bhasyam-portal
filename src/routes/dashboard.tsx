@@ -1,21 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   BookOpen,
   GraduationCap,
+  Menu,
   LogOut,
-  ChevronRight,
-  ChevronDown,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Sparkles,
 } from "lucide-react";
 import { GradesView, SubjectsView, OverviewView } from "@/components/portal-views";
 import { grades, allSubjects } from "@/lib/curriculum";
 import { useAuth } from "@/hooks/use-auth";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -29,18 +23,25 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardScreen,
 });
 
-const nav = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, badge: null as string | null, color: "from-amber-400 to-orange-500" },
-  { id: "subjects", label: "Subjects", icon: BookOpen, badge: null as string | null, color: "from-green-400 to-emerald-500" },
-  { id: "grades", label: "Grades", icon: GraduationCap, badge: null as string | null, color: "from-yellow-400 to-yellow-500" },
+type NavItem = {
+  id: string;
+  label: string;
+  icon: any;
+};
+
+const navItems: NavItem[] = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "subjects", label: "Subjects", icon: BookOpen },
+  { id: "grades", label: "Grades", icon: GraduationCap },
 ];
 
 const allowedSubjectIds = ["science", "hindi", "social", "english"];
 
+const SIDEBAR_EXPANDED = 220;
+const SIDEBAR_COLLAPSED = 56;
+
 function DashboardScreen() {
   const [active, setActive] = useState("dashboard");
-  const [collapsed, setCollapsed] = useState(false);
-  const [expandedGrade, setExpandedGrade] = useState<string | null>(null);
   const [initialGradeNav, setInitialGradeNav] = useState<
     { gradeId: string; subjectId?: string; lessonId?: string; mode?: "read" } | undefined
   >(undefined);
@@ -48,9 +49,11 @@ function DashboardScreen() {
   const [subjectsKey, setSubjectsKey] = useState(0);
   const [currentNav, setCurrentNav] = useState<{ gradeId?: string; subjectId?: string }>({});
   const [initialSubjectsNav, setInitialSubjectsNav] = useState<{ subjectId?: string; gradeId?: string } | undefined>(undefined);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
-  const isMobile = useIsMobile();
+
+  const sidebarWidth = sidebarCollapsed ? SIDEBAR_COLLAPSED : SIDEBAR_EXPANDED;
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -58,73 +61,126 @@ function DashboardScreen() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Auto-collapse sidebar on small screens
-  useEffect(() => {
-    if (isMobile) {
-      setCollapsed(true);
-    }
-  }, [isMobile]);
-
   if (!isAuthenticated) {
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 bg-[#FAFAF9] text-foreground flex flex-col">
-      <div className="flex-1 flex min-h-0">
-        {/* Sidebar */}
-        <aside
-          className={`${collapsed ? "w-20" : "w-72 2xl:w-80"} shrink-0 bg-white border-r border-gray-200 flex flex-col transition-[width] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden relative`}
-        >
-          {/* Decorative glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-yellow-50 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-32 h-32 bg-indigo-50 rounded-full blur-3xl" />
+  const currentGrade = initialGradeNav?.gradeId ? grades.find((g) => g.id === initialGradeNav.gradeId) : null;
+  const currentSubject = currentGrade?.subjects.find((s) => s.id === initialGradeNav?.subjectId);
+  const allowedGradeSubjects = currentGrade?.subjects.filter((s) => allowedSubjectIds.includes(s.id)) || [];
 
-          {/* Brand */}
-          <div className={`${collapsed ? "justify-center px-0 py-4" : "px-5 py-3 2xl:py-4"} relative border-b border-gray-100 flex flex-col items-center gap-2 shrink-0`}>
+  const rowCount =
+    active === "dashboard"
+      ? grades.length
+      : active === "grades"
+        ? initialGradeNav?.subjectId
+          ? currentSubject?.lessons.length ?? 0
+          : initialGradeNav?.gradeId
+            ? allowedGradeSubjects.length
+            : grades.length
+        : active === "subjects"
+          ? currentNav.gradeId
+            ? allSubjects.find((s) => s.id === currentNav.subjectId && s.gradeId === currentNav.gradeId)?.lessons.length ?? 0
+            : currentNav.subjectId
+              ? grades.length
+              : allSubjects.filter((s) => allowedSubjectIds.includes(s.id)).filter((s, i, arr) => arr.findIndex((x) => x.id === s.id) === i).length
+          : 0;
+
+  const pageTitle = (() => {
+    if (active === "dashboard") return "Dashboard";
+    if (active === "subjects") {
+      if (currentNav.gradeId && currentNav.subjectId) {
+        const s = allSubjects.find((x) => x.id === currentNav.subjectId);
+        return s?.name || "Lessons";
+      }
+      if (currentNav.subjectId) {
+        const s = allSubjects.find((x) => x.id === currentNav.subjectId);
+        return s?.name || "Subject";
+      }
+      return "Subjects";
+    }
+    if (active === "grades") {
+      if (initialGradeNav?.lessonId) return currentSubject?.name || "Lessons";
+      if (initialGradeNav?.subjectId) return currentSubject?.name || "Subjects";
+      if (initialGradeNav?.gradeId) return `Grade ${currentGrade?.level || ""}`;
+      return "Grades";
+    }
+    return "Assessment CMS";
+  })();
+
+  return (
+    <div
+      className="fixed inset-0 flex flex-col overflow-hidden text-base"
+      style={{ fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", background: "#e8edf2" }}
+    >
+      {/* Top Header — Fluent enterprise blue */}
+      <header className="h-12 bg-[#0F6CBD] flex items-center px-3 shrink-0 z-20 shadow-sm">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={() => setSidebarCollapsed((c) => !c)}
+            className="text-white/95 hover:bg-white/15 rounded p-1.5 transition-colors"
+            aria-label="Toggle sidebar"
+          >
+            <Menu className="size-5" />
+          </button>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-white font-semibold text-[17px] tracking-tight">Bhasyam</span>
+            <span className="text-white/50 text-[17px]">|</span>
+            <span className="text-white/95 text-[17px] truncate">Assessment CMS</span>
+          </div>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <span className="hidden sm:inline text-white/90 text-sm font-medium px-2 py-1 rounded bg-white/10">
+            {pageTitle}
+          </span>
+        </div>
+      </header>
+
+      <div className="flex-1 flex min-h-0">
+        {/* Fixed-width dark sidebar */}
+        <aside
+          className={`shrink-0 flex flex-col overflow-hidden z-10 cms-sidebar ${sidebarCollapsed ? "cms-sidebar-collapsed" : ""}`}
+          style={{ width: sidebarWidth, minWidth: sidebarWidth, maxWidth: sidebarWidth }}
+        >
+          {/* Brand — large logo on light panel for visibility */}
+          <div
+            className={`shrink-0 border-b border-[#d0d7de] bg-white ${
+              sidebarCollapsed ? "px-2 py-2.5 flex justify-center" : "px-3 py-4 flex flex-col items-center gap-2 text-center"
+            }`}
+          >
             <img
               src="/images/bhasyam-new-logo.png"
               alt="Bhasyam"
-              className={`${collapsed ? "h-14 w-14" : "h-40 w-40 2xl:h-48 2xl:w-48"} object-contain relative`}
+              className={`object-contain shrink-0 ${sidebarCollapsed ? "h-11 w-11" : "h-[96px] w-[96px] 2xl:h-[112px] 2xl:w-[112px]"}`}
             />
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center"
-              >
-                <div className="text-xl 2xl:text-2xl font-extrabold tracking-tight text-gray-800" style={{ fontFamily: "'Georgia', serif" }}>
-                  Assessment CMS
-                </div>
-              </motion.div>
+            {!sidebarCollapsed && (
+              <div className="text-xs 2xl:text-sm font-semibold text-[#0F6CBD] leading-tight tracking-wide uppercase">
+                Assessment CMS
+              </div>
             )}
           </div>
 
-          {/* Nav */}
-          <nav className="flex-1 overflow-y-auto px-3 py-4 sidebar-scroll">
-            {!collapsed && (
-<div className="text-sm uppercase tracking-widest text-gray-600 font-bold px-3 mb-3">
-                Menu
-              </div>
+          {/* Navigation */}
+          <nav className="cms-sidebar-nav">
+            {!sidebarCollapsed && (
+              <div className="cms-sidebar-section-label">Navigation</div>
             )}
-            <ul className="space-y-1">
-              {nav.map((item) => {
+            <ul className="cms-sidebar-nav-list">
+              {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = active === item.id;
                 return (
                   <li key={item.id}>
-                    <motion.button
-                      whileHover={{ x: isActive ? 0 : 3 }}
-                      whileTap={{ scale: 0.97 }}
-                      title={collapsed ? item.label : undefined}
+                    <button
+                      title={sidebarCollapsed ? item.label : undefined}
                       onClick={() => {
                         if (item.id === "grades") {
                           setInitialGradeNav(undefined);
                           setGradesKey((k) => k + 1);
-                          setExpandedGrade(null);
                         }
                         if (item.id === "subjects") {
                           setInitialSubjectsNav(undefined);
+                          setCurrentNav({});
                           setSubjectsKey((k) => k + 1);
                         }
                         if (item.id !== "grades") {
@@ -132,232 +188,87 @@ function DashboardScreen() {
                         }
                         setActive(item.id);
                       }}
-                      className={`group relative w-full h-12 ${collapsed ? "justify-center px-0" : "px-3"} rounded-xl flex items-center gap-3 text-base font-medium overflow-hidden transition-colors duration-300 ${
-                        isActive
-                          ? "text-green-700"
-                          : "text-gray-700 hover:text-gray-900 hover:bg-gray-100/70"
+                      className={`cms-sidebar-nav-btn ${isActive ? "active" : ""} ${
+                        sidebarCollapsed ? "cms-sidebar-nav-btn-collapsed" : ""
                       }`}
                     >
-                      {isActive && (
-                        <motion.div
-                          layoutId="activeIndicator"
-                          className="absolute inset-0 bg-yellow-50 border border-yellow-100 rounded-xl"
-                          transition={{ type: "spring", bounce: 0.15, duration: 0.5 }}
-                        />
-                      )}
-                      <motion.div
-                        animate={isActive ? { rotate: [0, -10, 10, 0], scale: [1, 1.15, 1] } : { rotate: 0, scale: 1 }}
-                        transition={{ duration: 0.4, ease: "easeOut" }}
-                        className="relative z-10 shrink-0"
-                      >
-                        <Icon className={`size-6 ${isActive ? "text-green-600" : "text-gray-600 group-hover:text-gray-800"}`} />
-                      </motion.div>
-                      {!collapsed && (
-                        <span className="relative z-10 flex-1 text-left">{item.label}</span>
-                      )}
-                      {!collapsed && isActive && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ delay: 0.15, type: "spring", bounce: 0.5 }}
-                          className="size-1.5 rounded-full bg-green-500 relative z-10 shadow-sm"
-                        />
-                      )}
-                    </motion.button>
+                      <Icon className="size-5 shrink-0" />
+                      {!sidebarCollapsed && <span className="truncate">{item.label}</span>}
+                    </button>
                   </li>
                 );
               })}
             </ul>
-
-            {/* Grades accordion */}
-            <AnimatePresence>
-              {!collapsed && active === "grades" && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-5 overflow-hidden"
-                >
-<div className="text-sm uppercase tracking-widest text-gray-600 font-bold px-3 mb-3">
-                    Select Grade
-                  </div>
-                  <div className="space-y-1">
-                    {grades.map((g, i) => {
-                      const isExpanded = expandedGrade === g.id;
-                      const allowedSubjects = g.subjects.filter((s) => allowedSubjectIds.includes(s.id));
-                      const gradeStyles = [
-                        { active: "bg-yellow-50 text-yellow-700 border border-yellow-200", badge: "bg-yellow-500 text-white" },
-                        { active: "bg-amber-50 text-amber-700 border border-amber-200", badge: "bg-amber-500 text-white" },
-                        { active: "bg-orange-50 text-orange-700 border border-orange-200", badge: "bg-orange-500 text-white" },
-                        { active: "bg-yellow-50 text-yellow-700 border border-yellow-200", badge: "bg-yellow-400 text-white" },
-                        { active: "bg-amber-50 text-amber-700 border border-amber-200", badge: "bg-amber-400 text-white" },
-                      ];
-                      const gs = gradeStyles[i] || gradeStyles[0];
-                      return (
-                        <motion.div
-                          key={g.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: i * 0.05 }}
-                        >
-                          <button
-                            onClick={() => setExpandedGrade(isExpanded ? null : g.id)}
-                            className={`w-full px-3 py-2.5 flex items-center gap-3 rounded-xl text-base font-semibold transition-all duration-200 ${
-                              isExpanded ? gs.active : "text-gray-600 hover:text-gray-800 hover:bg-gray-50"
-                            }`}
-                          >
-                            <span className={`size-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
-                              isExpanded ? gs.badge : "bg-gray-100 text-gray-700"
-                            } transition-all`}>
-                              {g.level}
-                            </span>
-                            <span className="flex-1 text-left font-medium">Grade {g.level}</span>
-                            <ChevronDown className={`size-4 transition-transform duration-200 ${isExpanded ? "rotate-180 text-gray-700" : "text-gray-600"}`} />
-                          </button>
-                          <AnimatePresence>
-                            {isExpanded && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="ml-8 pl-3 border-l-2 border-gray-200 space-y-0.5 py-1 overflow-hidden"
-                              >
-                                {allowedSubjects.map((s) => {
-                                  const isSelected = currentNav.gradeId === g.id && currentNav.subjectId === s.id;
-                                  return (
-                                    <motion.button
-                                      key={s.id}
-                                      whileHover={{ x: 4 }}
-                                      onClick={() => {
-                                        setInitialGradeNav({ gradeId: g.id, subjectId: s.id });
-                                        setGradesKey((k) => k + 1);
-                                        setActive("grades");
-                                      }}
-                                      className={`w-full px-2 py-2 flex items-center gap-2.5 rounded-lg text-base font-semibold transition-all ${
-                                        isSelected ? "bg-yellow-50 text-yellow-700" : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                                      }`}
-                                    >
-                                      <div className="size-6 flex items-center justify-center shrink-0">
-                                        {s.iconImage ? (
-                                          <img src={s.iconImage} alt={s.name} className="size-6 object-contain" />
-                                        ) : (
-                                          <span className="text-base">{s.icon}</span>
-                                        )}
-                                      </div>
-                                      <span>{s.name}</span>
-                                    </motion.button>
-                                  );
-                                })}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </nav>
 
-          {/* Admin card */}
-          <div className="p-3 border-t border-gray-100">
-            <div className={`bg-gray-50 rounded-xl p-3 ${collapsed ? "flex flex-col items-center" : ""}`}>
-              <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
-                <div className="relative">
-                  <div className="size-10 rounded-full bg-indigo-500 flex items-center justify-center text-sm font-bold text-white shadow-md">
-                    AD
-                  </div>
-                  <span className="absolute -bottom-0.5 -right-0.5 size-3 bg-green-400 rounded-full border-2 border-white" />
+          {/* Quick stats */}
+          {!sidebarCollapsed && (
+            <div className="cms-sidebar-stats">
+              <div className="cms-sidebar-section-label">Quick stats</div>
+              <div className="cms-sidebar-stats-card">
+                <div className="cms-sidebar-stat-row">
+                  <span>Grades</span>
+                  <span>{grades.length}</span>
                 </div>
-                {!collapsed && (
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-gray-800 truncate">Admin</div>
-                    <div className="text-[11px] text-gray-600 truncate">Administrator</div>
-                  </div>
-                )}
+                <div className="cms-sidebar-stat-row">
+                  <span>Subjects</span>
+                  <span>4</span>
+                </div>
+                <div className="cms-sidebar-stat-row">
+                  <span>Active view</span>
+                  <span className="capitalize">{active}</span>
+                </div>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+            </div>
+          )}
+
+          <div className="flex-1 min-h-0" />
+
+          {/* Profile footer */}
+          <div className="cms-sidebar-footer">
+            {!sidebarCollapsed ? (
+              <div className="cms-sidebar-profile">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative shrink-0">
+                    <div className="size-9 rounded-full bg-[#0F6CBD] flex items-center justify-center text-sm font-bold text-white">
+                      AD
+                    </div>
+                    <span className="absolute -bottom-0.5 -right-0.5 size-2.5 bg-emerald-400 rounded-full border-2 border-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold text-[#1a2332] truncate">Admin</div>
+                    <div className="text-[12px] font-semibold text-[#64748b] truncate">Administrator</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate({ to: "/" });
+                  }}
+                  className="cms-sidebar-logout-btn"
+                >
+                  <LogOut className="size-3.5" />
+                  Log out
+                </button>
+              </div>
+            ) : (
+              <button
                 onClick={() => {
                   logout();
                   navigate({ to: "/" });
                 }}
-                title={collapsed ? "Log out" : undefined}
-                className={`w-full mt-2 h-9 ${collapsed ? "justify-center px-0" : "px-3"} rounded-lg flex items-center gap-2 text-sm text-gray-600 hover:text-red-500 hover:bg-red-50 transition-all`}
+                title="Log out"
+                className="cms-sidebar-logout-btn-collapsed"
               >
-                <LogOut className="size-4 shrink-0" />
-                {!collapsed && <span>Log out</span>}
-              </motion.button>
-            </div>
+                <LogOut className="size-5" />
+              </button>
+            )}
           </div>
         </aside>
 
-        {/* Main content */}
-        <div className="flex-1 min-w-0 flex flex-col">
-          {/* Content header */}
-          <div className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-6 shrink-0">
-            <div className="flex items-center gap-2 text-sm min-w-0">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setCollapsed((c) => !c)}
-                className="h-10 w-10 shrink-0 rounded-xl bg-indigo-500 text-white shadow-lg shadow-indigo-400/20 flex items-center justify-center transition-all"
-              >
-                {collapsed ? (
-                  <PanelLeftOpen className="size-4" />
-                ) : (
-                  <PanelLeftClose className="size-4" />
-                )}
-              </motion.button>
-              <div className="h-6 w-px bg-gray-200 mx-1 shrink-0" />
-              <div className="flex items-center gap-1 bg-gray-50 rounded-full px-3 py-1.5 border border-gray-100 min-w-0 overflow-hidden">
-                <button onClick={() => { setActive("dashboard"); setCurrentNav({}); }} className="text-gray-700 hover:text-indigo-600 transition-colors font-semibold px-2 py-0.5 rounded-full hover:bg-indigo-50">Workspace</button>
-                <ChevronRight className="size-3 text-gray-300" />
-                {active === "subjects" && (
-                  <>
-                    <button onClick={() => { setInitialSubjectsNav(undefined); setSubjectsKey((k) => k + 1); setActive("subjects"); setCurrentNav({}); }} className={`transition-colors px-2 py-0.5 rounded-full ${currentNav.subjectId || currentNav.gradeId ? 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 font-semibold' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>Subjects</button>
-                    {currentNav.subjectId && (
-                      <>
-                        <ChevronRight className="size-3 text-gray-300" />
-                        <button onClick={() => { setInitialSubjectsNav({ subjectId: currentNav.subjectId }); setSubjectsKey((k) => k + 1); setActive("subjects"); setCurrentNav({ subjectId: currentNav.subjectId }); }} className={`transition-colors px-2 py-0.5 rounded-full capitalize ${currentNav.gradeId ? 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 font-semibold' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>{currentNav.subjectId}</button>
-                      </>
-                    )}
-                    {currentNav.gradeId && (
-                      <>
-                        <ChevronRight className="size-3 text-gray-300" />
-                        <button className="text-indigo-600 font-semibold px-2 py-0.5 rounded-full bg-indigo-50">Grade {grades.find((g) => g.id === currentNav.gradeId)?.level || currentNav.gradeId}</button>
-                      </>
-                    )}
-                  </>
-                )}
-                {active === "grades" && (
-                  <>
-                    <button onClick={() => { setInitialGradeNav(undefined); setGradesKey((k) => k + 1); setActive("grades"); setCurrentNav({}); }} className={`transition-colors px-2 py-0.5 rounded-full ${currentNav.gradeId ? 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 font-semibold' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>Grades</button>
-                    {currentNav.gradeId && (
-                      <>
-                        <ChevronRight className="size-3 text-gray-300" />
-                        <button onClick={() => { setGradesKey((k) => k + 1); setInitialGradeNav({ gradeId: currentNav.gradeId! }); }} className={`transition-colors px-2 py-0.5 rounded-full ${currentNav.subjectId ? 'text-gray-700 hover:text-indigo-600 hover:bg-indigo-50 font-semibold' : 'text-indigo-600 font-semibold bg-indigo-50'}`}>Grade {grades.find((g) => g.id === currentNav.gradeId)?.level || currentNav.gradeId}</button>
-                      </>
-                    )}
-                    {currentNav.subjectId && (
-                      <>
-                        <ChevronRight className="size-3 text-gray-300" />
-                        <span className="text-indigo-600 font-semibold px-2 py-0.5 rounded-full bg-indigo-50 capitalize">{currentNav.subjectId}</span>
-                      </>
-                    )}
-                  </>
-                )}
-                {active === "dashboard" && (
-                  <span className="text-indigo-600 font-semibold px-2 py-0.5 rounded-full bg-indigo-50">Dashboard</span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Content body */}
-          <div key={active} className="flex-1 overflow-y-auto overflow-x-hidden p-6 animate-fade-in-up flex flex-col">
+        {/* Main content canvas — single scroll parent */}
+        <div className="flex-1 min-w-0 flex flex-col min-h-0 overflow-hidden">
+          <div className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden">
             {active === "dashboard" && (
               <OverviewView
                 onOpenSubject={(subjectId) => {
@@ -399,21 +310,8 @@ function DashboardScreen() {
             )}
           </div>
 
-          {/* Footer */}
-          <footer className="h-12 border-t border-gray-200 bg-white px-6 flex items-center justify-center gap-2 shrink-0">
-            <span className="text-sm text-gray-700">
-              &copy; 2026 Assessment CMS · All rights reserved by
-            </span>
-            <div className="flex items-center gap-1.5">
-              <img
-                src="/images/icon.png"
-                alt="Wise Wings"
-                className="h-8 w-8 rounded-sm object-contain"
-              />
-              <span className="font-semibold text-sm text-gray-700">
-                wise wings
-              </span>
-            </div>
+          <footer className="h-9 border-t border-[#d0d7de] px-4 flex items-center shrink-0 bg-white">
+            <span className="cms-footer-meta">Rows: {rowCount}</span>
           </footer>
         </div>
       </div>

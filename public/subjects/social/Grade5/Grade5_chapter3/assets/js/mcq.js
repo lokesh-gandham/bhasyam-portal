@@ -1,7 +1,7 @@
 const quizData = [
   {
     q: "Q1. The ___________ of a cacti protect them from animals. ",
-    qImg: "../images/desert1.png",
+    qImg: "../images/mcq1.png",
     options: [
       { t: "stems", cls: "blue", img: "../images/stem.png" },
       { t: "spines", cls: "orange", img: "../images/spines.png" },
@@ -11,7 +11,7 @@ const quizData = [
   },
   {
     q: "Q2. ________ are the nomads of the Sahara Desert.",
-    qImg: "../images/sahara.png",
+    qImg: "../images/mcq2.png",
     options: [
       { t: "Banjaras", cls: "blue", img: "../images/banjaras.png" },
       { t: "Inuits", cls: "orange", img: "../images/inuits.png" },
@@ -21,7 +21,7 @@ const quizData = [
   },
   {
     q: "Q3.The ______ is the richest petroleum producing region in the world.",
-    qImg: "../images/oil.png",
+    qImg: "../images/mcq3.png",
     options: [
       { t: "Arabian Desert", cls: "blue", img: "../images/Arabian-Desert.png" },
       { t: "Thar Desert", cls: "orange", img: "../images/thar-desert.png" },
@@ -31,7 +31,7 @@ const quizData = [
   },
   {
     q: "Q4. In India, __________ is a cold desert.",
-    qImg: "../images/snowArea.png",
+    qImg: "../images/mcq4.png",
     options: [
       { t: "Kashmir", cls: "blue", img: "../images/kashmir.png" },
       { t: "Manali", cls: "orange", img: "../images/manali.png" },

@@ -48,35 +48,35 @@ const quizData = [
 {
   q: "Q1. A special type of sheep called merino is found in the Velds.",
   a: true,
-  img: "../assets/images/tf-1.png",
+  img: "./../assets/images/tf-1.png",
   answered: false
 },
 
 {
   q: "Q2. The climate of the Steppes is the same from region to region.",
   a: false,
-  img: "../assets/images/weather.png",
+  img: "./../assets/images/weather.png",
   answered: false
 },
 
 {
   q: "Q3. The Pampas has a dry season in the summer and wind blows here most of the time.",
   a: true,
-  img: "../assets/images/pampas.png",
+  img: "./../assets/images/pampas.png",
   answered: false
 },
 
 {
   q: "Q4. Most of the grasslands are found in the Frigid Zone.",
   a: false,
-  img: "../assets/images/mcq-3.png",
+  img: "./../assets/images/mcq-3.png",
   answered: false
 },
 
 {
   q: "Q5. As towns and cities are growing in size, new houses are being built on the grasslands.",
   a: true,
-  img: "../assets/images/MCQ-1.png",
+  img: "./../assets/images/MCQ-1.png",
   answered: false
 }
 ];

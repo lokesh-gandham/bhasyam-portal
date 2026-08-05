@@ -112,35 +112,27 @@ const hindiHtmlPath = (grade: number, lesson: number): string | undefined => {
 };
 
 const socialHtmlPath = (grade: number, lesson: number): string | undefined => {
-  if (grade === 1 || grade === 2) return undefined;
-  if (grade === 3) {
-    const paths: Record<number, string> = {
+  const paths: Record<number, Record<number, string>> = {
+    3: {
       1: "/subjects/social/Grade3/Grade3_Lesson1/grade3_lesson1.html",
       2: "/subjects/social/Grade3/Grade3_Lesson2/grade3_lesson2.html",
       3: "/subjects/social/Grade3/Grade3_Lesson3/grade3_lesson3.html",
       4: "/subjects/social/Grade3/Grade3_Lesson4/grade3_chapter4.html",
-    };
-    return paths[lesson];
-  }
-  if (grade === 4) {
-    const paths: Record<number, string> = {
+    },
+    4: {
       1: "/subjects/social/Grade4/Grade4_chapter1/Grade4_lesson1.html",
       2: "/subjects/social/Grade4/Grade4_chapter2/Grade4_Lesson2.html",
       3: "/subjects/social/Grade4/Grade4_chapter3/Grade4_Lesson3.html",
-      4: "/subjects/social/Grade4/Grade4_lesson4/Grade4_Lesson4.html",
-    };
-    return paths[lesson];
-  }
-  if (grade === 5) {
-    const paths: Record<number, string> = {
+      4: "/subjects/social/Grade4/Grade4_chapter4/Grade4_Lesson4.html",
+    },
+    5: {
       1: "/subjects/social/Grade5/Grade5_chapter1/grade5_lesson1.html",
       2: "/subjects/social/Grade5/Grade5_chapter2/grade5_lesson2.html",
       3: "/subjects/social/Grade5/Grade5_chapter3/Grade5_chapter3.html",
       4: "/subjects/social/Grade5/Grade5_chapter4/Grade5_lesson4.html",
-    };
-    return paths[lesson];
-  }
-  return undefined;
+    },
+  };
+  return paths[grade]?.[lesson];
 };
 
 const subjectsFor = (grade: number): Subject[] => [
@@ -204,45 +196,36 @@ const subjectsFor = (grade: number): Subject[] => [
       ], hindiHtmlPath(grade, 4)),
     ].filter((l) => l.htmlPath),
   },
-  ...(grade < 3 ? [{
+  {
     id: "social",
-    name: "Social Studies" as string,
-    description: "People & places" as string,
-    icon: "🌏",
-    iconImage: "/images/sicon.png",
-    color: "bg-indigo-500/10 text-indigo-700",
-    lessons: [] as Lesson[],
-  }] : []),
-  ...(grade >= 3 ? [{
-    id: "social",
-    name: "Social Studies" as string,
-    description: "People & places" as string,
+    name: "Social Studies",
+    description: "People & places",
     icon: "🌏",
     iconImage: "/images/sicon.png",
     color: "bg-indigo-500/10 text-indigo-700",
     lessons: [
-      mkLesson(`g${grade}-soc-1`, "Our Country India", "States, capitals and symbols.", [
-        "National symbols",
-        "Major states",
-        "Festivals of India",
+      mkLesson(`g${grade}-soc-1`, "Our Community", "People, places and life around us.", [
+        "Family and neighbourhood",
+        "Helpers in our community",
+        "Places we visit",
       ], socialHtmlPath(grade, 1)),
-      mkLesson(`g${grade}-soc-2`, "Our Families", "Understanding family and community.", [
-        "Types of families",
-        "Roles in a family",
-        "Community helpers",
+      mkLesson(`g${grade}-soc-2`, "Our Earth", "Land, water and directions.", [
+        "Shape of the Earth",
+        "Landforms and water bodies",
+        "Directions and maps",
       ], socialHtmlPath(grade, 2)),
-      mkLesson(`g${grade}-soc-3`, "Maps & Directions", "Basic map reading skills.", [
-        "Cardinal directions",
-        "Reading simple maps",
-        "Landmarks and locations",
+      mkLesson(`g${grade}-soc-3`, "Our Country", "India — people, culture and regions.", [
+        "States and capitals",
+        "Festivals and culture",
+        "Unity in diversity",
       ], socialHtmlPath(grade, 3)),
-      mkLesson(`g${grade}-soc-4`, "Our Helpers", "People who help us in the community.", [
-        "Doctors and teachers",
-        "Police and firefighters",
-        "Farmers and shopkeepers",
+      mkLesson(`g${grade}-soc-4`, "Civics & Society", "Rules, rights and responsibilities.", [
+        "Good citizens",
+        "Local government",
+        "Caring for our environment",
       ], socialHtmlPath(grade, 4)),
-    ],
-  }] : []),
+    ].filter((l) => l.htmlPath),
+  },
   {
     id: "english",
     name: "English",
