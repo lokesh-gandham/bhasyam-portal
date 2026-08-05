@@ -123,11 +123,7 @@ function DashboardScreen() {
           >
             <Menu className="size-5" />
           </button>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-white font-semibold text-[17px] tracking-tight">Bhasyam</span>
-            <span className="text-white/50 text-[17px]">|</span>
-            <span className="text-white/95 text-[17px] truncate">Assessment CMS</span>
-          </div>
+
         </div>
         <div className="ml-auto flex items-center gap-2">
           <span className="hidden sm:inline text-white/90 text-sm font-medium px-2 py-1 rounded bg-white/10">
