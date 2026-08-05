@@ -120,18 +120,14 @@ function DashboardScreen() {
             {profileOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                <div className="absolute right-0 top-full mt-1 z-50 w-44 bg-white rounded-md shadow-lg border border-[#d0d7de] py-1">
-                  <div className="px-3 py-2 border-b border-[#e5e7eb]">
-                    <div className="text-sm font-semibold text-[#1a2332]">Admin</div>
-                    <div className="text-xs text-[#64748b]">Administrator</div>
-                  </div>
+                <div className="absolute right-0 top-full mt-1 z-50 w-40 bg-white rounded-md shadow-lg border border-[#d0d7de] py-1">
                   <button
                     onClick={() => {
                       setProfileOpen(false);
                       logout();
                       navigate({ to: "/" });
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#dc2626] hover:bg-red-50 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[#1a2332] hover:bg-gray-100 transition-colors"
                   >
                     <LogOut className="size-4" />
                     Log out

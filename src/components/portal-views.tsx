@@ -869,7 +869,7 @@ export function OverviewView({
     <div className="cms-shell cms-shell-page">
       <div className="cms-card">
         <div className="cms-dash-welcome">
-          <h1 className="cms-dash-welcome-title">Welcome back, Admin!</h1>
+          <h1 className="cms-dash-welcome-title">Welcome Admin</h1>
           <p className="cms-dash-welcome-sub">
             Manage curriculum, subjects and lessons for Grades 1 to 5.
           </p>
