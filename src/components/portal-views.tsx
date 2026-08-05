@@ -167,15 +167,11 @@ function SubjectLessonView({
       <div className="cms-toolbar">
         <BackBtn onClick={onBack} label="Back to subjects" />
         <h2 className="cms-page-title">{subject.name} – {gradeLabel}</h2>
-        <span className={`cms-badge ${showComingSoon(subject.id, gradeId) ? "cms-status-soon" : "cms-status-active"}`}>
-          {lessons.length > 0 ? `${lessons.length} Lessons` : "Coming Soon"}
-        </span>
       </div>
 
       <div className="cms-card cms-card-fill">
         <div className="cms-card-header">
           <span className="text-base font-semibold text-[#1a2332]">Lessons</span>
-          <span className="cms-footer-meta">{lessons.length} items</span>
         </div>
         <div className="cms-card-body">
           {lessons.length === 0 ? (
@@ -206,6 +202,10 @@ function SubjectLessonView({
                       }
                     }}
                   >
+                    <div className="cms-lesson-number">
+                      <span className="text-xl font-bold leading-none">{i + 1}</span>
+                      <span className="text-sm font-semibold leading-none">Lesson</span>
+                    </div>
                     <div className="cms-lesson-info">
                       <div className="cms-lesson-title">{subject.name} – Lesson{i + 1}</div>
                       <div className="text-base font-semibold text-[#1a2332]">Exercise for lesson {i + 1}</div>
@@ -436,7 +436,6 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
         <div className="cms-toolbar">
           <BackBtn onClick={() => setNavTracked({})} label="Back to grades" />
           <h2 className="cms-page-title">Grade {grade.level} – Subjects</h2>
-          <span className="cms-badge cms-status-active">{filteredSubjects.length} Subjects</span>
         </div>
 
         <div className="cms-card cms-card-fill">
@@ -452,10 +451,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                   <button
                     key={s.id}
                     type="button"
-                    aria-disabled={isComingSoon}
-                    disabled={isComingSoon}
                     onClick={() => {
-                      if (isComingSoon) return;
                       setNavTracked({ gradeId: grade.id, subjectId: s.id });
                     }}
                     className="cms-entity-card"
@@ -470,7 +466,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                     </div>
                     <div>
                       <div className="cms-entity-title">{s.name}</div>
-                      <div className="cms-entity-desc">{s.description}</div>
+                      <div className="cms-entity-desc" style={s.id === 'hindi' ? { fontWeight: 700 } : undefined}>{s.description}</div>
                     </div>
                     <div className="cms-entity-meta">
                       <div>
@@ -496,7 +492,6 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
     <div className="cms-shell cms-shell-page">
       <div className="cms-toolbar">
         <h2 className="cms-page-title">Active Grades</h2>
-        <span className="cms-badge cms-status-active">{grades.length} Grades</span>
       </div>
 
       <div className="cms-card cms-card-fill">
@@ -619,7 +614,6 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
             label="Back to subjects"
           />
           <h2 className="cms-page-title">{subjectData?.name} – Grades</h2>
-          <span className="cms-badge cms-status-active">{grades.length} Grades</span>
         </div>
 
         <div className="cms-card cms-card-fill">
@@ -688,13 +682,11 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
     <div className="cms-shell cms-shell-page">
       <div className="cms-toolbar">
         <h2 className="cms-page-title">Active Subjects</h2>
-        <span className="cms-badge cms-status-active">{uniqueSubjects.length} Subjects</span>
       </div>
 
       <div className="cms-card cms-card-fill">
         <div className="cms-card-header">
           <span className="text-base font-semibold text-[#1a2332]">Curriculum subjects</span>
-          <span className="cms-footer-meta">Across Grades 1 – 5</span>
         </div>
         <div className="cms-card-body">
           <div className="cms-entity-grid cms-entity-grid-4">
@@ -721,12 +713,12 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                   </div>
                   <div>
                     <div className="cms-entity-title">{s.name}</div>
-                    <div className="cms-entity-desc">{s.description}</div>
-                  </div>
-                  <div className="cms-entity-meta">
-                    <div>
-                      <div className="cms-entity-meta-label">Lessons</div>
-                      <div className="cms-entity-meta-value">{totalLessons}</div>
+                      <div className="cms-entity-desc" style={s.id === 'hindi' ? { fontWeight: 700 } : undefined}>{s.description}</div>
+                    </div>
+                    <div className="cms-entity-meta">
+                      <div>
+                        <div className="cms-entity-meta-label">Lessons</div>
+                        <div className="cms-entity-meta-value">{totalLessons}</div>
                     </div>
                     <div>
                       <div className="cms-entity-meta-label">Grades</div>

@@ -224,7 +224,7 @@ const subjectsFor = (grade: number): Subject[] => [
         "Local government",
         "Caring for our environment",
       ], socialHtmlPath(grade, 4)),
-    ].filter((l) => l.htmlPath),
+    ],
   },
   {
     id: "english",
