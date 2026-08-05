@@ -98,6 +98,7 @@ const hindiHtmlPath = (grade: number, lesson: number): string | undefined => {
     },
     4: {
       1: "/subjects/hindi/Grade4/Grade4_chapter1/Grade4_Lesson1.html",
+      2: "/subjects/hindi/Grade4/Grade4_chapter2/Grade4_Lesson2.html",
       3: "/subjects/hindi/Grade4/Grade4_chapter3/Grade4_lesson3.html",
       4: "/subjects/hindi/Grade4/Grade4_chapter4/Grade4_Lesson4.html",
     },

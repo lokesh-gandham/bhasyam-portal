@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, type Variants } from "framer-motion";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ChevronRight, ChevronDown, ArrowLeft, GraduationCap, BookOpen, FileText, Clock, CheckCircle2, Lock, PlayCircle, Trophy, Star, Zap, Target, Flame, Shield, MoreVertical, ArrowRight, Microscope, Globe } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function HindiIcon({ className }: { className?: string }) {
   return (
@@ -29,6 +30,8 @@ function showComingSoon(subjectId: string, gradeId?: string): boolean {
   }
   return false;
 }
+
+const inactiveLessonIds = new Set(["g4-hin-2"]);
 
 type Nav = {
   gradeId?: string;
@@ -186,15 +189,17 @@ function SubjectLessonView({
             <div className="cms-lesson-grid">
               {lessons.map((l, i) => {
                 const isComingSoon = showComingSoon(subject.id, gradeId);
+                const isLessonInactive = inactiveLessonIds.has(l.id);
+                const isDisabled = isComingSoon || isLessonInactive;
                 return (
                   <button
                     key={l.id}
                     type="button"
-                    aria-disabled={isComingSoon}
-                    disabled={isComingSoon}
+                    aria-disabled={isDisabled}
+                    disabled={isDisabled}
                     className="cms-lesson-card"
                     onClick={() => {
-                      if (isComingSoon) return;
+                      if (isDisabled) return;
                       if (l.htmlPath) {
                         window.open(l.htmlPath, "_blank");
                       } else {
@@ -208,7 +213,12 @@ function SubjectLessonView({
                     </div>
                     <div className="cms-lesson-info">
                       <div className="cms-lesson-title">{subject.name} – Lesson{i + 1}</div>
-                      <div className="text-base font-semibold text-[#1a2332]">Exercise for lesson {i + 1}</div>
+                      <div className="text-base font-semibold text-[#1a2332]">
+                        Exercise for lesson {i + 1}
+                        <span className={`cms-status ${isDisabled ? "cms-status-soon" : "cms-status-active"}`} style={{ marginLeft: "0.5rem", fontSize: "0.75rem" }}>
+                          – {isDisabled ? "Inactive" : "Active"}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-1.5 text-base font-semibold text-[#1a2332] mt-0.5">
                         <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -216,7 +226,7 @@ function SubjectLessonView({
                         Interactive assessments
                       </div>
                     </div>
-                    {!isComingSoon && <span className="cms-lesson-action">Open →</span>}
+                    <span className="cms-lesson-action" style={isDisabled ? { opacity: 0.4, pointerEvents: "none" } : undefined}>Open →</span>
                   </button>
                 );
               })}
@@ -447,6 +457,8 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
               {filteredSubjects.map((s) => {
                 const lessonCount = s.lessons.length;
                 const isComingSoon = showComingSoon(s.id, grade.id);
+                const activeLessons = isComingSoon ? 0 : s.lessons.filter((l) => !inactiveLessonIds.has(l.id)).length;
+                const inactiveLessons = lessonCount - activeLessons;
                 return (
                   <button
                     key={s.id}
@@ -460,22 +472,23 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                       <div className="cms-entity-icon">
                         {(() => { const Icon = subjectIcons[s.id] || BookOpen; return <Icon className="cms-entity-icon-svg" />; })()}
                       </div>
-                      <span className={`cms-status ${isComingSoon ? "cms-status-soon" : "cms-status-active"}`}>
-                        {isComingSoon ? "Coming Soon" : "Active"}
-                      </span>
                     </div>
                     <div>
                       <div className="cms-entity-title">{s.name}</div>
                       <div className="cms-entity-desc" data-subject={s.id}>{s.description}</div>
                     </div>
-                    <div className="cms-entity-meta">
+                    <div className="cms-entity-meta cms-entity-meta-3">
                       <div>
                         <div className="cms-entity-meta-label">Lessons</div>
                         <div className="cms-entity-meta-value">{lessonCount}</div>
                       </div>
                       <div>
-                        <div className="cms-entity-meta-label">Status</div>
-                        <div className="cms-entity-meta-value">{isComingSoon ? "Soon" : "Live"}</div>
+                        <div className="cms-entity-meta-label">Active</div>
+                        <div className="cms-entity-meta-value">{activeLessons}</div>
+                      </div>
+                      <div>
+                        <div className="cms-entity-meta-label">Inactive</div>
+                        <div className="cms-entity-meta-value">{inactiveLessons}</div>
                       </div>
                     </div>
                   </button>
@@ -491,7 +504,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
   return (
     <div className="cms-shell cms-shell-page">
       <div className="cms-toolbar">
-        <h2 className="cms-page-title">Active Grades</h2>
+        <h2 className="cms-page-title">Grades</h2>
       </div>
 
       <div className="cms-card cms-card-fill">
@@ -501,8 +514,10 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
         <div className="cms-card-body">
           <div className="cms-grade-grid">
             {grades.map((g) => {
-              const totalLessons = g.subjects.reduce((acc, s) => acc + s.lessons.length, 0);
-              const subjectCount = g.subjects.filter((s) => allowedSubjectIds.includes(s.id)).length;
+              const gradeSubjects = g.subjects.filter((s) => allowedSubjectIds.includes(s.id));
+              const totalLessons = gradeSubjects.reduce((acc, s) => acc + s.lessons.length, 0);
+              const activeLessons = gradeSubjects.reduce((acc, s) => acc + (!showComingSoon(s.id, g.id) ? s.lessons.length : 0), 0);
+              const inactiveLessons = totalLessons - activeLessons;
               return (
                 <button
                   key={g.id}
@@ -514,14 +529,13 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                     <div className="cms-entity-icon">
                       <GraduationCap className="cms-entity-icon-svg" />
                     </div>
-                    <span className="cms-status cms-status-active">Active</span>
                   </div>
                   <div className="cms-entity-title">Grade {g.level}</div>
                   <div className="cms-entity-desc">{gradeDescriptions[g.level]}</div>
                   <div className="cms-entity-meta">
                     <div>
                       <div className="cms-entity-meta-label">Subjects</div>
-                      <div className="cms-entity-meta-value">{subjectCount}</div>
+                      <div className="cms-entity-meta-value">{gradeSubjects.length}</div>
                     </div>
                     <div>
                       <div className="cms-entity-meta-label">Lessons</div>
@@ -625,14 +639,13 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
               {grades.map((g) => {
                 const isComingSoon = showComingSoon(selectedSubject!, g.id);
                 const lessonCount = g.subjects.find((s) => s.id === selectedSubject)?.lessons.length || 0;
+                const activeLessons = isComingSoon ? 0 : (g.subjects.find((s) => s.id === selectedSubject)?.lessons.filter((l) => !inactiveLessonIds.has(l.id)).length || 0);
+                const inactiveLessons = lessonCount - activeLessons;
                 return (
                   <button
                     key={g.id}
                     type="button"
-                    aria-disabled={isComingSoon}
-                    disabled={isComingSoon}
                     onClick={() => {
-                      if (isComingSoon) return;
                       setSelectedGrade(g.id);
                       onNavChange?.({ subjectId: selectedSubject || undefined, gradeId: g.id });
                     }}
@@ -642,19 +655,20 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                       <div className="cms-entity-icon">
                         <GraduationCap className="cms-entity-icon-svg" />
                       </div>
-                      <span className={`cms-status ${isComingSoon ? "cms-status-soon" : "cms-status-active"}`}>
-                        {isComingSoon ? "Coming Soon" : "Active"}
-                      </span>
                     </div>
                     <div className="cms-entity-title">Grade {g.level}</div>
-                    <div className="cms-entity-meta">
+                    <div className="cms-entity-meta cms-entity-meta-3">
                       <div>
                         <div className="cms-entity-meta-label">Lessons</div>
                         <div className="cms-entity-meta-value">{lessonCount}</div>
                       </div>
                       <div>
-                        <div className="cms-entity-meta-label">Status</div>
-                        <div className="cms-entity-meta-value">{isComingSoon ? "Soon" : "Live"}</div>
+                        <div className="cms-entity-meta-label">Active</div>
+                        <div className="cms-entity-meta-value">{activeLessons}</div>
+                      </div>
+                      <div>
+                        <div className="cms-entity-meta-label">Inactive</div>
+                        <div className="cms-entity-meta-value">{inactiveLessons}</div>
                       </div>
                     </div>
                   </button>
@@ -681,7 +695,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
   return (
     <div className="cms-shell cms-shell-page">
       <div className="cms-toolbar">
-        <h2 className="cms-page-title">Active Subjects</h2>
+        <h2 className="cms-page-title">Subjects</h2>
       </div>
 
       <div className="cms-card cms-card-fill">
@@ -692,7 +706,12 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
           <div className="cms-grade-grid">
             {uniqueSubjects.map((s) => {
               const totalLessons = getSubjectTotalLessons(s.id);
-              const isComingSoon = showComingSoon(s.id);
+              const activeLessons = grades.reduce((acc, g) => {
+                const subj = g.subjects.find((x) => x.id === s.id);
+                if (!subj || showComingSoon(s.id, g.id)) return acc;
+                return acc + subj.lessons.filter((l) => !inactiveLessonIds.has(l.id)).length;
+              }, 0);
+              const inactiveLessons = totalLessons - activeLessons;
               return (
                 <button
                   key={s.id}
@@ -707,22 +726,23 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                     <div className="cms-entity-icon">
                       {(() => { const Icon = subjectIcons[s.id] || BookOpen; return <Icon className="cms-entity-icon-svg" />; })()}
                     </div>
-                    <span className={`cms-status ${isComingSoon ? "cms-status-soon" : "cms-status-active"}`}>
-                      {isComingSoon ? "Coming Soon" : "Active"}
-                    </span>
                   </div>
                   <div>
                     <div className="cms-entity-title">{s.name}</div>
-                      <div className="cms-entity-desc" data-subject={s.id}>{s.description}</div>
-                    </div>
-                    <div className="cms-entity-meta">
-                      <div>
-                        <div className="cms-entity-meta-label">Lessons</div>
-                        <div className="cms-entity-meta-value">{totalLessons}</div>
+                    <div className="cms-entity-desc" data-subject={s.id}>{s.description}</div>
+                  </div>
+                  <div className="cms-entity-meta cms-entity-meta-3">
+                    <div>
+                      <div className="cms-entity-meta-label">Lessons</div>
+                      <div className="cms-entity-meta-value">{totalLessons}</div>
                     </div>
                     <div>
-                      <div className="cms-entity-meta-label">Grades</div>
-                      <div className="cms-entity-meta-value">{grades.length}</div>
+                      <div className="cms-entity-meta-label">Active</div>
+                      <div className="cms-entity-meta-value">{activeLessons}</div>
+                    </div>
+                    <div>
+                      <div className="cms-entity-meta-label">Inactive</div>
+                      <div className="cms-entity-meta-value">{inactiveLessons}</div>
                     </div>
                   </div>
                 </button>
@@ -816,28 +836,197 @@ export function LessonsView({ onOpenLesson }: { onOpenLesson: (path: { gradeId: 
   );
 }
 
+export function DrillDownView({
+  gradeId,
+  kind,
+  inactive,
+  onBack,
+  onNavigate,
+}: {
+  gradeId: string;
+  kind: "subjects" | "lessons";
+  inactive: boolean;
+  onBack: () => void;
+  onNavigate?: (view: string, opts?: { gradeId?: string; subjectId?: string }) => void;
+}) {
+  const [filterSubject, setFilterSubject] = useState<string>("all");
+
+  const grade = grades.find((g) => g.id === gradeId);
+  const gradeLabel = grade ? `Grade ${grade.level}` : gradeId;
+
+  const drillSubjects = (grade?.subjects || []).filter(
+    (s) =>
+      allowedSubjectIds.includes(s.id) &&
+      (inactive ? showComingSoon(s.id, gradeId) : !showComingSoon(s.id, gradeId))
+  );
+
+  const drillLessons = drillSubjects
+    .filter((s) => filterSubject === "all" || s.id === filterSubject)
+    .flatMap((s) =>
+      s.lessons.map((l, i) => ({
+        id: l.id,
+        title: l.title,
+        subjectName: s.name,
+        subjectId: s.id,
+        index: i + 1,
+        htmlPath: l.htmlPath,
+        isInactive: inactiveLessonIds.has(l.id),
+      }))
+    );
+
+  return (
+    <div className="cms-shell cms-shell-page">
+      <div className="cms-card cms-drilldown cms-card-fill">
+        <div className="cms-card-header">
+          <div>
+            <button
+              type="button"
+              onClick={onBack}
+              className="cms-drilldown-back"
+            >
+              <ArrowLeft className="size-4" />
+              Back to Dashboard
+            </button>
+            <div className="cms-drilldown-title-row">
+              <h2 className="cms-section-title" style={{ marginTop: "0.5rem" }}>
+                {inactive ? "Inactive" : "Active"}{" "}
+                {kind === "subjects" ? "Subjects" : "Lessons"} – {gradeLabel}
+              </h2>
+              {kind === "lessons" && drillSubjects.length > 1 && (
+                <div className="cms-drilldown-filter">
+                  <Select value={filterSubject} onValueChange={setFilterSubject}>
+                    <SelectTrigger className="cms-drilldown-select">
+                      <SelectValue placeholder="All Subjects" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Subjects</SelectItem>
+                      {drillSubjects.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+            <p className="cms-section-sub">
+              {kind === "subjects"
+                ? `${drillSubjects.length} subject${drillSubjects.length === 1 ? "" : "s"}`
+                : `${drillLessons.length} lesson${drillLessons.length === 1 ? "" : "s"}`}
+            </p>
+          </div>
+        </div>
+        <div className="cms-card-body">
+          {kind === "subjects" ? (
+            drillSubjects.length === 0 ? (
+              <p className="cms-drilldown-empty">No {inactive ? "inactive" : "active"} subjects for this grade.</p>
+            ) : (
+              <ul className="cms-drilldown-list">
+                {drillSubjects.map((s) => {
+                  const Icon = subjectIcons[s.id] || BookOpen;
+                  return (
+                    <li key={s.id}>
+                      <button
+                        type="button"
+                        className="cms-drilldown-item"
+                        onClick={() => onNavigate?.("grades", { gradeId, subjectId: s.id })}
+                      >
+                        <span className="cms-drilldown-item-icon">
+                          <Icon className="size-4" />
+                        </span>
+                        <span className="cms-drilldown-item-main">
+                          <span className="cms-drilldown-item-title">{s.name}</span>
+                          <span className="cms-drilldown-item-meta">{s.lessons.length} lessons</span>
+                        </span>
+                        <span className={`cms-status ${inactive ? "cms-status-soon" : "cms-status-active"}`}>
+                          {inactive ? "Inactive" : "Active"}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )
+          ) : drillLessons.length === 0 ? (
+            <p className="cms-drilldown-empty">No {inactive ? "inactive" : "active"} lessons for this grade.</p>
+          ) : (
+            <ul className="cms-drilldown-list">
+              {drillLessons.map((l) => (
+                <li key={`${l.subjectId}-${l.id}`}>
+                  <button
+                    type="button"
+                    className="cms-drilldown-item"
+                    onClick={() => {
+                      if (l.htmlPath) window.open(l.htmlPath, "_blank");
+                    }}
+                  >
+                    <span className="cms-drilldown-item-icon">
+                      <FileText className="size-4" />
+                    </span>
+                    <span className="cms-drilldown-item-main">
+                      <span className="cms-drilldown-item-title">
+                        {l.subjectName} – Lesson {l.index}
+                      </span>
+                      <span className="cms-drilldown-item-meta">{l.title}</span>
+                    </span>
+                    <span className={`cms-status ${l.isInactive ? "cms-status-soon" : "cms-status-active"}`}>
+                      {l.isInactive ? "Inactive" : "Active"}
+                    </span>
+                    {l.htmlPath && !l.isInactive && (
+                      <span className="cms-drilldown-view-link">
+                        Open <ArrowRight className="size-3.5" />
+                      </span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function OverviewView({
   onOpenSubject,
   onNavigate,
+  onDrillDown,
 }: {
   onOpenSubject?: (subjectId: string) => void;
   onNavigate?: (view: string, opts?: { gradeId?: string; subjectId?: string }) => void;
+  onDrillDown?: (gradeId: string, kind: "subjects" | "lessons", inactive: boolean) => void;
 } = {}) {
   const totalSubjects = allSubjects.filter((s) => allowedSubjectIds.includes(s.id)).length / 5;
 
   const totalLessons = grades.reduce((acc, g) => acc + g.subjects.filter((s) => !showComingSoon(s.id, g.id)).reduce((a, s) => a + s.lessons.length, 0), 0);
 
-  const finalChartData = grades.map((g) => {
+  const activeChartData = grades.map((g) => {
     const activeSubjects = g.subjects.filter((s) => allowedSubjectIds.includes(s.id) && !showComingSoon(s.id, g.id));
     return {
       name: `Grade ${g.level}`,
       subjects: activeSubjects.length,
+      grades: activeSubjects.length > 0 ? 1 : 0,
       lessons: activeSubjects.reduce((acc, s) => acc + s.lessons.length, 0),
     };
   });
 
-  const [chartData, setChartData] = useState(
-    finalChartData.map((d) => ({ ...d, subjects: 0, lessons: 0 }))
+  const inactiveChartData = grades.map((g) => {
+    const inactiveSubjects = g.subjects.filter((s) => allowedSubjectIds.includes(s.id) && showComingSoon(s.id, g.id));
+    return {
+      name: `Grade ${g.level}`,
+      subjects: inactiveSubjects.length,
+      grades: inactiveSubjects.length > 0 ? 1 : 0,
+      lessons: inactiveSubjects.reduce((acc, s) => acc + s.lessons.length, 0),
+    };
+  });
+
+  const [activeChart, setActiveChart] = useState(
+    activeChartData.map((d) => ({ ...d, subjects: 0, grades: 0, lessons: 0 }))
+  );
+  const [inactiveChart, setInactiveChart] = useState(
+    inactiveChartData.map((d) => ({ ...d, subjects: 0, grades: 0, lessons: 0 }))
   );
 
   useEffect(() => {
@@ -851,10 +1040,19 @@ export function OverviewView({
       const progress = Math.min(step / steps, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
 
-      setChartData(
-        finalChartData.map((d) => ({
+      setActiveChart(
+        activeChartData.map((d) => ({
           ...d,
           subjects: Math.round(d.subjects * eased),
+          grades: Math.round(d.grades * eased),
+          lessons: Math.round(d.lessons * eased),
+        }))
+      );
+      setInactiveChart(
+        inactiveChartData.map((d) => ({
+          ...d,
+          subjects: Math.round(d.subjects * eased),
+          grades: Math.round(d.grades * eased),
           lessons: Math.round(d.lessons * eased),
         }))
       );
@@ -863,9 +1061,90 @@ export function OverviewView({
     }, interval);
 
     return () => clearInterval(timer);
-    // Animate once on mount with stable grade targets
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const chartBarMargin = { top: 20, right: 8, left: -8, bottom: 0 };
+
+  const [hoveredBar, setHoveredBar] = useState<string | null>(null);
+  const [hoveredGrade, setHoveredGrade] = useState<string | null>(null);
+
+  const CustomTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: Array<{ dataKey: string; value: number; color: string }>;
+    label?: string;
+  }) => {
+    if (!active || !payload || payload.length === 0 || !hoveredGrade) return null;
+    const item = payload.find((p) => p.dataKey === hoveredBar) || payload[0];
+    if (!item) return null;
+    const name = item.dataKey === "subjects" ? "Subjects" : "Lessons";
+    return (
+      <div className="cms-chart-tooltip">
+        <p className="cms-chart-tooltip-label">{hoveredGrade}</p>
+        <p className="cms-chart-tooltip-value" style={{ color: item.color }}>
+          {item.value} {name}
+        </p>
+      </div>
+    );
+  };
+
+  const openDrillDown = (entry: { name?: string; payload?: { name?: string } }, kind: "subjects" | "lessons", inactive: boolean) => {
+    const rawName = entry?.name ?? entry?.payload?.name;
+    const level = Number(String(rawName).replace(/\D/g, "")) || 1;
+    const grade = grades.find((g) => g.level === level);
+    if (!grade) return;
+    onDrillDown?.(grade.id, kind, inactive);
+  };
+
+  const renderChart = (data: typeof activeChart, isInactive: boolean) => {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} barGap={4} margin={chartBarMargin}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#E8EDF2" />
+          <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#1a2332", fontWeight: 600 }} axisLine={false} tickLine={false} />
+          <YAxis tick={{ fontSize: 12, fill: "#1a2332", fontWeight: 600 }} axisLine={false} tickLine={false} allowDecimals={false} />
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ fill: "rgba(15, 108, 189, 0.06)" }}
+            shared={false}
+            allowEscapeViewBox={{ x: true, y: true }}
+            offset={8}
+          />
+          <Bar
+            dataKey="subjects"
+            fill="#EAB308"
+            radius={[2, 2, 0, 0]}
+            maxBarSize={28}
+            isAnimationActive={false}
+            cursor="pointer"
+            onMouseEnter={(entry) => {
+              setHoveredBar("subjects");
+              setHoveredGrade((entry as any)?.name ?? (entry as any)?.payload?.name ?? null);
+            }}
+            onMouseLeave={() => { setHoveredBar(null); setHoveredGrade(null); }}
+            onClick={(entry) => openDrillDown(entry as { name?: string; payload?: { name?: string } }, "subjects", isInactive)}
+          />
+          <Bar
+            dataKey="lessons"
+            fill="#50A5E8"
+            radius={[2, 2, 0, 0]}
+            maxBarSize={28}
+            isAnimationActive={false}
+            cursor="pointer"
+            onMouseEnter={(entry) => {
+              setHoveredBar("lessons");
+              setHoveredGrade((entry as any)?.name ?? (entry as any)?.payload?.name ?? null);
+            }}
+            onMouseLeave={() => { setHoveredBar(null); setHoveredGrade(null); }}
+            onClick={(entry) => openDrillDown(entry as { name?: string; payload?: { name?: string } }, "lessons", isInactive)}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  };
 
   return (
     <div className="cms-shell cms-shell-page">
@@ -900,13 +1179,10 @@ export function OverviewView({
 
       <div className="cms-card">
         <div className="cms-card-header">
-          <div>
-            <h2 className="cms-section-title">Overview</h2>
-            <p className="cms-section-sub">Content distribution across grades</p>
-          </div>
+          <h2 className="cms-section-title">Active Content Distribution</h2>
           <div className="cms-chart-legend">
             <div className="cms-chart-legend-item">
-              <div className="cms-legend-dot cms-legend-subjects" />
+              <div className="cms-legend-dot" style={{ background: "#EAB308" }} />
               <span>Subjects</span>
             </div>
             <div className="cms-chart-legend-item">
@@ -917,55 +1193,29 @@ export function OverviewView({
         </div>
         <div className="cms-chart-pad">
           <div className="cms-chart-wrap">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} barGap={4} margin={{ top: 20, right: 8, left: -8, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E8EDF2" />
-                <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#1a2332", fontWeight: 600 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: "#1a2332", fontWeight: 600 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={{ borderRadius: "4px", border: "1px solid #D0D7DE", fontSize: "13px", color: "#1a2332" }} />
-                <Bar dataKey="subjects" fill="#0F6CBD" radius={[2, 2, 0, 0]} maxBarSize={32} isAnimationActive={false} label={{ position: "top", fontSize: 11, fill: "#0F6CBD", fontWeight: 700 }} />
-                <Bar dataKey="lessons" fill="#50A5E8" radius={[2, 2, 0, 0]} maxBarSize={32} isAnimationActive={false} label={{ position: "top", fontSize: 11, fill: "#1a6fb5", fontWeight: 700 }} />
-              </BarChart>
-            </ResponsiveContainer>
+            {renderChart(activeChart, false)}
           </div>
         </div>
       </div>
 
       <div className="cms-card">
         <div className="cms-card-header">
-          <h2 className="cms-page-title">Grade List</h2>
+          <h2 className="cms-section-title">Inactive Content Distribution</h2>
+          <div className="cms-chart-legend">
+            <div className="cms-chart-legend-item">
+              <div className="cms-legend-dot" style={{ background: "#EAB308" }} />
+              <span>Subjects</span>
+            </div>
+            <div className="cms-chart-legend-item">
+              <div className="cms-legend-dot cms-legend-lessons" />
+              <span>Lessons</span>
+            </div>
+          </div>
         </div>
-        <div className="cms-grade-grid">
-          {grades.map((g) => {
-            const gLessons = g.subjects.reduce((a, s) => a + s.lessons.length, 0);
-            const gSubjects = g.subjects.filter((s) => allowedSubjectIds.includes(s.id)).length;
-            return (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => onNavigate?.("grades", { gradeId: g.id })}
-                className="cms-entity-card"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="cms-entity-icon">
-                    <GraduationCap className="cms-entity-icon-svg" />
-                  </div>
-                  <span className="cms-status cms-status-active">Live</span>
-                </div>
-                <div className="cms-entity-title">Grade {g.level}</div>
-                <div className="cms-entity-meta">
-                  <div>
-                    <div className="cms-entity-meta-label">Subjects</div>
-                    <div className="cms-entity-meta-value">{gSubjects}</div>
-                  </div>
-                  <div>
-                    <div className="cms-entity-meta-label">Lessons</div>
-                    <div className="cms-entity-meta-value">{gLessons}</div>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+        <div className="cms-chart-pad">
+          <div className="cms-chart-wrap">
+            {renderChart(inactiveChart, true)}
+          </div>
         </div>
       </div>
     </div>

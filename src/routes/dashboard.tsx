@@ -8,7 +8,7 @@ import {
   LogOut,
   ChevronDown,
 } from "lucide-react";
-import { GradesView, SubjectsView, OverviewView } from "@/components/portal-views";
+import { GradesView, SubjectsView, OverviewView, DrillDownView } from "@/components/portal-views";
 import { grades, allSubjects } from "@/lib/curriculum";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -52,6 +52,11 @@ function DashboardScreen() {
   const [initialSubjectsNav, setInitialSubjectsNav] = useState<{ subjectId?: string; gradeId?: string } | undefined>(undefined);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [drillDown, setDrillDown] = useState<{
+    gradeId: string;
+    kind: "subjects" | "lessons";
+    inactive: boolean;
+  } | null>(null);
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
 
@@ -160,6 +165,7 @@ function DashboardScreen() {
                     <button
                       title={sidebarCollapsed ? item.label : undefined}
                       onClick={() => {
+                        setDrillDown(null);
                         if (item.id === "grades") {
                           setInitialGradeNav(undefined);
                           setGradesKey((k) => k + 1);
@@ -193,7 +199,31 @@ function DashboardScreen() {
         {/* Main content canvas — single scroll parent */}
         <div className="flex-1 min-w-0 flex flex-col min-h-0 overflow-hidden">
           <div className="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden">
-            {active === "dashboard" && (
+            {drillDown ? (
+              <DrillDownView
+                gradeId={drillDown.gradeId}
+                kind={drillDown.kind}
+                inactive={drillDown.inactive}
+                onBack={() => setDrillDown(null)}
+                onNavigate={(view, opts) => {
+                  if (view === "grades") {
+                    if (opts?.gradeId) {
+                      setInitialGradeNav({
+                        gradeId: opts.gradeId,
+                        ...(opts.subjectId ? { subjectId: opts.subjectId } : {}),
+                      });
+                      setGradesKey((k) => k + 1);
+                    }
+                    setDrillDown(null);
+                    setActive("grades");
+                  } else if (view === "subjects") {
+                    setDrillDown(null);
+                    setSubjectsKey((k) => k + 1);
+                    setActive("subjects");
+                  }
+                }}
+              />
+            ) : active === "dashboard" && (
               <OverviewView
                 onOpenSubject={(subjectId) => {
                   setInitialGradeNav({ subjectId, mode: "read" } as any);
@@ -203,7 +233,10 @@ function DashboardScreen() {
                 onNavigate={(view, opts) => {
                   if (view === "grades") {
                     if (opts?.gradeId) {
-                      setInitialGradeNav({ gradeId: opts.gradeId });
+                      setInitialGradeNav({
+                        gradeId: opts.gradeId,
+                        ...(opts.subjectId ? { subjectId: opts.subjectId } : {}),
+                      });
                       setGradesKey((k) => k + 1);
                     }
                     setActive("grades");
@@ -211,6 +244,9 @@ function DashboardScreen() {
                     setSubjectsKey((k) => k + 1);
                     setActive("subjects");
                   }
+                }}
+                onDrillDown={(gradeId, kind, inactive) => {
+                  setDrillDown({ gradeId, kind, inactive });
                 }}
               />
             )}
