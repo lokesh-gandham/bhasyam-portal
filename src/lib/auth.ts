@@ -1,6 +1,6 @@
 const AUTH_STORAGE_KEY = "bhasyam_auth_session";
 const VALID_USERNAME = "admin";
-const VALID_PASSWORD = "#RShanu@2026#";
+const VALID_PASSWORD = "#Passw0rd@2026#";
 
 function generateToken(username: string): string {
   const timestamp = Date.now();

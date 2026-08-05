@@ -15,10 +15,10 @@ import { useAuth } from "@/hooks/use-auth";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Assessment CMS" },
-      { name: "description", content: "Assessment CMS admin dashboard." },
-      { property: "og:title", content: "Assessment CMS" },
-      { property: "og:description", content: "Assessment CMS admin dashboard." },
+      { title: "ASSESSMENT CMS" },
+      { name: "description", content: "ASSESSMENT CMS admin dashboard." },
+      { property: "og:title", content: "ASSESSMENT CMS" },
+      { property: "og:description", content: "ASSESSMENT CMS admin dashboard." },
     ],
   }),
   component: DashboardScreen,
@@ -71,23 +71,6 @@ function DashboardScreen() {
   const currentSubject = currentGrade?.subjects.find((s) => s.id === initialGradeNav?.subjectId);
   const allowedGradeSubjects = currentGrade?.subjects.filter((s) => allowedSubjectIds.includes(s.id)) || [];
 
-  const rowCount =
-    active === "dashboard"
-      ? grades.length
-      : active === "grades"
-        ? initialGradeNav?.subjectId
-          ? currentSubject?.lessons.length ?? 0
-          : initialGradeNav?.gradeId
-            ? allowedGradeSubjects.length
-            : grades.length
-        : active === "subjects"
-          ? currentNav.gradeId
-            ? allSubjects.find((s) => s.id === currentNav.subjectId && s.gradeId === currentNav.gradeId)?.lessons.length ?? 0
-            : currentNav.subjectId
-              ? grades.length
-              : allSubjects.filter((s) => allowedSubjectIds.includes(s.id)).filter((s, i, arr) => arr.findIndex((x) => x.id === s.id) === i).length
-          : 0;
-
   return (
     <div
       className="fixed inset-0 flex flex-col overflow-hidden text-base"
@@ -111,7 +94,7 @@ function DashboardScreen() {
               onClick={() => setProfileOpen((o) => !o)}
               className="flex items-center gap-2 text-white/95 hover:bg-white/15 rounded px-2 py-1.5 transition-colors"
             >
-              <div className="size-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold text-white">
+              <div className="size-8 rounded-full bg-white flex items-center justify-center text-xs font-bold text-[#0F6CBD]">
                 AD
               </div>
               <span className="hidden sm:inline text-sm font-medium">Admin</span>
@@ -147,7 +130,7 @@ function DashboardScreen() {
         >
           {/* Brand — large logo on light panel for visibility */}
           <div
-            className={`shrink-0 border-b border-[#d0d7de] bg-white ${
+            className={`shrink-0 border-b border-[#d0d7de] bg-[#f7f9fb] ${
               sidebarCollapsed ? "px-2 py-2.5 flex justify-center" : "px-3 py-4 flex flex-col items-center gap-2 text-center"
             }`}
           >
@@ -250,10 +233,6 @@ function DashboardScreen() {
               />
             )}
           </div>
-
-          <footer className="h-9 border-t border-[#d0d7de] px-4 flex items-center shrink-0 bg-white">
-            <span className="cms-footer-meta">Rows: {rowCount}</span>
-          </footer>
         </div>
       </div>
     </div>

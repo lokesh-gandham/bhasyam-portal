@@ -1,8 +1,24 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, type Variants } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { ChevronRight, ChevronDown, ArrowLeft, GraduationCap, BookOpen, FileText, Clock, CheckCircle2, Lock, PlayCircle, Trophy, Star, Zap, Target, Flame, Shield, MoreVertical, ArrowRight } from "lucide-react";
+import { ChevronRight, ChevronDown, ArrowLeft, GraduationCap, BookOpen, FileText, Clock, CheckCircle2, Lock, PlayCircle, Trophy, Star, Zap, Target, Flame, Shield, MoreVertical, ArrowRight, Microscope, Globe } from "lucide-react";
+
+function HindiIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <text x="12" y="17" textAnchor="middle" fontSize="13" fontWeight="700" fill="currentColor" stroke="none" fontFamily="serif">अ</text>
+    </svg>
+  );
+}
 import { grades, allSubjects, allLessons, type Lesson, type Subject, type Grade } from "@/lib/curriculum";
+
+const subjectIcons: Record<string, any> = {
+  science: Microscope,
+  hindi: HindiIcon,
+  social: Globe,
+  english: BookOpen,
+};
 
 function showComingSoon(subjectId: string, gradeId?: string): boolean {
   if (subjectId === "english") return true;
@@ -190,12 +206,15 @@ function SubjectLessonView({
                       }
                     }}
                   >
-                    <div className="cms-lesson-number">{i + 1}</div>
                     <div className="cms-lesson-info">
-                      <div className="cms-lesson-title">Lesson {i + 1}</div>
-                      <span className={`cms-status ${isComingSoon ? "cms-status-soon" : "cms-status-active"}`}>
-                        {isComingSoon ? "Coming Soon" : "Active"}
-                      </span>
+                      <div className="cms-lesson-title">{subject.name} – Lesson{i + 1}</div>
+                      <div className="text-base font-semibold text-[#1a2332]">Exercise for lesson {i + 1}</div>
+                      <div className="flex items-center gap-1.5 text-base font-semibold text-[#1a2332] mt-0.5">
+                        <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Interactive assessments
+                      </div>
                     </div>
                     {!isComingSoon && <span className="cms-lesson-action">Open →</span>}
                   </button>
@@ -293,11 +312,7 @@ function SubjectCard({ subject, onOpen, gradeLabel }: { subject: Subject; onOpen
       className="text-left bg-card border border-border rounded-lg p-5 hover:shadow-md hover:border-primary/40 transition-all group"
     >
       <div className={`inline-flex items-center justify-center size-12 rounded-lg ${subject.color} text-xl`}>
-        {subject.iconImage ? (
-          <img src={subject.iconImage} alt={subject.name} className="size-8 object-contain" />
-        ) : (
-          subject.icon
-        )}
+        {(() => { const Icon = subjectIcons[subject.id] || BookOpen; return <Icon className="size-8" />; })()}
       </div>
       <div className="mt-3 text-lg font-semibold text-gray-800">{subject.name}</div>
       {gradeLabel && (
@@ -447,11 +462,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="cms-entity-icon">
-                        {s.iconImage ? (
-                          <img src={s.iconImage} alt="" className="size-5 object-contain" />
-                        ) : (
-                          <BookOpen className="cms-entity-icon-svg" />
-                        )}
+                        {(() => { const Icon = subjectIcons[s.id] || BookOpen; return <Icon className="cms-entity-icon-svg" />; })()}
                       </div>
                       <span className={`cms-status ${isComingSoon ? "cms-status-soon" : "cms-status-active"}`}>
                         {isComingSoon ? "Coming Soon" : "Active"}
@@ -468,7 +479,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                       </div>
                       <div>
                         <div className="cms-entity-meta-label">Status</div>
-                        <div className="cms-entity-meta-value">{isComingSoon ? "Soon" : "Live"}</div>
+                        <div className="cms-entity-meta-value">{isComingSoon ? "Soon" : "Active"}</div>
                       </div>
                     </div>
                   </button>
@@ -649,7 +660,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                       </div>
                       <div>
                         <div className="cms-entity-meta-label">Status</div>
-                        <div className="cms-entity-meta-value">{isComingSoon ? "Soon" : "Live"}</div>
+                        <div className="cms-entity-meta-value">{isComingSoon ? "Soon" : "Active"}</div>
                       </div>
                     </div>
                   </button>
@@ -702,11 +713,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="cms-entity-icon">
-                      {s.iconImage ? (
-                        <img src={s.iconImage} alt="" className="size-5 object-contain" />
-                      ) : (
-                        <BookOpen className="cms-entity-icon-svg" />
-                      )}
+                      {(() => { const Icon = subjectIcons[s.id] || BookOpen; return <Icon className="cms-entity-icon-svg" />; })()}
                     </div>
                     <span className={`cms-status ${isComingSoon ? "cms-status-soon" : "cms-status-active"}`}>
                       {isComingSoon ? "Coming Soon" : "Active"}
@@ -948,7 +955,7 @@ export function OverviewView({
                   <div className="cms-entity-icon">
                     <GraduationCap className="cms-entity-icon-svg" />
                   </div>
-                  <span className="cms-status cms-status-active">Active</span>
+                  <span className="cms-status cms-status-active">Live</span>
                 </div>
                 <div className="cms-entity-title">Grade {g.level}</div>
                 <div className="cms-entity-meta">
