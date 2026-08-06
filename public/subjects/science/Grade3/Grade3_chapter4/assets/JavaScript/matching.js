@@ -129,10 +129,10 @@ function handleMatch(leftEl, rightEl) {
   rightEl.classList.add("matched");
   leftEl.classList.remove("active");
 
-  // ? get image from LEFT
+  // ✅ get image from LEFT
   const img = leftEl.querySelector("img").cloneNode(true);
 
-  // ? put image into RIGHT answer box
+  // ✅ put image into RIGHT answer box
   const box = rightEl.querySelector(".answer-box");
   box.appendChild(img);
 

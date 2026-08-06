@@ -69,7 +69,7 @@ function render() {
       setEmoji("correct-false");
     }
 
-    // ? allow interaction again if needed
+    // ❗ allow interaction again if needed
     trueBtn.disabled = false;
     falseBtn.disabled = false;
   } else {
@@ -105,15 +105,15 @@ function bigConfetti() {
 
 function setEmoji(state) {
   // reset both
-  trueBtn.style.setProperty("--emoji", '"??"');
-  falseBtn.style.setProperty("--emoji", '"??"');
+  trueBtn.style.setProperty("--emoji", '"🙄"');
+  falseBtn.style.setProperty("--emoji", '"🙄"');
 
   if (state === "correct-true") {
-    trueBtn.style.setProperty("--emoji", '"??"');
-    falseBtn.style.setProperty("--emoji", '"??"');
+    trueBtn.style.setProperty("--emoji", '"😃"');
+    falseBtn.style.setProperty("--emoji", '"😔"');
   } else if (state === "correct-false") {
-    falseBtn.style.setProperty("--emoji", '"??"');
-    trueBtn.style.setProperty("--emoji", '"??"');
+    falseBtn.style.setProperty("--emoji", '"😃"');
+    trueBtn.style.setProperty("--emoji", '"😔"');
   }
 }
 
@@ -152,9 +152,9 @@ function answer(val) {
 
     // OPTIONAL: show sad face on wrong click
     if (val) {
-      trueBtn.style.setProperty("--emoji", '"??"');
+      trueBtn.style.setProperty("--emoji", '"😔"');
     } else {
-      falseBtn.style.setProperty("--emoji", '"??"');
+      falseBtn.style.setProperty("--emoji", '"😔"');
     }
   }
 }
@@ -190,11 +190,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "👍";
     title.textContent = "Great Job!";
     msg.textContent = "";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "👎";
     title.textContent = "Oops!";
     msg.textContent = "";
   }

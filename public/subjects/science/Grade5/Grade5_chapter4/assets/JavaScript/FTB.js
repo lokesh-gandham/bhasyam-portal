@@ -82,11 +82,11 @@ function loadQuestion() {
     input.setAttribute("autocomplete", "off");
 input.setAttribute("spellcheck", "false");
 
-// ? block drag
+// ❌ block drag
 input.addEventListener("dragover", (e) => e.preventDefault());
 input.addEventListener("drop", (e) => e.preventDefault());
 
-// ? block paste (optional but recommended)
+// ❌ block paste (optional but recommended)
 input.addEventListener("paste", (e) => e.preventDefault());
     input.value = userAnswers[index].boxes[i].value;
 
@@ -182,11 +182,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-  icon.textContent = "🎉😊";
+  icon.textContent = "👍";
   title.textContent = "Good";
   msg.textContent = "Correct choice.";
 } else {
-  icon.textContent = "🥲💭";
+  icon.textContent = "👎";
   title.textContent = "Retry";
   msg.textContent = "Pick again.";
 }

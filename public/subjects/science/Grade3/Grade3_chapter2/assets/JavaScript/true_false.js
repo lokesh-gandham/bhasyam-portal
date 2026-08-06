@@ -173,13 +173,13 @@ function clearFeedback() {
 function showFeedback(correctAnswer) {
   // Show thumbs only when answered correctly
   if (correctAnswer === true) {
-    elements.trueIcon.textContent = "??";
-    elements.falseIcon.textContent = "??";
+    elements.trueIcon.textContent = "😀";
+    elements.falseIcon.textContent = "😒";
     elements.trueBtn.classList.add("correct");
     elements.falseBtn.classList.add("wrong");
   } else {
-    elements.falseIcon.textContent = "??";
-    elements.trueIcon.textContent = "??";
+    elements.falseIcon.textContent = "😀";
+    elements.trueIcon.textContent = "😒";
     elements.falseBtn.classList.add("correct");
     elements.trueBtn.classList.add("wrong");
   }
@@ -195,7 +195,7 @@ function renderQuestion() {
 
   elements.prevBtn.disabled = currentIndex === 0;
 
-  // If already answered correctly earlier ? show feedback & enable next
+  // If already answered correctly earlier → show feedback & enable next
   if (questions[currentIndex].answeredCorrectly) {
     showFeedback(q.a);
     elements.nextBtn.disabled = false;
@@ -218,7 +218,7 @@ function handleAnswer(selected) {
     elements.trueBtn.disabled = true;
     elements.falseBtn.disabled = true;
 
-    // ?? Launch 5-6 floating thumbs up emojis FROM the correct button
+    // 🎈 Launch 5-6 floating thumbs up emojis FROM the correct button
     floatThumbsUpFromButton(correct);
 
     showPopup(true);
@@ -242,11 +242,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🥳";
     title.textContent = "Great Job!";
     msg.textContent = "You got it right!";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "😒";
     title.textContent = "Oops!";
     msg.textContent = "Try again, you can do it!";
   }

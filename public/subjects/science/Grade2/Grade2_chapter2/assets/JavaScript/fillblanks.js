@@ -121,7 +121,7 @@ function speak(t) {
 
   const msg = new SpeechSynthesisUtterance(t);
   msg.lang = "en-UK";
-  msg.volume = 0.25; // ?? lower volume (0 to 1)
+  msg.volume = 0.25; // 🔉 lower volume (0 to 1)
   msg.rate = 1;
   msg.pitch = 1;
 
@@ -137,13 +137,13 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Correct!";
-    msg.textContent = "Well done! 🎉😊";
+    msg.textContent = "Well done! 🎯";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "😔";
     title.textContent = "Wrong!";
-    msg.textContent = "Try again! 🥲💭";
+    msg.textContent = "Try again! 💪";
   }
 
   setTimeout(() => {
@@ -219,7 +219,7 @@ input.addEventListener("input", () => {
  // KEYDOWN EVENT
 input.addEventListener("keydown", (e) => {
 
-  // ? Block space completely
+  // ❌ Block space completely
   if (
     e.key === " " ||
     e.code === "Space" ||
@@ -232,7 +232,7 @@ input.addEventListener("keydown", (e) => {
   const inputs = [...letters.querySelectorAll("input")];
   const idx = inputs.indexOf(input);
 
-  // ? Backspace support
+  // ✅ Backspace support
   if (e.key === "Backspace") {
 
     // if current box empty -> go previous

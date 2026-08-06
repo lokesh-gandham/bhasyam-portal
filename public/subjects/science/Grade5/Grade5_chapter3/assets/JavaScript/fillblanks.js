@@ -14,7 +14,7 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = " 👍";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
 
@@ -22,7 +22,7 @@ function showPopup(isCorrect) {
     fireConfetti();
 
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "👎";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
 
@@ -97,15 +97,15 @@ const scoreBox = document.getElementById("scoreBox");
 
 const input    = document.getElementById("answerInput");
 
-// ? restrict input behavior
+// ✅ restrict input behavior
 input.setAttribute("autocomplete", "off");
 input.setAttribute("spellcheck", "false");
 
-// ? block drag
+// ❌ block drag
 input.addEventListener("dragover", (e) => e.preventDefault());
 input.addEventListener("drop", (e) => e.preventDefault());
 
-// ? block paste (very important)
+// ❌ block paste (very important)
 input.addEventListener("paste", (e) => e.preventDefault());
 const submitBtn= document.getElementById("submitBtn");
 
@@ -244,6 +244,6 @@ updateScore();
 loadQuestion();
 
 
-// ? block drag/drop on whole page
+// ❌ block drag/drop on whole page
 document.addEventListener("dragover", (e) => e.preventDefault());
 document.addEventListener("drop", (e) => e.preventDefault());

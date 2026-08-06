@@ -178,7 +178,7 @@ function validateSlotCompletion() {
 function removeLastFilledSlot() {
   const slots = document.querySelectorAll(".answer-slot");
 
-  // ? If answer is locked/correct, stop deleting
+  // ✅ If answer is locked/correct, stop deleting
   const isLocked = [...slots].every((s) => s.classList.contains("locked"));
 
   if (isLocked) return;

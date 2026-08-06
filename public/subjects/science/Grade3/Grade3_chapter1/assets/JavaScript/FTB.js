@@ -11,7 +11,7 @@ const questions = [
   },
   {
     q: "Q3. Animals such as frogs and rabbits ________ or ________ using their limbs.",
-    a: ["hop", "leap"],   // ? 2 blanks
+    a: ["hop", "leap"],   // ✅ 2 blanks
     img: "../assets/images/ftb-3.png",
   },
   {
@@ -82,27 +82,27 @@ function loadQuestion() {
     input.placeholder = "Type here...";
     input.value = userAnswers[index].boxes[i].value;
 
-    /* ?? BLOCK DROP */
+    /* 🚫 BLOCK DROP */
 input.addEventListener("drop", (e) => {
   e.preventDefault();
 });
 
-/* ?? BLOCK PASTE */
+/* 🚫 BLOCK PASTE */
 input.addEventListener("paste", (e) => {
   e.preventDefault();
 });
 
-/* ?? BLOCK RIGHT CLICK */
+/* 🚫 BLOCK RIGHT CLICK */
 input.addEventListener("contextmenu", (e) => {
   e.preventDefault();
 });
 
-/* ? CLEAN BAD INPUT (FIXES URL / IMAGE DROP BUG) */
+/* ✅ CLEAN BAD INPUT (FIXES URL / IMAGE DROP BUG) */
 input.addEventListener("input", () => {
 
   let val = input.value;
 
-  // ?? remove unwanted injected content
+  // 🚨 remove unwanted injected content
   if (
     val.includes("http") ||
     val.includes("www.") ||
@@ -114,13 +114,13 @@ input.addEventListener("input", () => {
     return;
   }
 
-  // ? allow only letters + space
+  // ✅ allow only letters + space
   input.value = val.replace(/[^a-zA-Z ]/g, "");
 
 });
 
     const btn = document.createElement("button");
-    btn.textContent = "?";
+    btn.textContent = "✓";
     btn.disabled = input.value.trim() === "";
 
     input.addEventListener("input", () => {

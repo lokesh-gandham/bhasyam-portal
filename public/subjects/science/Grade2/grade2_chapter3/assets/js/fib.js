@@ -97,7 +97,7 @@ function load() {
   qText.textContent = q.q;
   qImg.src = q.img;
 
-  // ? Question 5
+  // ✅ Question 5
   if (Array.isArray(q.a) && q.a.length === 2) {
 
     inputBox.innerHTML = `
@@ -122,7 +122,7 @@ function load() {
 
   } else {
 
-    // ? Normal Question
+    // ✅ Normal Question
     inputBox.innerHTML = `
       <input id="answerInput" placeholder="Type your answer...">
       <button id="checkBtn">Submit</button>
@@ -153,12 +153,12 @@ inputBox.addEventListener("input", (e) => {
 
   if (e.target.tagName !== "INPUT") return;
 
-  // ? First Letter Capital
+  // ✅ First Letter Capital
   e.target.value =
     e.target.value.charAt(0).toUpperCase() +
     e.target.value.slice(1).toLowerCase();
 
-  // ? Normal button
+  // ✅ Normal button
   const normalBtn = document.getElementById("checkBtn");
 
   if (normalBtn) {
@@ -168,7 +168,7 @@ inputBox.addEventListener("input", (e) => {
     normalBtn.disabled = !value;
   }
 
-  // ? Question 5 buttons
+  // ✅ Question 5 buttons
   const btn1 = document.getElementById("checkBtn1");
   const btn2 = document.getElementById("checkBtn2");
 
@@ -195,7 +195,7 @@ document.addEventListener("click", (e) => {
 
   if (Array.isArray(q.a) && q.a.length === 2) {
 
-    // ? First input
+    // ✅ First input
     if (e.target.id === "checkBtn1") {
 
       const input1 =
@@ -206,7 +206,7 @@ document.addEventListener("click", (e) => {
 
       if (user1 === "bones") {
 
-        // ? Show first letter capital
+        // ✅ Show first letter capital
         input1.value = "Bones";
 
         input1.disabled = true;
@@ -224,7 +224,7 @@ document.addEventListener("click", (e) => {
       }
     }
 
-    // ? Second input
+    // ✅ Second input
     if (e.target.id === "checkBtn2") {
 
       const input2 =
@@ -235,7 +235,7 @@ document.addEventListener("click", (e) => {
 
       if (user2 === "muscles") {
 
-        // ? Show first letter capital
+        // ✅ Show first letter capital
         input2.value = "Muscles";
 
         input2.disabled = true;
@@ -253,7 +253,7 @@ document.addEventListener("click", (e) => {
       }
     }
 
-    // ? Both correct
+    // ✅ Both correct
     const done1 =
       document.getElementById("answerInput1").disabled;
 
@@ -300,7 +300,7 @@ document.addEventListener("click", (e) => {
 
     if (isCorrect) {
 
-      // ? Show answer in first capital
+      // ✅ Show answer in first capital
       input.value =
         user.charAt(0).toUpperCase() +
         user.slice(1).toLowerCase();
@@ -368,13 +368,13 @@ function showPopup(isCorrect) {
 
   if (isCorrect) {
 
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
 
   } else {
 
-    icon.textContent = "🥲💭";
+    icon.textContent = "😔";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
   }
@@ -399,7 +399,7 @@ function showFinal() {
   document.getElementById("stars").textContent =
     "⭐".repeat(score);
 
-  // ?? Confetti
+  // 🎉 Confetti
   if (window.innerWidth >= 769) {
 
     const duration = 2000;

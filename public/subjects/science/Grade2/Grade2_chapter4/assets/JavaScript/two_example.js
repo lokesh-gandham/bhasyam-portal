@@ -116,7 +116,7 @@ function showPopup(isCorrect) {
     popup.classList.add("correct");
     popup.classList.remove("wrong");
 
-    icon.textContent = "🎉😊";
+    icon.textContent = "✔";
     title.textContent = "CORRECT!";
     msg.textContent = "Awesome! Moving to next...";
     
@@ -127,7 +127,7 @@ function showPopup(isCorrect) {
     popup.classList.add("wrong");
     popup.classList.remove("correct");
 
-    icon.textContent = "🥲💭";
+    icon.textContent = "✖";
     title.textContent = "OOPS!";
     msg.textContent = "Try again";
 
@@ -164,7 +164,7 @@ confetti({
 
     if (index === quiz.length - 1) {
       setTimeout(() => {
-        showFinal(); // ? call showFinal() instead of showing #final div
+        showFinal(); // ✅ call showFinal() instead of showing #final div
         prev.disabled = true;
       }, 1200);
     }
@@ -216,7 +216,7 @@ function showFinal() {
   const finalPopup = document.getElementById("finalPopup");
   finalPopup.style.display = "flex";
 
-  document.getElementById("finalScore").textContent = `Score: ${score}/${quiz.length}`; // ? quiz not quizData
+  document.getElementById("finalScore").textContent = `Score: ${score}/${quiz.length}`; // ✅ quiz not quizData
 
   document.getElementById("stars").textContent = "⭐".repeat(score);
   fireBigConfetti();

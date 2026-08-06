@@ -60,7 +60,7 @@ let current = 0;
 let score = 0;
 let answered = Array(quizData.length).fill(null);
 
-/* ? FIXED DOM REFERENCES */
+/* ✅ FIXED DOM REFERENCES */
 const qEl = document.getElementById("question");
 const imgEl = document.getElementById("questionImg");
 const optEl = document.getElementById("options");
@@ -191,5 +191,5 @@ function showFinal() {
   bigConfetti();
 }
 
-/* ?? START */
+/* 🚀 START */
 loadQuestion();

@@ -98,7 +98,7 @@ function showPopup(isCorrect) {
     if (isCorrect) {
         popup.classList.add("correct");
         popup.classList.remove("wrong");
-        icon.textContent = "🎉😊";
+        icon.textContent = "✔";
         title.textContent = "CORRECT!";
         msg.textContent = "Awesome! Moving to next...";
         stars.textContent = "⭐ ⭐ ⭐";
@@ -106,7 +106,7 @@ function showPopup(isCorrect) {
     } else {
         popup.classList.add("wrong");
         popup.classList.remove("correct");
-        icon.textContent = "🥲💭";
+        icon.textContent = "✖";
         title.textContent = "OOPS!";
         msg.textContent = "Try again";
         stars.style.display = "none";

@@ -83,27 +83,27 @@ function loadQuestion() {
     input.placeholder = "Type here...";
     input.value = userAnswers[index].boxes[i].value;
 
-    /* ?? BLOCK DROP */
+    /* 🚫 BLOCK DROP */
 input.addEventListener("drop", (e) => {
   e.preventDefault();
 });
 
-/* ?? BLOCK PASTE */
+/* 🚫 BLOCK PASTE */
 input.addEventListener("paste", (e) => {
   e.preventDefault();
 });
 
-/* ?? BLOCK RIGHT CLICK */
+/* 🚫 BLOCK RIGHT CLICK */
 input.addEventListener("contextmenu", (e) => {
   e.preventDefault();
 });
 
-/* ? CLEAN INPUT (FIXES URL DROP BUG) */
+/* ✅ CLEAN INPUT (FIXES URL DROP BUG) */
 input.addEventListener("input", () => {
 
   let val = input.value;
 
-  // ?? remove URL / dragged image / unwanted text
+  // 🚨 remove URL / dragged image / unwanted text
   if (
     val.includes("http") ||
     val.includes("www.") ||
@@ -116,7 +116,7 @@ input.addEventListener("input", () => {
     return;
   }
 
-  // ? allow only letters + space
+  // ✅ allow only letters + space
   input.value = val.replace(/[^a-zA-Z ]/g, "");
 
   // enable button
@@ -213,11 +213,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Great Job!";
     msg.textContent = "You got it right!";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "🥲";
     title.textContent = "Oops!";
     msg.textContent = "Try again, you can do it!";
   }

@@ -127,11 +127,11 @@ function loadQuestion() {
 //   const answersList = questions[index].a;
 //   const state = answers[index];
 
-//   // ?? EMPTY SAFETY (same as first quiz)
+//   // 🚫 EMPTY SAFETY (same as first quiz)
 //   if (!value) return;
 
 //   if (answersList.includes(value) && !state.used.includes(value)) {
-//     // ? CORRECT
+//     // ✅ CORRECT
 //     box.classList.add("correct");
 
 //     input.disabled = true;
@@ -148,12 +148,12 @@ function loadQuestion() {
 //     showPopup(true);
 //     fireConfetti();
 //   } else {
-//     // ? WRONG (NOW MATCHES FIRST QUIZ)
+//     // ❌ WRONG (NOW MATCHES FIRST QUIZ)
 //     speak("Wrong");
 //     showPopup(false);
 
 //     input.value = "";
-//     btn.disabled = true; // ? IMPORTANT FIX
+//     btn.disabled = true; // ⭐ IMPORTANT FIX
 //   }
 
 //   checkAllAnswered();
@@ -166,9 +166,9 @@ function checkAnswer(input, btn, box, i) {
 
   if (!value) return;
 
-  // ? CHECK IF VALUE EXISTS & NOT USED
+  // ✅ CHECK IF VALUE EXISTS & NOT USED
   if (answersList.includes(value) && !state.used.includes(value)) {
-    // ? MARK CORRECT
+    // ✅ MARK CORRECT
     box.classList.add("correct");
 
     input.disabled = true;
@@ -176,7 +176,7 @@ function checkAnswer(input, btn, box, i) {
 
     state.used.push(value);
 
-    // ? STORE IN FIRST EMPTY SLOT (NOT INDEX BASED)
+    // ✅ STORE IN FIRST EMPTY SLOT (NOT INDEX BASED)
     const emptyIndex = state.boxes.findIndex((b) => !b.correct);
 
     if (emptyIndex !== -1) {
@@ -190,7 +190,7 @@ function checkAnswer(input, btn, box, i) {
     showPopup(true);
     fireConfetti();
   } else {
-    // ? WRONG
+    // ❌ WRONG
     speak("Wrong");
     showPopup(false);
 

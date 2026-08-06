@@ -103,7 +103,7 @@ div.innerHTML = `
 
 div.onclick = () => {
 
-  // ?? if already answered correctly ? do nothing
+  // 🚫 if already answered correctly → do nothing
   if (answered[current] !== null) return;
 
   if (i === q.a) {
@@ -116,8 +116,8 @@ div.onclick = () => {
 
     div.classList.add("correct");
 
-    // ?? disable ALL options after correct
-   // ?? disable ALL options after correct
+    // 🔒 disable ALL options after correct
+   // 🔒 disable ALL options after correct
 [...optionsEl.children].forEach(el => {
   el.style.pointerEvents = "none";
   if (!el.classList.contains("correct")) {
@@ -193,7 +193,7 @@ function showPopup(isCorrect) {
     popup.classList.add("correct");
     popup.classList.remove("wrong");
 
-    icon.textContent = "🎉😊";
+    icon.textContent = "✔";
     title.textContent = "CORRECT!";
     msg.textContent = "Awesome! Moving to next...";
     
@@ -204,7 +204,7 @@ function showPopup(isCorrect) {
     popup.classList.add("wrong");
     popup.classList.remove("correct");
 
-    icon.textContent = "🥲💭";
+    icon.textContent = "✖";
     title.textContent = "OOPS!";
     msg.textContent = "Try again";
 
@@ -266,9 +266,9 @@ function nextSection() {
     }
 
   } catch (e) {
-    // file:// fallback � store target and reload parent
+    // file:// fallback — store target and reload parent
     sessionStorage.setItem("activeSection", "fillblanks.html");
-    window.location.href = "../Grade2_lesson4.html";  // ? go to parent
+    window.location.href = "../Grade2_lesson4.html";  // ✅ go to parent
   }
 }
 

@@ -118,7 +118,7 @@ function selectOption(el, ans) {
   addTempBorder(el, ans === q.correct);
 
   if (ans === q.correct) {
-    // ? CORRECT
+    // ✅ CORRECT
     s.answered = true;
 
     el.classList.add("correct");
@@ -131,10 +131,10 @@ function selectOption(el, ans) {
       o.classList.add("disabled")
     );
 
-    // ? enable next ONLY here
+    // ✅ enable next ONLY here
     nextBtn.disabled = false;
 
-    // ?? confetti
+    // 🎉 confetti
     confetti({
       particleCount: 80,
       spread: 70,
@@ -147,12 +147,12 @@ function selectOption(el, ans) {
     }
 
   } else {
-    // ? WRONG
+    // ❌ WRONG
     el.classList.add("wrong");
     speak("Wrong");
     showPopup(false);
 
-    // ?? keep next disabled
+    // 🚫 keep next disabled
     nextBtn.disabled = true;
 
     // allow retry
@@ -181,11 +181,11 @@ function showPopup(isCorrect) {
   popup.className = "popup " + (isCorrect ? "correct" : "wrong");
   popup.style.display = "flex";
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "😔";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
   }
@@ -201,7 +201,7 @@ function showFinal() {
   document.getElementById("finalScore").textContent = `Score: ${score}/3`;
   document.getElementById("stars").textContent = "⭐".repeat(score);
 
-  // ?? CONFETTI EFFECT
+  // 🎉 CONFETTI EFFECT
   if (window.innerWidth >= 769) {
     const duration = 2000;
     const end = Date.now() + duration;

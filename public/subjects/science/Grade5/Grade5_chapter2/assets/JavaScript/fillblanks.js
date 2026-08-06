@@ -41,7 +41,7 @@ function speak(t) {
 
   const msg = new SpeechSynthesisUtterance(t);
   msg.lang = "en-UK";
-  msg.volume = 0.25; // ?? lower volume (0 to 1)
+  msg.volume = 0.25; // 🔉 lower volume (0 to 1)
   msg.rate = 1;
   msg.pitch = 1;
 
@@ -60,21 +60,21 @@ const qImg = document.getElementById("qImg");
 const input = document.getElementById("answerInput");
 const input2 = document.getElementById("answerInput2");
 
-// ?? restrict input behavior
+// 🔒 restrict input behavior
 [input, input2].forEach((inp) => {
   if (!inp) return;
 
   inp.setAttribute("autocomplete", "off");
   inp.setAttribute("spellcheck", "false");
 
-  // ? block drag & drop
+  // ❌ block drag & drop
   inp.addEventListener("dragover", (e) => e.preventDefault());
   inp.addEventListener("drop", (e) => e.preventDefault());
 
-  // ? block paste
+  // ❌ block paste
   inp.addEventListener("paste", (e) => e.preventDefault());
 
-  // ? allow only letters + space
+  // ✅ allow only letters + space
  inp.addEventListener("input", () => {
 
   inp.value = inp.value.replace(/[^a-zA-Z\s]/g, "");
@@ -164,8 +164,8 @@ check.onclick = () => {
 
       showPopup(`
         <div class="popup-correct">
-          <div>? Correct</div>
-          <div class="happy">??</div>
+          <div>✅ Correct</div>
+          <div class="happy">😊</div>
           <div class="stars">${"⭐".repeat(score)}</div>
         </div>
       `);
@@ -189,9 +189,9 @@ check.onclick = () => {
 
       showPopup(`
         <div>
-          <div class="popup-title" style="color:#c62828;">? Wrong!</div>
-          <span class="popup-emoji">??</span>
-          <div class="popup-tip">?? Try again!</div>
+          <div class="popup-title" style="color:#c62828;">❌ Wrong!</div>
+          <span class="popup-emoji">😢</span>
+          <div class="popup-tip">💡 Try again!</div>
         </div>
       `);
     }
@@ -208,8 +208,8 @@ check.onclick = () => {
 
       showPopup(`
         <div class="popup-correct">
-          <div>? Correct</div>
-          <div class="happy">??</div>
+          <div>✅ Correct</div>
+          <div class="happy">😊</div>
           <div class="stars">${"⭐".repeat(score)}</div>
         </div>
       `);
@@ -232,9 +232,9 @@ check.onclick = () => {
 
       showPopup(`
         <div>
-          <div class="popup-title" style="color:#c62828;">? Wrong!</div>
-          <span class="popup-emoji">??</span>
-          <div class="popup-tip">?? Try again!</div>
+          <div class="popup-title" style="color:#c62828;">❌ Wrong!</div>
+          <span class="popup-emoji">😢</span>
+          <div class="popup-tip">💡 Try again!</div>
         </div>
       `);
     }
@@ -246,16 +246,16 @@ function showFinal() {
   showPopup(
     `
     <div class="popup-final-content">
-      ?? Congratulations!
-      <span class="emoji">??</span>
+      🎉 Congratulations!
+      <span class="emoji">🏆</span>
       <div>You finished the quiz!</div>
       <div class="final-score">
         Score: ${score}/${questions.length}
       </div>
       <div class="stars">${"⭐".repeat(score)}</div>
       <div class="final-actions">
-        <button class="restart" onclick="location.reload()">?? Restart</button>
-        <button class="home" onclick="location.href='../index.html'">?? Home</button>
+        <button class="restart" onclick="location.reload()">🔄 Restart</button>
+        <button class="home" onclick="location.href='../index.html'">🏠 Home</button>
       </div>
     </div>
   `,
@@ -341,6 +341,6 @@ function fireConfetti() {
 load();
 
 
-// ? block drag/drop on whole page
+// ❌ block drag/drop on whole page
 document.addEventListener("dragover", (e) => e.preventDefault());
 document.addEventListener("drop", (e) => e.preventDefault());

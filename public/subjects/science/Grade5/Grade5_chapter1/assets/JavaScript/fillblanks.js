@@ -59,7 +59,7 @@ letters.addEventListener("input", (e) => {
     inputs[idx + 1].focus();
   }
 
-  // ? FIX: check properly
+  // ✅ FIX: check properly
   const allFilled = inputs.every(i => i.value.trim() !== "");
   checkBtn.disabled = !allFilled;
 });
@@ -83,7 +83,7 @@ function speak(t) {
 
   const msg = new SpeechSynthesisUtterance(t);
   msg.lang = "en-UK";
-  msg.volume = 0.25; // ?? lower volume (0 to 1)
+  msg.volume = 0.25; // 🔉 lower volume (0 to 1)
   msg.rate = 1;
   msg.pitch = 1;
 
@@ -101,12 +101,12 @@ function showPopup(isCorrect) {
 
   if (isCorrect) {
     popup.className = "popup correct";
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
   } else {
     popup.className = "popup wrong";
-    icon.textContent = "🥲💭";
+    icon.textContent = "😔";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
   }
@@ -150,15 +150,15 @@ const words = answer.split(" ");
       input.addEventListener("input", () => {
   input.value = input.value.toUpperCase();
 });
-      // ?? restrict input (VERY IMPORTANT)
+      // 🔒 restrict input (VERY IMPORTANT)
 input.setAttribute("autocomplete", "off");
 input.setAttribute("spellcheck", "false");
 
-// ? block drag & drop
+// ❌ block drag & drop
 input.addEventListener("dragover", (e) => e.preventDefault());
 input.addEventListener("drop", (e) => e.preventDefault());
 
-// ? block paste
+// ❌ block paste
 input.addEventListener("paste", (e) => e.preventDefault());
       wordBox.appendChild(input);
     });
@@ -200,7 +200,7 @@ inputs.forEach((input, idx) => {
 });
 
 inputs[0].focus();
-checkBtn.disabled = true; // ? important
+checkBtn.disabled = true; // ✅ important
     nextBtn.disabled = true;
     checkBtn.disabled = true;
   }
@@ -319,6 +319,6 @@ function fireConfetti() {
 // ================= START =================
 load();
 
-// ? block drag/drop globally
+// ❌ block drag/drop globally
 document.addEventListener("dragover", (e) => e.preventDefault());
 document.addEventListener("drop", (e) => e.preventDefault());

@@ -46,7 +46,7 @@ const popup=document.getElementById("popup");
 const popupText=document.getElementById("popupText");
 
 function showPopup(html, final = false){
-  // ? stop any previous popup timer
+  // ❌ stop any previous popup timer
   if(popupTimer){
     clearTimeout(popupTimer);
     popupTimer = null;
@@ -59,12 +59,12 @@ function showPopup(html, final = false){
   popupText.innerHTML = html;
 
   if(final){
-    // ?? FINAL POPUP LOCK
+    // 🔒 FINAL POPUP LOCK
     finalPopupShown = true;
-    return; // ? no auto-close
+    return; // ⛔ no auto-close
   }
 
-  // ? auto close only for correct / wrong
+  // ⏱ auto close only for correct / wrong
   popupTimer = setTimeout(() => {
     if(!finalPopupShown){
       popup.style.display = "none";
@@ -85,7 +85,7 @@ function speak(t) {
 
   const msg = new SpeechSynthesisUtterance(t);
     msg.lang = "en-UK";  
-  msg.volume = 0.25;   // ?? lower volume (0 to 1)
+  msg.volume = 0.25;   // 🔉 lower volume (0 to 1)
   msg.rate = 1;
   msg.pitch = 1;
 
@@ -93,10 +93,10 @@ function speak(t) {
 }
 
 function loadQuestion(){
-  const q = quizData[index];   // ? define first
+  const q = quizData[index];   // ✅ define first
 
   const imgEl = document.getElementById("questionImg");
-  imgEl.src = q.img;           // ? now works
+  imgEl.src = q.img;           // ✅ now works
   imgEl.style.display = "block";
 
   questionEl.textContent = q.q;
@@ -137,47 +137,47 @@ function answer(user){
     const correctBtn = user ? trueBtn : falseBtn;
     const wrongBtn = user ? falseBtn : trueBtn;
 
-    correctBtn.classList.add("correct");   // ? green border
-    correctBtn.onclick = null;             // ? no more clicks
-    wrongBtn.classList.add("disabled");    // ? disable wrong
+    correctBtn.classList.add("correct");   // ✅ green border
+    correctBtn.onclick = null;             // ❌ no more clicks
+    wrongBtn.classList.add("disabled");    // ❌ disable wrong
    fireConfetti();
     showPopup(`
       <div class="popup-correct">
-        <span class="check">? Correct</span>
-        <span class="happy">??</span>
+        <span class="check">✅ Correct</span>
+        <span class="happy">😊</span>
         <div class="stars">${"⭐".repeat(index+1)}</div>
       </div>
     `);
 
-    // ?? enable Next
+    // 👉 enable Next
     nextBtn.disabled = false;
 
-    // ?? enable Prev from 2nd question
+    // 👉 enable Prev from 2nd question
    
 
-    // ?? FINAL QUESTION
+    // 🏆 FINAL QUESTION
     if(index === quizData.length - 1){
       setTimeout(() => {
 
   finalPopupShown = true;
-        // ?? lock navigation
+        // 🔒 lock navigation
         prevBtn.disabled = true;
         nextBtn.disabled = true;
           fireConfettif();
         showPopup(`
           <div class="popup-final-content">
-            ?? Congratulations!
-            <span class="emoji">??</span>
+            🎉 Congratulations!
+            <span class="emoji">🏆</span>
              <div>You finished the quiz!</div>
             <div class="final-score">
               Score: <b>${score}/${quizData.length}</b>
             </div>
 
-            <div class="stars">?????</div>
+            <div class="stars">⭐⭐⭐⭐⭐</div>
 
              <div class="final-actions">
-            <button class="restart" onclick="location.reload()">?? Restart</button>
-            <button class="home" onclick="location.href='../index.html'">?? Home</button>
+            <button class="restart" onclick="location.reload()">🔄 Restart</button>
+            <button class="home" onclick="location.href='../index.html'">🏠 Home</button>
           </div>
           </div>
         `, true);
@@ -189,9 +189,9 @@ function answer(user){
   } else {
     showPopup(`
       <div class="popup-wrong">
-        <span class="cross">? Wrong</span>
-        <span class="sad">??</span>
-        <div class="tip">?? Try again !</div>
+        <span class="cross">❌ Wrong</span>
+        <span class="sad">😢</span>
+        <div class="tip">💡 Try again !</div>
       </div>
     `);
   }

@@ -197,11 +197,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "👍";
     title.textContent = "Great Job!";
     msg.textContent = "";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "👎";
     title.textContent = "Oops!";
     msg.textContent = "";
   }

@@ -140,11 +140,11 @@ popup.style.display="flex";
 
 if(isCorrect){
 launchConfetti();
-icon.textContent="🎉😊";
+icon.textContent="🥳";
 title.textContent="Correct!";
 msg.textContent="Well done!";
 }else{
-icon.textContent="🥲💭";
+icon.textContent="😔";
 title.textContent="Wrong!";
 msg.textContent="Try again!";
 }
@@ -169,7 +169,7 @@ score++;
 
 next.disabled=false;
 
-/* IF LAST QUESTION ? SHOW FINAL POPUP */
+/* IF LAST QUESTION → SHOW FINAL POPUP */
 
 if(index===quiz.length-1){
 

@@ -17,7 +17,7 @@
 
   const msg = new SpeechSynthesisUtterance(t);
     msg.lang = "en-UK";  
-  msg.volume = 0.25;   // ?? lower volume (0 to 1)
+  msg.volume = 0.25;   // 🔉 lower volume (0 to 1)
   msg.rate = 1;
   msg.pitch = 1;
 
@@ -161,8 +161,8 @@ const quizData = [
 
        showPopup(`
   <div class="popup-correct">
-    <span class="check">? Correct</span>
-    <span class="happy">??</span>
+    <span class="check">✅ Correct</span>
+    <span class="happy">😊</span>
     <div class="stars">${"⭐".repeat(score)}</div>
   </div>
 `);
@@ -176,18 +176,18 @@ const quizData = [
                fireConfettif(); 
             showPopup(`
           <div class="popup-final-content">
-            ?? Congratulations!
-            <span class="emoji">??</span>
+            🎉 Congratulations!
+            <span class="emoji">🏆</span>
              <div>You finished the quiz!</div>
             <div class="final-score">
               Score: 5/5
             </div>
 
-            <div class="stars">?????</div>
+            <div class="stars">⭐⭐⭐⭐⭐</div>
 
              <div class="final-actions">
-            <button class="restart" onclick="location.reload()">?? Restart</button>
-           <button class="home" onclick="goHome()">?? Home</button>
+            <button class="restart" onclick="location.reload()">🔄 Restart</button>
+           <button class="home" onclick="goHome()">🏠 Home</button>
           </div>
           </div>
         `, true);
@@ -202,9 +202,9 @@ const quizData = [
 
         showPopup(`
           <div>
-            <div class="popup-title" style="color:#c62828;">? Wrong!</div>
-            <span class="popup-emoji">??</span>
-            <div class="popup-tip">?? Try again!</div>
+            <div class="popup-title" style="color:#c62828;">❌ Wrong!</div>
+            <span class="popup-emoji">😢</span>
+            <div class="popup-tip">💡 Try again!</div>
           </div>
         `);
       }

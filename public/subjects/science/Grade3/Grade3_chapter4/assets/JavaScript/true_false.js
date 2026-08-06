@@ -100,7 +100,7 @@ function renderQuestion() {
 
   elements.prevBtn.disabled = currentIndex === 0;
 
-  // If already answered correctly earlier ? show feedback & enable next
+  // If already answered correctly earlier → show feedback & enable next
   if (questions[currentIndex].answeredCorrectly) {
     showFeedback(q.a);
     elements.nextBtn.disabled = false;
@@ -144,11 +144,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Great Job!";
     msg.textContent = "You got it right!";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "🥲";
     title.textContent = "Oops!";
     msg.textContent = "Try again, you can do it!";
   }

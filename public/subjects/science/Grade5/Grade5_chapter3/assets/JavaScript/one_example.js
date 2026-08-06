@@ -156,7 +156,7 @@ function checkAnswer(selected){
   options.forEach(opt => {
     const text = opt.querySelector(".label").textContent;
 
-    // ? if correct clicked
+    // ✅ if correct clicked
     if(text === selected && correct.includes(text)){
         opt.classList.add("correct-lock");
         opt.style.pointerEvents = "none";
@@ -165,7 +165,7 @@ function checkAnswer(selected){
         showPopup(true);
     }
 
-    // ? if wrong clicked
+    // ❌ if wrong clicked
     if(text === selected && !correct.includes(text)){
         opt.classList.add("wrong-shake");
         opt.style.pointerEvents = "none";
@@ -175,7 +175,7 @@ function checkAnswer(selected){
     }
   });
 
-  // ? check if ALL correct answers are clicked (only for moving next)
+  // ✅ check if ALL correct answers are clicked (only for moving next)
   const allCorrectSelected = correct.every(ans => state.selected.includes(ans));
 
   if(allCorrectSelected){
@@ -210,12 +210,12 @@ function showPopup(isCorrect){
   popup.style.display="flex";
 
   if(isCorrect){
-    icon.textContent="🎉😊";
+    icon.textContent="👍";
     title.textContent="Correct!";
     msg.textContent="Well done!";
   }
   else{
-    icon.textContent="🥲💭";
+    icon.textContent="👎";
     title.textContent="Wrong!";
     msg.textContent="Try again!";
   }

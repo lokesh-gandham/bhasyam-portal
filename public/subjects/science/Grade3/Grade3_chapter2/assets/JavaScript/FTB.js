@@ -251,7 +251,7 @@ function selectLetter(letter, clickedButton) {
     }
   } else {
     wrongLetterAnimation(clickedButton);
-    // showTemporaryMessage("? Wrong letter! Try again!", "#ff6b6b",);
+    // showTemporaryMessage("❌ Wrong letter! Try again!", "#ff6b6b",);
     speak("Wrong");
   }
 }
@@ -459,7 +459,7 @@ function loadQuestion() {
   if (currentQuestion === questions.length - 1) {
     nextBtn.textContent = "Finish";
   } else {
-    nextBtn.textContent = "Next ?";
+    nextBtn.textContent = "Next →";
   }
 }
 
@@ -547,11 +547,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
   
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🥳";
     title.textContent = "Great Job!";
     msg.textContent = "You got it right!";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "😒";
     title.textContent = "Oops!";
     msg.textContent = "Try again, you can do it!";
   }
@@ -602,7 +602,7 @@ hintBtn.onclick = function () {
   popup.className = "kid-popup kid-correct";
   popup.style.display = "flex";
 
-  icon.textContent = "🎉😊";
+  icon.textContent = "💡";
   title.textContent = "How To Play";
 
   msg.innerHTML = `

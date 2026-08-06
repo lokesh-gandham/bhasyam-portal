@@ -43,7 +43,7 @@ function speak(t) {
 
   const msg = new SpeechSynthesisUtterance(t);
     msg.lang = "en-UK";  
-  msg.volume = 0.25;   // ?? lower volume (0 to 1)
+  msg.volume = 0.25;   // 🔉 lower volume (0 to 1)
   msg.rate = 1;
   msg.pitch = 1;
 
@@ -86,7 +86,7 @@ function render() {
 
   // RIGHT COLUMN
  [...pairs]
-  .map((p, i) => ({...p, correctIndex: i + 1}))   // ? store real index
+  .map((p, i) => ({...p, correctIndex: i + 1}))   // ✅ store real index
   .sort(() => Math.random() - 0.5)
   .forEach((p) => {
       const r = document.createElement("div");
@@ -131,7 +131,7 @@ function render() {
         }
       };
 
-      // ? APPEND HERE (correct place)
+      // ✅ APPEND HERE (correct place)
       rightCol.appendChild(r);
     });
 }
@@ -143,14 +143,14 @@ function finalPopup() {
   showPopup(
     `
     <div class="popup-final-content">
-      <div>?? Congratulations!</div>
-      <div class="emoji">??</div>
+      <div>🎉 Congratulations!</div>
+      <div class="emoji">🏆</div>
       <div>You finished the quiz!</div>
       <div class="score">Score: <b>${score}/${pairs.length}</b></div>
-      <div class="stars">?????</div>
+      <div class="stars">⭐⭐⭐⭐⭐</div>
       <div class="final-actions">
-        <button class="restart" onclick="location.reload()">?? Restart</button>
-        <button class="home" onclick="goHome()">?? Home</button>
+        <button class="restart" onclick="location.reload()">🔄 Restart</button>
+        <button class="home" onclick="goHome()">🏠 Home</button>
       </div>
     </div>
   `,

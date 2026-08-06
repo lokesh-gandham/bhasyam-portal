@@ -7,7 +7,7 @@ function showPopup(isCorrect) {
   const title = document.getElementById("popupTitle");
   const msg = document.getElementById("popupMsg");
 
-  // ?? Reset animation
+  // 🔥 Reset animation
   icon.style.animation = "none";
   void icon.offsetWidth;
   icon.style.animation = "";
@@ -16,11 +16,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "👍";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "👎";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
   }
@@ -114,10 +114,10 @@ function speak(t) {
 }
 
 function loadQuestion(){
-  const q = quizData[index];   // ? define first
+  const q = quizData[index];   // ✅ define first
 
   const imgEl = document.getElementById("questionImg");
-  imgEl.src = q.img;           // ? now works
+  imgEl.src = q.img;           // ✅ now works
   imgEl.style.display = "block";
 
   questionEl.textContent = q.q;
@@ -167,7 +167,7 @@ if(correct){
   correctBtn.classList.add("correct");
   wrongBtn.classList.add("disabled");
 
-  showPopup(true);   // ? correct popup
+  showPopup(true);   // ✅ correct popup
   fireConfetti()
 
   nextBtn.disabled = false;
@@ -178,7 +178,7 @@ if(correct){
 
 } else {
 
-  showPopup(false);  // ? wrong popup
+  showPopup(false);  // ❌ wrong popup
 
 }
 }

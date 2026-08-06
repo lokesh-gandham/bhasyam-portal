@@ -58,13 +58,13 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Correct!";
-    msg.textContent = "Well done! 🎉😊";
+    msg.textContent = "Well done! 🎯";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "😔";
     title.textContent = "Wrong!";
-    msg.textContent = "Try again! 🥲💭";
+    msg.textContent = "Try again! 💪";
   }
 
   setTimeout(() => {
@@ -126,7 +126,7 @@ function updateButtonsForAnswered(q) {
   correctBtn.disabled = true;
 
   // Update drop box
-  dropBox.innerHTML = `<span class="emoji">? Correct Answer: ${q.a ? "TRUE" : "FALSE"}</span>`;
+  dropBox.innerHTML = `<span class="emoji">✓ Correct Answer: ${q.a ? "TRUE" : "FALSE"}</span>`;
   dropBox.classList.add("locked");
 }
 

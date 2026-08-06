@@ -98,7 +98,7 @@
 //       <span>${opt.text}</span>
 //     `;
 
-//     // ?? if already answered ? show state
+//     // 👉 if already answered → show state
 //     if (answers[current].length > 0) {
 
 //       if (opt.correct) {
@@ -117,7 +117,7 @@
 
 //   prev.disabled = current === 0;
 
-//   // if not answered ? disable next
+//   // if not answered → disable next
 //   if (answers[current].length < 2) {
 //     next.disabled = true;
 //   }
@@ -405,7 +405,7 @@ function load() {
       <span>${opt.text}</span>
     `;
 
-    // if already answered ? show state
+    // if already answered → show state
     if (answers[current].length > 0) {
       if (opt.correct) {
         div.classList.add("correct");
@@ -478,7 +478,7 @@ function showWrongFeedback(element) {
   const centerY = rect.top + rect.height / 2;
   
   const sadEmoji = document.createElement("div");
-  sadEmoji.textContent = "😢";
+  sadEmoji.textContent = "❌";
   sadEmoji.style.cssText = `
     position: fixed;
     left: ${centerX}px;
@@ -531,11 +531,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🥳";
     title.textContent = "Great Job!";
     msg.textContent = "You got it right!";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "😒";
     title.textContent = "Oops!";
     msg.textContent = "Try again, you can do it!";
   }

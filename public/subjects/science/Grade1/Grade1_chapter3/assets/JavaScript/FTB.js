@@ -79,7 +79,7 @@ function load() {
 
   inputBox.classList.toggle("correct", answers[index] !== null);
 
-  // ? BUTTON RULES
+  // ✅ BUTTON RULES
   prev.disabled = index === 0;
   next.disabled = answers[index] === null;
 

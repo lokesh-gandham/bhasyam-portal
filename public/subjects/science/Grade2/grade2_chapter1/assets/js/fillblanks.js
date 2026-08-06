@@ -14,7 +14,7 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
 
@@ -22,7 +22,7 @@ function showPopup(isCorrect) {
     fireConfetti();
 
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "😔";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
 
@@ -111,7 +111,7 @@ qImgEl.addEventListener("drop", (e) => {
 
   const file = e.dataTransfer.files[0];
 
-  // ? local file
+  // ✅ local file
   if (file && file.type.startsWith("image/")) {
     const reader = new FileReader();
 
@@ -123,7 +123,7 @@ qImgEl.addEventListener("drop", (e) => {
     return;
   }
 
-  // ? browser image (URL)
+  // ✅ browser image (URL)
   const url =
     e.dataTransfer.getData("text/uri-list") ||
     e.dataTransfer.getData("text/plain");

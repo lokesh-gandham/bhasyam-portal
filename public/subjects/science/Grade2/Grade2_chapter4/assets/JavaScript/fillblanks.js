@@ -58,7 +58,7 @@ letters.addEventListener("drop", (e) => {
     const reader = new FileReader();
 
     reader.onload = function (event) {
-      // ?? set image preview instead of URL text
+      // 👉 set image preview instead of URL text
       img.src = event.target.result;
     };
 
@@ -96,7 +96,7 @@ checkBtn.disabled = allInputs.some((i) => !i.value);
 // });
 letters.addEventListener("keydown", (e) => {
 
-  // ? Disable space
+  // ❌ Disable space
   if (
     e.key === " " ||
     e.code === "Space" ||
@@ -124,7 +124,7 @@ function speak(t) {
 
   const msg = new SpeechSynthesisUtterance(t);
   msg.lang = "en-UK";
-  msg.volume = 0.25; // ?? lower volume (0 to 1)
+  msg.volume = 0.25; // 🔉 lower volume (0 to 1)
   msg.rate = 1;
   msg.pitch = 1;
 
@@ -178,7 +178,7 @@ function showPopup(isCorrect) {
     popup.classList.add("correct");
     popup.classList.remove("wrong");
 
-    icon.textContent = "🎉😊";
+    icon.textContent = "✔";
     title.textContent = "CORRECT!";
     msg.textContent = "Awesome! Moving to next...";
     
@@ -189,7 +189,7 @@ function showPopup(isCorrect) {
     popup.classList.add("wrong");
     popup.classList.remove("correct");
 
-    icon.textContent = "🥲💭";
+    icon.textContent = "✖";
     title.textContent = "OOPS!";
     msg.textContent = "Try again";
 
@@ -252,7 +252,7 @@ function load() {
 
   const allInputs = letters.querySelectorAll(".word-group input");
 
-  // ? already answered
+  // ✅ already answered
   if (answered[index]) {
 
     const groups = letters.querySelectorAll(".word-group");
@@ -275,18 +275,18 @@ function load() {
 
     nextBtn.disabled = false;
 
-    // ? disable submit permanently
+    // ✅ disable submit permanently
 
     checkBtn.disabled = true;
     checkBtn.textContent = "Answered";
 
-    // ? disabled visual
+    // ✅ disabled visual
   
    
 
   }
 
-  // ? not answered yet
+  // ✅ not answered yet
   else {
 
     allInputs.forEach((input, idx) => {
@@ -305,7 +305,7 @@ function load() {
 
     checkBtn.disabled = true;
 
-    // ? restore normal button
+    // ✅ restore normal button
     checkBtn.textContent = "Check";
 
    
@@ -388,7 +388,7 @@ function showFinal(){
   finalPopup.classList.add("active");
 
   document.getElementById("finalScore").textContent =
-    `Score: ${score}/${questions.length}`;  // ? fixed quizData ? questions
+    `Score: ${score}/${questions.length}`;  // ✅ fixed quizData → questions
 
   document.getElementById("stars").textContent =
     "⭐".repeat(score);
@@ -416,9 +416,9 @@ function showFinal(){
 //     }
 
 //   } catch (e) {
-//     // file:// fallback � store target and reload parent
+//     // file:// fallback — store target and reload parent
 //     sessionStorage.setItem("activeSection", "matching.html");
-//     window.location.href = "../Grade2_lesson4.html";  // ? go to parent
+//     window.location.href = "../Grade2_lesson4.html";  // ✅ go to parent
 //   }
 // }
 

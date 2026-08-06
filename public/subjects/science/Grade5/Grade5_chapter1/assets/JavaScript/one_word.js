@@ -48,7 +48,7 @@ popup.style.display="flex";
 
 if(isCorrect){
 
-icon.textContent="🎉😊";
+icon.textContent="🎉";
 title.textContent="Correct!";
 msg.textContent="Well done!";
 speak("Correct");
@@ -56,7 +56,7 @@ fireConfetti();
 
 }else{
 
-icon.textContent="🥲💭";
+icon.textContent="😔";
 title.textContent="Wrong!";
 msg.textContent="Try again!";
 speak("Wrong");
@@ -121,7 +121,7 @@ const prevBtn=document.getElementById("prev");
 const submitBtn=document.getElementById("submitBtn");
 
 const input = document.getElementById("answerInput");
-// ? Block drag & drop on input
+// ❌ Block drag & drop on input
 input.addEventListener("dragover", (e) => e.preventDefault());
 input.addEventListener("drop", (e) => e.preventDefault());
 
@@ -161,15 +161,15 @@ const q=quizData[current];
 const input = document.getElementById("answerInput");
 
 if(savedAnswers[current]){
-  input.value = savedAnswers[current];   // ? restore answer
-  input.disabled = true;                 // ?? lock it
+  input.value = savedAnswers[current];   // ✅ restore answer
+  input.disabled = true;                 // 🔒 lock it
 }else{
   input.value = "";
   input.disabled = false;
 }
 
 input.focus();
-submitBtn.disabled = true;   // ?? ALWAYS start disabled
+submitBtn.disabled = true;   // 🔥 ALWAYS start disabled
 qEl.textContent=q.q;
 imgEl.src=q.img;
 
@@ -185,7 +185,7 @@ if(locked[current]){
   submitBtn.disabled = true;
 }else{
   nextBtn.disabled = true;
- submitBtn.disabled = true;   // ?? FIRST CHANGE
+ submitBtn.disabled = true;   // 🔥 FIRST CHANGE
 }
 
 prevBtn.disabled=current===0;
@@ -211,7 +211,7 @@ submitBtn.onclick = () => {
   input.value = correctWord;
   input.disabled = true;
 
-  savedAnswers[current] = correctWord;   // ?? SAVE ANSWER
+  savedAnswers[current] = correctWord;   // 🔥 SAVE ANSWER
 
   score++;
   updateScore();
@@ -231,7 +231,7 @@ submitBtn.onclick = () => {
   showPopup(false);
   input.value = "";  
 
-  submitBtn.disabled = true;   // ?? ADD THIS LINE
+  submitBtn.disabled = true;   // 🔥 ADD THIS LINE
 }
 
 };

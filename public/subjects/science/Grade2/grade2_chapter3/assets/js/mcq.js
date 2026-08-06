@@ -99,7 +99,7 @@ function speak(t) {
 
 /* ================= NAVIGATION ================= */
 function goHome() {
-  window.location.href = "../index.html"; // ? change if needed
+  window.location.href = "../index.html"; // ✅ change if needed
 }
 
 /* ================= PROGRESS ================= */
@@ -142,7 +142,7 @@ function loadQuestion() {
 `;
 
     if (state.answered) {
-      // ?? restore locked state
+      // 🔒 restore locked state
       div.classList.add("disabled");
       if (opt.text === q.answer) {
         div.classList.add("correct-lock");
@@ -172,13 +172,13 @@ function checkAnswer(optionDiv, selected) {
     updateProgress();
     score++;
 
-    // ?? disable all options
+    // 🔒 disable all options
     document.querySelectorAll(".option").forEach((o) => {
       o.classList.add("disabled");
       o.onclick = null;
     });
 
-    // ? highlight correct
+    // ✅ highlight correct
     optionDiv.classList.add("correct-lock");
     nextBtn.disabled = false;
 
@@ -221,11 +221,11 @@ function showPopup(isCorrect) {
   popup.className = "popup " + (isCorrect ? "correct" : "wrong");
   popup.style.display = "flex";
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "😔";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
   }
@@ -241,7 +241,7 @@ function showFinal() {
   document.getElementById("finalScore").textContent = `Score: ${score}/5`;
   document.getElementById("stars").textContent = "⭐".repeat(score);
 
-  // ?? CONFETTI EFFECT
+  // 🎉 CONFETTI EFFECT
   if (window.innerWidth >= 769) {
     const duration = 2000;
     const end = Date.now() + duration;

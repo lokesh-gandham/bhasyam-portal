@@ -203,7 +203,7 @@ function showPopup(isCorrect) {
   const title = document.getElementById("popupTitle");
   const msg = document.getElementById("popupMsg");
 
-    // ?? RESET animation (important)
+    // 🔥 RESET animation (important)
   icon.style.animation = "none";
   void icon.offsetWidth; 
   icon.style.animation = "";
@@ -212,11 +212,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "😔";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
   }

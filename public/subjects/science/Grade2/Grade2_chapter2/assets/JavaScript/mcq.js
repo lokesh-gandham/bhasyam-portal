@@ -93,13 +93,13 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "🎉😊";
+    icon.textContent = "🎉";
     title.textContent = "Correct!";
-    msg.textContent = "Well done! 🎉😊";
+    msg.textContent = "Well done! 🎯";
   } else {
-    icon.textContent = "🥲💭";
+    icon.textContent = "😔";
     title.textContent = "Wrong!";
-    msg.textContent = "Try again! 🥲💭";
+    msg.textContent = "Try again! 💪";
   }
 
   setTimeout(() => {
@@ -121,7 +121,7 @@ function renderProgress() {
   progress.innerHTML = "";
   quizData.forEach((_, i) => {
     const d = document.createElement("div");
-    d.textContent = answers[i] !== null ? "?" : i + 1;
+    d.textContent = answers[i] !== null ? "✓" : i + 1;
     d.style.background = answers[i] !== null ? "#4CAF50" : "#e0e0e0";
     d.style.color = answers[i] !== null ? "#fff" : "#888";
     progress.appendChild(d);
@@ -169,10 +169,10 @@ function loadQuestion() {
   clearOptions();
   
   // Assign options to cross positions:
-  // Option 0 ? TOP
-  // Option 1 ? BOTTOM
-  // Option 2 ? LEFT
-  // Option 3 ? RIGHT
+  // Option 0 → TOP
+  // Option 1 → BOTTOM
+  // Option 2 → LEFT
+  // Option 3 → RIGHT
   if (options[0]) optionTop.appendChild(createOptionButton(options[0], 0, correctIdx, isAnswered));
   if (options[1]) optionBottom.appendChild(createOptionButton(options[1], 1, correctIdx, isAnswered));
   if (options[2]) optionLeft.appendChild(createOptionButton(options[2], 2, correctIdx, isAnswered));

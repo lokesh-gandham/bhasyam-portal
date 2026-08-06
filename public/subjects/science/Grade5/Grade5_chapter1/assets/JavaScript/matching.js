@@ -36,7 +36,7 @@ function speak(t) {
 
   const msg = new SpeechSynthesisUtterance(t);
     msg.lang = "en-UK";  
-  msg.volume = 0.25;   // ?? lower volume (0 to 1)
+  msg.volume = 0.25;   // 🔉 lower volume (0 to 1)
   msg.rate = 1;
   msg.pitch = 1;
 
@@ -51,11 +51,11 @@ function speak(t) {
 //   popup.style.display = "flex";
 
 //   if(isCorrect){
-//     icon.textContent = "🎉😊";
+//     icon.textContent = "🎉";
 //     title.textContent = "Correct!";
 //     msg.textContent = "Well done!";
 //   }else{
-//     icon.textContent = "🥲💭";
+//     icon.textContent = "😔";
 //     title.textContent = "Wrong!";
 //     msg.textContent = "Try again!";
 //   }
@@ -163,7 +163,7 @@ function render(){
       }
     };
 
-    // ? APPEND HERE (correct place)
+    // ✅ APPEND HERE (correct place)
     rightCol.appendChild(r);
   });
 }

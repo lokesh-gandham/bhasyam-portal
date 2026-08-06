@@ -125,7 +125,7 @@ function attempt(el,p){
   armed.el.classList.add("correct");
   el.classList.add("correct");
 
-  // ? show letter on left item
+  // ⭐ show letter on left item
   const letter = el.querySelector(".letter").textContent;
   
 
@@ -147,7 +147,7 @@ function attempt(el,p){
  else{
   speak("Wrong");
  
-  // ?? LEFT QUESTION STAYS SELECTED (NO RESET)
+  // ⬅️ LEFT QUESTION STAYS SELECTED (NO RESET)
  }
 }
 
@@ -221,7 +221,7 @@ path.setAttribute("d", d);
 path.setAttribute("class","match-line");
 
 svg.appendChild(path);
-// LEFT ARROW ?
+// LEFT ARROW ◀
 const startArrow = document.createElementNS("http://www.w3.org/2000/svg","text");
 
 startArrow.setAttribute("x", startX - 6);
@@ -230,12 +230,12 @@ startArrow.setAttribute("text-anchor", "middle");
 startArrow.setAttribute("font-size", "18");
 startArrow.setAttribute("fill", "#6ecbff");
 
-startArrow.textContent = "?";
+startArrow.textContent = "✦";
 
 svg.appendChild(startArrow);
 
 
-// RIGHT ARROW ?
+// RIGHT ARROW ▶
 const endArrow = document.createElementNS("http://www.w3.org/2000/svg","text");
 
 endArrow.setAttribute("x", endX + 1);
@@ -244,7 +244,7 @@ endArrow.setAttribute("text-anchor", "middle");
 endArrow.setAttribute("font-size", "18");
 endArrow.setAttribute("fill", "#6ecbff");
 
-endArrow.textContent = "?";
+endArrow.textContent = "✦";
 
 svg.appendChild(endArrow); }
 function fireConfettif() {
