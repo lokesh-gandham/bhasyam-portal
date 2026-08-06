@@ -215,8 +215,8 @@ function SubjectLessonView({
                       <div className="cms-lesson-title">{subject.name} – Lesson{i + 1}</div>
                       <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#1a2332" }}>
                         Exercise for lesson {i + 1}
-                        <span className={`cms-status ${isDisabled ? "cms-status-soon" : "cms-status-active"}`} style={{ marginLeft: "0.5rem", fontSize: "0.75rem" }}>
-                          – {isDisabled ? "Inactive" : "Active"}
+                        <span className={`cms-status ${isDisabled ? "cms-status-soon" : "cms-status-available"}`} style={{ marginLeft: "0.5rem", fontSize: "0.75rem" }}>
+                          – {isDisabled ? "Pending" : "Available"}
                         </span>
                       </div>
                       <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#1a2332", display: "flex", alignItems: "center", gap: "0.375rem", marginTop: "0.125rem" }}>
@@ -483,11 +483,11 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                         <div className="cms-entity-meta-value">{lessonCount}</div>
                       </div>
                       <div>
-                        <div className="cms-entity-meta-label">Active</div>
+                        <div className="cms-entity-meta-label">Available</div>
                         <div className="cms-entity-meta-value">{activeLessons}</div>
                       </div>
                       <div>
-                        <div className="cms-entity-meta-label">Inactive</div>
+                        <div className="cms-entity-meta-label">Pending</div>
                         <div className="cms-entity-meta-value">{inactiveLessons}</div>
                       </div>
                     </div>
@@ -663,11 +663,11 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                         <div className="cms-entity-meta-value">{lessonCount}</div>
                       </div>
                       <div>
-                        <div className="cms-entity-meta-label">Active</div>
+                        <div className="cms-entity-meta-label">Available</div>
                         <div className="cms-entity-meta-value">{activeLessons}</div>
                       </div>
                       <div>
-                        <div className="cms-entity-meta-label">Inactive</div>
+                        <div className="cms-entity-meta-label">Pending</div>
                         <div className="cms-entity-meta-value">{inactiveLessons}</div>
                       </div>
                     </div>
@@ -737,11 +737,11 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                       <div className="cms-entity-meta-value">{totalLessons}</div>
                     </div>
                     <div>
-                      <div className="cms-entity-meta-label">Active</div>
+                      <div className="cms-entity-meta-label">Available</div>
                       <div className="cms-entity-meta-value">{activeLessons}</div>
                     </div>
                     <div>
-                      <div className="cms-entity-meta-label">Inactive</div>
+                      <div className="cms-entity-meta-label">Pending</div>
                       <div className="cms-entity-meta-value">{inactiveLessons}</div>
                     </div>
                   </div>
@@ -889,7 +889,7 @@ export function DrillDownView({
             </button>
             <div className="cms-drilldown-title-row">
               <h2 className="cms-section-title" style={{ marginTop: "0.5rem" }}>
-                {inactive ? "Inactive" : "Active"}{" "}
+                {inactive ? "Pending" : "Available"}{" "}
                 {kind === "subjects" ? "Subjects" : "Lessons"} – {gradeLabel}
               </h2>
               {kind === "lessons" && drillSubjects.length > 1 && (
@@ -920,7 +920,7 @@ export function DrillDownView({
         <div className="cms-card-body">
           {kind === "subjects" ? (
             drillSubjects.length === 0 ? (
-              <p className="cms-drilldown-empty">No {inactive ? "inactive" : "active"} subjects for this grade.</p>
+              <p className="cms-drilldown-empty">No {inactive ? "pending" : "available"} subjects for this grade.</p>
             ) : (
               <ul className="cms-drilldown-list">
                 {drillSubjects.map((s) => {
@@ -939,8 +939,8 @@ export function DrillDownView({
                           <span className="cms-drilldown-item-title">{s.name}</span>
                           <span className="cms-drilldown-item-meta">{s.lessons.length} lessons</span>
                         </span>
-                        <span className={`cms-status ${inactive ? "cms-status-soon" : "cms-status-active"}`}>
-                          {inactive ? "Inactive" : "Active"}
+                        <span className={`cms-status ${inactive ? "cms-status-soon" : "cms-status-available"}`}>
+                          {inactive ? "Pending" : "Available"}
                         </span>
                       </button>
                     </li>
@@ -949,7 +949,7 @@ export function DrillDownView({
               </ul>
             )
           ) : drillLessons.length === 0 ? (
-            <p className="cms-drilldown-empty">No {inactive ? "inactive" : "active"} lessons for this grade.</p>
+            <p className="cms-drilldown-empty">No {inactive ? "pending" : "available"} lessons for this grade.</p>
           ) : (
             <ul className="cms-drilldown-list">
               {drillLessons.map((l) => (
@@ -1176,7 +1176,7 @@ export function OverviewView({
 
       <div className="cms-card cms-chart-card">
         <div className="cms-card-header">
-          <h2 className="cms-section-title">Active Content in Grades</h2>
+          <h2 className="cms-section-title">Available Content in Grades</h2>
           <div className="cms-chart-legend">
             <div className="cms-chart-legend-item">
               <div className="cms-legend-dot" style={{ background: "#EAB308" }} />
@@ -1198,7 +1198,7 @@ export function OverviewView({
 
       <div className="cms-card cms-chart-card">
         <div className="cms-card-header">
-          <h2 className="cms-section-title">Inactive Content in Grades</h2>
+          <h2 className="cms-section-title">Pending Content in Grades</h2>
           <div className="cms-chart-legend">
             <div className="cms-chart-legend-item">
               <div className="cms-legend-dot" style={{ background: "#EAB308" }} />
