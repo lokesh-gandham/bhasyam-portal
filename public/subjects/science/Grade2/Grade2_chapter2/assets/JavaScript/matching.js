@@ -182,7 +182,7 @@ function showFinal() {
   finalPopup.style.display = "flex";
 
   document.getElementById("finalScore").textContent = `Score: 5/5`;
-  const starsHtml = "?".repeat(5);
+  const starsHtml = "⭐".repeat(5);
   document.getElementById("stars").innerHTML = starsHtml;
   fireConfettif();
 }

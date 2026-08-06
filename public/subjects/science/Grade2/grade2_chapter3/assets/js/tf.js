@@ -176,11 +176,11 @@ function showPopup(isCorrect) {
   popup.className = "popup " + (isCorrect ? "correct" : "wrong");
   popup.style.display = "flex";
   if (isCorrect) {
-    icon.textContent = "??";
+    icon.textContent = "🎉😊";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
   } else {
-    icon.textContent = "??";
+    icon.textContent = "🥲💭";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
   }
@@ -194,7 +194,7 @@ function showFinal() {
   finalPopup.style.display = "flex";
 
   document.getElementById("finalScore").textContent = `Score: ${score}/5`;
-  document.getElementById("stars").textContent = "?".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(score);
 
   // ?? CONFETTI EFFECT
   if (window.innerWidth >= 769) {

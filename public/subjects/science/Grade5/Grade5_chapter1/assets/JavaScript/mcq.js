@@ -99,12 +99,12 @@ function showPopup(isCorrect){
 
   if(isCorrect){
     popup.classList.add("correct");   // ? IMPORTANT
-    icon.textContent = "??";
+    icon.textContent = "🎉😊";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
   }else{
     popup.classList.add("wrong");     // ? IMPORTANT
-    icon.textContent = "??";
+    icon.textContent = "🥲💭";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
   }
@@ -211,7 +211,7 @@ function showFinal(){
     `Score: ${score}/${quizData.length}`;
 
   document.getElementById("stars").textContent =
-    "?".repeat(score);
+    "⭐".repeat(score);
       fireConfettif(); 
 }
 

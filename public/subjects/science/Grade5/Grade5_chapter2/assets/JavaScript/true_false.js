@@ -145,7 +145,7 @@ function answer(user){
       <div class="popup-correct">
         <span class="check">? Correct</span>
         <span class="happy">??</span>
-        <div class="stars">${"?".repeat(index+1)}</div>
+        <div class="stars">${"⭐".repeat(index+1)}</div>
       </div>
     `);
 

@@ -51,11 +51,11 @@ function speak(t) {
 //   popup.style.display = "flex";
 
 //   if(isCorrect){
-//     icon.textContent = "??";
+//     icon.textContent = "🎉😊";
 //     title.textContent = "Correct!";
 //     msg.textContent = "Well done!";
 //   }else{
-//     icon.textContent = "??";
+//     icon.textContent = "🥲💭";
 //     title.textContent = "Wrong!";
 //     msg.textContent = "Try again!";
 //   }
@@ -73,7 +73,7 @@ function speak(t) {
 //     `Score: ${score}/${quizData.length}`;
 
 //   document.getElementById("stars").textContent =
-//     "?".repeat(score);
+//     "⭐".repeat(score);
 // }
 
 
@@ -210,7 +210,7 @@ function showFinal(){
     `Score: ${score}/${pairs.length}`;
 
   document.getElementById("stars").textContent =
-    "?".repeat(score);
+    "⭐".repeat(score);
      fireBigConfetti();
 }
 // function nextSection() {
@@ -250,7 +250,7 @@ function nextSection() {
     }
 
   } catch (e) {
-    // file:// fallback � store target and reload parent
+    // file:// fallback � store target and reload parent
     sessionStorage.setItem("activeSection", "fillblanks.html");
     window.location.href = "../Grade2_lesson4.html";  // ? go to parent
   }

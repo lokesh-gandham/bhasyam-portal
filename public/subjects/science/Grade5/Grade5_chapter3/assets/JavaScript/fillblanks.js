@@ -14,7 +14,7 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = " ??";
+    icon.textContent = "🎉😊";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
 
@@ -22,7 +22,7 @@ function showPopup(isCorrect) {
     fireConfetti();
 
   } else {
-    icon.textContent = "??";
+    icon.textContent = "🥲💭";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
 
@@ -42,7 +42,7 @@ function showFinal() {
     `Score: ${score} / ${questions.length}`;
 
   document.getElementById("stars").textContent =
-    "?".repeat(score);
+    "⭐".repeat(score);
 
   fireConfettif();
 }

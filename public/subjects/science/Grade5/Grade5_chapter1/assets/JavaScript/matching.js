@@ -51,11 +51,11 @@ function speak(t) {
 //   popup.style.display = "flex";
 
 //   if(isCorrect){
-//     icon.textContent = "??";
+//     icon.textContent = "🎉😊";
 //     title.textContent = "Correct!";
 //     msg.textContent = "Well done!";
 //   }else{
-//     icon.textContent = "??";
+//     icon.textContent = "🥲💭";
 //     title.textContent = "Wrong!";
 //     msg.textContent = "Try again!";
 //   }
@@ -73,7 +73,7 @@ function showFinal(){
     `Score: ${score}/${quizData.length}`;
 
   document.getElementById("stars").textContent =
-    "?".repeat(score);
+    "⭐".repeat(score);
 }
 
 
@@ -177,7 +177,7 @@ function finalPopup(){
     `Score: ${score}/${pairs.length}`;
 
   document.getElementById("stars").textContent =
-    "?".repeat(score);
+    "⭐".repeat(score);
      fireConfettif();
 }
 

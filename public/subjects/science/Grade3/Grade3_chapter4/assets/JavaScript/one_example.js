@@ -123,11 +123,11 @@ function showPopup(isCorrect) {
   popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
   popup.style.display = "flex";
   if (isCorrect) {
-    icon.textContent = "??";
+    icon.textContent = "🎉😊";
     title.textContent = "Great Job!";
     msg.textContent = "You got it right!";
   } else {
-    icon.textContent = "??";
+    icon.textContent = "🥲💭";
     title.textContent = "Oops!";
     msg.textContent = "Try again, you can do it!";
   }
@@ -139,7 +139,7 @@ function showPopup(isCorrect) {
 function showFinal() {
   document.getElementById("finalScore").textContent =
     `Your Score: ${score} / ${quiz.length}`;
-  document.getElementById("stars").textContent = "?".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(score);
   document.getElementById("finalPopup").style.display = "flex";
   bigConfetti();
 }

@@ -160,7 +160,7 @@ check.onclick = () => {
         <div class="popup-correct">
           <div>? Correct</div>
           <div class="happy">??</div>
-          <div class="stars">${"?".repeat(score)}</div>
+          <div class="stars">${"⭐".repeat(score)}</div>
         </div>
       `);
 
@@ -204,7 +204,7 @@ check.onclick = () => {
         <div class="popup-correct">
           <div>? Correct</div>
           <div class="happy">??</div>
-          <div class="stars">${"?".repeat(score)}</div>
+          <div class="stars">${"⭐".repeat(score)}</div>
         </div>
       `);
 
@@ -245,7 +245,7 @@ function showFinal() {
       <div class="final-score">
         Score: ${score}/${questions.length}
       </div>
-      <div class="stars">${"?".repeat(score)}</div>
+      <div class="stars">${"⭐".repeat(score)}</div>
       <div class="final-actions">
         <button class="restart" onclick="location.reload()">?? Restart</button>
         <button class="home" onclick="location.href='../index.html'">?? Home</button>

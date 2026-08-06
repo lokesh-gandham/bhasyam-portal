@@ -58,13 +58,13 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "??";
+    icon.textContent = "🎉😊";
     title.textContent = "Correct!";
-    msg.textContent = "Well done! ??";
+    msg.textContent = "Well done! 🎉😊";
   } else {
-    icon.textContent = "??";
+    icon.textContent = "🥲💭";
     title.textContent = "Wrong!";
-    msg.textContent = "Try again! ??";
+    msg.textContent = "Try again! 🥲💭";
   }
 
   setTimeout(() => {
@@ -78,7 +78,7 @@ function showFinal() {
 
   document.getElementById("finalScore").textContent =
     `Score: ${score}/${quizData.length}`;
-  const starsHtml = "?".repeat(score) + "?".repeat(quizData.length - score);
+  const starsHtml = "⭐".repeat(score) + "☆".repeat(quizData.length - score);
   document.getElementById("stars").innerHTML = starsHtml;
   fireConfettif();
 }

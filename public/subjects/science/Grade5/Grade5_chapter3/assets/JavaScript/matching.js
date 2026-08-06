@@ -161,7 +161,7 @@ function finalPopup(){
   `Score: ${score} / ${pairs.length}`;
 
   document.getElementById("stars").textContent =
-  "?".repeat(score);
+  "⭐".repeat(score);
   fireConfettif()
 
 }

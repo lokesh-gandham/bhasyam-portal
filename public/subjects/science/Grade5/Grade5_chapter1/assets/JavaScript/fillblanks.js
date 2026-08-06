@@ -101,12 +101,12 @@ function showPopup(isCorrect) {
 
   if (isCorrect) {
     popup.className = "popup correct";
-    icon.textContent = "??";
+    icon.textContent = "🎉😊";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
   } else {
     popup.className = "popup wrong";
-    icon.textContent = "??";
+    icon.textContent = "🥲💭";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
   }
@@ -123,7 +123,7 @@ function showFinal() {
   document.getElementById("finalScore").textContent =
     `Score: ${score}/${questions.length}`;
 
-  document.getElementById("stars").textContent = "?".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(score);
    fireConfettif();
 }
 

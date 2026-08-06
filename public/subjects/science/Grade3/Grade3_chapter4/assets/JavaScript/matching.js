@@ -179,7 +179,7 @@ function showFinal() {
   document.getElementById("finalScore").textContent =
     `Your Score: ${score} / ${leftData.length}`;
 
-  document.getElementById("stars").textContent = "?".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(score);
 
   document.getElementById("finalPopup").style.display = "flex";
   bigConfetti();

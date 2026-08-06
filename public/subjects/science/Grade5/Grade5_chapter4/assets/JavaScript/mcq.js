@@ -178,11 +178,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-  icon.textContent = "??";
+  icon.textContent = "🎉😊";
   title.textContent = "Good";
   msg.textContent = "Correct choice.";
 } else {
-  icon.textContent = "??";
+  icon.textContent = "🥲💭";
   title.textContent = "Retry";
   msg.textContent = "Pick again.";
 }
@@ -198,7 +198,7 @@ function showFinal() {
   document.getElementById("finalScore").textContent =
     `Your Score: ${score} / ${quizData.length}`;
 
-  document.getElementById("stars").textContent = "?".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(score);
 
   popup.style.display = "flex";
 

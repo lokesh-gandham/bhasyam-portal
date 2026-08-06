@@ -163,7 +163,7 @@ const quizData = [
   <div class="popup-correct">
     <span class="check">? Correct</span>
     <span class="happy">??</span>
-    <div class="stars">${"?".repeat(score)}</div>
+    <div class="stars">${"⭐".repeat(score)}</div>
   </div>
 `);
   fireConfetti();

@@ -207,11 +207,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "????";
+    icon.textContent = "🎉😊";
     title.textContent = "Great Job!";
     msg.textContent = "You got it right!";
   } else {
-    icon.textContent = "????";
+    icon.textContent = "🥲💭";
     title.textContent = "Oops!";
     msg.textContent = "Try again, you can do it!";
   }
@@ -225,7 +225,7 @@ function showFinal() {
   const popup = document.getElementById("finalPopup");
   document.getElementById("finalScore").textContent =
     `Your Score: ${score} / ${quizData.length}`;
-  document.getElementById("stars").textContent = "?".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(score);
   popup.style.display = "flex";
   bigConfetti();
 }

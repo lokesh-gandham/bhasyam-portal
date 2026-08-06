@@ -63,12 +63,12 @@ function showPopup(isCorrect){
 
   if(isCorrect){
     popup.className = "popup correct";
-    icon.textContent = "??";
+    icon.textContent = "🎉😊";
     title.textContent = "Correct!";
     msg.textContent = "Well done!";
   } else {
     popup.className = "popup wrong";
-    icon.textContent = "??";
+    icon.textContent = "🥲💭";
     title.textContent = "Wrong!";
     msg.textContent = "Try again!";
   }
@@ -85,7 +85,7 @@ function showFinal(){
     `Score: ${score}/${quizData.length}`;
 
   document.getElementById("stars").textContent =
-    "?".repeat(score);
+    "⭐".repeat(score);
 }
 function restart() {
   index = 0;

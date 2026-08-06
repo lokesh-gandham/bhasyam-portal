@@ -190,11 +190,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "??";
+    icon.textContent = "🎉😊";
     title.textContent = "Great Job!";
     msg.textContent = "";
   } else {
-    icon.textContent = "??";
+    icon.textContent = "🥲💭";
     title.textContent = "Oops!";
     msg.textContent = "";
   }
@@ -210,7 +210,7 @@ function showFinal() {
   document.getElementById("finalScore").textContent =
     `Your Score: ${score} / ${questions.length}`;
 
-  document.getElementById("stars").textContent = "?".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(score);
 
   popup.style.display = "flex";
   bigConfetti();

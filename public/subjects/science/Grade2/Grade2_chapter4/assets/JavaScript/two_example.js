@@ -116,18 +116,18 @@ function showPopup(isCorrect) {
     popup.classList.add("correct");
     popup.classList.remove("wrong");
 
-    icon.textContent = "?";
+    icon.textContent = "🎉😊";
     title.textContent = "CORRECT!";
     msg.textContent = "Awesome! Moving to next...";
     
-    stars.textContent = "? ? ?";
+    stars.textContent = "⭐ ⭐ ⭐";
     stars.style.display = "block";
 
   } else {
     popup.classList.add("wrong");
     popup.classList.remove("correct");
 
-    icon.textContent = "?";
+    icon.textContent = "🥲💭";
     title.textContent = "OOPS!";
     msg.textContent = "Try again";
 
@@ -218,7 +218,7 @@ function showFinal() {
 
   document.getElementById("finalScore").textContent = `Score: ${score}/${quiz.length}`; // ? quiz not quizData
 
-  document.getElementById("stars").textContent = "?".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(score);
   fireBigConfetti();
 }
 

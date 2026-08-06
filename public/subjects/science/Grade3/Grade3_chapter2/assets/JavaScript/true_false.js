@@ -68,7 +68,7 @@ function floatThumbsUpFromButton(correctAnswer) {
   for (let i = 0; i < numberOfEmojis; i++) {
     // Create thumbs up emoji element
     const thumbsEmoji = document.createElement("div");
-    thumbsEmoji.textContent = "??";
+    thumbsEmoji.textContent = "👍";
     thumbsEmoji.className = "floating-thumbs";
     
     // Random angle for explosion effect (in radians)
@@ -242,11 +242,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "??";
+    icon.textContent = "🎉😊";
     title.textContent = "Great Job!";
     msg.textContent = "You got it right!";
   } else {
-    icon.textContent = "??";
+    icon.textContent = "🥲💭";
     title.textContent = "Oops!";
     msg.textContent = "Try again, you can do it!";
   }
@@ -262,7 +262,7 @@ function showFinal() {
   document.getElementById("finalScore").textContent =
     `Your Score: ${score} / ${questions.length}`;
 
-  document.getElementById("stars").textContent = "?".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(score);
 
   popup.style.display = "flex";
   bigConfetti();

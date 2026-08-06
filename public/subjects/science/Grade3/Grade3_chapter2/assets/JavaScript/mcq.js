@@ -99,7 +99,7 @@ function showThumbsUpFromElement(element) {
   
   for (let i = 0; i < numberOfEmojis; i++) {
     const thumbsEmoji = document.createElement("div");
-    thumbsEmoji.textContent = "??";
+    thumbsEmoji.textContent = "👍";
     thumbsEmoji.style.cssText = `
       position: fixed;
       left: ${centerX}px;
@@ -237,7 +237,7 @@ function showWrongFeedback(element) {
   const centerY = rect.top + rect.height / 2;
   
   const sadEmoji = document.createElement("div");
-  sadEmoji.textContent = "?";
+  sadEmoji.textContent = "😢";
   sadEmoji.style.cssText = `
     position: fixed;
     left: ${centerX}px;
@@ -290,11 +290,11 @@ function showPopup(isCorrect) {
   popup.style.display = "flex";
 
   if (isCorrect) {
-    icon.textContent = "??";
+    icon.textContent = "🎉😊";
     title.textContent = "Great Job!";
     msg.textContent = "You got it right!";
   } else {
-    icon.textContent = "??";
+    icon.textContent = "🥲💭";
     title.textContent = "Oops!";
     msg.textContent = "Try again, you can do it!";
   }
@@ -310,7 +310,7 @@ function showFinal() {
   document.getElementById("finalScore").textContent =
     `Your Score: ${score} / ${quizData.length}`;
 
-  document.getElementById("stars").textContent = "?".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(score);
 
   popup.style.display = "flex";
   bigConfetti();
