@@ -970,9 +970,6 @@ export function DrillDownView({
                       </span>
                       <span className="cms-drilldown-item-meta">{l.title}</span>
                     </span>
-                    <span className={`cms-status ${l.isInactive ? "cms-status-soon" : "cms-status-active"}`}>
-                      {l.isInactive ? "Inactive" : "Active"}
-                    </span>
                     {l.htmlPath && !l.isInactive && (
                       <span className="cms-drilldown-view-link">
                         Open <ArrowRight className="size-3.5" />
@@ -1150,7 +1147,7 @@ export function OverviewView({
     <div className="cms-shell cms-shell-page">
       <div className="cms-card">
         <div className="cms-dash-welcome">
-          <h1 className="cms-dash-welcome-title">Welcome Admin</h1>
+          <h1 className="cms-dash-welcome-title">Welcome, Admin!</h1>
         </div>
       </div>
 
@@ -1179,7 +1176,7 @@ export function OverviewView({
 
       <div className="cms-card cms-chart-card">
         <div className="cms-card-header">
-          <h2 className="cms-section-title">Active Content Distribution</h2>
+          <h2 className="cms-section-title">Active Content in Grades</h2>
           <div className="cms-chart-legend">
             <div className="cms-chart-legend-item">
               <div className="cms-legend-dot" style={{ background: "#EAB308" }} />
@@ -1201,7 +1198,7 @@ export function OverviewView({
 
       <div className="cms-card cms-chart-card">
         <div className="cms-card-header">
-          <h2 className="cms-section-title">Inactive Content Distribution</h2>
+          <h2 className="cms-section-title">Inactive Content in Grades</h2>
           <div className="cms-chart-legend">
             <div className="cms-chart-legend-item">
               <div className="cms-legend-dot" style={{ background: "#EAB308" }} />
