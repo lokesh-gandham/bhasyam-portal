@@ -216,7 +216,7 @@ function SubjectLessonView({
                       <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#1a2332" }}>
                         Exercise for lesson {i + 1}
                         <span className={`cms-status ${isDisabled ? "cms-status-soon" : "cms-status-available"}`} style={{ marginLeft: "0.5rem", fontSize: "0.75rem" }}>
-                          – {isDisabled ? "Pending" : "Available"}
+                          – {isDisabled ? "Unavailable" : "Available"}
                         </span>
                       </div>
                       <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#1a2332", display: "flex", alignItems: "center", gap: "0.375rem", marginTop: "0.125rem" }}>
@@ -487,7 +487,7 @@ export function GradesView({ initialNav, onNavChange }: { initialNav?: Nav; onNa
                         <div className="cms-entity-meta-value">{activeLessons}</div>
                       </div>
                       <div>
-                        <div className="cms-entity-meta-label">Pending</div>
+                        <div className="cms-entity-meta-label">Unavailable</div>
                         <div className="cms-entity-meta-value">{inactiveLessons}</div>
                       </div>
                     </div>
@@ -667,7 +667,7 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                         <div className="cms-entity-meta-value">{activeLessons}</div>
                       </div>
                       <div>
-                        <div className="cms-entity-meta-label">Pending</div>
+                        <div className="cms-entity-meta-label">Unavailable</div>
                         <div className="cms-entity-meta-value">{inactiveLessons}</div>
                       </div>
                     </div>
@@ -731,21 +731,21 @@ export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, init
                     <div className="cms-entity-title">{s.name}</div>
                     <div className="cms-entity-desc" data-subject={s.id}>{s.description}</div>
                   </div>
-                  <div className="cms-entity-meta cms-entity-meta-3">
-                    <div>
-                      <div className="cms-entity-meta-label">Lessons</div>
-                      <div className="cms-entity-meta-value">{totalLessons}</div>
+                    <div className="cms-entity-meta cms-entity-meta-3">
+                      <div>
+                        <div className="cms-entity-meta-label">Lessons</div>
+                        <div className="cms-entity-meta-value">{totalLessons}</div>
+                      </div>
+                      <div>
+                        <div className="cms-entity-meta-label">Available</div>
+                        <div className="cms-entity-meta-value">{activeLessons}</div>
+                      </div>
+                      <div>
+                        <div className="cms-entity-meta-label">Unavailable</div>
+                        <div className="cms-entity-meta-value">{inactiveLessons}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="cms-entity-meta-label">Available</div>
-                      <div className="cms-entity-meta-value">{activeLessons}</div>
-                    </div>
-                    <div>
-                      <div className="cms-entity-meta-label">Pending</div>
-                      <div className="cms-entity-meta-value">{inactiveLessons}</div>
-                    </div>
-                  </div>
-                </button>
+                  </button>
               );
             })}
           </div>
@@ -889,7 +889,7 @@ export function DrillDownView({
             </button>
             <div className="cms-drilldown-title-row">
               <h2 className="cms-section-title" style={{ marginTop: "0.5rem" }}>
-                {inactive ? "Pending" : "Available"}{" "}
+                {inactive ? "Unavailable" : "Available"}{" "}
                 {kind === "subjects" ? "Subjects" : "Lessons"} – {gradeLabel}
               </h2>
               {kind === "lessons" && drillSubjects.length > 1 && (
@@ -920,7 +920,7 @@ export function DrillDownView({
         <div className="cms-card-body">
           {kind === "subjects" ? (
             drillSubjects.length === 0 ? (
-              <p className="cms-drilldown-empty">No {inactive ? "pending" : "available"} subjects for this grade.</p>
+              <p className="cms-drilldown-empty">No {inactive ? "unavailable" : "available"} subjects for this grade.</p>
             ) : (
               <ul className="cms-drilldown-list">
                 {drillSubjects.map((s) => {
@@ -939,9 +939,11 @@ export function DrillDownView({
                           <span className="cms-drilldown-item-title">{s.name}</span>
                           <span className="cms-drilldown-item-meta">{s.lessons.length} lessons</span>
                         </span>
-                        <span className={`cms-status ${inactive ? "cms-status-soon" : "cms-status-available"}`}>
-                          {inactive ? "Pending" : "Available"}
-                        </span>
+                        {!inactive && (
+                          <span className="cms-drilldown-view-link">
+                            Open <ArrowRight className="size-3.5" />
+                          </span>
+                        )}
                       </button>
                     </li>
                   );
@@ -949,7 +951,7 @@ export function DrillDownView({
               </ul>
             )
           ) : drillLessons.length === 0 ? (
-            <p className="cms-drilldown-empty">No {inactive ? "pending" : "available"} lessons for this grade.</p>
+            <p className="cms-drilldown-empty">No {inactive ? "unavailable" : "available"} lessons for this grade.</p>
           ) : (
             <ul className="cms-drilldown-list">
               {drillLessons.map((l) => (
@@ -968,7 +970,7 @@ export function DrillDownView({
                       <span className="cms-drilldown-item-title">
                         {l.subjectName} – Lesson {l.index}
                       </span>
-                      <span className="cms-drilldown-item-meta">{l.title}</span>
+                      <span className="cms-drilldown-item-meta">Interactive assessments</span>
                     </span>
                     {l.htmlPath && !l.isInactive && (
                       <span className="cms-drilldown-view-link">
@@ -1198,7 +1200,7 @@ export function OverviewView({
 
       <div className="cms-card cms-chart-card">
         <div className="cms-card-header">
-          <h2 className="cms-section-title">Pending Content in Grades</h2>
+          <h2 className="cms-section-title">Unavailable Content in Grades</h2>
           <div className="cms-chart-legend">
             <div className="cms-chart-legend-item">
               <div className="cms-legend-dot" style={{ background: "#EAB308" }} />
