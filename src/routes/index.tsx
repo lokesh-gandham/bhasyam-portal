@@ -25,9 +25,9 @@ function LoginScreen() {
   }, [isAuthenticated, navigate]);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex flex-col text-foreground selection:bg-primary/20 overflow-hidden">
+    <div className="h-dvh bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex flex-col text-foreground selection:bg-primary/20">
       {/* Main */}
-      <main className="flex-1 flex items-center justify-center p-6 relative">
+      <main className="flex-1 min-h-0 flex items-center justify-center p-4 sm:p-6 relative">
         <AnimatePresence mode="wait">
           {stage === "logo" ? (
             /* ── Stage 1: Logo entrance ── */
@@ -92,10 +92,10 @@ function LoginScreen() {
                 mass: 0.9,
                 duration: 0.6,
               }}
-              className="w-full max-w-[360px] 2xl:max-w-[500px] 2xl:min-h-[560px] bg-card rounded-xl shadow-[0_32px_64px_-16px_rgba(15,23,42,0.14)] border border-border overflow-hidden"
+              className="w-full max-w-[360px] max-h-[calc(100vh-4rem)] 2xl:max-w-[500px] 2xl:max-h-[calc(100vh-6rem)] bg-card rounded-xl shadow-[0_32px_64px_-16px_rgba(15,23,42,0.14)] border border-border overflow-hidden flex flex-col"
             >
               {/* Brand header */}
-              <div className="pt-4 pb-2 px-6 2xl:pt-12 2xl:pb-8 text-center">
+              <div className="pt-3 pb-1 px-5 sm:pt-4 sm:pb-2 sm:px-6 2xl:pt-12 2xl:pb-8 text-center">
                 <motion.div
                   initial={{ scale: 0.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -110,14 +110,14 @@ function LoginScreen() {
                   <img
                     src="/images/bhasyam-new-logo.png"
                     alt="Bhasyam"
-                    className="h-20 md:h-24 lg:h-32 2xl:h-36 w-auto object-contain drop-shadow-sm"
+                    className="h-16 sm:h-20 md:h-24 lg:h-28 2xl:h-36 w-auto object-contain drop-shadow-sm"
                   />
                 </motion.div>
                 <motion.h1
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25, duration: 0.4 }}
-                  className="text-xl 2xl:text-2xl font-semibold tracking-tight leading-snug"
+                  className="text-base sm:text-xl 2xl:text-2xl font-semibold tracking-tight leading-snug"
                 >
                   Assessment Content
                   <br />
@@ -129,7 +129,7 @@ function LoginScreen() {
                   transition={{ delay: 0.4, duration: 0.4 }}
                   className="mt-3 pt-3 border-t border-border"
                 >
-                  <h2 className="text-xl 2xl:text-2xl font-semibold tracking-tight">
+                  <h2 className="text-lg sm:text-xl 2xl:text-2xl font-semibold tracking-tight">
                     Portal Login
                   </h2>
                   <p className="text-sm text-gray-600 mt-0.5">
@@ -140,7 +140,7 @@ function LoginScreen() {
 
               {/* Form */}
               <form
-                className="px-6 pb-5 space-y-2.5 2xl:px-10 2xl:pb-10 2xl:space-y-4 2xl:flex-1 2xl:flex 2xl:flex-col 2xl:justify-center"
+                className="px-5 pb-4 space-y-2 sm:px-6 sm:pb-5 sm:space-y-2.5 2xl:px-10 2xl:pb-10 2xl:space-y-4 flex-1 flex flex-col justify-center"
                 onSubmit={(e) => {
                   e.preventDefault();
                   setError("");
@@ -179,7 +179,7 @@ function LoginScreen() {
                         setUsername(e.target.value);
                         setError("");
                       }}
-                      className="w-full h-9 2xl:h-11 pl-9 pr-3 bg-background border border-border rounded-lg text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
+                      className="w-full h-8 sm:h-9 2xl:h-11 pl-9 pr-3 bg-background border border-border rounded-lg text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
                     />
                   </div>
                 </motion.div>
@@ -222,7 +222,7 @@ function LoginScreen() {
                         setPassword(e.target.value);
                         setError("");
                       }}
-                      className="w-full h-9 2xl:h-11 pl-9 pr-3 bg-background border border-border rounded-lg text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
+                      className="w-full h-8 sm:h-9 2xl:h-11 pl-9 pr-3 bg-background border border-border rounded-lg text-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
                     />
                   </div>
                 </motion.div>
@@ -243,7 +243,7 @@ function LoginScreen() {
                   transition={{ delay: 0.6, duration: 0.4 }}
                   type="submit"
                   disabled={isLoading}
-                  className="btn-shine group w-full h-10 2xl:h-12 bg-primary text-white rounded-lg text-sm 2xl:text-base font-semibold tracking-wide transition-all hover:bg-primary/90 active:scale-[0.98] shadow-lg shadow-primary/25 mt-1 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-shine group w-full h-9 sm:h-10 2xl:h-12 bg-primary text-white rounded-lg text-sm 2xl:text-base font-semibold tracking-wide transition-all hover:bg-primary/90 active:scale-[0.98] shadow-lg shadow-primary/25 mt-1 inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>
@@ -259,7 +259,7 @@ function LoginScreen() {
                 </motion.button>
               </form>
 
-              <div className="bg-muted/50 border-t border-border px-6 py-2 2xl:py-4 flex justify-center">
+              <div className="bg-muted/50 border-t border-border px-5 py-1.5 sm:px-6 sm:py-2 2xl:py-4 flex justify-center">
                 <p className="text-xs 2xl:text-sm text-gray-600 font-medium">
                   Restricted access for internal staff only
                 </p>
@@ -274,18 +274,18 @@ function LoginScreen() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.5 }}
-        className="h-8 2xl:h-12 border-t border-border bg-card px-6 flex items-center justify-center gap-2 shrink-0"
+        className="h-7 sm:h-8 2xl:h-12 border-t border-border bg-card px-6 flex items-center justify-center gap-2 shrink-0"
       >
-        <span className="text-sm md:text-base 2xl:text-lg text-gray-600">
+        <span className="text-xs sm:text-sm md:text-base 2xl:text-lg text-gray-600">
           &copy; 2026 Assessment CMS · All rights reserved by
         </span>
         <div className="flex items-center gap-1.5">
           <img
             src="/images/icon.png"
             alt="Wise Wings"
-            className="h-4 md:h-5 2xl:h-6 w-4 md:w-5 2xl:w-6 rounded-sm object-contain"
+            className="h-3 sm:h-4 md:h-5 2xl:h-6 w-3 sm:w-4 md:w-5 2xl:w-6 rounded-sm object-contain"
           />
-          <span className="font-semibold text-sm md:text-base 2xl:text-lg text-foreground">
+          <span className="font-semibold text-xs sm:text-sm md:text-base 2xl:text-lg text-foreground">
             wise wings
           </span>
         </div>
