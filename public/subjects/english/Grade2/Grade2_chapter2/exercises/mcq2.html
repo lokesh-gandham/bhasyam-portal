@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <title>MCQ Quiz · Two Cards</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="../assets/CSS/popups.css">
+    <link rel="stylesheet" href="../assets/CSS/lesson2-nav.css">
+    <style>
+        @font-face {
+            font-family: 'CCSYBold';
+            src: url('../assets/CCSYBOLD.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* ----- GLOBAL RESET & BASE ----- */
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'CCSyntroman';
+        }
+
+        :root {
+            --page-bg: #fefcf5;
+            --ink: #2f4f4f;
+
+            --card1-bg: #fffaf3;
+            --card1-border: #f6cfa1;
+
+            --card2-bg: #f3fbf5;
+            --card2-border: #b7e4c7;
+
+            --opt1-c: #2f9e44; --opt1-bg: #eafaf0;
+            --opt2-c: #e0575b; --opt2-bg: #fff0f1;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fefcf5;
+            padding: 12px;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* ----- QUIZ CONTAINER ----- */
+        .quiz {
+            width: 100%;
+            max-width: 900px;
+            height: 90vh;
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            /* background-color: #e0575b; */
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quiz-layout {
+            /* flex: 1 1 auto; */
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            
+        }
+
+        /* ----- CARDS ----- */
+        .card {
+            height: 100%;
+            min-height: 0;
+            border-radius: 26px;
+            border: 3px solid transparent;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            min-width: 0;
+        }
+        .card-image {
+            background: var(--card1-bg);
+            border-color: var(--card1-border);
+        }
+        .card-options {
+            background: var(--card2-bg);
+            border-color: var(--card2-border);
+        }
+
+        .question-row {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+        #qnum2{
+            display:none;
+        }
+        .qnum {
+            font-size: 30px;
+            /* font-weight: 700; */
+            /* color: var(--ink); */
+             color: #2f4f4f;
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+        .card-question {
+            flex: 0 1 auto;
+            font-size: 30px;
+            font-weight: 400;
+             color: #2f4f4f;
+            text-align: center;
+            line-height: 1.3;
+            white-space: nowrap;
+        }
+
+        .image-box {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+        }
+        .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* ----- ANSWER CIRCLES (own panel, outside the cards) ----- */
+        .answer-wrap {
+            flex: 0 0 auto;
+            /* width: 100%; */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+        }
+
+        .answer-circles {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            width: 100%;
+            max-width: 620px;
+            /* background: linear-gradient(145deg, #ffffff, #f6fbf8); */
+            /* border: 3px solid var(--card2-border); */
+            /* border-radius: 26px; */
+            /* padding: 16px 26px; */
+            /* box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07); */
+        }
+
+        .answer-circle {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 3px solid var(--card2-border);
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20pt;
+            font-weight: 700;
+            font-family: 'CCSyntroman';
+            color: var(--ink);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+            position: relative;
+            user-select: none;
+        }
+
+        .answer-circle:hover:not(.correct):not(.disabled) {
+            transform: translateY(-2px);
+            border-color: var(--opt1-c);
+        }
+
+        .answer-circle.correct {
+            border-color: #29b44c;
+            background: #9ef2b0;
+            color: #185c2c;
+            animation: correctPop 0.5s ease;
+            cursor: default;
+        }
+
+        .answer-circle.disabled {
+            cursor: default;
+        }
+
+        .letter-popout {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+            animation: popoutBounce 0.3s ease;
+            background: #fff;
+            border: 2px solid #e0d6c8;
+            border-radius: 18px;
+            padding: 10px 14px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes popoutBounce {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.5) translateY(10px); }
+            60% { transform: translateX(-50%) scale(1.1) translateY(-4px); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+        }
+
+        .letter-popout-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20pt;
+            font-weight: 700;
+            color: #3f2d22;
+            background: linear-gradient(145deg, #FFE8A9, #ffd96a);
+            border: 3px solid #e8c84a;
+            box-shadow: 0 4px 0 #c4a22e, 0 6px 14px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            text-transform: uppercase;
+            user-select: none;
+        }
+
+        .letter-popout-btn:nth-child(2) {
+            background: linear-gradient(145deg, #D8F1F3, #b3e4e8);
+            border-color: #7ec8ce;
+            box-shadow: 0 4px 0 #5ba8b0, 0 6px 14px rgba(0, 0, 0, 0.12);
+        }
+
+        .letter-popout-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 0 #c4a22e, 0 8px 18px rgba(0, 0, 0, 0.16);
+        }
+
+        .letter-popout-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #c4a22e, 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes correctPop {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.2); }
+            60% { transform: scale(0.92); }
+            100% { transform: scale(1); }
+        }
+        @keyframes wrongShake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* ----- NAVIGATION (shared lesson2-nav.css) ----- */
+       .nav{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:auto;
+    flex:0 0 auto;
+}
+        .prev { background: #60a5fa; }
+        .next { background: #F0A8D0; }
+
+        /* ==============================================
+                   RESPONSIVE - ORDERED: LARGE → SMALL
+                ============================================== */
+
+        /* ----- 1440px+ (large laptops / desktops) ----- */
+        /* ===========================
+   DESKTOP (1440px and above)
+   =========================== */
+
+        @media screen and (min-width: 1440px) {
+            .quiz {
+                max-width: 1080px;
+                padding: 18px 26px;
+                gap: 22px;
+                /* background: #91295d; */
+            }
+            .quiz-layout { gap: 40px; }
+            .card { padding: 20px 22px; border-radius: 32px; }
+            .qnum { font-size: 40px !important; }
+            .card-question { font-size: 40px !important; }
+           
+            .answer-circles {
+                gap: 18px;
+                max-width: 760px;
+                padding: 20px 32px;
+                border-radius: 30px;
+            }
+            .answer-circle {
+                width: 76px;
+                height: 76px;
+                font-size: 28pt;
+            }
+        }
+
+        /* ----- MONITOR 1350px+ ----- */
+        @media screen and (min-width: 1350px) {
+            .quiz {
+                max-width: 1200px;
+                padding: 20px 30px;
+                gap: 20px;
+            }
+            .quiz-layout {
+                gap: 50px;
+                margin-bottom: 20px;
+            }
+            .card {
+                padding: 24px 26px;
+                border-radius: 36px;
+            }
+            .qnum { font-size: 40px !important; }
+            .card-question { font-size: 40px !important; }
+            .image-box {
+                border-radius: 22px;
+                padding: 10px;
+            }
+            .answer-wrap {
+                margin-top: 30px;
+            }
+            .answer-circles {
+                gap: 20px;
+                max-width: 880px;
+                padding: 22px 36px;
+                border-radius: 32px;
+            }
+            .answer-circle {
+                width: 72px;
+                height: 72px;
+                font-size: 26pt;
+            }
+            .letter-popout-btn {
+                width: 56px;
+                height: 56px;
+                font-size: 20pt;
+            }
+            .letter-popout {
+                gap: 12px;
+                padding: 10px 14px;
+                border-radius: 20px;
+            }
+            .nav {
+                margin-top: 12px;
+            }
+        }
+
+        /* ----- MONITOR 1921px+ ----- */
+        @media screen and (min-width: 1921px) {
+            .quiz {
+                max-width: 1500px;
+                padding: 24px 36px;
+                gap: 24px;
+            }
+            .quiz-layout {
+                gap: 60px;
+                margin-bottom: 28px;
+            }
+            .card {
+                padding: 28px 32px;
+                border-radius: 40px;
+            }
+            .qnum { font-size: 50px !important; }
+            .card-question { font-size: 50px !important; }
+            .image-box {
+                border-radius: 26px;
+                padding: 14px;
+            }
+            .answer-wrap {
+                margin-top: 40px;
+            }
+            .answer-circles {
+                gap: 24px;
+                max-width: 1000px;
+                padding: 26px 44px;
+                border-radius: 36px;
+            }
+            .answer-circle {
+                width: 82px;
+                height: 82px;
+                font-size: 30pt;
+            }
+            .letter-popout-btn {
+                width: 64px;
+                height: 64px;
+                font-size: 22pt;
+            }
+            .letter-popout {
+                gap: 16px;
+                padding: 12px 18px;
+                border-radius: 22px;
+            }
+            .nav {
+                margin-top: 12px;
+            }
+        }
+
+        /* ----- 1025px – 1439px (standard laptops) ----- */
+        @media screen and (max-width: 1115px) and (min-width: 1025px) {
+            .quiz {
+                max-width: 920px;
+                padding: 16px 20px;
+                /* background: #fdf4ea; */
+            }
+            .quiz-layout { gap: 30px; }
+            .card { padding: 16px 18px; }
+            .qnum { font-size: 30px; }
+            .card-question { font-size: 30px; }
+            .answer-circles {
+                gap: 14px;
+                max-width: 680px;
+                padding: 18px 26px;
+            }
+            .answer-circle {
+                width: 58px;
+                height: 58px;
+                font-size: 20pt;
+            }
+        }
+
+        /* ----- 481px – 768px (tablets / large phones) ----- */
+        @media screen and (max-width: 768px) and (min-width: 481px) {
+            body { padding: 10px; }
+            .quiz {
+                width: 98%;
+                max-width: 620px;
+                padding: 10px 8px;
+                gap: 12px;
+                /* background: #cf7815; */
+            }
+            .quiz-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+                gap: 12px;
+            }
+            .card { padding: 14px 16px; border-radius: 20px; gap: 8px; }
+            .qnum { font-size: 16pt; }
+            .card-question { font-size: 30px; }
+            .answer-circles {
+                gap: 10px;
+                max-width: 100%;
+                padding: 12px 16px;
+                border-radius: 20px;
+            }
+            .answer-circle {
+                width: 46px;
+                height: 46px;
+                font-size: 16pt;
+            }
+            .letter-popout-btn {
+                width: 46px;
+                height: 46px;
+                font-size: 16pt;
+            }
+            .letter-popout {
+                gap: 8px;
+                padding: 8px 10px;
+            }
+        }
+
+        /* ----- 361px – 480px (small phones) ----- */
+        @media screen and (max-width: 480px) and (min-width: 361px) {
+            body { padding: 6px; }
+            .quiz {
+                width: 100%;
+                padding: 8px 6px;
+                gap: 10px;
+            }
+            .quiz-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+                gap: 10px;
+            }
+            .card { padding: 12px 12px; border-radius: 18px; gap: 6px; }
+            .qnum { font-size: 14pt; }
+            .card-question { font-size: 13pt; }
+            .answer-circles {
+                gap: 8px;
+                max-width: 100%;
+                padding: 10px 12px;
+                border-radius: 16px;
+            }
+            .answer-circle {
+                width: 36px;
+                height: 36px;
+                font-size: 12pt;
+                border-width: 2px;
+            }
+            .letter-popout-btn {
+                width: 38px;
+                height: 38px;
+                font-size: 12pt;
+            }
+            .letter-popout {
+                gap: 6px;
+                padding: 6px 8px;
+                border-radius: 14px;
+            }
+        }
+
+        /* ----- ≤ 360px (very small phones) ----- */
+        @media screen and (max-width: 360px) {
+            body { padding: 4px; }
+            .quiz { padding: 6px 4px; gap: 8px; }
+            .quiz-layout { gap: 8px; grid-template-rows: 1fr 1fr; }
+            .card { padding: 9px 9px; border-radius: 16px; gap: 5px; }
+            .qnum { font-size: 12pt; }
+            .card-question { font-size: 11.5pt; }
+            .answer-circles {
+                gap: 6px;
+                max-width: 100%;
+                padding: 8px 10px;
+                border-radius: 14px;
+            }
+            .answer-circle {
+                width: 30px;
+                height: 30px;
+                font-size: 10pt;
+                border-width: 2px;
+            }
+            .letter-popout-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 10pt;
+            }
+            .letter-popout {
+                gap: 5px;
+                padding: 5px 7px;
+                border-radius: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz">
+
+        <div class="quiz-layout">
+
+            <!-- CARD 1: question + image -->
+            <div class="card card-image">
+                <div class="question-row">
+                    <span class="qnum" id="qnum1">Q1.</span>
+                    <h2 class="card-question" id="question1"></h2>
+                </div>
+                <div class="image-box">
+                    <img id="questionImg1" src="" alt="Question image">
+                </div>
+            </div>
+
+            <!-- CARD 2: question + image -->
+            <div class="card card-options">
+                <div class="question-row">
+                    <span class="qnum" id="qnum2">Q1.</span>
+                    <h2 class="card-question" id="question2"></h2>
+                </div>
+                <div class="image-box">
+                    <img id="questionImg2" src="" alt="Question image">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ANSWER CIRCLES (below both cards) -->
+        <div class="answer-wrap">
+            <div class="answer-circles" id="answerCircles"></div>
+        </div>
+
+        <!-- NAV -->
+        <div class="nav">
+            <button class="prev" id="prevBtn" disabled>← Prev</button>
+            <button class="next" id="nextBtn" disabled>Next →</button>
+        </div>
+
+    </div>
+
+    <!-- CORRECT / WRONG POPUP -->
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <!-- FINAL POPUP -->
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+const quizData = [
+    {
+        singular: "Bus",
+        plural: "buses",
+        image: "../assets/images/bus.png",
+        answerImage: "../assets/images/buses.png",
+        options: ["buses", "buseses", "busis", "busas"]
+    },
+    {
+        singular: "Brush",
+        plural: "brushes",
+        image: "../assets/images/brush.png",
+        answerImage: "../assets/images/brushes.png",
+        options: ["brushes", "brushs", "brushis", "brushas"]
+    },
+    {
+        singular: "Box",
+        plural: "boxes",
+        image: "../assets/images/box.png",
+        answerImage: "../assets/images/lunchBoxes.png",
+        options: ["boxes", "boxs", "boxis", "boxas"]
+    },
+    {
+        singular: "Dress",
+        plural: "dresses",
+        image: "../assets/images/clothes.png",
+        answerImage: "../assets/images/dresses.png",
+        options: ["dresses", "dresss", "dressis", "dressas"]
+    },
+    {
+        singular: "Dish",
+        plural: "dishes",
+        image: "../assets/images/dish.png",
+        answerImage: "../assets/images/dishes.png",
+        options: ["dishes", "dishs", "dishis", "dishas"]
+    }
+];
+        let current = 0;
+        let score = 0;
+        let answered = Array(quizData.length).fill(false);
+
+        const q1El = document.getElementById("question1");
+        const q2El = document.getElementById("question2");
+        const qnum1El = document.getElementById("qnum1");
+        const qnum2El = document.getElementById("qnum2");
+        const img1El = document.getElementById("questionImg1");
+        const img2El = document.getElementById("questionImg2");
+        const circlesEl = document.getElementById("answerCircles");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-UK";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() {
+            if (typeof confetti !== 'undefined') {
+                confetti({
+                    particleCount: 50,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    scalar: 0.9,
+                    colors: ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24']
+                });
+            }
+        }
+
+        let filledLetters = [];
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function removePopout() {
+            const existing = document.querySelector(".letter-popout");
+            if (existing) existing.remove();
+        }
+
+        function buildCircles(word) {
+            circlesEl.innerHTML = "";
+            filledLetters = Array(word.length).fill(null);
+            for (let i = 0; i < word.length; i++) {
+                const c = document.createElement("div");
+                c.className = "answer-circle";
+                c.dataset.index = i;
+                c.textContent = "";
+                c.onclick = () => onCircleClick(i, word);
+                circlesEl.appendChild(c);
+            }
+        }
+
+        function onCircleClick(index, word) {
+            if (answered[current] === true) return;
+            const circle = circlesEl.children[index];
+            if (!circle) return;
+
+            if (circle.textContent) {
+                removeLetterFromCircle(index);
+                return;
+            }
+
+            removePopout();
+
+            const correctLetter = word[index].toLowerCase();
+            const alphabet = "abcdefghijklmnopqrstuvwxyz";
+            let wrongLetter;
+            do {
+                wrongLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+            } while (wrongLetter === correctLetter);
+
+            const options = shuffle([correctLetter, wrongLetter]);
+
+            const popout = document.createElement("div");
+            popout.className = "letter-popout";
+
+            options.forEach(letter => {
+                const btn = document.createElement("div");
+                btn.className = "letter-popout-btn";
+                btn.textContent = letter.toUpperCase();
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    circle.textContent = letter.toUpperCase();
+                    circle.dataset.letter = letter;
+                    filledLetters[index] = letter;
+                    removePopout();
+                    checkIfComplete(word);
+                };
+                popout.appendChild(btn);
+            });
+
+            circle.appendChild(popout);
+        }
+
+        function removeLetterFromCircle(index) {
+            if (answered[current] === true) return;
+            const circle = circlesEl.children[index];
+            if (!circle || !circle.textContent) return;
+            circle.textContent = "";
+            circle.dataset.letter = "";
+            filledLetters[index] = null;
+        }
+
+        function checkIfComplete(word) {
+            const circles = [...circlesEl.children];
+            if (circles.every(c => c.textContent)) {
+                checkAnswer(word);
+            }
+        }
+
+        function checkAnswer(word) {
+            const circles = [...circlesEl.children];
+            const typed = circles.map(c => (c.dataset.letter || "").toLowerCase()).join("");
+
+            if (typed === word.toLowerCase()) {
+                answered[current] = true;
+                score++;
+
+                circles.forEach(c => {
+                    c.classList.add("correct");
+                    c.classList.add("disabled");
+                    c.onclick = null;
+                });
+
+                removePopout();
+                smallConfetti();
+                speak("Correct");
+                showPopup(true);
+                nextBtn.disabled = false;
+                document.getElementById("correctSound").play();
+
+                if (answered.every((a) => a === true)) {
+                    setTimeout(showFinal, 1600);
+                }
+            } else {
+                circles.forEach(c => c.style.borderColor = "#ff4444");
+                speak("Wrong");
+                showPopup(false);
+                document.getElementById("wrongSound").play();
+
+                setTimeout(() => {
+                    circles.forEach(c => {
+                        c.style.borderColor = "";
+                        c.textContent = "";
+                        c.dataset.letter = "";
+                    });
+                    filledLetters = Array(word.length).fill(null);
+                }, 600);
+            }
+        }
+
+        function loadQuestion() {
+            const q = quizData[current];
+            const questionText = `one ${q.singular.toLowerCase()} → ?`;
+           const answerText = `many ______ ?`;
+
+            qnum1El.textContent = `Q${current + 1}.`;
+            qnum2El.textContent = `Q${current + 1}.`;
+           q1El.textContent = questionText; // Left card
+           q2El.textContent = answerText;   // Right card
+           img1El.src = q.image;
+img1El.alt = q.singular;
+img2El.src = q.answerImage;   // was: q.image
+img2El.alt = q.plural;        // was: q.singular
+
+            if (answered[current] === true) {
+                circlesEl.innerHTML = "";
+                for (let i = 0; i < q.plural.length; i++) {
+                    const c = document.createElement("div");
+                    c.className = "answer-circle correct disabled";
+                    c.textContent = q.plural[i].toUpperCase();
+                    circlesEl.appendChild(c);
+                }
+                prevBtn.disabled = current === 0;
+                nextBtn.disabled = current === quizData.length - 1;
+                return;
+            }
+
+            buildCircles(q.plural);
+
+            prevBtn.disabled = current === 0;
+            nextBtn.disabled = true;
+
+            if (inputs.length) inputs[0].focus();
+        }
+
+        prevBtn.onclick = () => { if (current > 0) { current--; loadQuestion(); } };
+        nextBtn.onclick = () => { if (current < quizData.length - 1) { current++; loadQuestion(); } };
+
+        function showPopup(isCorrect) {
+            const popup = document.getElementById("answerPopup");
+            const icon = document.getElementById("popupIcon");
+            const title = document.getElementById("popupTitle");
+            const msg = document.getElementById("popupMsg");
+
+            popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+            popup.style.display = "flex";
+
+            if (isCorrect) {
+                icon.textContent = "🎉";
+                title.textContent = "Great Job!";
+                msg.textContent = "You got it right!";
+            } else {
+                icon.textContent = "🥲";
+                title.textContent = "Oops!";
+                msg.textContent = "Try again, you can do it!";
+            }
+            setTimeout(() => { popup.style.display = "none"; }, 1400);
+        }
+
+        function showFinal() {
+            const finalPopup = document.getElementById("finalPopup");
+            const total = quizData.length;
+            document.getElementById("finalScore").textContent = `Your Score: ${score} / ${total}`;
+            document.getElementById("stars").textContent = "⭐".repeat(score);
+            finalPopup.style.display = "flex";
+
+            // 🎉 CONFETTI EFFECT
+            if (window.innerWidth >= 769) {
+                const duration = 2000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 6,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        scalar: 0.5,
+                    });
+
+                    confetti({
+                        particleCount: 6,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        scalar: 0.5,
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                })();
+            }
+        }
+
+        loadQuestion();
+
+        document.addEventListener('touchmove', function (e) {
+            if (!e.target.closest('.quiz')) e.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+
+</html>

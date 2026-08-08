@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fill The Blanks Quiz</title>
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+            @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman";
+            font-weight: 400;
+        }
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.main-container {
+    width: 750px;
+}
+
+.quiz-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.question-area {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.question-area h2 {
+    font-size: 30px;
+    font-weight: 400;
+    color: #2f4f4f;
+    text-align: left;
+}
+
+.image-area {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.image-area img {
+    width: 380px;
+    height: 220px;
+    object-fit: contain;
+    border-radius: 20px;
+    filter: grayscale(70%) brightness(.8);
+    transition: .4s;
+    padding: 10px;
+}
+
+.image-area img.reveal {
+    filter: none;
+    transform: scale(1.05);
+}
+
+.input-area {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    width: 90%;
+}
+.input-box{
+
+    flex:1;
+    min-width:160px;
+    height:70px;
+    max-width:100%;
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    padding:8px 12px;
+
+    border-radius:18px;
+
+    border:3px solid #CDB4FF;
+
+    background:#F8F5FF;
+
+    transition:.3s;
+}
+
+.input-area .input-box:only-child {
+    max-width: 400px;
+}
+
+.input-box input {
+    flex: 1;
+    height: 40px;
+    font-size: 22px;
+    color: #2f4f4f;
+    border: none;
+    outline: none;
+    background: transparent;
+}
+.input-box button {
+    min-width: 90px;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 22px;
+    font-weight:600;
+    border: none;
+    background: #6bc6f5;
+    color: #ffffff;
+    cursor: pointer;
+}
+.input-box button:disabled{
+    background:#b9dff5;
+   color:#8A98A8;
+    cursor:not-allowed;
+}
+
+/* Prevent image dragging */
+img{
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-select: none;
+    user-select: none;
+    user-drag: none;
+}
+
+/* Optional: prevent text selection */
+input{
+    -webkit-user-select: none;
+    user-select: none;
+}
+.nav-buttons {
+    width: 100%;
+    margin-top: 25px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.nav-buttons button {
+    width: 150px;
+    height: 58px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    border-radius: 35px;
+    border: 3px solid #ffffff;
+    font-size: 20px;
+    font-weight: 400;
+    color: #ffffff;
+    cursor: pointer;
+    background-size: 200% 200%;
+    transition: .15s ease;
+}
+
+#prevBtn {
+    background: linear-gradient(#b5dffc, #7fc0eb);
+    box-shadow: 0 4px 0 #4da5d4;
+}
+
+#nextBtn {
+    background: linear-gradient(#f1e390, #ecc74e);
+    box-shadow: 0 4px 0 #d1a72c;
+}
+
+#prevBtn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #4da5d4;
+}
+
+#nextBtn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #d1a72c;
+}
+
+.nav-buttons button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+/* =====================================================
+   POPUP OVERLAY
+===================================================== */
+
+.popup-overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    opacity:0;
+    transition:opacity .4s ease;
+}
+
+.popup-overlay.show{
+    display:flex;
+    opacity:1;
+}
+
+
+/* =====================================================
+   POPUP CARD
+===================================================== */
+.popup{
+    background:#fff;
+    width:350px;
+    border-radius:40px;
+    padding:0;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+
+    border:1px solid rgba(255,255,255,.9);
+
+    /* Premium Floating Shadow */
+    box-shadow:
+        0 2px 6px rgba(0,0,0,.05),
+        0 10px 18px rgba(0,0,0,.08),
+        0 22px 35px rgba(0,0,0,.12),
+        0 45px 70px rgba(0,0,0,.18),
+        0 70px 110px rgba(0,0,0,.10);
+
+    animation: popupSlide .45s cubic-bezier(.34,1.56,.64,1);
+}
+.popup{
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,.7),
+        0 8px 16px rgba(0,0,0,.06),
+        0 18px 36px rgba(0,0,0,.10),
+        0 35px 70px rgba(0,0,0,.18),
+        0 0 40px rgba(255,255,255,.25);
+}
+
+@keyframes popupSlide{
+
+    0%{
+        transform:scale(.5) translateY(60px) rotate(-5deg);
+        opacity:0;
+    }
+
+    60%{
+        transform:scale(1.05) translateY(-8px) rotate(2deg);
+    }
+
+    100%{
+        transform:scale(1) translateY(0) rotate(0);
+        opacity:1;
+    }
+}
+
+
+/* =====================================================
+   POPUP TOP
+===================================================== */
+
+.popup-top{
+    padding:35px 24px 20px;
+    position:relative;
+}
+
+
+/* =====================================================
+   ICON
+===================================================== */
+
+.popup-icon-wrap{
+
+    width:90px;
+    height:90px;
+
+    margin:0 auto 10px;
+
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:50px;
+
+    box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.popup.correct .popup-icon-wrap{
+    background:#4CAF50;
+    animation:
+        iconPop .6s cubic-bezier(.34,1.56,.64,1),
+        glowGreen 1.2s ease-in-out infinite alternate;
+}
+
+.popup.wrong .popup-icon-wrap{
+    background:#EF5350;
+    animation:
+        iconPop .6s cubic-bezier(.34,1.56,.64,1),
+        glowRed 1.2s ease-in-out infinite alternate;
+}
+.popup.final .popup-icon-wrap{
+  background:#ffffff;
+    box-shadow:0 10px 30px rgba(0,0,0,.12);
+    animation:iconPop .6s cubic-bezier(.34,1.56,.64,1);
+}
+.popup-icon-wrap span{
+    color:#fff;
+}
+
+
+/* =====================================================
+   GLOW ANIMATION
+===================================================== */
+
+@keyframes glowGreen{
+
+    from{
+        box-shadow:0 0 20px rgba(76,175,80,.3);
+    }
+
+    to{
+        box-shadow:0 0 40px rgba(76,175,80,.6);
+    }
+}
+
+@keyframes glowRed{
+
+    from{
+        box-shadow:0 0 20px rgba(239,83,80,.3);
+    }
+
+    to{
+        box-shadow:0 0 40px rgba(239,83,80,.6);
+    }
+}
+
+@keyframes iconPop{
+
+    0%{
+        transform:scale(0) rotate(-30deg);
+    }
+
+    60%{
+        transform:scale(1.2) rotate(10deg);
+    }
+
+    100%{
+        transform:scale(1) rotate(0);
+    }
+}
+
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.popup-title{
+
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:-.5px;
+}
+
+
+/* =====================================================
+   BOTTOM
+===================================================== */
+
+.popup-bottom{
+
+    padding:18px 24px 22px;
+    background:#fff;
+}
+
+.popup-msg{
+
+    font-size:18px;
+    font-weight:500;
+
+    line-height:1.45;
+
+    color:#4B5563;
+}
+
+
+/* =====================================================
+   SCORE
+===================================================== */
+
+.popup-score{
+
+    width:100%;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    margin:0 auto 12px;
+
+    font-size:20px;
+    font-weight:700;
+
+    
+}
+
+.popup-score span{
+    margin-right:8px;
+}
+.popup-score strong{
+    font-family: "CCSyntroman";
+    font-size:20px;
+    font-weight:400;
+    line-height:1;
+    letter-spacing:0;
+}
+
+
+/* =====================================================
+   STARS
+===================================================== */
+
+.popup-stars{
+
+    display:flex;
+    justify-content:center;
+    gap:8px;
+
+    font-size:34px;
+
+    margin:10px auto 18px;
+
+    color:#FFC83D;
+
+    animation:starDance .8s ease;
+}
+
+@keyframes starDance{
+
+    0%{
+        transform:scale(0) rotate(-20deg);
+        opacity:0;
+    }
+
+    50%{
+        transform:scale(1.3) rotate(10deg);
+    }
+
+    100%{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+
+/* =====================================================
+   CORRECT
+===================================================== */
+
+.popup.correct{
+
+    background:#fff;
+    border:3px solid #4CAF50;
+}
+
+.popup.correct .popup-top{
+    background:#fff;
+}
+
+.popup.correct .popup-bottom{
+    background:#fff;
+    border-top:none;
+}
+
+.popup.correct .popup-title{
+    color:#2E7D32;
+}
+
+
+/* =====================================================
+   WRONG
+===================================================== */
+
+.popup.wrong{
+
+    background:#fff;
+    border:3px solid #EF5350;
+}
+
+.popup.wrong .popup-top{
+    background:#fff;
+}
+
+.popup.wrong .popup-bottom{
+    background:#fff;
+    border-top:none;
+}
+
+.popup.wrong .popup-title{
+    color:#D32F2F;
+}
+/* =========================
+   FINAL POPUP - CLEAN WHITE
+========================= */
+.popup.final{
+    background:#FFFFFF;
+    border:3px solid #4CAF50;
+    box-shadow:0 18px 45px rgba(15,23,42,.12);
+}
+
+.popup.final .popup-top{
+    background:linear-gradient(135deg,#F8FAFC,#EEF5FB);
+}
+
+.popup.final .popup-bottom{
+    background:#FFFFFF;
+    border-top:2px solid #EDF2F7;
+}
+
+/* Title */
+
+.popup.final .popup-title{
+    color:#334155;
+    font-size:30px;
+    font-weight:700;
+    letter-spacing:.3px;
+}
+
+/* Score */
+
+.popup.final .popup-score{
+    color:#0F172A;
+    font-size:24px;
+    font-weight:700;
+    margin:12px 0 15px;
+}
+
+/* Stars */
+
+.popup.final .popup-stars{
+    color:#FACC15;
+    font-size:38px;
+    letter-spacing:6px;
+}
+
+/* Trophy Circle */
+
+.popup.final .popup-icon-wrap{
+    width:95px;
+    height:95px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:#F1F5F9;
+    border:5px solid #BBF7D0;
+    border-radius:50%;
+
+    box-shadow:
+        0 12px 30px rgba(15,23,42,.08),
+        0 0 0 8px rgba(187,247,208,.35);
+}
+
+.popup.final .popup-icon-wrap span{
+    font-size:52px;
+}
+
+/* Play Again Button */
+
+.popup.final .play-again-popup{
+    width:100%;
+    height:58px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+
+    border:none;
+    border-radius:16px;
+
+    background:#4CAF50;
+
+    color:#fff;
+    font-size:18px;
+    font-weight:700;
+
+    cursor:pointer;
+    transition:.25s;
+
+    box-shadow:0 10px 24px rgba(34,197,94,.28);
+}
+/* 
+.popup.final .play-again-popup:hover{
+    background:linear-gradient(135deg,#16A34A,#15803D);
+    transform:translateY(-2px);
+    box-shadow:0 14px 30px rgba(34,197,94,.35);
+} */
+@media (max-width:900px) {
+
+    body {
+        padding: 20px;
+        overflow: auto;
+    }
+
+    .main-container {
+        width: 100%;
+        max-width: 700px;
+    }
+
+    .question-area h2 {
+        font-size: 24px;
+        height: auto;
+    }
+
+    .image-area img {
+        width: 280px;
+        height: 180px;
+    }
+
+    .input-box {
+        height: 60px;
+    }
+
+    .input-box input {
+        font-size: 18px;
+    }
+
+    .input-box button {
+        padding: 8px 24px;
+        font-size: 22px;
+    }
+
+    .nav-buttons {
+        padding: 0 10px;
+    }
+}
+
+@media (max-width:768px) {
+
+    .quiz-container {
+        margin-top: 40px;
+    }
+
+    .question-area h2 {
+        font-size: 22px;
+    }
+
+    .image-area img {
+        width: 230px;
+        height: 160px;
+    }
+
+    .input-area {
+        width: 100%;
+        gap: 10px;
+    }
+
+    .input-box {
+        height: 55px;
+    }
+
+    .input-box input {
+        font-size: 17px;
+    }
+
+    .input-box button {
+        padding: 8px 20px;
+        font-size: 20px;
+    }
+
+    .nav-buttons {
+        margin-top: 20px;
+    }
+
+    .nav-buttons button {
+        padding: 6px 20px;
+        font-size: 18px;
+    }
+
+    .final-kid-box {
+        width: 90%;
+        max-width: 320px;
+        padding: 20px;
+    }
+
+    .final-kid-box h2 {
+        font-size: 1.6em;
+    }
+
+    .final-kid-box p {
+        font-size: 1.05em;
+    }
+
+    #stars {
+        font-size: 1.8em;
+    }
+
+    .playAgain-btn {
+        padding: 10px 24px;
+        font-size: 1em;
+    }
+
+}
+
+@media (max-width:480px) {
+
+    .kid-card {
+        width: 260px;
+        padding: 15px;
+    }
+
+    .kid-icon {
+        font-size: 3em;
+    }
+
+    .kid-card h3 {
+        font-size: 1.5em;
+    }
+
+    .final-kid-box h2 {
+        font-size: 1.4em;
+    }
+
+    #stars {
+        font-size: 1.5em;
+    }
+
+}
+
+@media (max-width:480px) {
+    body {
+        padding: 30px 10px;
+        align-items: flex-start;
+    }
+
+    .question-area h2 {
+        font-size: 20px;
+    }
+
+    .image-area img {
+        width: 190px;
+        height: 140px;
+    }
+
+    .input-area {
+        flex-direction: column;
+    }
+
+    .input-box {
+        width: 100%;
+    }
+
+    .input-box input {
+        font-size: 16px;
+    }
+
+    .input-box button {
+        font-size: 18px;
+        padding: 8px 16px;
+    }
+
+    .nav-buttons {
+        gap: 20px;
+    }
+}
+
+/* ========================================
+   💻 Desktop / Monitor (1025px – 1440px)
+======================================== */
+/* @media screen and (min-width: 1025px) and (max-width: 1440px) {
+
+    .main-container {
+        width: 850px;
+    }
+
+    .question-area h2 {
+        font-size: 30px;
+    }
+
+    .image-area img {
+        width: 380px;
+        height: 220px;
+    }
+
+    .input-box {
+        height: 75px;
+    }
+
+    .input-box input {
+        font-size: 22px;
+    }
+
+    .input-box button {
+        font-size: 22px;
+        padding: 10px 30px;
+    }
+
+    .nav-buttons button {
+        font-size: 20px;
+        width: 150px;
+    height: 58px;
+    }
+
+} */
+
+/* ========================================
+   🖥️ Large Monitors (1441px – 1920px)
+======================================== */
+@media screen and (min-width: 1441px) and (max-width: 1920px) {
+
+    .main-container {
+        width: 900px;
+    }
+
+    .question-area h2 {
+        font-size: 40px;
+    }
+
+    .image-area img {
+        width: 600px;
+        height: 350px;
+    }
+
+    .input-box {
+        height: 80px;
+    }
+
+    .input-box input {
+        font-size: 24px;
+    }
+.main-container{
+    width:1200px;
+}
+
+.input-area{
+    width:100%;
+}
+
+.input-box{
+    flex:1;
+    min-width:500px;
+    max-width:500px;
+}
+    .input-box button {
+        font-size: 28px;
+        padding: 12px 34px;
+    }
+
+    .nav-buttons button {
+          width: 160px;
+                height: 58px;
+                font-size: 22px;
+    }
+
+}
+
+/* ========================================
+   📺 Extra Large Screens / 4K (1921px+)
+======================================== */
+@media screen and (min-width: 1921px) {
+
+    .main-container {
+        width: 950px;
+    }
+
+    .question-area h2 {
+        font-size: 40px;
+    }
+
+    .image-area img {
+        width: 460px;
+        height: 280px;
+    }
+
+    .input-box {
+        height: 90px;
+    }
+
+    .input-box input {
+        font-size: 22px;
+    }
+    .main-container{
+    width:1200px;
+}
+
+.input-area{
+    width:100%;
+}
+
+.input-box{
+    flex:1;
+    min-width:500px;
+    max-width:500px;
+}
+
+    .input-box button {
+        font-size: 30px;
+        padding: 14px 40px;
+    }
+    
+
+    .nav-buttons button {
+        font-size: 24px;
+        padding: 16px 44px;
+    }
+
+}
+    </style>
+</head>
+
+<body>
+     
+    <div class="main-container">
+
+        <div class="quiz-container">
+
+            <div class="question-area">
+                <h2 id="questionText"></h2>
+            </div>
+
+            <div class="image-area">
+                <img id="questionImage">
+            </div>
+
+            <div class="input-area" id="inputsContainer"></div>
+
+            <div class="nav-buttons">
+                <button id="prevBtn"><i class="fa-solid fa-angles-left"></i> Prev</button>
+                <button id="nextBtn">Next <i class="fa-solid fa-angles-right"></i></button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="popupOverlay">
+    <div class="popup" id="popupBox"></div>
+</div>
+
+    <script>
+        const questions = [
+
+{
+    q:"Q1. The animal that is used in Ashwamedhayaga is a ______.",
+    a:["stallion"],
+    img:"../images/ftb1.png"
+},
+
+{
+    q:"Q2. ______ was the eldest son of King Sagara.",
+    a:["Asamanjasa"],
+    img:"../images/ftb2.png"
+},
+
+{
+    q:"Q3. The sons of Sagara were ______ by Sage Kapila.",
+    a:["burnt into ashes"],
+    img:"../images/ftb33.png"
+},
+
+{
+    q:"Q4. ______ brought the river Ganga to the Earth.",
+    a:["Bhagiratha"],
+    img:"../images/ftb4.png"
+},
+
+{
+    q:"Q5. Lord Shiva captured the river Ganga in his ______.",
+    a:["bun"],
+    img:"../images/ftb55.png"
+}
+
+];
+
+let index = 0;
+let score = 0;
+
+const questionText = document.getElementById("questionText");
+const image = document.getElementById("questionImage");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const inputsRow = document.getElementById("inputsContainer");
+
+const userAnswers = questions.map((q) => ({
+  used: [],
+  boxes: q.a.map(() => ({ value: "", correct: false })),
+}));
+
+function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-US";
+  msg.volume = 0.25;
+  speechSynthesis.speak(msg);
+}
+
+function smallConfetti() {
+  confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+}
+
+function bigConfetti() {
+  confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+}
+
+function loadQuestion() {
+  const q = questions[index];
+
+  questionText.innerText = q.q;
+  image.src = q.img;
+
+  image.classList.toggle(
+    "reveal",
+    userAnswers[index].boxes.every((b) => b.correct),
+  );
+
+  prevBtn.disabled = index === 0;
+
+  inputsRow.innerHTML = "";
+
+  q.a.forEach((_, i) => {
+    const box = document.createElement("div");
+    box.className = "input-box";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Type here...";
+    input.value = userAnswers[index].boxes[i].value;
+    // Prevent only drag & drop
+["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+    input.addEventListener(eventName, function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+});
+    const btn = document.createElement("button");
+    btn.textContent = "Check";
+    btn.disabled = input.value.trim() === "";
+input.addEventListener("input", () => {
+
+    // Automatically capitalize the first letter while typing
+    if (input.value.length > 0) {
+        input.value =
+            input.value.charAt(0).toUpperCase() +
+            input.value.slice(1);
+    }
+
+    btn.disabled = input.value.trim() === "";
+});
+    if (userAnswers[index].boxes[i].correct) {
+      box.classList.add("correct");
+      input.disabled = true;
+      btn.disabled = true;
+    }
+
+    btn.onclick = () => checkAnswer(input, btn, box, i);
+
+    box.append(input, btn);
+    inputsRow.appendChild(box);
+  });
+
+  checkAllAnswered();
+}
+
+function checkAnswer(input, btn, box, i) {
+ const originalValue = input.value.trim();
+const value = originalValue.toLowerCase();
+const answers = questions[index].a.map(a => a.trim().toLowerCase());
+  const state = userAnswers[index];
+
+  if (answers.includes(value) && !state.used.includes(value)) {
+    box.classList.add("correct");
+
+    input.disabled = true;
+    btn.disabled = true;
+    btn.style.cursor = "not-allowed";
+
+    state.used.push(value);
+   state.boxes[i] = {
+    value: originalValue.charAt(0).toUpperCase() + originalValue.slice(1),
+    correct: true
+};
+    speak("Correct");
+    smallConfetti();
+  showCorrectPopup();
+  } else {
+    input.value = "";
+    btn.disabled = true;
+
+    speak("Try again");
+   showWrongPopup();
+  }
+
+  checkAllAnswered();
+}
+
+function checkAllAnswered() {
+  const done = userAnswers[index].boxes.every((b) => b.correct);
+  nextBtn.disabled = !done;
+
+  if (done && !userAnswers[index].scored) {
+    score++;
+    userAnswers[index].scored = true;
+    image.classList.add("reveal");
+
+    if (index === questions.length - 1) {
+      setTimeout(showFinal, 1600);
+    }
+  }
+}
+
+nextBtn.onclick = () => {
+  if (index < questions.length - 1) {
+    index++;
+    loadQuestion();
+  }
+};
+
+prevBtn.onclick = () => {
+  if (index > 0) {
+    index--;
+    loadQuestion();
+  }
+};
+function showCorrectPopup() {
+
+    speak("Correct");
+
+    smallConfetti();
+
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = document.getElementById("popupBox");
+
+    popupBox.className = "popup correct";
+
+    popupBox.innerHTML = `
+        <div class="popup-top">
+            <div class="popup-icon-wrap">
+                <span>🌟</span>
+            </div>
+
+            <div class="popup-title">
+                Excellent!
+            </div>
+        </div>
+
+        <div class="popup-bottom">
+            <div class="popup-msg">
+               Awesome! You got it right! 🎉
+            </div>
+        </div>
+    `;
+
+    overlay.classList.add("show");
+
+    setTimeout(() => {
+        overlay.classList.remove("show");
+    }, 1500);
+}
+function showWrongPopup() {
+
+    speak("Try again");
+
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = document.getElementById("popupBox");
+
+    popupBox.className = "popup wrong";
+
+    popupBox.innerHTML = `
+        <div class="popup-top">
+            <div class="popup-icon-wrap">
+                <span>🤔</span>
+            </div>
+
+            <div class="popup-title">
+                Oops!
+            </div>
+        </div>
+
+        <div class="popup-bottom">
+            <div class="popup-msg">
+                Nice try! Give it another shot. 😊
+            </div>
+        </div>
+    `;
+
+    overlay.classList.add("show");
+
+    setTimeout(() => {
+        overlay.classList.remove("show");
+    }, 1500);
+}
+function showFinal() {
+
+    let end = Date.now() + 1500;
+
+    (function frame() {
+
+        confetti({
+            particleCount:3,
+            angle:60,
+            spread:55,
+            origin:{x:0}
+        });
+
+        confetti({
+            particleCount:3,
+            angle:120,
+            spread:55,
+            origin:{x:1}
+        });
+
+        if(Date.now() < end){
+            requestAnimationFrame(frame);
+        }
+
+    })();
+
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = document.getElementById("popupBox");
+
+    popupBox.className = "popup final";
+
+    popupBox.innerHTML = `
+        <div class="popup-top">
+            <div class="popup-icon-wrap">
+                <span>👑</span>
+            </div>
+
+            <div class="popup-title">
+                Congratulations!
+            </div>
+        </div>
+
+        <div class="popup-bottom">
+
+            <div class="popup-score">
+                <span>Score:</span>
+               <strong>${score}/${questions.length}</strong>
+            </div>
+
+            <div class="popup-stars">
+                ⭐⭐⭐
+            </div>
+
+            <button class="play-again-popup" id="playAgainBtn">
+                Play Again
+            </button>
+
+        </div>
+    `;
+
+    overlay.classList.add("show");
+
+    document.getElementById("playAgainBtn").onclick = () => {
+        location.reload();
+    };
+}
+loadQuestion();
+
+    </script>
+</body>
+
+</html>

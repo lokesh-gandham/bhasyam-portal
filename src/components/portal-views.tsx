@@ -22,7 +22,6 @@ const subjectIcons: Record<string, any> = {
 };
 
 function showComingSoon(subjectId: string, gradeId?: string): boolean {
-  if (subjectId === "english") return true;
   if (subjectId === "social") {
     if (!gradeId) return false;
     const level = Number(String(gradeId).replace(/\D/g, "")) || 0;

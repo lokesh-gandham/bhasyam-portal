@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Family Tree Matching Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+  :root{
+    --sky-top:#EAF6FF;
+    --sky-bottom:#FFF3E6;
+    --tree-panel:#EAFBF0;
+    --match-panel:#EEF3FF;
+    --leaf-1:#8FDDA0;
+    --leaf-2:#4FAE63;
+    --leaf-3:#3B8E4E;
+    --trunk-1:#B47A48;
+    --trunk-2:#7A4E29;
+    --coral:#FF8FA3;
+    --gold-top:#ffd43b;
+    --gold-bottom:#f4a300;
+    --ink:#3A4A3F;
+    --blue-dash:#9FC4FF;
+    --pink-line:#F2A6C4;
+    --green-ok:#37C871;
+    --red-bad:#FF5C5C;
+    --c-grandmother:#FF6B9D;
+    --c-aunt:#FF8C42;
+    --c-cousin:#2ECC71;
+    --c-uncle:#9B59B6;
+    --c-grandfather:#3498DB;
+  }
+@font-face {
+    font-family: 'CCSYBold';
+    src: url('../assets/CCSYBOLD.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'CCSyntroman !important';
+    src: url('/assets/CCSYNTRO.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"CCSyntroman",;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;width:100%;overflow:hidden;overscroll-behavior:none;}
+  body{
+    background-color: #ffffff;
+    display:flex;align-items:center;justify-content:center;
+    height:100dvh;width:100vw;
+  }
+
+  .app{
+    width:100vw;height:100dvh;
+    display:flex;
+    flex-direction:row;
+    gap:46px;
+    padding:22px;
+  }
+
+  /* ===================== PANELS ===================== */
+  .panel{
+    min-width:0;min-height:0;
+    display:flex;flex-direction:column;
+    border-radius:24px;
+    overflow:hidden;
+    border:1px solid rgba(58,74,63,0.06);
+    box-shadow:0 2px 0 rgba(0,0,0,0.03), 0 12px 28px rgba(60,90,60,0.08);
+  }
+  /* Family Tree is reference material: fix it at ~40% width, less visual weight */
+  .tree-panel{
+    background:var(--tree-panel);
+    flex:0 0 40%;
+    max-width:40%;
+  }
+  /* Matching is the primary activity: it fills the remaining space (~60%) */
+  .match-panel{
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    flex:1 1 0;
+    min-width:0;
+  }
+
+  .panel-title{
+    flex:0 0 auto;
+    text-align:center;
+    font-weight:400;
+    color:var(--ink);
+    font-size:30px;
+    padding:18px 12px 14px;
+    letter-spacing:.3px;
+    border-bottom:1px solid rgba(58,74,63,0.07);
+    margin-bottom:6px;
+  }
+
+  /* ===================== TREE ===================== */
+  .tree-wrap{
+    flex:1 1 auto;
+    min-height:0;min-width:0;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    padding:12px 22px 20px;
+  }
+
+  .tree{
+    position:relative;
+    container-type:inline-size;
+    container-name:treebox;
+  }
+
+  .foliage, .blob{
+    position:absolute;border-radius:50%;
+    background:radial-gradient(circle at 32% 24%, var(--leaf-1), var(--leaf-2) 55%, var(--leaf-3) 100%);
+  }
+  .foliage{top:2%;left:8%;width:84%;height:78%;border-radius:46%;}
+
+  .blob-1{top:0%;   left:20%; width:28%; height:26%;}
+  .blob-2{top:-2%;  left:44%; width:26%; height:24%;}
+  .blob-3{top:0%;   left:64%; width:28%; height:26%;}
+  .blob-4{top:6%;   left:2%;  width:24%; height:24%;}
+  .blob-5{top:6%;   left:78%; width:24%; height:24%;}
+  .blob-6{top:26%;  left:-4%; width:22%; height:22%;}
+  .blob-7{top:26%;  left:84%; width:22%; height:22%;}
+  .blob-8{top:48%;  left:0%;  width:22%; height:22%;}
+  .blob-9{top:48%;  left:80%; width:22%; height:22%;}
+  .blob-10{top:62%; left:32%; width:26%; height:22%;}
+
+  .trunk{
+    position:absolute;left:42%;top:78%;width:16%;height:20%;
+    background:linear-gradient(180deg, var(--trunk-1), var(--trunk-2));
+    border-radius:6px 6px 3px 3px;
+    box-shadow:inset -4px 0 0 rgba(0,0,0,0.08);
+  }
+
+  .fruit{
+    position:absolute;
+    transform:translate(-50%,-50%) scale(0);
+    font-size:7cqw;
+    line-height:1;
+    opacity:0;
+    z-index:1;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,.15));
+  }
+  .fruit.grown{
+    animation:fruitPop .55s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes fruitPop{
+    0%{transform:translate(-50%,-50%) scale(0) rotate(-30deg);opacity:0;}
+    60%{transform:translate(-50%,-50%) scale(1.25) rotate(8deg);opacity:1;}
+    100%{transform:translate(-50%,-50%) scale(1) rotate(0deg);opacity:1;}
+  }
+
+  .avatar{
+    position:absolute;
+    transform:translate(-50%,-50%);
+    display:flex;flex-direction:column;align-items:center;
+    background:none;border:none;cursor:pointer;
+    z-index:3;
+    -webkit-user-select:none;user-select:none;
+    width:21cqw;
+  }
+  .avatar .bubble{
+    width:14.5cqw;height:14.5cqw;
+    border-radius:50%;
+    background:#ffffff;
+    border:0.55cqw solid #ffffff;
+    box-shadow:0 3px 0 rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.12);
+    display:flex;align-items:center;justify-content:center;
+    font-size:8.2cqw;
+    position:relative;
+    transition:background .35s ease, transform .25s ease, box-shadow .25s ease;
+  }
+  .avatar:hover .bubble{transform:scale(1.08);}
+  .avatar:active .bubble{transform:scale(0.96);}
+  .avatar .label{
+    position:relative;
+    margin-top:2%;
+    background:linear-gradient(180deg,var(--gold-top),var(--gold-bottom));
+    color:#5b3a00;
+    font-weight:700;
+    font-size:2.3cqw;
+    padding:1.6% 7%;
+    clip-path:polygon(6% 0,94% 0,100% 50%,94% 100%,6% 100%,0 50%);
+    white-space:nowrap;
+    max-width:28cqw;
+    overflow:hidden;text-overflow:ellipsis;
+  }
+  .avatar .happy-badge{
+    position:absolute;top:-8%;right:-8%;
+    font-size:5.2cqw;
+    opacity:0;
+    transform:scale(.3) rotate(-20deg);
+    transition:all .35s cubic-bezier(.34,1.56,.64,1);
+  }
+  .avatar.happy .bubble{
+    box-shadow:0 0 0 0.9cqw var(--happy-color,#ffe6a7), 0 4px 10px rgba(0,0,0,0.12);
+  }
+  .avatar.happy .happy-badge{opacity:1;transform:scale(1) rotate(0deg);}
+  .avatar.speaking .bubble{animation:talkBounce .5s ease infinite;}
+  @keyframes talkBounce{
+    0%,100%{transform:scale(1);}
+    50%{transform:scale(1.1) rotate(-3deg);}
+  }
+
+  .speech-bubble{
+    position:absolute;
+    left:50%;top:1%;
+    transform:translate(-50%,-8px);
+    background:#ffffff;
+    border:2px solid var(--coral);
+    border-radius:16px;
+    padding:6px 14px;
+    font-weight:600;
+    font-size:13px;
+    color:var(--ink);
+    max-width:80%;
+    text-align:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:10;
+    box-shadow:0 6px 14px rgba(0,0,0,.12);
+  }
+  .speech-bubble.show{opacity:1;transform:translate(-50%,0);}
+
+  /* ===================== MATCHING ===================== */
+  .game-container{
+    position:relative;
+    flex:1 1 auto;
+    min-height:0;
+    display:flex;
+    align-items:stretch;justify-content:center;
+    gap:56px;
+    padding:6px 26px 24px;
+  }
+  #line-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;}
+
+  .column{
+    flex:0 1 320px;
+    min-width:0;
+    background:transparent;
+    border:none;
+    border-radius:0;
+    overflow:visible;
+    display:flex;flex-direction:column;
+    z-index:2;position:relative;height:100%;
+    box-shadow:none;
+  }
+  .items{
+    display:flex;flex-direction:column;
+    padding:26px 28px;
+    gap:18px;
+    flex:1;justify-content:space-evenly;
+  }
+  .item{
+    position:relative;
+    display:flex;align-items:center;justify-content:center;
+    gap:12px;
+    font-size:14pt;
+    font-weight:500;color:var(--ink);
+    background:#FBFCFE;
+    border:1px solid rgba(58,74,63,0.06);
+    border-radius:14px;
+    cursor:pointer;transition:.2s ease;
+    padding:14px 16px;
+    flex:1;min-height:44px;
+     font-family: "CCSyntroman";
+    text-align:left !important;
+    -webkit-user-select:none;user-select:none;
+  }
+  .item:hover{box-shadow:0 4px 12px rgba(60,90,60,0.10);transform:translateY(-1px);}
+  .item-number{font-weight:700;color:#d9594c;min-width:30px;font-size:17px;flex-shrink:0;}
+  .item-letter{font-weight:600;color:#5d6b5a;min-width:30px;font-size:16px;flex-shrink:0;}
+  .item-text{
+    flex:1;
+  }
+
+  .item .dot{
+    position:absolute;top:50%;
+    width:16px;height:16px;
+    border-radius:50%;background:#ffffff;
+    border:3px solid #b9c3bd;
+    box-shadow:0 2px 4px rgba(0,0,0,0.10);
+    transform:translateY(-50%);z-index:3;flex-shrink:0;
+    transition:background .2s ease, border-color .2s ease;
+  }
+  .left .item .dot{right:-9px;}
+  .right .item .dot{left:-9px;}
+
+  .left .item.active{background:#fff2ea;border-color:#f3c9a8;box-shadow:0 4px 12px rgba(217,89,76,0.14);}
+  .left .item.active .dot{background:#d9594c;border-color:#d9594c;}
+
+  .item.matched{pointer-events:none;background:#F4FBF6;border-color:rgba(55,200,113,0.25);}
+  .item.matched .dot{background:var(--green-ok);border-color:var(--green-ok);}
+
+  .right .item.error{animation:shakeError .4s ease;border-color:var(--red-bad);}
+  @keyframes shakeError{
+    0%{transform:translateX(0);}25%{transform:translateX(-8px);}
+    50%{transform:translateX(8px);}75%{transform:translateX(-6px);}100%{transform:translateX(0);}
+  }
+
+  /* ========== POPUP - MATCHED WITH MCQ ========== */
+  .popup {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.0);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: popupFadeIn 0.3s ease;
+  }
+
+  @keyframes popupFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .popup-content {
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    padding: 35px 45px;
+    border-radius: 30px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .popup-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+  }
+
+  .popup.correct .popup-content::before {
+    background: linear-gradient(90deg, #22c55e, #4ade80, #22c55e);
+  }
+
+  .popup.wrong .popup-content::before {
+    background: linear-gradient(90deg, #dc2626, #f87171, #dc2626);
+  }
+
+  @keyframes popIn {
+    0% {
+      transform: scale(0.5) rotate(-5deg);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.05) rotate(1deg);
+    }
+    80% {
+      transform: scale(0.95);
+    }
+    100% {
+      transform: scale(1) rotate(0);
+      opacity: 1;
+    }
+  }
+
+  .popup-icon {
+    font-size: 4.5em;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+
+  .popup.correct .popup-icon {
+    animation: correctBounce 0.8s ease;
+  }
+
+  .popup.wrong .popup-icon {
+    animation: wrongBounce 0.8s ease;
+  }
+
+  @keyframes correctBounce {
+    0% { transform: scale(0) rotate(-30deg); }
+    40% { transform: scale(1.4) rotate(10deg); }
+    60% { transform: scale(0.9) rotate(-5deg); }
+    80% { transform: scale(1.1) rotate(3deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  @keyframes wrongBounce {
+    0% { transform: scale(0) rotate(30deg); }
+    30% { transform: scale(1.3) rotate(-15deg); }
+    60% { transform: scale(0.9) rotate(10deg); }
+    80% { transform: scale(1.1) rotate(-5deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  .popup-content h3 {
+    font-size: 2em;
+    font-weight: 700;
+    margin: 8px 0 6px;
+  }
+
+  .popup.correct h3 {
+    color: #16a34a;
+  }
+
+  .popup.wrong h3 {
+    color: #dc2626;
+  }
+
+  .popup-content p {
+    font-size: 1.2em;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .popup.correct p {
+    color: #15803d;
+  }
+
+  .popup.wrong p {
+    color: #b91c1c;
+  }
+
+  /* ========== FINAL POPUP - MATCHED WITH MCQ ========== */
+  #finalPopup {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.0);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    animation: popupFadeIn 0.5s ease;
+    font-family: "CCSyntroman" !important;
+  }
+
+  .finalpopup-box {
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    padding: 40px 50px;
+    border-radius: 35px;
+    text-align: center;
+    max-width: 450px;
+    width: 90%;
+    animation: finalPopIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .finalpopup-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 20%, rgba(251, 191, 36, 0.1), transparent 70%);
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(180deg); }
+  }
+
+  @keyframes finalPopIn {
+    0% {
+      transform: scale(0.3) rotate(-10deg);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.08) rotate(2deg);
+    }
+    70% {
+      transform: scale(0.95) rotate(-1deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
+  }
+
+  .final-heading {
+            display: block;
+            font-size: 2.2em;
+            margin: 10px 0 15px;
+            /* font-weight: 700; */
+            color: #16a34a;
+            position: relative;
+            z-index: 1;
+            font-family: "CCSyntroman";
+        }
+        #finalScore {
+            font-size: 1.4em;
+            /* font-weight: 600; */
+            color: #374151;
+            margin: 10px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+  #stars {
+    font-size: 3em;
+    margin: 10px 0 15px;
+    letter-spacing: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .playAgain-btn {
+    background: linear-gradient(145deg, #22c55e, #16a34a);
+    color: #fff;
+    border: none;
+    padding: 14px 35px;
+    border-radius: 50px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 5px 0 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  .playAgain-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4);
+  }
+
+  .playAgain-btn:active {
+    transform: translateY(0px);
+  }
+
+  /* ===================== RESPONSIVE BREAKPOINTS ===================== */
+
+  /* Large desktop */
+  @media (min-width:1440px){
+    .app{gap:48px;padding:24px;}
+    .panel-title{font-size:40px;padding:20px 8px 14px;}
+    .items{padding:28px 30px;gap:20px;}
+    .item{font-size:16pt !important;min-height:56px;padding:16px 18px;gap:16px;justify-content:center;border-radius:16px;}
+    .item-number{font-size:20px;min-width:30px;}
+    .item-letter{font-size:18px;min-width:30px;}
+    .item .dot{width:18px;height:18px;}
+    .column{flex:0 1 340px;border-radius:22px;}
+    .game-container{gap:64px;}
+  }
+  @media (min-width:1921px){
+    .app{gap:56px;padding:40px;}
+    .panel-title{font-size:32px;}
+    .items{padding:32px 34px;gap:22px;}
+    .item{font-size:20pt;min-height:64px;padding:18px 20px;gap:20px;justify-content:center;border-radius:18px;}
+    .item-number{font-size:24px;min-width:42px;}
+    .item-letter{font-size:22px;min-width:42px;}
+    .column{flex:0 1 380px;}
+    .game-container{gap:72px;}
+  }
+
+  /* Tablet */
+  @media (max-width:900px){
+    .app{gap:26px;padding:14px;}
+    .panel-title{font-size:24pt;padding:12px 6px 8px;}
+    .items{padding:16px 16px;gap:12px;}
+    .item{font-size:14pt;min-height:36px;padding:10px 12px;gap:10px;text-align:left;justify-content:left;border-radius:12px;}
+    .item-number{font-size:14px;min-width:24px;}
+    .item-letter{font-size:13px;min-width:24px;}
+    .item .dot{width:12px;height:12px;}
+    .column{flex:0 1 260px;border-radius:16px;}
+    .game-container{gap:36px;}
+    .speech-bubble{font-size:12px;padding:5px 10px;}
+    .popup-content{padding:30px 35px;max-width:380px;}
+    .finalpopup-box{padding:35px 40px;max-width:400px;}
+  }
+
+  /* Laptop/Desktop (1025px - 1439px) — text-align:left only here */
+  @media (min-width:1025px) and (max-width:1439px){
+    .item{text-align:left;justify-content:flex-start;}
+    .item-text{text-align:left;}
+    .item-number{text-align:left;}
+    .item-letter{text-align:left;}
+  }
+
+  /* Mobile */
+  @media (max-width:700px){
+    .app{gap:18px;padding:10px;flex-direction:column;}
+    .tree-panel{flex:0 0 42%;max-width:100%;}
+    .match-panel{flex:1;max-width:100%;}
+    .panel-title{font-size:15px;padding:10px 4px 6px;}
+    .items{padding:12px 12px;gap:8px;}
+    .item{font-size:14pt;min-height:30px;padding:8px 10px;gap:8px;text-align:left;justify-content:center;border-radius:10px;}
+    .item-number{font-size:12px;min-width:20px;}
+    .item-letter{font-size:11px;min-width:20px;}
+    .item .dot{width:11px;height:11px;}
+    .column{flex:1;max-width:100%;border-radius:14px;}
+    .game-container{gap:22px;padding:0 10px 10px;}
+    .finalpopup-box{padding:30px 35px;max-width:400px;}
+    .final-heading{font-size:1.8em;}
+    #stars{font-size:2.5em;letter-spacing:6px;}
+    .playAgain-btn{font-size:1em;padding:12px 28px;}
+  }
+
+  /* Small mobile */
+  @media (max-width:480px){
+    .app{gap:10px;padding:8px;}
+    .panel-title{font-size:13px;padding:8px 3px 4px;}
+    .items{padding:8px 8px;gap:6px;}
+    .item{font-size:14px;min-height:26px;padding:6px 6px;gap:6px;text-align:center;justify-content:center;border-radius:9px;}
+    .item-number{font-size:10px;min-width:16px;}
+    .item-letter{font-size:10px;min-width:16px;}
+    .item .dot{width:9px;height:9px;}
+    .left .item .dot{right:-5px;}
+    .right .item .dot{left:-5px;}
+    .column{border-radius:12px;}
+    .game-container{gap:16px;padding:0 6px 8px;}
+    .popup-content{padding:25px 30px;max-width:340px;}
+    .popup-icon{font-size:3.5em;}
+    .popup-content h3{font-size:1.6em;}
+    .popup-content p{font-size:1em;}
+    .finalpopup-box{padding:25px 30px;max-width:340px;}
+    .final-heading{font-size:1.5em;}
+    #finalScore{font-size:1.2em;}
+    #stars{font-size:2em;letter-spacing:5px;}
+    .playAgain-btn{font-size:0.9em;padding:10px 24px;}
+  }
+
+  /* Very small phones */
+  @media (max-width:380px){
+    .app{gap:8px;padding:6px;}
+    .panel-title{font-size:11px;padding:6px 2px 3px;}
+    .items{padding:5px 6px;gap:4px;}
+    .item{font-size:12px;min-height:22px;padding:4px 5px;gap:4px;text-align:center;justify-content:center;border-radius:8px;}
+    .item-number{font-size:8px;min-width:14px;}
+    .item-letter{font-size:8px;min-width:14px;}
+    .item .dot{width:7px;height:7px;}
+    .left .item .dot{right:-4px;}
+    .right .item .dot{left:-4px;}
+    .column{border-radius:10px;}
+    .game-container{gap:12px;}
+    .popup-content{padding:20px 25px;max-width:300px;}
+    .popup-icon{font-size:3em;}
+    .popup-content h3{font-size:1.4em;}
+    .finalpopup-box{padding:20px 25px;max-width:300px;}
+    .final-heading{font-size:1.3em;}
+    #stars{font-size:1.8em;letter-spacing:4px;}
+    .playAgain-btn{font-size:0.8em;padding:8px 20px;}
+  }
+
+  /* Short height screens */
+  @media (max-height:620px){
+    .panel-title{font-size:14px;padding:8px 4px 5px;}
+    .items{padding:6px 8px;gap:6px;}
+    .item{font-size:16px;min-height:26px;padding:5px 8px;border-radius:8px;}
+    .game-container{gap:20px;}
+  }
+  @media (max-height:480px){
+    .panel-title{font-size:11px;padding:6px 3px 3px;}
+    .items{padding:4px 6px;gap:4px;}
+    .item{font-size:12px;min-height:20px;padding:3px 5px;border-radius:7px;}
+    .game-container{gap:14px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== TREE PANEL ===================== -->
+  <section class="panel tree-panel">
+    <h2 class="panel-title">🌳 Our Family Tree</h2>
+    <div class="tree-wrap">
+      <div class="tree" id="tree">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="blob blob-4"></div>
+        <div class="blob blob-5"></div>
+        <div class="blob blob-6"></div>
+        <div class="blob blob-7"></div>
+        <div class="blob blob-8"></div>
+        <div class="blob blob-9"></div>
+        <div class="blob blob-10"></div>
+        <div class="foliage"></div>
+
+        <div class="fruit" data-fruit="1" style="top:18%; left:50%;">🍎</div>
+        <div class="fruit" data-fruit="2" style="top:42%; left:24%;">🍊</div>
+        <div class="fruit" data-fruit="3" style="top:42%; left:76%;">🍋</div>
+        <div class="fruit" data-fruit="4" style="top:68%; left:18%;">🍇</div>
+        <div class="fruit" data-fruit="5" style="top:68%; left:82%;">🍓</div>
+
+        <button class="avatar" data-name="grandfather" data-line="Hello! I'm your father's father." style="top:8%; left:35%;">
+          <div class="bubble">👴<span class="happy-badge">😊</span></div>
+          <span class="label">Grandfather</span>
+        </button>
+        <button class="avatar" data-name="grandmother" data-line="Hi! I'm your mother's mother." style="top:8%; left:63%;">
+          <div class="bubble">👵<span class="happy-badge">😊</span></div>
+          <span class="label">Grandmother</span>
+        </button>
+
+        <button class="avatar" data-name="father" data-line="Hey there! I'm your father." style="top:32%; left:13%;">
+          <div class="bubble">👨<span class="happy-badge">😊</span></div>
+          <span class="label">Father</span>
+        </button>
+        <button class="avatar" data-name="mother" data-line="Hi! I'm your mother." style="top:32%; left:38%;">
+          <div class="bubble">👩<span class="happy-badge">😊</span></div>
+          <span class="label">Mother</span>
+        </button>
+        <button class="avatar" data-name="uncle" data-line="Hello! I'm your mother's brother." style="top:32%; left:62%;">
+          <div class="bubble">🧔<span class="happy-badge">😊</span></div>
+          <span class="label">Uncle</span>
+        </button>
+        <button class="avatar" data-name="aunt" data-line="Hi! I'm your father's sister." style="top:32%; left:87%;">
+          <div class="bubble">👩‍🦰<span class="happy-badge">😊</span></div>
+          <span class="label">Aunt</span>
+        </button>
+
+        <button class="avatar" data-name="sister" data-line="Hi! I'm your sister." style="top:57%; left:10%;">
+          <div class="bubble">👧<span class="happy-badge">😊</span></div>
+          <span class="label">Sister</span>
+        </button>
+        <button class="avatar" data-name="brother" data-line="Hey! I'm your brother." style="top:57%; left:30%;">
+          <div class="bubble">👦<span class="happy-badge">😊</span></div>
+          <span class="label">Brother</span>
+        </button>
+        <button class="avatar" data-name="me" data-line="That's me!" style="top:57%; left:50%;">
+          <div class="bubble">🧒<span class="happy-badge">😊</span></div>
+          <span class="label">Me</span>
+        </button>
+        <button class="avatar" data-name="cousin" data-line="Let's play together!" style="top:57%; left:70%;">
+          <div class="bubble">👦<span class="happy-badge">😊</span></div>
+          <span class="label">Cousin</span>
+        </button>
+        <button class="avatar" data-name="cousin" data-line="Let's play together!" style="top:57%; left:90%;">
+          <div class="bubble">👧<span class="happy-badge">😊</span></div>
+          <span class="label">Cousin</span>
+        </button>
+
+        <div class="trunk"></div>
+      </div>
+      <div class="speech-bubble" id="speechBubble"></div>
+    </div>
+  </section>
+
+  <!-- ===================== MATCH PANEL ===================== -->
+  <section class="panel match-panel">
+    <h2 class="panel-title">🎯 Match the Family Words</h2>
+    <div class="game-container">
+      <svg id="line-canvas"></svg>
+      <div class="column left">
+        <div class="items" id="leftColumn"></div>
+      </div>
+      <div class="column right">
+        <div class="items" id="rightColumn"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- CORRECT / WRONG POPUP -->
+<div id="answerPopup" class="popup">
+  <div class="popup-content">
+    <div class="popup-icon" id="popupIcon"></div>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMsg"></p>
+  </div>
+</div>
+
+<!-- FINAL POPUP -->
+<div id="finalPopup">
+  <div class="finalpopup-box">
+    <h2 class="final-heading">🎉 Congratulations!</h2>
+    <p id="finalScore"></p>
+    <div id="stars"></div>
+    <br>
+    <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+  </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+/* ============ DATA ============ */
+const pairs = [
+  { num:1, left:"Uncle's daughter", key:'cousin',      text:'Cousin' },
+  { num:2, left:"Father's father",  key:'grandfather', text:'Grandfather' },
+  { num:3, left:"Father's sister",  key:'aunt',         text:'Aunt' },
+  { num:4, left:"Mother's mother",  key:'grandmother',  text:'Grandmother' },
+  { num:5, left:"Mother's brother", key:'uncle',         text:'Uncle' },
+];
+
+const colorMap = {
+  grandmother: '#FF6B9D',
+  aunt: '#FF8C42',
+  cousin: '#2ECC71',
+  uncle: '#9B59B6',
+  grandfather: '#3498DB',
+};
+
+let rightOrder = [...pairs].sort(() => Math.random() - 0.5);
+const letters = ['a','b','c','d','e'];
+
+const leftColumn = document.getElementById('leftColumn');
+const rightColumn = document.getElementById('rightColumn');
+const svg = document.getElementById('line-canvas');
+const correctSound = document.getElementById('correctSound');
+const wrongSound = document.getElementById('wrongSound');
+
+/* ============ SPEECH FUNCTION ============ */
+function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-UK";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+/* ============ RENDER MATCH COLUMNS ============ */
+pairs.forEach(p => {
+  const div = document.createElement('div');
+  div.className = 'item';
+  div.dataset.key = p.key;
+  div.innerHTML = `<span class="item-number">${p.num}.</span><span class="item-text">${p.left}</span><span class="dot"></span>`;
+  leftColumn.appendChild(div);
+});
+
+rightOrder.forEach((p, i) => {
+  const div = document.createElement('div');
+  div.className = 'item';
+  div.dataset.key = p.key;
+  div.innerHTML = `
+    <span class="dot"></span>
+    <span class="item-letter">${letters[i]})</span>
+    <span class="item-text">${p.text}</span>
+`;
+  rightColumn.appendChild(div);
+});
+
+/* ============ MATCH LOGIC ============ */
+let selectedLeft = null;
+let matchedCount = 0;
+let wrongAttempts = 0;
+const totalPairs = pairs.length;
+const drawnLines = [];
+const fruitOrder = [1,2,3,4,5];
+
+leftColumn.addEventListener('click', e => {
+  const item = e.target.closest('.item');
+  if (!item || item.classList.contains('matched')) return;
+  leftColumn.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
+  item.classList.add('active');
+  selectedLeft = item;
+});
+
+rightColumn.addEventListener('click', e => {
+  const item = e.target.closest('.item');
+  if (!item || item.classList.contains('matched') || !selectedLeft) return;
+
+  if (item.dataset.key === selectedLeft.dataset.key) {
+    handleCorrect(selectedLeft, item);
+  } else {
+    handleWrong(item);
+  }
+});
+
+function handleCorrect(leftEl, rightEl) {
+  leftEl.classList.remove('active');
+  leftEl.classList.add('matched');
+  rightEl.classList.add('matched');
+
+  const color = colorMap[rightEl.dataset.key] || '#37C871';
+  drawLine(leftEl.querySelector('.dot'), rightEl.querySelector('.dot'), color);
+
+  // playSound(correctSound);
+  speak("Correct");
+  // showPopup(true);
+  burstConfettiAt(rightEl);
+
+  highlightTreeCharacter(rightEl.dataset.key, color);
+
+  growNextFruit();
+
+  matchedCount++;
+  selectedLeft = null;
+
+  if (matchedCount === totalPairs) {
+    setTimeout(showFinalPopup, 700);
+  }
+}
+
+function handleWrong(rightEl) {
+  wrongAttempts++;
+  rightEl.classList.add('error');
+  playSound(wrongSound);
+  speak("Try again");
+  // showPopup(false);
+  setTimeout(() => rightEl.classList.remove('error'), 500);
+}
+
+function playSound(audioEl) {
+  audioEl.currentTime = 0;
+  audioEl.play().catch(() => {});
+}
+
+/* ============ POPUP FUNCTIONS ============ */
+function showPopup(isCorrect) {
+  const popup = document.getElementById("answerPopup");
+  const icon = document.getElementById("popupIcon");
+  const title = document.getElementById("popupTitle");
+  const msg = document.getElementById("popupMsg");
+  
+  popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+  popup.style.display = "flex";
+  
+  if (isCorrect) {
+    icon.textContent = "🎉";
+    title.textContent = "Correct!";
+    msg.textContent = "Well done!";
+  } else {
+    icon.textContent = "😔";
+    title.textContent = "Wrong!";
+    msg.textContent = "Try again!";
+  }
+  
+  setTimeout(() => {
+    popup.style.display = "none";
+  }, 1200);
+}
+
+function showFinalPopup() {
+  const finalPopup = document.getElementById("finalPopup");
+  const scoreText = document.getElementById("finalScore");
+  const starsEl = document.getElementById("stars");
+
+  scoreText.textContent = `Your Score: ${totalPairs} / 5`;
+
+  let starCount = 3;
+  if (wrongAttempts > 6) starCount = 1;
+  else if (wrongAttempts > 2) starCount = 2;
+
+  starsEl.textContent = "⭐⭐⭐⭐⭐";
+
+  finalPopup.style.display = "flex";
+
+  // Big confetti celebration
+ // 🎉 CONFETTI EFFECT
+if (window.innerWidth >= 769) {
+  const duration = 2000;
+  const end = Date.now() + duration;
+
+  (function frame() {
+    confetti({
+      particleCount: 6,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      scalar: 0.5, // Smaller confetti
+    });
+
+    confetti({
+      particleCount: 6,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      scalar: 0.5, // Smaller confetti
+    });
+
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    }
+  })();
+}
+
+  // Play celebration sound
+  const correctSound = document.getElementById("correctSound");
+  if (correctSound) {
+    setTimeout(() => correctSound.play(), 100);
+    setTimeout(() => correctSound.play(), 400);
+  }
+  
+  // speak("Congratulations! You completed the family tree!");
+}
+
+/* ============ LINE DRAWING ============ */
+function drawLine(dotA, dotB, color) {
+  const rectContainer = document.querySelector('.game-container').getBoundingClientRect();
+  const a = dotA.getBoundingClientRect();
+  const b = dotB.getBoundingClientRect();
+
+  const x1 = a.left + a.width/2 - rectContainer.left;
+  const y1 = a.top + a.height/2 - rectContainer.top;
+  const x2 = b.left + b.width/2 - rectContainer.left;
+  const y2 = b.top + b.height/2 - rectContainer.top;
+
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', x1);
+  line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2);
+  line.setAttribute('y2', y2);
+  line.setAttribute('stroke', color);
+  line.setAttribute('stroke-width', '5');
+  line.setAttribute('stroke-linecap', 'round');
+  line.setAttribute('opacity', '0.9');
+  svg.appendChild(line);
+
+  drawnLines.push({ dotA, dotB, line, color });
+}
+
+function redrawAllLines() {
+  const rectContainer = document.querySelector('.game-container').getBoundingClientRect();
+  drawnLines.forEach(({ dotA, dotB, line }) => {
+    const a = dotA.getBoundingClientRect();
+    const b = dotB.getBoundingClientRect();
+    line.setAttribute('x1', a.left + a.width/2 - rectContainer.left);
+    line.setAttribute('y1', a.top + a.height/2 - rectContainer.top);
+    line.setAttribute('x2', b.left + b.width/2 - rectContainer.left);
+    line.setAttribute('y2', b.top + b.height/2 - rectContainer.top);
+  });
+}
+window.addEventListener('resize', () => requestAnimationFrame(redrawAllLines));
+
+/* ============ TREE HIGHLIGHT ============ */
+function highlightTreeCharacter(name, color) {
+  const nodes = document.querySelectorAll(`.avatar[data-name="${name}"]`);
+  nodes.forEach(node => {
+    node.style.setProperty('--happy-color', color);
+    node.querySelector('.bubble').style.background = color;
+    node.classList.add('happy');
+  });
+}
+
+/* ============ FRUIT GROWTH ============ */
+function growNextFruit() {
+  const nextNum = fruitOrder.shift();
+  if (!nextNum) return;
+  const fruitEl = document.querySelector(`.fruit[data-fruit="${nextNum}"]`);
+  if (fruitEl) fruitEl.classList.add('grown');
+}
+
+/* ============ CONFETTI ============ */
+function burstConfettiAt(el) {
+  const rect = el.getBoundingClientRect();
+  const x = (rect.left + rect.width/2) / window.innerWidth;
+  const y = (rect.top + rect.height/2) / window.innerHeight;
+  confetti({
+    particleCount: 30,
+    spread: 55,
+    startVelocity: 28,
+    origin: { x, y },
+    colors: ['#FF8FA3','#FFC94D','#8FDDA0','#9FC4FF']
+  });
+}
+
+/* ============ TREE SIZING ============ */
+function sizeTree() {
+  const wrap = document.querySelector('.tree-wrap');
+  const tree = document.getElementById('tree');
+  if (!wrap || !tree) return;
+  const shrink = 0.88; // reduce tree footprint ~12% so it reads as reference, not the focal point
+  const availW = wrap.clientWidth * shrink;
+  const availH = wrap.clientHeight * shrink;
+  const ratio = 1 / 1.1;
+  let w = availW;
+  let h = w / ratio;
+  if (h > availH) {
+    h = availH;
+    w = h * ratio;
+  }
+  tree.style.width = w + 'px';
+  tree.style.height = h + 'px';
+}
+window.addEventListener('load', sizeTree);
+window.addEventListener('resize', () => { sizeTree(); requestAnimationFrame(redrawAllLines); });
+sizeTree();
+
+/* ============ CHARACTER SPEECH ============ */
+const speechBubble = document.getElementById('speechBubble');
+let bubbleTimeout;
+
+document.querySelectorAll('.avatar').forEach(avatar => {
+  avatar.addEventListener('click', () => {
+    const line = avatar.dataset.line;
+    speak(line);
+    showSpeechBubble(line, avatar);
+  });
+});
+
+function showSpeechBubble(text, avatarEl) {
+  clearTimeout(bubbleTimeout);
+  speechBubble.textContent = text;
+  speechBubble.classList.add('show');
+
+  document.querySelectorAll('.avatar.speaking').forEach(a => a.classList.remove('speaking'));
+  avatarEl.classList.add('speaking');
+
+  bubbleTimeout = setTimeout(() => {
+    speechBubble.classList.remove('show');
+    avatarEl.classList.remove('speaking');
+  }, 2400);
+}
+</script>
+
+</body>
+</html>

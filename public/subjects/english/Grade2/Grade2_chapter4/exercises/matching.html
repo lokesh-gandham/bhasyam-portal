@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matching Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"> -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="assets/CSS/popups.css">
+
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/ccsyntroman');
+
+        @font-face {
+            font-family: 'CCSyBold';
+            src: url('./assets/CCSYBOLD.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('./assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "CCSyntroman", serif;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fefcf5;
+        }
+
+        .main {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .subtitle {
+            font-size: 30px;
+            /* font-weight: 600; */
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 30px;
+            z-index: 10;
+        }
+
+        /* Game Container */
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            gap: 230px;
+        }
+
+        /* SVG Canvas for Lines */
+        #lineCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Top Row - Images */
+        .images-row {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+
+        .image-card {
+            width: 160px;
+            height: 160px;
+            background: #fff;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 4px solid transparent;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .image-card:hover:not(.matched) {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .image-card.selected {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), 0 4px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .image-card.matched {
+            border-color: #22c55e;
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        }
+
+        .image-card img {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+        }
+
+        /* Connection Point on Image */
+        .image-point {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background: #e0e7ff;
+            border: 3px solid #6366f1;
+            border-radius: 50%;
+            z-index: 6;
+        }
+
+        .image-card.selected .image-point {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            transform: translateX(-50%) scale(1.2);
+        }
+
+        .image-card.matched .image-point {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+
+        /* Bottom Row - Options */
+        .options-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .option-card {
+            min-width: 140px;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #f59e0b;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .option-card:hover:not(.matched) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .option-card.selected {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+
+        .option-card.matched {
+            border-color: #22c55e;
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            cursor: default;
+        }
+
+        .option-card.error {
+            border-color: #ef4444;
+            background: #fee2e2;
+            animation: shake 0.4s;
+        }
+
+        .option-text {
+            font-family: "CCSyntroman";
+            font-size: 22px;
+            font-weight: 600;
+            color: #2d3748;
+            text-align: center;
+        }
+
+        .option-card.matched .option-text {
+            color: #15803d;
+        }
+
+        /* Connection Point on Option */
+        .option-point {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background: #e0e7ff;
+            border: 3px solid #6366f1;
+            border-radius: 50%;
+            z-index: 6;
+        }
+
+        .option-card.selected .option-point {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            transform: translateX(-50%) scale(1.2);
+        }
+
+        .option-card.matched .option-point {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        /* Responsive - Large Desktop */
+        @media (min-width: 1400px) {
+            .game-container {
+                gap: 300px;
+                max-width: 1200px;
+            }
+            .subtitle {
+                font-size: 40px;
+                margin-bottom: 40px;
+            }
+            .image-card {
+                width: 180px;
+                height: 180px;
+            }
+
+            .image-card img {
+                width: 140px;
+                height: 140px;
+            }
+
+            .option-card {
+                min-width: 160px;
+                padding: 18px 36px;
+            }
+
+            .option-text {
+                font-size: 24px;
+            }
+        }
+
+        /* Responsive - Tablet */
+        @media (max-width: 1023px) {
+            .subtitle {
+                font-size: 36px;
+                margin-bottom: 24px;
+            }
+
+            .game-container {
+                gap: 180px;
+            }
+
+            .images-row {
+                gap: 24px;
+            }
+
+            .image-card {
+                width: 130px;
+                height: 130px;
+            }
+
+            .image-card img {
+                width: 100px;
+                height: 100px;
+            }
+
+            .options-row {
+                gap: 20px;
+            }
+
+            .option-card {
+                min-width: 120px;
+                padding: 14px 26px;
+            }
+
+            .option-text {
+                font-size: 18px;
+            }
+        }
+
+        /* Responsive - Small Tablet */
+        @media (max-width: 768px) {
+            .subtitle {
+                font-size: 30px;
+                margin-bottom: 20px;
+            }
+
+            .game-container {
+                gap: 120px;
+            }
+
+            .images-row {
+                gap: 16px;
+            }
+
+            .image-card {
+                width: 110px;
+                height: 110px;
+            }
+
+            .image-card img {
+                width: 85px;
+                height: 85px;
+            }
+
+            .options-row {
+                gap: 14px;
+            }
+
+            .option-card {
+                min-width: 100px;
+                padding: 12px 20px;
+            }
+
+            .option-text {
+                font-size: 15px;
+            }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 590px) {
+            .game-container {
+                gap: 100px;
+            }
+
+            .images-row {
+                gap: 12px;
+            }
+
+            .image-card {
+                width: 80px;
+                height: 80px;
+                border-radius: 14px;
+            }
+
+            .image-card img {
+                width: 60px;
+                height: 60px;
+            }
+
+            .options-row {
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .option-card {
+                min-width: 80px;
+                padding: 10px 16px;
+                border-radius: 30px;
+            }
+
+            .option-text {
+                font-size: 13px;
+            }
+        }
+
+        /* Responsive - Small Mobile */
+        @media (max-width: 420px) {
+            .game-container {
+                gap: 80px;
+            }
+
+            .image-card {
+                width: 65px;
+                height: 65px;
+                border-radius: 10px;
+            }
+
+            .image-card img {
+                width: 48px;
+                height: 48px;
+            }
+
+            .options-row {
+                gap: 8px;
+            }
+
+            .option-card {
+                min-width: 70px;
+                padding: 6px 14px;
+                border-radius: 25px;
+            }
+
+            .option-text {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main">
+        <p class="subtitle">Match the animals with their body parts</p>
+
+        <div class="game-container">
+            <svg id="lineCanvas"></svg>
+            
+            <div class="images-row" id="imagesRow"></div>
+            <div class="options-row" id="optionsRow"></div>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        const matchData = [
+            { id: 1, img: "assets/images/elephant-removebg-preview.png", alt: "elephant", match: "trunk", label: "Elephant" },
+            { id: 2, img: "assets/images/eagle.png", alt: "eagle", match: "claws", label: "Eagle" },
+            { id: 3, img: "assets/images/deer-removebg-preview.png", alt: "deer", match: "horns", label: "Deer" },
+            { id: 4, img: "assets/images/lion2.png", alt: "lion", match: "mane", label: "Lion" },
+        ];
+
+        const optionsData = [
+            { id: "trunk", text: "Trunk" },
+            { id: "claws", text: "Claws" },
+            { id: "horns", text: "Horns" },
+            { id: "mane", text: "Mane" },
+        ];
+
+        let selectedImage = null;
+        let matchesFound = 0;
+        let score = 0;
+        let connections = [];
+
+        const imagesRow = document.getElementById("imagesRow");
+        const optionsRow = document.getElementById("optionsRow");
+        const svg = document.getElementById("lineCanvas");
+
+        function init() {
+            imagesRow.innerHTML = "";
+            optionsRow.innerHTML = "";
+            svg.innerHTML = "";
+
+            const shuffledOptions = [...optionsData].sort(() => Math.random() - 0.5);
+
+            matchData.forEach((item) => {
+                const card = document.createElement("div");
+                card.className = "image-card";
+                card.dataset.id = item.id;
+                card.dataset.match = item.match;
+
+                card.innerHTML = `
+                    <img src="${item.img}" alt="${item.alt}">
+                    <div class="image-point"></div>
+                `;
+
+                card.onclick = () => handleImageClick(card);
+                imagesRow.appendChild(card);
+            });
+
+            shuffledOptions.forEach((item) => {
+                const card = document.createElement("div");
+                card.className = "option-card";
+                card.dataset.id = item.id;
+
+                card.innerHTML = `
+                    <div class="option-point"></div>
+                    <span class="option-text">${item.text}</span>
+                `;
+
+                card.onclick = () => handleOptionClick(card);
+                optionsRow.appendChild(card);
+            });
+        }
+
+        function handleImageClick(card) {
+            if (card.classList.contains("matched")) return;
+
+            document.querySelectorAll(".image-card").forEach(c => c.classList.remove("selected"));
+            document.querySelectorAll(".option-card").forEach(c => c.classList.remove("selected"));
+
+            card.classList.add("selected");
+            selectedImage = card;
+        }
+
+        function handleOptionClick(card) {
+            if (!selectedImage || card.classList.contains("matched")) return;
+
+            const imageMatch = selectedImage.dataset.match;
+            const optionId = card.dataset.id;
+
+            if (imageMatch === optionId) {
+                handleMatch(selectedImage, card);
+            } else {
+                playSound("wrongSound");
+                speak("Wrong");
+                card.classList.add("error");
+                setTimeout(() => card.classList.remove("error"), 400);
+            }
+        }
+
+        function handleMatch(imageCard, optionCard) {
+            score++;
+
+            imageCard.classList.add("matched");
+            imageCard.classList.remove("selected");
+            optionCard.classList.add("matched");
+
+            drawLine(imageCard, optionCard);
+            connections.push({ from: imageCard, to: optionCard });
+
+            selectedImage = null;
+            matchesFound++;
+
+            playSound("correctSound");
+            speak("Correct");
+            bigConfetti();
+
+            if (matchesFound === matchData.length) {
+                setTimeout(showFinal, 700);
+            }
+        }
+
+        function drawLine(el1, el2) {
+            const point1 = el1.querySelector(".image-point");
+            const point2 = el2.querySelector(".option-point");
+
+            const rect1 = point1.getBoundingClientRect();
+            const rect2 = point2.getBoundingClientRect();
+            const containerRect = svg.getBoundingClientRect();
+
+            const x1 = rect1.left + rect1.width / 2 - containerRect.left;
+            const y1 = rect1.top + rect1.height / 2 - containerRect.top;
+            const x2 = rect2.left + rect2.width / 2 - containerRect.left;
+            const y2 = rect2.top + rect2.height / 2 - containerRect.top;
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            path.setAttribute("x1", x1);
+            path.setAttribute("y1", y1);
+            path.setAttribute("x2", x2);
+            path.setAttribute("y2", y2);
+            path.setAttribute("stroke", "#22c55e");
+            path.setAttribute("stroke-width", "4");
+            path.setAttribute("stroke-linecap", "round");
+
+            svg.appendChild(path);
+        }
+
+        function playSound(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            try {
+                el.currentTime = 0;
+                el.play();
+            } catch (e) {}
+        }
+
+        function speak(t) {
+            try {
+                speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(t);
+                msg.lang = "en-UK";
+                msg.volume = 0.25;
+                msg.rate = 1;
+                msg.pitch = 1;
+                speechSynthesis.speak(msg);
+            } catch (e) {}
+        }
+
+        function bigConfetti() {
+            if (typeof confetti !== "function") return;
+            confetti({
+                particleCount: 120,
+                spread: 100,
+                startVelocity: 40,
+                origin: { y: 0.6 },
+            });
+        }
+
+        function showFinal() {
+            document.getElementById("finalScore").textContent = `Your Score: ${score} / ${matchData.length}`;
+            document.getElementById("stars").textContent = "⭐".repeat(score);
+            document.getElementById("finalPopup").style.display = "flex";
+            bigConfetti();
+        }
+
+        function redrawLines() {
+            svg.innerHTML = "";
+            connections.forEach(c => drawLine(c.from, c.to));
+        }
+
+        window.addEventListener("resize", () => {
+            setTimeout(redrawLines, 100);
+        });
+
+        init();
+    </script>
+</body>
+</html>

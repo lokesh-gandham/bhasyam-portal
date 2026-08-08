@@ -1,0 +1,838 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Missing Letters · Match</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+     <link rel="stylesheet" href="assets/CSS/popups.css">
+    <style>
+        @font-face {
+            font-family: 'CCSyBold';
+            src: url('./assets/CCSYBOLD.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('./assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'CCSyntroman';
+        }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'CCSyntroman';
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fefcf5;
+        }
+
+        .main {
+            width: 100%;
+            /* height: 100vh; */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 20px 10px;
+        }
+
+        .subtitle {
+            width: 100%;
+    text-align: center;
+    font-size: 30px;
+    font-family: 'CCSyntroman';
+    font-weight: 400;
+    color: #2d3748;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+        }
+
+        /* GAME CONTAINER — FLEX ROW, STRETCH TO SAME HEIGHT */
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: stretch;   /* both columns stretch to same height */
+            gap: 80px;
+            background: transparent;
+            min-height: 0;
+            flex: 1 1 auto;
+            margin-bottom: 10px;
+            /* background:#c6aeea; */
+        }
+
+        #lineCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* COLUMNS — both start at same row, same height */
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            z-index: 2;
+            flex: 0 1 auto;
+            justify-content: center;  /* items align from top */
+            align-items: stretch;
+            min-height: 0;
+        }
+
+        .column.left {
+            flex: 0 0 auto;
+            width: auto;
+        }
+        .column.right {
+            flex: 0 0 auto;
+            width: auto;
+            padding-top: 0;
+            /* gap:38px; */
+        }
+
+        /* LEFT CARDS — IMAGE INCREASED, SAME HEIGHT AS RIGHT CARDS */
+        .left-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            border-radius: 50px;
+            min-width: 380px;
+            height: 70px;      /* fixed min-height, matched with right */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .left-card.matched {
+            cursor: default;
+        }
+
+        .left-num {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .word-track {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: 1px;
+        }
+
+        .letter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            color: #1a1a1a;
+            font-family: 'CCSyntroman';
+            font-weight: 700;
+        }
+
+        .letter.blank {
+            cursor: pointer;
+            border: 1px solid #888;
+            color: transparent;
+            min-width: 32px;
+            padding: 0 8px;
+            transition: all 0.2s;
+            background: rgba(255,255,255,0.5);
+            border-radius: 4px;
+            font-size: 26px;
+        }
+
+        .letter.blank:hover {
+            border-color: #333;
+            transform: translateY(-2px);
+        }
+
+        .letter.blank.filled {
+            color: #1a1a1a;
+            border-bottom: 3px solid #22c55e;
+            background: rgba(34, 197, 94, 0.15);
+            border-radius: 4px;
+            animation: pop 0.3s ease;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.5); }
+            60% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* LEFT IMAGE — INCREASED SIZE (was 60x50, now 88x72) */
+        .left-img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .left-point {
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: #e0e7ff;
+            border: 3px solid #6366f1;
+            border-radius: 50%;
+            z-index: 6;
+        }
+
+        .left-card.matched .left-point {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+
+        /* RIGHT CARDS — SAME MIN-HEIGHT AS LEFT CARDS, SAME ROW ALIGN */
+        .right-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 28px;
+            border-radius: 50px;
+            min-width: 300px;
+            height: 70px;      /* identical to left-card min-height */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            margin-top: 0;
+            flex-shrink: 0;
+        }
+
+        .right-card:nth-child(1) { order: 1; }
+        .right-card:nth-child(2) { order: 2; }
+        .right-card:nth-child(3) { order: 3; }
+        .right-card:nth-child(4) { order: 4; }
+        .right-card:nth-child(5) { order: 5; }
+
+        .right-card.matched {
+            cursor: default;
+        }
+
+        .right-letter {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .right-text {
+            font-size: 26px;
+            font-family: 'CCSyntroman';
+            font-weight: 400;
+            color: #1a1a1a;
+            letter-spacing: 0.3px;
+        }
+
+        .right-point {
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: #e0e7ff;
+            border: 3px solid #6366f1;
+            border-radius: 50%;
+            z-index: 6;
+        }
+
+        .right-card.matched .right-point {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+
+        .right-card.error {
+            animation: shake 0.4s;
+        }
+
+        /* PASTEL COLORS */
+        .pastel-green { background: #d4edda; }
+        .pastel-green .left-num { background: #28a745; }
+        .pastel-green .right-letter { background: #28a745; }
+
+        .pastel-pink { background: #f8d7da; }
+        .pastel-pink .left-num { background: #dc3545; }
+        .pastel-pink .right-letter { background: #dc3545; }
+
+        .pastel-yellow { background: #fff3cd; }
+        .pastel-yellow .left-num { background: #ffc107; color: #333; }
+        .pastel-yellow .right-letter { background: #ffc107; color: #333; }
+
+        .pastel-blue { background: #d1ecf1; }
+        .pastel-blue .left-num { background: #17a2b8; }
+        .pastel-blue .right-letter { background: #17a2b8; }
+
+        .pastel-purple { background: #e8daef; }
+        .pastel-purple .left-num { background: #8e44ad; }
+        .pastel-purple .right-letter { background: #8e44ad; }
+
+        /* PICKER */
+        .picker {
+            position: fixed;
+            z-index: 100;
+            background: #fff;
+            border-radius: 22px;
+            padding: 10px 14px;
+            display: flex;
+            gap: 12px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.22);
+            border: 3px solid #c6aeea;
+        }
+
+        .picker::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #fff;
+        }
+
+        .opt-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s;
+        }
+
+        .opt-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .opt-btn.o0 { background: #cdefdd; box-shadow: 0 3px 0 #8fcfae; }
+        .opt-btn.o1 { background: #ffdcc2; box-shadow: 0 3px 0 #f0ae7c; }
+
+        .opt-btn.wrong-shake {
+            animation: shake 0.4s;
+            background: #f08c8c !important;
+            color: #fff;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+
+        .left-card.ready-to-match {
+    cursor: pointer;
+    outline: 3px solid #6366f1;
+    outline-offset: 3px;
+    animation: readyPulse 1s ease-in-out infinite;
+}
+
+@keyframes readyPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+.right-card {
+    cursor: pointer;
+}
+
+.right-card.matched {
+    cursor: default;
+}
+        /* POPUPS */
+        
+          
+
+        /* RESPONSIVE — keep same height & row, image enlarged, text scaled */
+        @media (max-width: 900px) {
+            .game-container { gap: 40px; }
+            .left-card { min-width: 280px; min-height: 76px; padding: 10px 16px; }
+            .word-track { font-size: 20px; }
+            .left-img { width: 80px; height: 80px; }
+            .right-card { min-width: 220px; min-height: 76px; padding: 10px 18px; }
+            .right-text { font-size: 20px; }
+        }
+
+        @media (max-width: 700px) {
+            .game-container { gap: 20px; flex-wrap: nowrap;  }
+            .left-card { min-width: 200px; min-height: 68px; padding: 8px 12px; gap: 10px; }
+            .word-track { font-size: 17px; }
+            .left-img { width: 60px; height: 60px; }
+            .right-card { min-width: 160px; min-height: 68px; padding: 8px 14px; }
+            .right-text { font-size: 17px; }
+            .subtitle { font-size: 22px; }
+        }
+
+        @media (min-width: 1400px) {
+            .game-container { gap: 250px; max-width: 1200px;   }
+            .left-card { min-width: 440px; height: 120px; padding: 16px 28px;  }
+            .column.left { gap: 28px; }
+            .word-track { font-size: 30px; }
+            .left-img { width: 130px; height: 130px; }
+            .right-card { min-width: 340px; height: 120px; padding: 16px 32px; }
+            .right-text { font-size: 30px; }
+            .subtitle { font-size: 40px; }
+        }
+    </style>
+</head>
+<body>
+<div class="main">
+    <p class="subtitle">Write the missing letters & match</p>
+    <div class="game-container">
+        <svg id="lineCanvas"></svg>
+        <div class="column left" id="leftColumn"></div>
+        <div class="column right" id="rightColumn"></div>
+    </div>
+</div>
+
+<div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+        <div class="kid-icon" id="popupIcon"></div>
+        <h3 id="popupTitle"></h3>
+        <p id="popupMsg"></p>
+    </div>
+</div>
+
+<div id="finalPopup">
+    <div class="final-kid-box">
+        <h2>🎉 Congratulations!</h2>
+        <p id="finalScore"></p>
+        <div id="stars"></div>
+        <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+    (function() {
+        const wordsData = [
+            { chars: ['G','a','t','h','e','r'], blanks: {1:'o', 3:'n', 4:'i', 5:'l'}, match: 'd', img: 'assets/images/1.png' },
+            { chars: ['A','r','r','i','v','e'], blanks: {2:'n', 3:'e', 4:'f', 5:'a'}, match: 'c', img: 'assets/images/2.png' },
+            { chars: ['S','u','p','p','o','r','t'], blanks: {1:'o', 3:'b', 4:'e', 5:'l', 6:'d'}, match: 'a', img: 'assets/images/3.png' },
+            { chars: ['O','b','s','e','r','v','e'], blanks: {1:'p', 2:'z', 4:'l', 5:'f', 6:'a'}, match: 'e', img: 'assets/images/4.png' },
+            { chars: ['R','e','q','u','e','s','t'], blanks: {1:'a', 3:'o', 4:'i', 5:'z', 6:'d'}, match: 'b', img: 'assets/images/5.png' },
+        ];
+
+        const rightData = [
+            { id: 'a', text: 'Assist' },
+            { id: 'b', text: 'To ask' },
+            { id: 'c', text: 'Reach' },
+            { id: 'd', text: 'Assemble' },
+            { id: 'e', text: 'Notice carefully' },
+        ];
+
+        const pastelColors = ['pastel-green', 'pastel-pink', 'pastel-yellow', 'pastel-blue', 'pastel-purple'];
+        let score = 0;
+        let completedCount = 0;
+        let connections = [];
+        let activePicker = null;
+
+        const leftCol = document.getElementById('leftColumn');
+        const rightCol = document.getElementById('rightColumn');
+        const svg = document.getElementById('lineCanvas');
+
+        function playSound(el) {
+            try { el.currentTime = 0; el.volume = 0.35; el.play().catch(()=>{}); } catch(e) {}
+        }
+
+        function shuffle(arr) {
+            const a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-UK";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+
+     
+
+        function buildLeft() {
+            leftCol.innerHTML = '';
+            wordsData.forEach((word, row) => {
+                const card = document.createElement('div');
+                card.className = `left-card ${pastelColors[row]}`;
+                card.dataset.row = row;
+
+                const track = document.createElement('div');
+                track.className = 'word-track';
+
+                word.chars.forEach((ch, idx) => {
+                    const span = document.createElement('span');
+                    if (word.blanks.hasOwnProperty(idx)) {
+                        span.className = 'letter blank';
+                        span.textContent = ch;
+                        span.dataset.row = row;
+                        span.dataset.idx = idx;
+                        span.dataset.correct = ch;
+                        span.dataset.distractor = word.blanks[idx];
+                        span.addEventListener('click', onBlankClick);
+                    } else {
+                        span.className = 'letter';
+                        span.textContent = ch;
+                    }
+                    track.appendChild(span);
+                });
+
+                card.appendChild(track);
+
+                const img = document.createElement('img');
+                img.className = 'left-img';
+                img.src = word.img;
+                img.alt = 'illustration';
+                card.appendChild(img);
+
+                const point = document.createElement('div');
+                point.className = 'left-point';
+                card.appendChild(point);
+
+                leftCol.appendChild(card);
+            });
+        }
+
+      
+
+      function buildRight() {
+    rightCol.innerHTML = '';
+
+    rightData.forEach((item, dataIdx) => {
+        const card = document.createElement('div');
+        card.className = `right-card ${pastelColors[dataIdx]}`;
+        card.dataset.id = item.id;
+
+        const point = document.createElement('div');
+        point.className = 'right-point';
+        card.appendChild(point);
+
+        const txt = document.createElement('span');
+        txt.className = 'right-text';
+        txt.textContent = item.text;
+        card.appendChild(txt);
+
+        rightCol.appendChild(card);
+
+        // Store the actual DOM element
+        item._el = card;
+        card.addEventListener('click', () => {
+    matchRightCard(item);
+});
+    });
+}
+        function showPopup(isCorrect) {
+  const popup = document.getElementById("answerPopup");
+  const icon = document.getElementById("popupIcon");
+  const title = document.getElementById("popupTitle");
+  const msg = document.getElementById("popupMsg");
+
+  popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+  popup.style.display = "flex";
+
+  if (isCorrect) {
+    icon.textContent = "🎉";
+    title.textContent = "Great Job!";
+    msg.textContent = "You got it right!";
+  } else {
+    icon.textContent = "🥲";
+    title.textContent = "Oops!";
+    msg.textContent = "Try again, you can do it!";
+  }
+
+  setTimeout(() => {
+    popup.style.display = "none";
+  }, 1400);
+}
+
+       
+
+        function closePicker() {
+            if (activePicker) { activePicker.remove(); activePicker = null; }
+        }
+
+        function onBlankClick(e) {
+            const span = e.currentTarget;
+            if (span.classList.contains('filled')) return;
+            closePicker();
+
+            const correct = span.dataset.correct;
+            const distractor = span.dataset.distractor;
+            const options = Math.random() < 0.5 ? [correct, distractor] : [distractor, correct];
+
+            const rect = span.getBoundingClientRect();
+            const picker = document.createElement('div');
+            picker.className = 'picker';
+            picker.style.left = (rect.left + rect.width / 2 - 45) + 'px';
+            picker.style.top = (rect.top - 65) + 'px';
+
+            options.forEach((letter, i) => {
+                const btn = document.createElement('button');
+                btn.className = `opt-btn o${i}`;
+                btn.textContent = letter;
+                btn.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    if (letter === correct) {
+                        fillBlank(span);
+                        closePicker();
+                        const card = leftCol.children[Number(span.dataset.row)];
+                        const remaining = card.querySelectorAll('.letter.blank:not(.filled)');
+                        if (remaining.length === 0) {
+                            speak("correct");
+                            showPopup(true);
+                        }
+                    } else {
+                        showPopup(false);
+                        btn.classList.add('wrong-shake');
+                       speak("wrong");
+                        setTimeout(() => btn.classList.remove('wrong-shake'), 400);
+                    }
+                });
+                picker.appendChild(btn);
+            });
+
+            document.body.appendChild(picker);
+            activePicker = picker;
+        }
+
+        document.addEventListener('click', (e) => {
+            if (activePicker && !activePicker.contains(e.target) && !e.target.classList.contains('blank')) {
+                closePicker();
+            }
+        });
+
+      function fillBlank(span) {
+    span.textContent = span.dataset.correct;
+    span.classList.add('filled');
+
+    smallConfetti(span);
+
+    const row = Number(span.dataset.row);
+    const card = leftCol.children[row];
+
+    const remaining = card.querySelectorAll(
+        '.letter.blank:not(.filled)'
+    );
+
+    // Word is complete, but DO NOT match automatically.
+    if (remaining.length === 0) {
+        card.classList.add('ready-to-match');
+        speak("Now match the word");
+    }
+}
+
+function matchRightCard(item) {
+
+    // Find a completed word waiting to be matched
+    const readyCard = [...leftCol.children].find(card => {
+        return card.classList.contains('ready-to-match') &&
+               !card.classList.contains('matched');
+    });
+
+    // No completed word selected
+    if (!readyCard) {
+        showPopup(false);
+        speak("Complete a word first");
+        return;
+    }
+
+    const row = Number(readyCard.dataset.row);
+    const correctId = wordsData[row].match;
+
+    // =========================
+    // CORRECT MATCH
+    // =========================
+    if (item.id === correctId) {
+
+        completeWord(row);
+
+    }
+
+    // =========================
+    // WRONG MATCH
+    // =========================
+    else {
+
+        item._el.classList.add('error');
+
+        showPopup(false);
+        speak("Wrong match");
+
+        setTimeout(() => {
+            item._el.classList.remove('error');
+        }, 500);
+    }
+}
+function completeWord(row) {
+
+    const card = leftCol.children[row];
+
+    // Already matched
+    if (card.classList.contains('matched')) return;
+
+    card.classList.remove('ready-to-match');
+    card.classList.add('matched');
+
+    const matchId = wordsData[row].match;
+
+    // Find the fixed right-side box
+    const item = rightData.find(d => d.id === matchId);
+
+    if (item && item._el) {
+        item._el.classList.add('matched');
+    }
+
+    score++;
+    completedCount++;
+
+    playSound(document.getElementById('correctSound'));
+    bigConfetti();
+
+    // Create connection only after USER clicks correct right box
+    connections.push({
+        leftRow: row,
+        rightId: matchId
+    });
+
+    setTimeout(() => {
+        drawAllLines();
+    }, 300);
+
+    if (completedCount === wordsData.length) {
+        setTimeout(showFinal, 1600);
+    }
+}
+
+        function drawAllLines() {
+            svg.innerHTML = '';
+            const containerRect = svg.getBoundingClientRect();
+            connections.forEach(conn => {
+                const leftCard = leftCol.children[conn.leftRow];
+                const rightItem = rightData.find(d => d.id === conn.rightId);
+                if (!leftCard || !rightItem) return;
+                const point1 = leftCard.querySelector('.left-point');
+                const point2 = rightItem._el.querySelector('.right-point');
+                if (!point1 || !point2) return;
+                const r1 = point1.getBoundingClientRect();
+                const r2 = point2.getBoundingClientRect();
+                const x1 = r1.left + r1.width / 2 - containerRect.left;
+                const y1 = r1.top + r1.height / 2 - containerRect.top;
+                const x2 = r2.left + r2.width / 2 - containerRect.left;
+                const y2 = r2.top + r2.height / 2 - containerRect.top;
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                path.setAttribute('x1', x1);
+                path.setAttribute('y1', y1);
+                path.setAttribute('x2', x2);
+                path.setAttribute('y2', y2);
+                path.setAttribute('stroke', '#22c55e');
+                path.setAttribute('stroke-width', '4');
+                path.setAttribute('stroke-linecap', 'round');
+                svg.appendChild(path);
+            });
+        }
+
+        function smallConfetti(el) {
+            const rect = el.getBoundingClientRect();
+            confetti({
+                particleCount: 22,
+                spread: 55,
+                startVelocity: 22,
+                scalar: 0.7,
+                origin: { x: (rect.left + rect.width/2) / window.innerWidth, y: rect.top / window.innerHeight }
+            });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 90, spread: 90, startVelocity: 35, origin: { y: 0.5 } });
+        }
+
+        function showFinal() {
+            document.getElementById('finalScore').textContent = `Your Score: ${score} / ${wordsData.length}`;
+            document.getElementById('stars').textContent = '⭐'.repeat(score);
+            document.getElementById('finalPopup').style.display = 'flex';
+            bigConfetti();
+        }
+
+        function redrawLines() {
+            svg.innerHTML = '';
+            drawAllLines();
+        }
+
+        window.addEventListener('resize', () => {
+            closePicker();
+            setTimeout(redrawLines, 100);
+        });
+
+        buildLeft();
+        buildRight();
+        requestAnimationFrame(() => drawAllLines());
+    })();
+</script>
+</body>
+</html>

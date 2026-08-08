@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MCQ Quiz</title>
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet"> -->
+    <link href="https://fonts.cdnfonts.com/css/ccsyntroman" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="assets/CSS/popups.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* CCSyntroman Font */
+        @font-face {
+            font-family: 'CCSYBold';
+            src: url('./assets/CCSYBOLD.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('./assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman";
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            /* background: #fdf6ec; */
+        }
+
+        /* ========================================
+           QUIZ CONTAINER - shrink-wraps to its
+           content instead of being forced to fill
+           100vh. Body's flex centering keeps it
+           centered. max-height is a safety cap so
+           nothing ever causes page scroll.
+        ======================================== */
+        .quiz {
+            width: 95%;
+            max-width: 1100px;
+            height: auto;
+            max-height: 100vh;
+            border-radius: 40px;
+            padding: 24px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 14px;
+            background: transparent;
+            overflow: hidden;
+            /* background-color:#b39ddb */
+        }
+
+        /* ========================================
+           TWO CARDS ROW (replaces flip scene)
+           align-items: stretch -> both cards are
+           forced to the SAME height and width
+           (flex: 1 1 0 below gives equal width).
+           Combined with justify-content: flex-start
+           on .card, both cards' content still starts
+           from the same top edge, so the header-row
+           and question-image (same height in both
+           cards via the shared rules below) land on
+           the same row in both cards even though the
+           answer card has extra options content below.
+        ======================================== */
+        .cards-row {
+            width: 100%;
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 24px;
+        }
+
+        .instruction-heading {
+    width: 100%;
+    text-align: center;
+    font-size: 30px;
+    font-weight: 400;
+    color: #2f4f4f;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+}
+
+        .card {
+            flex: 1 1 0;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: clamp(8px, 2vh, 18px);
+            padding: 24px;
+            border-radius: 30px;
+            overflow: hidden;
+        }
+
+        .card-question {
+            background: #fdf1e7;
+            border: 2px solid #f4d3b3;
+        }
+
+        .card-answer {
+            background: #eaf6ee;
+            border: 2px solid #c9e8d3;
+        }
+
+        /* ========================================
+           HEADER - QUESTION NUMBER BESIDE QUESTION
+        ======================================== */
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            width: 100%;
+            text-align: left;
+            flex-shrink: 0;
+        }
+
+        .q-badge {
+            /* display: none !important; */
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            /* background: linear-gradient(#ffcf86, #ffac30); */
+            /* color: #7a4a00; */
+            /* font-weight: 700; */
+            font-size: 30px;
+            /* margin-top: -30px; */
+            /* padding: 8px 18px; */
+            border-radius: 20px;
+             color: #2f4f4f;
+            /* box-shadow: 0 3px 0 #d9932a; */
+        }
+
+        .q-text {
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            line-height: 1.3;
+            text-align: left;
+        }
+
+        /* ========================================
+           QUESTION IMAGE - FIXED HEIGHT (not flex-grown)
+           so the box is IDENTICAL in both the question
+           card and the answer card at every breakpoint,
+           regardless of the answer card having extra
+           "options" content below it. Centered on both
+           axes so the image always sits in the middle.
+        ======================================== */
+        .question-image {
+            width: 100%;
+            flex: 0 0 auto;
+            height: 30vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .question-image img {
+            width: 100%;
+            height: 100%;
+            max-width: 68%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* ========================================
+           OPTIONS - TEXT ANSWER BUTTONS
+        ======================================== */
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            width: min(520px, 85%);
+            margin: 0 auto;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 12px;
+            border-radius: 22px;
+            font-size: 26px;
+            /* font-weight: 500; */
+            cursor: pointer;
+            color: #2f4f4f;
+            border: 3px solid #ffffff;
+            background: rgba(246, 246, 247, 0.15);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.08);
+            transition: all 0.25s ease;
+            text-transform: capitalize;
+            text-align: center;
+            min-height: 68px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .option:hover:not(.disabled) {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.08);
+        }
+
+        .option-text {
+            font-size: 26px;
+            font-weight: 600;
+            color: #2f4f4f;
+            line-height: 1.2;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .option.correct {
+            background: #d3ffdc;
+            border: 4px solid #29b44c;
+            box-shadow: 0 6px 0 #4fb869;
+        }
+
+        .option.wrong {
+            animation: softBlink 0.8s ease;
+        }
+
+        @keyframes softBlink {
+            0%, 100% {
+                background: #ffe5e5;
+                border-color: #ff9a9a;
+                box-shadow: 0 6px 0 #ff9a9a;
+            }
+        }
+
+        .option.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+
+        .answer-input-area {
+    width: min(520px, 90%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.answer-input {
+    width: 100%;
+    height: 70px;
+    padding: 10px 20px;
+    border: 3px solid #c9e8d3;
+    border-radius: 22px;
+    background: #ffffff;
+    color: #2f4f4f;
+    font-family: 'CCSyntroman';
+    font-size: 28px;
+    text-align: center;
+    outline: none;
+    transition: 0.2s ease;
+    text-transform: capitalize;
+}
+
+.answer-input:focus {
+    border-color: #79c98d;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.answer-input.correct {
+    border-color: #29b44c;
+    background: #d3ffdc;
+}
+
+.answer-input.wrong {
+    border-color: #ff9a9a;
+    background: #ffe5e5;
+    animation: softBlink 0.8s ease;
+}
+
+.submit-answer {
+    width: 150px;
+    height: 52px;
+    border: 3px solid #ffffff;
+    border-radius: 30px;
+    background: linear-gradient(#81c995, #55b86b);
+    box-shadow: 0 5px 0 #4a9f5b;
+    color: #ffffff;
+    font-family: 'CCSyntroman';
+    font-size: 20px;
+    cursor: pointer;
+
+}
+
+.submit-answer:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #4a9f5b;
+}
+
+.submit-answer:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+        /* ========================================
+           CONTROLS
+        ======================================== */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 24px;
+            flex-shrink: 0;
+        }
+
+        .controls button {
+             width: 150px;
+    height: 56px;
+    padding: 13px 0;
+            /* padding: 12px 26px; */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            border-radius: 35px;
+            border: 3px solid #ffffff;
+            font-size: 18px;
+            font-weight: 400;
+            color: #ffffff;
+            cursor: pointer;
+            background-size: 200% 200%;
+            transition: 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .prev {
+            background: linear-gradient(#ff9aa2, #ff6f91);
+            box-shadow: 0 5px 0 #d29ba0;
+        }
+
+        .next {
+            background: linear-gradient(#b39ddb, #9575cd);
+            box-shadow: 0 5px 0 #b9aad6;
+        }
+
+        .prev:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #4da5d4;
+        }
+
+        .next:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #d1a72c;
+        }
+
+        .controls button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ========================================
+           RESPONSIVE - Tablet (max-width: 900px)
+        ======================================== */
+        @media (max-width: 900px) {
+            body {
+                align-items: center;
+                padding: 20px;
+                overflow: hidden;
+            }
+
+            .quiz {
+                width: 100%;
+                padding: 20px;
+            }
+
+            .cards-row {
+                gap: 16px;
+            }
+
+            .card {
+                padding: 20px;
+                border-radius: 26px;
+            }
+
+            .q-text {
+                font-size: 30px;
+            }
+
+            .question-image {
+                height: 27vh;
+            }
+
+            .question-image img {
+                max-width: 64%;
+            }
+
+            .options {
+                width: min(460px, 90%);
+                gap: 14px;
+            }
+
+            .option {
+                font-size: 24px;
+                padding: 14px 10px;
+                min-height: 62px;
+                border-radius: 18px;
+            }
+
+            .option-text {
+                font-size: 26px;
+            }
+
+            .controls {
+                gap: 18px;
+            }
+        }
+
+        /* ========================================
+           RESPONSIVE - Small Tablet (max-width: 768px)
+        ======================================== */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+                align-items: center;
+                overflow: hidden;
+            }
+
+            .quiz {
+                padding: 14px;
+            }
+
+            .cards-row {
+                gap: 12px;
+            }
+
+            .card {
+                padding: 15px;
+                border-radius: 22px;
+            }
+
+            .q-text {
+                font-size: 18pt;
+            }
+
+            .question-image {
+                height: 23vh;
+            }
+
+            .question-image img {
+                max-width: 58%;
+            }
+
+            .options {
+                width: min(410px, 92%);
+                gap: 12px;
+            }
+
+            .option {
+                font-size: 24px;
+                padding: 12px 9px;
+                min-height: 56px;
+                border-radius: 16px;
+                gap: 8px;
+            }
+
+            .option-text {
+                font-size: 22px;
+            }
+
+            .controls {
+                gap: 14px;
+            }
+
+            .controls button {
+                padding: 9px 20px;
+                font-size: 16px;
+            }
+        }
+
+        /* ========================================
+           RESPONSIVE - Mobile (max-width: 590px)
+        ======================================== */
+        @media (max-width: 590px) {
+            body {
+                padding: 15px 8px;
+                align-items: center;
+                overflow: hidden;
+                height: 100vh;
+            }
+
+            .quiz {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .cards-row {
+                gap: 8px;
+                flex-direction: row;
+            }
+
+            .card {
+                padding: 10px;
+                border-radius: 18px;
+            }
+
+            .q-text {
+                font-size: 19px;
+            }
+
+            .header-row {
+                gap: 8px;
+            }
+
+            .q-badge {
+                font-size: 13px;
+                /* padding: 6px 12px; */
+            }
+
+            .question-image {
+                height: 19vh;
+            }
+
+            .question-image img {
+                max-width: 54%;
+            }
+
+            .options {
+                width: min(345px, 94%);
+                gap: 9px;
+            }
+
+            .option {
+                font-size: 12px;
+                padding: 9px 7px;
+                min-height: 51px;
+                border-radius: 13px;
+                gap: 6px;
+            }
+
+            .option-text {
+                font-size: 18px;
+                line-height: 1.1;
+            }
+
+            .controls {
+                gap: 10px;
+            }
+
+            .controls button {
+                padding: 8px 14px;
+                font-size: 14px;
+                border-radius: 25px;
+            }
+        }
+
+        /* ========================================
+           RESPONSIVE - Small Mobile (max-width: 420px)
+        ======================================== */
+        @media (max-width: 420px) {
+            body {
+                padding: 10px 5px;
+            }
+
+            .quiz {
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .cards-row {
+                gap: 6px;
+            }
+
+            .card {
+                padding: 8px;
+                border-radius: 16px;
+            }
+
+            .q-text {
+                font-size: 16px;
+            }
+
+            .q-badge {
+                font-size: 11px;
+                /* padding: 5px 10px; */
+            }
+
+            .question-image {
+                height: 16vh;
+            }
+
+            .question-image img {
+                max-width: 49%;
+            }
+
+            .options {
+                width: min(300px, 96%);
+                gap: 7px;
+            }
+
+            .option {
+                font-size: 10px;
+                padding: 7px 5px;
+                min-height: 46px;
+                border-radius: 11px;
+                gap: 4px;
+                border-width: 2px;
+            }
+
+            .option-text {
+                font-size: 15px;
+            }
+
+            .controls {
+                gap: 8px;
+            }
+
+            .controls button {
+                padding: 6px 12px;
+                font-size: 12px;
+                border-radius: 20px;
+            }
+        }
+
+        /* ========================================
+           DESKTOP (1025px - 1440px)
+        ======================================== */
+        @media screen and (min-width: 1025px) and (max-width: 1440px) {
+            .quiz {
+                max-width: 1080px;
+            }
+
+            .card {
+                padding: 17px;
+                border-radius: 26px;
+            }
+
+            .q-badge{
+                font-size: 30px;
+            }
+
+            .q-text {
+                font-size: 30px;
+            }
+
+            .question-image {
+                height: 31vh;
+            }
+
+            .question-image img {
+                max-width: 72%;
+            }
+
+            .options {
+                width: min(600px, 80%);
+                gap: 22px;
+            }
+
+            .option {
+                font-size: 28px;
+                padding: 18px 16px;
+                min-height: 88px;
+                border-radius: 24px;
+            }
+
+            .option-text {
+                font-size: 26px;
+            }
+
+            .controls {
+                gap: 36px;
+            }
+
+            .controls button {
+                font-size: 20px;
+                padding: 14px 36px;
+            }
+        }
+
+        /* ========================================
+           LARGE MONITORS (1441px - 1920px)
+        ======================================== */
+        @media screen and (min-width: 1441px) and (max-width: 1920px) {
+            .quiz {
+                max-width: 1180px;
+                padding: 26px;
+            }
+
+            .card {
+                padding: 19px;
+                border-radius: 28px;
+            }
+
+            .q-badge{
+                font-size: 40px;
+            }
+
+            .q-text {
+                font-size: 40px;
+            }
+
+            .question-image {
+                height: 33vh;
+            }
+
+            .question-image img {
+                max-width: 72%;
+            }
+
+            .options {
+                width: min(660px, 78%);
+                gap: 24px;
+            }
+
+            .option {
+                font-size: 28px !important;
+                padding: 25px 20px;
+                min-height: 104px;
+                border-radius: 28px;
+            }
+
+            .option-text {
+                font-size: 28px;
+            }
+
+            .controls {
+                gap: 38px;
+            }
+
+            .controls button {
+                font-size: 22px;
+                padding: 15px 38px;
+            }
+        }
+
+        /* ========================================
+           4K / ULTRA WIDE (1921px+)
+        ======================================== */
+        @media screen and (min-width: 1921px) {
+
+            .quiz {
+                max-width: 1230px;
+                padding: 30px;
+            }
+
+            .card {
+                padding: 21px;
+                border-radius: 30px;
+            }
+
+            .q-badge{
+                font-size: 40px;
+            }
+
+            .q-text {
+                font-size: 40px;
+            }
+
+            .question-image {
+                height: 35vh;
+            }
+
+            .question-image img {
+                max-width: 74%;
+            }
+
+            .options {
+                width: min(720px, 76%);
+                gap: 26px;
+            }
+
+            .option {
+                font-size: 28px !important;
+                padding: 29px 23px;
+                min-height: 112px;
+                border-radius: 32px;
+            }
+
+            .option-text {
+                font-size: 32px;
+            }
+
+            .controls {
+                gap: 44px;
+            }
+
+            .controls button {
+                font-size: 24px;
+                padding: 16px 44px;
+            }
+        }
+
+        @media (max-width: 900px) {
+    .instruction-heading {
+        font-size: 26px;
+    }
+}
+
+@media (max-width: 768px) {
+    .instruction-heading {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 590px) {
+    .instruction-heading {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 420px) {
+    .instruction-heading {
+        font-size: 16px;
+    }
+}
+
+@media screen and (min-width: 1441px) {
+    .instruction-heading {
+        font-size: 40px;
+    }
+}
+
+
+@media (max-width: 900px) {
+    .answer-input {
+        height: 62px;
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .answer-input-area {
+        width: 92%;
+    }
+
+    .answer-input {
+        height: 56px;
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 590px) {
+    .answer-input {
+        height: 50px;
+        font-size: 18px;
+        border-radius: 16px;
+    }
+
+    .submit-answer {
+        width: 125px;
+        height: 45px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 420px) {
+    .answer-input {
+        height: 46px;
+        font-size: 16px;
+    }
+
+    .submit-answer {
+        width: 110px;
+        height: 40px;
+        font-size: 14px;
+    }
+}
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz">
+<div class="instruction-heading">
+    Write the plural forms of the following words.
+</div>
+        <div class="cards-row">
+
+            <!-- QUESTION CARD -->
+            <div class="card card-question">
+                <div class="header-row">
+                    <span class="q-badge" id="qNumFront"></span>
+                    <h2 class="q-text" id="qTextFront"></h2>
+                </div>
+                <div class="question-image">
+                    <img id="frontImg">
+                </div>
+            </div>
+
+            <!-- ANSWER CARD -->
+            <div class="card card-answer">
+                <div class="header-row">
+                    <span class="q-badge" id="qNumBack"></span>
+                    <h2 class="q-text" id="qTextBack"></h2>
+                </div>
+                <div class="question-image">
+                    <img id="backImg">
+                </div>
+               <div class="answer-input-area">
+    <input
+        type="text"
+        id="answerInput"
+        class="answer-input"
+        placeholder="Type the plural form"
+        autocomplete="off"
+        spellcheck="false"
+    >
+    <button id="submitAnswer" class="submit-answer">Submit</button>
+</div>
+            </div>
+
+        </div>
+
+        <div class="controls">
+            <button class="prev" id="prevBtn"><i class="fa-solid fa-angles-left"></i> Prev</button>
+            <button class="next" id="nextBtn">Next <i class="fa-solid fa-angles-right"></i></button>
+        </div>
+
+    </div>
+
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+          {
+            q: "Q1. Write plural form of 'elf'.",
+            title: "Write the plural forms of the following words.",
+            desc: "Most of the singular words ending in 'f' or 'fe' form their plurals by replacing 'f' or 'fe' with 'ves'.",
+            img: "assets/images/p1.png",
+            options: [
+              "assets/images/elf.png|Elfes",
+              "assets/images/elf.png|Elves",
+              "assets/images/elf.png|Elfes",
+              "assets/images/elf.png|Elfish",
+            ],
+            a: 1,
+          },
+
+          {
+            q: "Q2. Write  plural form of 'leaf'.",
+            title: "Write the plural forms of the following words.",
+            desc: "Most of the singular words ending in 'f' or 'fe' form their plurals by replacing 'f' or 'fe' with 'ves'.",
+            img: "assets/images/p2.png",
+            options: [
+              "assets/images/leaf.png|Leaves",
+              "assets/images/leaf.png|Leafs",
+              "assets/images/leaf.png|Leafes",
+              "assets/images/leaf.png|Leafies",
+            ],
+            a: 0,
+          },
+
+          {
+            q: "Q3. Write  plural form of 'wolf'.",
+            title: "Write the plural forms of the following words.",
+            desc: "Most of the singular words ending in 'f' or 'fe' form their plurals by replacing 'f' or 'fe' with 'ves'.",
+            img: "assets/images/p3.png",
+            options: [
+              "assets/images/wolf.png|Wolfes",
+              "assets/images/wolf.png|Wolves",
+              "assets/images/wolf.png|Wolfs",
+              "assets/images/wolf.png|Wolfies",
+            ],
+            a: 1,
+          },
+          {
+            q: "Q4. Write  plural form of 'thief'.",
+            title: "Write the plural forms of the following words.",
+            desc: "Most of the singular words ending in 'f' or 'fe' form their plurals by replacing 'f' or 'fe' with 'ves'.",
+            img: "assets/images/p44.png",
+            options: [
+              "assets/images/thief.png|Thiefs",
+              "assets/images/thief.png|Thieves",
+              "assets/images/thief.png|Thiefes",
+              "assets/images/thief.png|Thievs",
+            ],
+            a: 1,
+          },
+          {
+            q: "Q5. Write plural form of 'shelf'.",
+            title: "Write the plural forms of the following words.",
+            desc: "Most of the singular words ending in 'f' or 'fe' form their plurals by replacing 'f' or 'fe' with 'ves'.",
+            img: "assets/images/p5.png",
+            options: [
+              "assets/images/shelf.png|Shelfs",
+              "assets/images/shelf.png|Shelves",
+              "assets/images/shelf.png|Shelfes",
+              "assets/images/shelf.png|Shelvies",
+            ],
+            a: 1,
+          },
+
+          {
+            q: "Q6. Write  plural form of 'knife'.",
+            title: "Write the plural forms of the following words.",
+            desc: "Most of the singular words ending in 'f' or 'fe' form their plurals by replacing 'f' or 'fe' with 'ves'.",
+            img: "assets/images/p6.png",
+            options: [
+              "assets/images/chaku.png|Knifes",
+              "assets/images/chaku.png|Knives",
+              "assets/images/chaku.png|Knifees",
+              "assets/images/chaku.png|Knifves",
+            ],
+            a: 1,
+          },
+        ];
+
+        let current = 0;
+        let score = 0;
+        let answered = Array(quizData.length).fill(null);
+
+        const qNumFront = document.getElementById("qNumFront");
+        const qTextFront = document.getElementById("qTextFront");
+        const qNumBack = document.getElementById("qNumBack");
+        const qTextBack = document.getElementById("qTextBack");
+
+        const frontImgEl = document.getElementById("frontImg");
+        const backImgEl = document.getElementById("backImg");
+
+        // const optEl = document.getElementById("options");
+
+        const answerInput = document.getElementById("answerInput");
+const submitAnswer = document.getElementById("submitAnswer");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+        function speak(t) {
+          speechSynthesis.cancel();
+          const msg = new SpeechSynthesisUtterance(t);
+          msg.lang = "en-UK";
+          msg.volume = 0.25;
+          msg.rate = 1;
+          msg.pitch = 1;
+          speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() {
+          confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+          confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+        }
+
+        function stripNumber(text) {
+          return text.replace(/^Q\d+\.\s*/, "");
+        }
+function loadQuestion() {
+    const q = quizData[current];
+    const num = "Q" + (current + 1);
+
+    const word = q.q.match(/'([^']+)'/)[1];
+    const displayWord = word.toLowerCase();
+
+    qTextFront.textContent = `${num}. One ${displayWord}`;
+    qTextBack.textContent = `Many _____`;
+
+    frontImgEl.src = q.img;
+    backImgEl.src = q.options[0].split("|")[0];
+
+    // Reset input
+    answerInput.value = "";
+    answerInput.classList.remove("correct", "wrong");
+
+    // Navigation
+    nextBtn.disabled = answered[current] === null;
+    prevBtn.disabled = current === 0;
+
+    // If already answered correctly
+    if (answered[current] !== null) {
+        const correctAnswer = q.options[q.a]
+            .split("|")[1]
+            .trim();
+
+        answerInput.value = correctAnswer;
+        answerInput.classList.add("correct");
+
+        answerInput.disabled = true;
+        submitAnswer.disabled = true;
+    } else {
+        answerInput.disabled = false;
+
+        // Submit disabled until user types
+        submitAnswer.disabled = true;
+    }
+}
+
+
+submitAnswer.onclick = checkAnswer;
+answerInput.addEventListener("input", () => {
+    // Remove spaces from the beginning/end
+    answerInput.value = answerInput.value.trimStart();
+
+    // Remove previous wrong state when user starts typing again
+    answerInput.classList.remove("wrong");
+
+    // Enable Submit only when something is typed
+    submitAnswer.disabled = answerInput.value.trim().length === 0;
+});
+answerInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        checkAnswer();
+    }
+});
+
+function checkAnswer() {
+    if (answered[current] !== null) return;
+
+    const q = quizData[current];
+
+    const correctAnswer = q.options[q.a]
+        .split("|")[1]
+        .trim()
+        .toLowerCase();
+
+    const userAnswer = answerInput.value
+        .trim()
+        .toLowerCase();
+
+    // Don't check empty input
+    if (!userAnswer) {
+        submitAnswer.disabled = true;
+        return;
+    }
+
+    // =========================
+    // CORRECT ANSWER
+    // =========================
+    if (userAnswer === correctAnswer) {
+
+        answered[current] = true;
+        score++;
+
+        answerInput.value = correctAnswer;
+
+        answerInput.classList.remove("wrong");
+        answerInput.classList.add("correct");
+
+        answerInput.disabled = true;
+        submitAnswer.disabled = true;
+
+        speak("Correct");
+        smallConfetti();
+        showPopup(true);
+
+        // Enable Next
+        nextBtn.disabled = false;
+
+        if (answered.every((a) => a !== null)) {
+            setTimeout(showFinal, 1600);
+        }
+
+    }
+
+    // =========================
+    // WRONG ANSWER
+    // =========================
+    else {
+
+        speak("Wrong");
+        showPopup(false);
+
+        answerInput.classList.remove("correct");
+        answerInput.classList.add("wrong");
+
+        // Disable Submit temporarily
+        submitAnswer.disabled = true;
+
+        setTimeout(() => {
+
+            // Remove ALL typed letters
+            answerInput.value = "";
+
+            // Remove wrong styling
+            answerInput.classList.remove("wrong");
+
+            // Keep Submit disabled
+            submitAnswer.disabled = true;
+
+            // Put cursor back in input
+            answerInput.focus();
+
+        }, 700);
+    }
+}
+
+        prevBtn.onclick = () => {
+          current--;
+          loadQuestion();
+        };
+
+        nextBtn.onclick = () => {
+          current++;
+          loadQuestion();
+        };
+
+        function showPopup(isCorrect) {
+          const popup = document.getElementById("answerPopup");
+          const icon = document.getElementById("popupIcon");
+          const title = document.getElementById("popupTitle");
+          const msg = document.getElementById("popupMsg");
+
+          popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+          popup.style.display = "flex";
+
+          if (isCorrect) {
+            icon.textContent = "🎉";
+            title.textContent = "Great Job!";
+            msg.textContent = "You got it right!";
+          } else {
+            icon.textContent = "🥲";
+            title.textContent = "Oops!";
+            msg.textContent = "Try again, you can do it!";
+          }
+
+          setTimeout(() => {
+            popup.style.display = "none";
+          }, 1400);
+        }
+
+        function showFinal() {
+          const popup = document.getElementById("finalPopup");
+
+          document.getElementById("finalScore").textContent =
+            `Your Score: ${score} / ${quizData.length}`;
+
+          document.getElementById("stars").textContent = "⭐".repeat(score);
+
+          popup.style.display = "flex";
+          bigConfetti();
+        }
+
+        loadQuestion();
+    </script>
+</body>
+
+</html>

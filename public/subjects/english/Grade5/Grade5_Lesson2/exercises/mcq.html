@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCQ Quiz – with Fill‑The‑Blanks Popups</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman", serif;
+            font-weight: 400;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .quiz {
+            width: 95%;
+            max-width: 950px;
+            border-radius: 40px;
+            padding: 40px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #question {
+            margin-top: 5px;
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: left;
+        }
+
+        .question-image {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0 25px;
+        }
+
+        .question-image img {
+            width: 200px;
+            height: 140px;
+            object-fit: contain;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .option {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 14px 20px;
+            border-radius: 30px;
+            font-size: 22px;
+            font-weight: 400;
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: rgba(0, 0, 0, 0.089) 0px 3px 6px, rgba(0, 0, 0, 0.116) 0px 3px 6px;
+            transition: .25s;
+            text-align: center;
+            height: 120px;
+            background: #f7fdff;
+        }
+
+        .option:hover {
+            transform: translateY(-3px);
+        }
+
+        .option-letter {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4facfe, #00c6ff);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, .18);
+            flex-shrink: 0;
+        }
+
+        .option-text {
+            flex: 1;
+            text-align: left;
+            line-height: 1.4;
+            color: #1a2a3a;
+        }
+
+        .option.correct {
+            background: #ffffff;
+            border: 3px solid #70c986;
+            box-shadow: 0 4px 0 #70c986;
+        }
+
+        .option.correct .option-letter {
+            background: #43c463;
+        }
+
+        .option.wrong {
+            animation: smoothWrongBlink 0.7s ease-in-out;
+        }
+
+        /* .option.wrong .option-letter {
+            background: #fd8c8c;
+        } */
+
+        @keyframes smoothWrongBlink {
+
+            0%,
+            40%,
+            65%,
+            100% {
+                background: #fadcdc;
+                border-color: #ff9a9a;
+                box-shadow: 0 6px 0 #f3afaf;
+            }
+        }
+
+        .option.disabled {
+            opacity: .4;
+            pointer-events: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+
+        .controls button {
+            width: 140px;
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 35px;
+            border: 3px solid #ffffff;
+            font-size: 20px;
+            font-weight: 400;
+            color: #ffffff;
+            cursor: pointer;
+            background-size: 200% 200%;
+            transition: .15s ease;
+        }
+
+        .prev {
+            background: linear-gradient(#86cfe5, #66b6d2);
+            box-shadow: 0 4px 0 #3e9dbb;
+        }
+
+        .next {
+            background: linear-gradient(#ffc37a, #f7a24f);
+            box-shadow: 0 4px 0 #e08634;
+        }
+
+        .prev:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #3e9dbb;
+        }
+
+        .next:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #e08634;
+        }
+
+        .controls button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        /* ======================================================
+        ✨  POPUPS  –  exactly as in the Fill‑The‑Blanks code
+       ====================================================== */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #ffffff;
+            width: 300px;
+            border-radius: 28px;
+            padding: 0;
+            text-align: center;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 4px 10px rgba(0, 0, 0, 0.03), 0 14px 28px rgba(26, 26, 46, 0.08), 0 30px 60px rgba(26, 26, 46, 0.12), 0 60px 100px rgba(26, 26, 46, 0.14);
+            animation: popupSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes popupSlide {
+            0% {
+                transform: scale(0.5) translateY(60px) rotate(-5deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.05) translateY(-8px) rotate(2deg);
+            }
+
+            100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .popup-top {
+            padding: 35px 24px 20px;
+            position: relative;
+        }
+
+        .popup.correct .popup-top {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        }
+
+        .popup.wrong .popup-top {
+            background: linear-gradient(135deg, #fbe9e7, #ffccbc);
+        }
+
+        .popup.final .popup-top {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .popup-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .popup.correct .popup-icon-wrap {
+            background: #4caf50;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowGreen 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.wrong .popup-icon-wrap {
+            background: #ef5350;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowRed 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.final .popup-icon-wrap {
+            background: #ffffff;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowWarm 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowGreen {
+            0% {
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+            }
+        }
+
+        @keyframes glowRed {
+            0% {
+                box-shadow: 0 0 20px rgba(239, 83, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(239, 83, 80, 0.6);
+            }
+        }
+
+        @keyframes glowWarm {
+            0% {
+                box-shadow: 0 0 5px rgba(172, 172, 172, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(163, 163, 163, 0.432);
+            }
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0) rotate(-30deg);
+            }
+
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .popup-icon-wrap span {
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-bottom {
+            padding: 18px 24px 22px;
+            background: #fff;
+        }
+
+        .popup.correct .popup-bottom {
+            border-top: 2px solid #c8e6c9;
+        }
+
+        .popup.wrong .popup-bottom {
+            border-top: 2px solid #ffccbc;
+        }
+
+        .popup.final .popup-bottom {
+            border-top: 2px solid #ffe0b2;
+        }
+
+        .popup-msg {
+            font-size: 20px;
+            font-weight: 500;
+            color: #5a5270;
+            line-height: 1.4;
+        }
+
+        .popup-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2a4a;
+            margin-bottom: 8px;
+        }
+
+        .popup-stars {
+            font-size: 34px;
+            letter-spacing: 6px;
+            animation: starDance 0.8s ease;
+            margin-bottom: 12px;
+        }
+
+        @keyframes starDance {
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .play-again-popup {
+            background: linear-gradient(135deg, #ff922b, #f76707);
+            color: #fff;
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+        }
+
+        .play-again-popup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(247, 103, 7, 0.45);
+        }
+
+        .play-again-popup:active {
+            transform: translateY(0);
+        }
+
+        /* =================================
+       MEDIA QUERIES – same as reference
+    ================================= */
+
+        @media (max-width:900px) {
+            body {
+                padding: 20px;
+                overflow: auto;
+                height: auto;
+                align-items: center;
+            }
+
+            .quiz {
+                width: 100%;
+                padding: 25px;
+            }
+
+            .options {
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+
+            .option {
+                font-size: 20px;
+                padding: 12px;
+                min-height: 60px;
+            }
+
+            .option-letter {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+
+            .controls {
+                margin-top: 25px;
+            }
+
+            .controls button {
+                width: 140px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .popup {
+                width: 320px;
+            }
+        }
+
+        @media (max-width:768px) {
+            body {
+                padding: 30px 0px 10px;
+                align-items: flex-start;
+            }
+
+            .quiz {
+                padding: 20px;
+            }
+
+            .options {
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+            }
+
+            .option {
+                font-size: 20px;
+                padding: 10px;
+                min-height: 50px;
+            }
+
+            .option-letter {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+
+            .controls button {
+                width: 130px;
+                height: 48px;
+                font-size: 18px;
+            }
+
+            .popup {
+                width: 300px;
+            }
+        }
+
+        @media (max-width:480px) {
+            body {
+                padding: 50px 0px 10px;
+                align-items: flex-start;
+            }
+
+            #question {
+                font-size: 22px;
+                height: auto;
+                min-height: 60px;
+            }
+
+            .question-image img {
+                width: 200px;
+                height: 120px;
+                object-fit: contain;
+            }
+
+            .options {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .option {
+                font-size: 18px;
+                padding: 12px;
+                min-height: 50px;
+                flex-direction: column;
+            }
+
+            .option-letter {
+                width: 35px;
+                height: 35px;
+                font-size: 18px;
+            }
+
+            .controls {
+                margin-top: 20px;
+            }
+
+            .controls button {
+                width: 120px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .popup {
+                width: 260px;
+            }
+
+            .popup-icon-wrap {
+                width: 75px;
+                height: 75px;
+                font-size: 40px;
+            }
+
+            .popup-title {
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width: 1025px) and (max-width: 1440px) {
+            .quiz {
+                max-width: 1100px;
+            }
+
+            .question-image img {
+                width: 260px;
+                height: 180px;
+            }
+
+            .options {
+                gap: 22px;
+            }
+
+            .option {
+                font-size: 22px;
+                padding: 16px 22px;
+                min-height: 80px;
+            }
+
+            .option-letter {
+                width: 50px;
+                height: 50px;
+                font-size: 22px;
+            }
+
+            .controls button {
+                width: 150px;
+                height: 55px;
+                font-size: 20px;
+            }
+        }
+
+        @media screen and (min-width: 1441px) and (max-width: 1920px) {
+            .quiz {
+                max-width: 1350px;
+            }
+
+            #question {
+                font-size: 40px;
+            }
+
+            .question-image img {
+                width: 320px;
+                height: 250px;
+            }
+
+            .options {
+                gap: 26px;
+            }
+
+            .option {
+                font-size: 24px;
+                padding: 18px 24px;
+                height: 135px;
+            }
+
+            .option-letter {
+                width: 55px;
+                height: 55px;
+                font-size: 24px;
+            }
+
+            .controls button {
+                width: 160px;
+                height: 58px;
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width: 1921px) {
+            .quiz {
+                max-width: 1300px;
+            }
+
+            #question {
+                font-size: 40px;
+            }
+
+            .question-image img {
+                width: 380px;
+                height: 260px;
+            }
+
+            .options {
+                gap: 30px;
+            }
+
+            .option {
+                font-size: 26px;
+                padding: 20px 26px;
+                height: 130px;
+            }
+
+            .option-letter {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+
+            .controls button {
+                width: 170px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz">
+
+        <div class="header">
+            <h2 id="question"></h2>
+            <div class="question-image">
+                <img id="questionImg" src="" alt="">
+            </div>
+        </div>
+
+        <div class="options" id="options"></div>
+
+        <div class="controls">
+            <button class="prev" id="prevBtn">← Prev</button>
+            <button class="next" id="nextBtn">Next →</button>
+        </div>
+
+    </div>
+
+    <!--  POPUP OVERLAY – exactly the same as in Fill‑The‑Blanks code -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup" id="popupBox"></div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        // ==========  QUIZ DATA (unchanged)  ==========
+        const quizData = [
+            {
+                q: "Q1. Why did the king decide to meet the hermit?",
+                img: "../assets/images/mcq1.png",
+                options: [
+                    "Ministers' answers were not satisfactory.",
+                    "To prove that hermit doesn't have all the answers.",
+                    "To test hermit's knowledge.",
+                    "To insult ministers' intelligence.",
+                ],
+                a: 0,
+            },
+            {
+                q: "Q2. Why did the king put on simple clothes before going to the hermit's place?",
+                img: "../assets/images/mcq2.png",
+                options: [
+                    "He had no fancy clothes to wear.",
+                    "He loved simple clothing.",
+                    "To hide the truth that he was a king.",
+                    "They were his lucky clothes.",
+                ],
+                a: 2,
+            },
+            {
+                q: "Q3. Which sentence in the story shows that the king is kind?",
+                img: "../assets/images/mcq3.png",
+                options: [
+                    "The king announced a great prize to the one who answered his questions.",
+                    "The king could not find the answers himself.",
+                    "The king did not find any of the ministers' answers useful.",
+                    "The king sent his servants and physician to treat the bearded man.",
+                ],
+                a: 3,
+            },
+            {
+                q: "Q4. Why did the bodyguard wound the bearded man?",
+                img: "../assets/images/mcq4.png",
+                options: [
+                    "To show his fighting skills.",
+                    "To protect his king.",
+                    "To stop disturbing the king and the hermit.",
+                    "All of the above.",
+                ],
+                a: 1,
+            },
+            {
+                q: "Q5. What did the hermit use to give answers to the king's questions?",
+                img: "../assets/images/mcq5.png",
+                options: [
+                    "The knowledge that he had gained from books.",
+                    "The teachings of great people.",
+                    "The incidents that took place in the hermit's place.",
+                    "The magical power that he had.",
+                ],
+                a: 2,
+            },
+        ];
+
+        let current = 0;
+        let score = 0;
+        let answered = Array(quizData.length).fill(null);
+
+        const qEl = document.getElementById("question");
+        const imgEl = document.getElementById("questionImg");
+        const optEl = document.getElementById("options");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+        // ==========  AUDIO  ==========
+        const correctSound = document.getElementById("correctSound");
+        const wrongSound = document.getElementById("wrongSound");
+
+        // ==========  SPEECH  ==========
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        // ==========  CONFETTI  ==========
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+        }
+
+        // ==========  POPUP FUNCTIONS (identical to Fill‑The‑Blanks) ==========
+        const overlay = document.getElementById('popupOverlay');
+        const popupBox = document.getElementById('popupBox');
+
+        function showCorrectPopup() {
+            speak('Correct');
+            smallConfetti();
+            popupBox.className = 'popup correct';
+            popupBox.innerHTML = `
+        <div class="popup-top"><div class="popup-icon-wrap"><span>👍</span></div><div class="popup-title">Awesome</div></div>
+        <div class="popup-bottom"><div class="popup-msg">You got it right! 🎉</div></div>
+      `;
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1500);
+        }
+
+        function showWrongPopup() {
+            speak('Try again');
+            popupBox.className = 'popup wrong';
+            popupBox.innerHTML = `
+        <div class="popup-top"><div class="popup-icon-wrap"><span>😔</span></div><div class="popup-title">Keep Trying</div></div>
+        <div class="popup-bottom"><div class="popup-msg">Don't give up! 💪</div></div>
+      `;
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1400);
+        }
+
+        function showFinalPopup() {
+            let end = Date.now() + (1.5 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+            popupBox.className = 'popup final';
+            popupBox.innerHTML = `
+        <div class="popup-top"><div class="popup-icon-wrap"><span>🏆</span></div><div class="popup-title">You Won!</div></div>
+        <div class="popup-bottom">
+          <div class="popup-score">Score: ${score}/${quizData.length}</div>
+          <div class="popup-stars">${"⭐".repeat(score)}</div>
+          <button class="play-again-popup" id="playAgainBtn">Play Again</button>
+        </div>
+      `;
+            overlay.classList.add('show');
+            document.getElementById('playAgainBtn').addEventListener('click', () => location.reload());
+        }
+
+        // ==========  LOAD QUESTION  ==========
+        function loadQuestion() {
+            const q = quizData[current];
+            qEl.textContent = q.q;
+            imgEl.src = q.img;
+            optEl.innerHTML = "";
+            nextBtn.disabled = answered[current] === null;
+
+            q.options.forEach((text, i) => {
+                const d = document.createElement("div");
+                d.className = "option o" + ((i % 4) + 1);
+
+                const letters = ["A", "B", "C", "D"];
+                d.innerHTML = `
+                    <span class="option-letter">${letters[i]}</span>
+                    <span class="option-text">${text}</span>
+                `;
+
+                if (answered[current] !== null) {
+                    if (i === q.a) d.classList.add("correct");
+                    else d.classList.add("disabled");
+                }
+
+                d.onclick = () => {
+                    if (answered[current] !== null) return;
+
+                    if (i === q.a) {
+                        answered[current] = i;
+                        score++;
+
+                        d.classList.add("correct");
+                        [...optEl.children].forEach((o) => {
+                            if (o !== d) o.classList.add("disabled");
+                        });
+
+                        correctSound.play();
+                        showCorrectPopup();
+                        nextBtn.disabled = false;
+
+                        if (answered.every((a) => a !== null)) setTimeout(showFinalPopup, 1600);
+                    } else {
+                        wrongSound.play();
+                        showWrongPopup();
+                        d.classList.add("wrong");
+
+                        setTimeout(() => {
+                            d.classList.remove("wrong");
+                        }, 700);
+                    }
+                };
+
+                optEl.appendChild(d);
+            });
+
+            prevBtn.disabled = current === 0;
+        }
+
+        // ==========  NAVIGATION  ==========
+        prevBtn.onclick = () => {
+            if (current > 0) { current--; loadQuestion(); }
+        };
+
+        nextBtn.onclick = () => {
+            if (current < quizData.length - 1) { current++; loadQuestion(); }
+        };
+
+        // ==========  START  ==========
+        loadQuestion();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Synonym Matching Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
+    </script>
+    <style>
+        /* ===== RESET ===== */
+        @font-face {
+            font-family: 'CCSYBold';
+            src: url('./assets/CCSYBOLD.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'CCSyntroman', 'Livvic', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+           overflow:hidden;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
+          
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 500;
+            color: #2f4f4f;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header h1 .icon {
+            font-size: 32px;
+        }
+
+        .score-box {
+            margin-top: 12px;
+            font-size: clamp(14px, 2vw, 20px);
+            font-weight: 600;
+            color: #2f4f4f;
+            display: none;
+        }
+
+        .score-box span {
+            color: #22c55e;
+            font-size: 1.2em;
+        }
+
+        /* ===== GRID ===== */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* ===== CARD - Unique Design with Image/Icons ===== */
+        .card {
+            background: #ffffff;
+            border: 3px solid #e8e0d6;
+            border-radius: 20px;
+            padding: 20px 12px 16px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 22px;
+            font-weight: 500;
+            color: #1e293b;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            user-select: none;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            word-break: break-word;
+            line-height: 1.3;
+            text-transform: capitalize;
+        }
+.card .card-icon{
+    width:48px;
+    height:48px;
+    object-fit:contain;
+    display:block;
+}
+
+        .card .card-word {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 20px;
+            background: transparent;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .card:hover:not(.matched):not(.disabled):not(.selected) {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+            border-color: #b8a8d8;
+        }
+
+        .card.selected {
+            transform: scale(1.05);
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.4), 0 8px 30px rgba(251, 191, 36, 0.25);
+        }
+
+        .card.matched {
+            cursor: default;
+            pointer-events: none;
+            transform: scale(0.96);
+            border-width: 3px;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.15);
+        }
+
+        .card.matched .card-icon {
+            animation: iconBounce 0.6s ease;
+        }
+
+        @keyframes iconBounce {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.3) rotate(-10deg);
+            }
+            100% {
+                transform: scale(1) rotate(0);
+            }
+        }
+
+        .card.wrong {
+            animation: shake 0.45s ease;
+        }
+
+        .card.disabled {
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            20% {
+                transform: translateX(-8px);
+            }
+            40% {
+                transform: translateX(8px);
+            }
+            60% {
+                transform: translateX(-5px);
+            }
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+        /* ===== MATCHED COLORS - Applied ONLY when matched ===== */
+        .card.matched.color-green {
+            background: linear-gradient(145deg, #d1fae5, #a7f3d0);
+            border-color: #22c55e;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.2);
+        }
+        .card.matched.color-green .card-word {
+            color: #065f46;
+        }
+
+        .card.matched.color-blue {
+            background: linear-gradient(145deg, #dbeafe, #bfdbfe);
+            border-color: #3b82f6;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+        }
+        .card.matched.color-blue .card-word {
+            color: #1e40af;
+        }
+
+        .card.matched.color-cream {
+            background: linear-gradient(145deg, #fecdc7, #fca5a5);
+            border-color: #f5420b;
+            box-shadow: 0 4px 20px rgba(245, 66, 11, 0.2);
+        }
+        .card.matched.color-cream .card-word {
+            color: #991b1b;
+        }
+
+        .card.matched.color-yellow {
+            background: linear-gradient(145deg, #fef9c3, #fde68a);
+            border-color: #eab308;
+            box-shadow: 0 4px 20px rgba(234, 179, 8, 0.2);
+        }
+        .card.matched.color-yellow .card-word {
+            color: #854d0e;
+        }
+
+        .card.matched.color-pink {
+            background: linear-gradient(145deg, #fce7f3, #fbcfe8);
+            border-color: #ec4899;
+            box-shadow: 0 4px 20px rgba(236, 72, 153, 0.2);
+        }
+        .card.matched.color-pink .card-word {
+            color: #9d174d;
+        }
+
+        .card.matched.color-purple {
+            background: linear-gradient(145deg, #ede9fe, #c4b5fd);
+            border-color: #8b5cf6;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+        }
+        .card.matched.color-purple .card-word {
+            color: #5b21b6;
+        }
+
+        /* ===== POPUPS ===== */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .kid-card {
+            background: #ffffff;
+            width: 380px;
+            max-width: 95%;
+            padding: 32px 28px;
+            border-radius: 44px;
+            text-align: center;
+            animation: kidPop 0.6s ease;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kid-card::before,
+        .kid-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .kid-card::before {
+            width: 200px;
+            height: 200px;
+            top: -80px;
+            right: -60px;
+            background: #ffd93d;
+        }
+        .kid-card::after {
+            width: 150px;
+            height: 150px;
+            bottom: -60px;
+            left: -50px;
+            background: #6bcbff;
+        }
+
+        .kid-card>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .kid-icon {
+            font-size: 4.8em;
+            margin-bottom: 6px;
+            animation: emojiBounce 0.9s infinite alternate;
+            display: inline-block;
+        }
+
+        .kid-card h3 {
+            font-size: 2.2em;
+            margin-bottom: 4px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .kid-card p {
+            font-size: 1.1em;
+            color: #555;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .kid-correct .kid-card {
+            background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+            border: 5px solid #38d9a9;
+        }
+        .kid-correct .kid-card h3 {
+            color: #0b8a4a;
+        }
+        .kid-correct .kid-card p {
+            color: #1a6a3a;
+        }
+
+        .kid-wrong .kid-card {
+            background: linear-gradient(145deg, #fff5f5, #fce4e4);
+            border: 5px solid #ff8a8a;
+        }
+        .kid-wrong .kid-card h3 {
+            color: #c0392b;
+        }
+        .kid-wrong .kid-card p {
+            color: #922b21;
+        }
+
+        @keyframes kidPop {
+            0% {
+                transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0) scale(1);
+            }
+            to {
+                transform: translateY(-12px) scale(1.05);
+            }
+        }
+
+        /* ===== FINAL POPUP ===== */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .final-kid-box {
+            background: linear-gradient(145deg, #fff7d6, #e6fff5);
+            padding: 35px 40px;
+            border-radius: 44px;
+            text-align: center;
+            width: 480px;
+            max-width: 95%;
+            animation: finalBounce 0.8s ease;
+            border: 4px solid rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-kid-box::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: -120px;
+            right: -100px;
+            background: #ffd93d;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .final-kid-box>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.4em;
+            color: #2f9e44;
+            margin-bottom: 8px;
+            font-weight: 700 !important;
+        }
+
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3a3a;
+        }
+
+        #stars {
+            font-size: 2.6em;
+            margin: 14px 0;
+            letter-spacing: 6px;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 16px 38px;
+            border-radius: 40px;
+            font-size: 1.15em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .playAgain-btn:hover {
+            transform: translateY(-3px);
+        }
+        .playAgain-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #d4871f;
+        }
+
+        @keyframes finalBounce {
+            0% {
+                transform: scale(0.3) perspective(400px) rotateX(15deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.08) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================================ */
+        /* ===== MEDIA QUERIES ===== */
+        /* ============================================================ */
+
+        /* 320px - 375px */
+        @media (min-width: 320px) and (max-width: 375px) {
+            .app {
+                padding: 10px;
+                border-radius: 24px;
+            }
+            .grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                max-width: 300px;
+            }
+            .card {
+                min-height: 80px;
+                padding: 12px 8px;
+                border-radius: 14px;
+                gap: 4px;
+            }
+            .card .card-icon {
+                font-size: 24px;
+            }
+            .card .card-word {
+                font-size: 14px;
+            }
+            .header h1 {
+                font-size: 15px;
+            }
+            .header h1 .icon {
+                font-size: 20px;
+            }
+            .kid-card {
+                width: 280px;
+                padding: 20px 16px;
+                border-radius: 32px;
+            }
+            .kid-icon {
+                font-size: 3.2em;
+            }
+            .kid-card h3 {
+                font-size: 1.4em;
+            }
+            .final-kid-box {
+                padding: 20px 16px;
+                border-radius: 32px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.5em;
+            }
+            #stars {
+                font-size: 1.8em;
+            }
+            .playAgain-btn {
+                padding: 10px 24px;
+                font-size: 0.95em;
+            }
+        }
+
+        /* 376px - 425px */
+        @media (min-width: 376px) and (max-width: 425px) {
+            .app {
+                padding: 12px;
+                border-radius: 28px;
+            }
+            .grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                max-width: 350px;
+            }
+            .card {
+                min-height: 85px;
+                padding: 14px 10px;
+                border-radius: 16px;
+                gap: 4px;
+            }
+            .card .card-icon {
+                font-size: 28px;
+            }
+            .card .card-word {
+                font-size: 15px;
+            }
+            .header h1 {
+                font-size: 16px;
+            }
+            .header h1 .icon {
+                font-size: 22px;
+            }
+            .kid-card {
+                width: 300px;
+                padding: 22px 18px;
+            }
+            .kid-icon {
+                font-size: 3.5em;
+            }
+            .kid-card h3 {
+                font-size: 1.5em;
+            }
+            .final-kid-box {
+                padding: 22px 18px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.6em;
+            }
+            #stars {
+                font-size: 2em;
+            }
+        }
+
+        /* 426px - 480px */
+        @media (min-width: 426px) and (max-width: 480px) {
+            .app {
+                padding: 14px;
+                border-radius: 30px;
+            }
+            .grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                max-width: 400px;
+            }
+            .card {
+                min-height: 90px;
+                padding: 16px 12px;
+                border-radius: 16px;
+                gap: 6px;
+            }
+            .card .card-icon {
+                font-size: 30px;
+            }
+            .card .card-word {
+                font-size: 16px;
+            }
+            .header h1 {
+                font-size: 17px;
+            }
+        }
+
+        /* 481px - 576px */
+        @media (min-width: 481px) and (max-width: 576px) {
+            .app {
+                padding: 16px;
+                border-radius: 32px;
+            }
+            .grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+                max-width: 450px;
+            }
+            .card {
+                min-height: 95px;
+                padding: 18px 14px;
+                border-radius: 18px;
+                gap: 6px;
+            }
+            .card .card-icon {
+                font-size: 32px;
+            }
+            .card .card-word {
+                font-size: 17px;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+        }
+
+        /* 577px - 768px */
+        @media (min-width: 577px) and (max-width: 768px) {
+            .app {
+                padding: 18px;
+                border-radius: 34px;
+            }
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 14px;
+                max-width: 600px;
+            }
+            .card {
+                min-height: 100px;
+                padding: 18px 14px;
+                border-radius: 18px;
+                gap: 8px;
+            }
+            .card .card-icon {
+                font-size: 34px;
+            }
+            .card .card-word {
+                font-size: 18px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .header h1 .icon {
+                font-size: 26px;
+            }
+        }
+
+        /* 769px - 1024px */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .app {
+                padding: 20px;
+                border-radius: 36px;
+            }
+            .grid {
+                gap: 16px;
+                max-width: 700px;
+            }
+            .card {
+                min-height: 110px;
+                padding: 20px 16px;
+                border-radius: 20px;
+            }
+            .card .card-icon {
+                font-size: 38px;
+            }
+            .card .card-word {
+                font-size: 20px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .header h1 .icon {
+                font-size: 28px;
+            }
+        }
+
+        /* 1025px - 1200px */
+        @media (min-width: 1025px) and (max-width: 1200px) {
+            .app {
+                max-width: 950px;
+                padding: 22px;
+                border-radius: 38px;
+            }
+            .grid {
+                gap: 18px;
+                max-width: 850px;
+            }
+            .card {
+                min-height: 115px;
+                padding: 22px 18px;
+                border-radius: 22px;
+            }
+            .card .card-icon {
+                font-size: 40px;
+            }
+            .card .card-word {
+                font-size: 22px;
+            }
+            .header h1 {
+                font-size: 26px;
+            }
+        }
+
+        /* 1201px - 1440px */
+        @media (min-width: 1201px) and (max-width: 1440px) {
+            .app {
+                max-width: 1000px;
+                padding: 24px;
+                border-radius: 40px;
+            }
+            .grid {
+                gap: 20px;
+                max-width: 900px;
+            }
+            .card {
+                min-height: 120px;
+                padding: 24px 20px;
+                border-radius: 22px;
+            }
+            .card .card-icon {
+                font-size: 42px;
+            }
+            .card .card-word {
+                font-size: 24px;
+            }
+            .header h1 {
+                font-size: 28px;
+            }
+        }
+
+        /* 1441px - 1600px */
+        @media (min-width: 1441px) and (max-width: 1600px) {
+            .app {
+                max-width: 1100px;
+                padding: 26px;
+                border-radius: 44px;
+            }
+            .grid {
+                gap: 22px;
+                max-width: 1000px;
+            }
+            .card {
+                min-height: 125px;
+                padding: 26px 22px;
+                border-radius: 24px;
+            }
+           .card .card-icon{
+    width:48px;
+    height:48px;
+ 
+}
+            .card .card-word {
+                font-size: 26px;
+            }
+            .header h1 {
+                font-size: 30px;
+            }
+        }
+
+        /* 1601px - 1920px */
+        @media (min-width: 1601px) and (max-width: 1920px) {
+            .app {
+                max-width: 1200px;
+                padding: 28px;
+                border-radius: 48px;
+            }
+            .grid {
+                gap: 24px;
+                max-width: 1100px;
+            }
+            .card {
+                min-height: 130px;
+                padding: 28px 24px;
+                border-radius: 26px;
+            }
+            .card .card-icon {
+                font-size: 46px;
+            }
+            .card .card-word {
+                font-size: 28px;
+            }
+            .header h1 {
+                font-size: 32px;
+            }
+        }
+
+        /* 1921px and above */
+        @media (min-width: 1921px) {
+            .app {
+                max-width: 1300px;
+                padding: 30px;
+                border-radius: 52px;
+            }
+            .grid {
+                gap: 26px;
+                max-width: 1200px;
+            }
+            .card {
+                min-height: 140px;
+                padding: 30px 26px;
+                border-radius: 28px;
+            }
+            .card .card-icon {
+                font-size: 50px;
+            }
+            .card .card-word {
+                font-size: 30px;
+            }
+            .header h1 {
+                font-size: 34px;
+            }
+            .kid-card {
+                width: 420px;
+                padding: 36px 32px;
+            }
+            .kid-icon {
+                font-size: 5.2em;
+            }
+            .kid-card h3 {
+                font-size: 2.4em;
+            }
+            .final-kid-box {
+                width: 520px;
+                padding: 40px;
+            }
+            .final-kid-box h2 {
+                font-size: 2.6em;
+            }
+            #stars {
+                font-size: 2.8em;
+            }
+            .playAgain-btn {
+                padding: 18px 44px;
+                font-size: 1.2em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- HEADER -->
+        <div class="header">
+            <h1>
+                <span class="icon"></span>
+                Read the words carefully. Select the two words that are synonyms.
+            </h1>
+            <div class="score-box">Score: <span id="scoreDisplay">0</span> / 6</div>
+        </div>
+
+        <!-- GRID -->
+        <div class="grid" id="gridContainer"></div>
+
+    </div>
+
+    <!-- ===== POPUPS ===== -->
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        // ================================================================
+        //  DATA - Fixed order with icons for each word
+        // ================================================================
+
+        const cardsData = [
+            // Row 1
+            { word: 'quick',  icon: '../assets/images/quick.png', color: 'color-green', pairId: 0 },
+            { word: 'begin', icon: '../assets/images/begin.png', color: 'color-blue', pairId: 1 },
+            { word: 'heap', icon: '../assets/images/heap.png', color: 'color-purple', pairId: 2 },
+            // Row 2
+            { word: 'close', icon: '../assets/images/close.png', color: 'color-cream', pairId: 3 },
+            { word: 'quiet', icon: '../assets/images/quiet.png', color: 'color-yellow', pairId: 4 },
+            { word: 'fully', icon: '../assets/images/fully.png', color: 'color-pink', pairId: 5 },
+            // Row 3
+            { word: 'start', icon: '../assets/images/start.png', color: 'color-blue', pairId: 1 },
+            { word: 'pile', icon: '../assets/images/pile.png', color: 'color-purple', pairId: 2 },
+            { word: 'shut', icon: '../assets/images/shut2.png', color: 'color-cream', pairId: 3 },
+            // Row 4
+            { word: 'silent', icon: '../assets/images/silent.png', color: 'color-yellow', pairId: 4 },
+            { word: 'completely', icon: '../assets/images/completely.png', color: 'color-pink', pairId: 5 },
+            { word: 'fast', icon: '../assets/images/fast.png', color: 'color-green', pairId: 0 }
+        ];
+
+        // ================================================================
+        //  STATE
+        // ================================================================
+
+        let matchedPairs = new Set();
+        let selectedCard = null;
+        let score = 0;
+        let isProcessing = false;
+
+        // ================================================================
+        //  DOM REFS
+        // ================================================================
+
+        const grid = document.getElementById('gridContainer');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+
+        const popupOverlay = document.getElementById('answerPopup');
+        const popupIcon = document.getElementById('popupIcon');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupMsg = document.getElementById('popupMsg');
+
+        const finalPopup = document.getElementById('finalPopup');
+        const finalScore = document.getElementById('finalScore');
+        const starsEl = document.getElementById('stars');
+
+        // ================================================================
+        //  AUDIO
+        // ================================================================
+
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        // ================================================================
+        //  CONFETTI
+        // ================================================================
+
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 200, spread: 110, origin: { y: 0.5 } });
+            setTimeout(() => {
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.2 } });
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.8 } });
+            }, 150);
+        }
+
+        // ================================================================
+        //  POPUPS
+        // ================================================================
+
+        function showPopup(isCorrect) {
+            popupOverlay.className = 'kid-popup ' + (isCorrect ? 'kid-correct' : 'kid-wrong');
+            popupOverlay.style.display = 'flex';
+
+            if (isCorrect) {
+                popupIcon.textContent = '🌟';
+                popupTitle.textContent = 'Amazing!';
+                popupMsg.textContent = 'You got it right! ✨';
+            } else {
+                popupIcon.textContent = '😒';
+                popupTitle.textContent = 'Keep Going!';
+                popupMsg.textContent = 'Try again, you can do it! 🌈';
+            }
+
+            const sound = document.getElementById(isCorrect ? 'correctSound' : 'wrongSound');
+            if (sound) sound.play().catch(() => {});
+
+            setTimeout(() => {
+                popupOverlay.style.display = 'none';
+            }, 1600);
+        }
+
+        function showFinal() {
+            finalPopup.style.display = 'flex';
+            finalScore.textContent = `Your Score: ${score} / 6`;
+            starsEl.textContent = '⭐'.repeat(5);
+            bigConfetti();
+        }
+
+        // ================================================================
+        //  RENDER GRID - Fixed order, no shuffle
+        // ================================================================
+
+        function renderGrid() {
+            grid.innerHTML = '';
+
+            cardsData.forEach((data) => {
+                const card = document.createElement('div');
+                card.className = `card ${data.color}`;
+                card.dataset.pairId = data.pairId;
+                card.dataset.word = data.word;
+                card.dataset.colorClass = data.color;
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('aria-label', `Card: ${data.word}`);
+
+                // Icon
+              const iconImg = document.createElement('img');
+iconImg.className = 'card-icon';
+iconImg.src = data.icon;
+iconImg.alt = data.word;
+card.appendChild(iconImg);
+
+                // Word
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'card-word';
+                wordSpan.textContent = data.word;
+                card.appendChild(wordSpan);
+
+                card.addEventListener('click', () => handleCardClick(card));
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleCardClick(card);
+                    }
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        // ================================================================
+        //  GAME LOGIC
+        // ================================================================
+
+        function handleCardClick(card) {
+            if (isProcessing) return;
+            if (card.classList.contains('matched')) return;
+            if (card.classList.contains('disabled')) return;
+
+            if (!selectedCard) {
+                document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedCard = card;
+                return;
+            }
+
+            if (selectedCard === card) {
+                card.classList.remove('selected');
+                selectedCard = null;
+                return;
+            }
+
+            const card1 = selectedCard;
+            const card2 = card;
+            const pairId1 = parseInt(card1.dataset.pairId);
+            const pairId2 = parseInt(card2.dataset.pairId);
+
+            if (matchedPairs.has(pairId1) || matchedPairs.has(pairId2)) {
+                card1.classList.remove('selected');
+                selectedCard = null;
+                return;
+            }
+
+            const isCorrect = (pairId1 === pairId2) && (card1.dataset.word !== card2.dataset.word);
+
+            if (isCorrect) {
+                isProcessing = true;
+                matchedPairs.add(pairId1);
+                score++;
+                scoreDisplay.textContent = score;
+
+                card1.classList.remove('selected');
+                const colorClass = card1.dataset.colorClass;
+                card1.classList.add('matched', colorClass);
+                card2.classList.add('matched', colorClass);
+
+                card1.setAttribute('aria-disabled', 'true');
+                card2.setAttribute('aria-disabled', 'true');
+
+                showPopup(true);
+                speak("Correct");
+                smallConfetti();
+
+                selectedCard = null;
+                isProcessing = false;
+
+                if (matchedPairs.size === 6) {
+                    setTimeout(showFinal, 1200);
+                }
+            } else {
+                isProcessing = true;
+                card1.classList.remove('selected');
+                card1.classList.add('wrong');
+                card2.classList.add('wrong');
+
+                showPopup(false);
+                speak("Try again");
+
+                setTimeout(() => {
+                    card1.classList.remove('wrong');
+                    card2.classList.remove('wrong');
+                    selectedCard = null;
+                    isProcessing = false;
+                }, 600);
+            }
+        }
+
+        // ================================================================
+        //  KEYBOARD SUPPORT
+        // ================================================================
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && selectedCard) {
+                selectedCard.classList.remove('selected');
+                selectedCard = null;
+            }
+        });
+
+        // ================================================================
+        //  INIT
+        // ================================================================
+
+        renderGrid();
+
+        console.log('🔗 Synonym Matching Game loaded!');
+        console.log('📝 6 pairs to match. Cards in fixed order as per worksheet.');
+        console.log('🎨 Each card has a unique icon and color scheme!');
+    </script>
+
+</body>
+
+</html>

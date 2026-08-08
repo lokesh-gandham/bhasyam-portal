@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Synonym Matching Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
+    </script>
+    <style>
+        /* ===== RESET ===== */
+     @font-face {
+    font-family: 'CCSYBold';
+    src: url('./assets/CCSYBOLD.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+@font-face {
+    font-family: 'CCSyntroman';
+    src: url('../assets/CCSYNTRO.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+           font-family: 'CCSyntroman';
+        }
+       
+        body {
+            /* font-family: 'Livvic', sans-serif; */
+           
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 900px;
+            padding: 20px;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 30px;
+            font-weight: 500;
+            color: #2f4f4f;
+            letter-spacing: 0.5px;
+            line-height: 1.4;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: start;
+        }
+
+        .score-box {
+            margin-top: 12px;
+            font-size: clamp(14px, 2vw, 20px);
+            font-weight: 600;
+            color: #2f4f4f;
+            display: none;
+        }
+
+        .score-box span {
+            color: #22c55e;
+            font-size: 1.2em;
+        }
+
+        /* ===== GRID - Fixed 3 columns, 4 rows ===== */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* ===== CARD - All white initially ===== */
+        .card {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 20px 12px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 400;
+            color: #1e293b;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            word-break: break-word;
+            line-height: 1.3;
+            text-transform: capitalize;
+        }
+
+     .card:hover:not(.matched):not(.disabled):not(.selected){
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.08);
+}
+
+      .card.selected{
+    transform: scale(1.05);
+    outline: 4px solid #fbbf24;
+    outline-offset: 2px;
+    box-shadow: 0 8px 24px rgba(251,191,36,.35);
+}
+
+        .card.matched {
+            cursor: default;
+            pointer-events: none;
+            transform: scale(0.98);
+            opacity: 0.95;
+            border-color: #22c55e;
+            box-shadow: 0 4px 16px rgba(34, 197, 94, 0.15);
+        }
+
+        .card.wrong {
+            animation: shake 0.45s ease;
+        }
+
+        .card.disabled {
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            20% {
+                transform: translateX(-8px);
+            }
+            40% {
+                transform: translateX(8px);
+            }
+            60% {
+                transform: translateX(-5px);
+            }
+            80% {
+                transform: translateX(5px);
+            }
+        }
+
+        /* ===== COLORS - Applied ONLY when matched ===== */
+        .card.matched.color-green {
+            background: #d1fae5;
+            border-color: #22c55e;
+        }
+        .card.matched.color-blue {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+        .card.matched.color-cream {
+            background: #fecdc7;
+            border-color: #f5420b;
+        }
+        .card.matched.color-yellow {
+            background: #fef9c3;
+            border-color: #eab308;
+        }
+        .card.matched.color-pink {
+            background: #fce7f3;
+            border-color: #ec4899;
+        }
+        .card.matched.color-purple{
+    background:#ede9fe;
+    border-color:#8b5cf6;
+}
+        /* ===== POPUPS ===== */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .kid-card {
+            background: #ffffff;
+            width: 380px;
+            max-width: 95%;
+            padding: 32px 28px;
+            border-radius: 44px;
+            text-align: center;
+            animation: kidPop 0.6s ease;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kid-card::before,
+        .kid-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .kid-card::before {
+            width: 200px;
+            height: 200px;
+            top: -80px;
+            right: -60px;
+            background: #ffd93d;
+        }
+        .kid-card::after {
+            width: 150px;
+            height: 150px;
+            bottom: -60px;
+            left: -50px;
+            background: #6bcbff;
+        }
+
+        .kid-card>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .kid-icon {
+            font-size: 4.8em;
+            margin-bottom: 6px;
+            animation: emojiBounce 0.9s infinite alternate;
+            display: inline-block;
+        }
+
+        .kid-card h3 {
+            font-size: 2.2em;
+            margin-bottom: 4px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .kid-card p {
+            font-size: 1.1em;
+            color: #555;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .kid-correct .kid-card {
+            background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+            border: 5px solid #38d9a9;
+        }
+        .kid-correct .kid-card h3 {
+            color: #0b8a4a;
+        }
+        .kid-correct .kid-card p {
+            color: #1a6a3a;
+        }
+
+        .kid-wrong .kid-card {
+            background: linear-gradient(145deg, #fff5f5, #fce4e4);
+            border: 5px solid #ff8a8a;
+        }
+        .kid-wrong .kid-card h3 {
+            color: #c0392b;
+        }
+        .kid-wrong .kid-card p {
+            color: #922b21;
+        }
+
+        @keyframes kidPop {
+            0% {
+                transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0) scale(1);
+            }
+            to {
+                transform: translateY(-12px) scale(1.05);
+            }
+        }
+
+        /* ===== FINAL POPUP ===== */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .final-kid-box {
+            background: linear-gradient(145deg, #fff7d6, #e6fff5);
+            padding: 35px 40px;
+            border-radius: 44px;
+            text-align: center;
+            width: 480px;
+            max-width: 95%;
+            animation: finalBounce 0.8s ease;
+            border: 4px solid rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-kid-box::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: -120px;
+            right: -100px;
+            background: #ffd93d;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .final-kid-box>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.4em;
+            color: #2f9e44;
+            margin-bottom: 8px;
+            font-weight: 700 !important;
+        }
+
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3a3a;
+        }
+
+        #stars {
+            font-size: 2.6em;
+            margin: 14px 0;
+            letter-spacing: 6px;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 16px 38px;
+            border-radius: 40px;
+            font-size: 1.15em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .playAgain-btn:hover {
+            transform: translateY(-3px);
+        }
+        .playAgain-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #d4871f;
+        }
+
+        @keyframes finalBounce {
+            0% {
+                transform: scale(0.3) perspective(400px) rotateX(15deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.08) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================================ */
+        /* ===== MEDIA QUERIES - 320px to 1920px ===== */
+        /* ============================================================ */
+
+        /* 320px - 375px */
+        @media (min-width: 320px) and (max-width: 375px) {
+            .app {
+                padding: 10px;
+            }
+            .grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                max-width: 300px;
+            }
+            .card {
+                min-height: 50px;
+                padding: 10px 8px;
+                font-size: 14px;
+                border-radius: 12px;
+            }
+            .header h1 {
+                font-size: 15px;
+            }
+            .score-box {
+                font-size: 14px;
+            }
+            .kid-card {
+                width: 280px;
+                padding: 20px 16px;
+                border-radius: 32px;
+            }
+            .kid-icon {
+                font-size: 3.2em;
+            }
+            .kid-card h3 {
+                font-size: 1.4em;
+            }
+            .kid-card p {
+                font-size: 0.95em;
+            }
+            .final-kid-box {
+                padding: 20px 16px;
+                width: 95%;
+                border-radius: 32px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.5em;
+            }
+            .final-kid-box p {
+                font-size: 1em;
+            }
+            #stars {
+                font-size: 1.8em;
+            }
+            .playAgain-btn {
+                padding: 10px 24px;
+                font-size: 0.95em;
+            }
+        }
+
+        /* 376px - 425px */
+        @media (min-width: 376px) and (max-width: 425px) {
+            .app {
+                padding: 12px;
+            }
+            .grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                max-width: 350px;
+            }
+            .card {
+                min-height: 55px;
+                padding: 12px 8px;
+                font-size: 15px;
+                border-radius: 12px;
+            }
+            .header h1 {
+                font-size: 16px;
+            }
+            .score-box {
+                font-size: 14px;
+            }
+            .kid-card {
+                width: 300px;
+                padding: 22px 18px;
+            }
+            .kid-icon {
+                font-size: 3.5em;
+            }
+            .kid-card h3 {
+                font-size: 1.5em;
+            }
+            .final-kid-box {
+                padding: 22px 18px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.6em;
+            }
+            #stars {
+                font-size: 2em;
+            }
+        }
+
+        /* 426px - 480px */
+        @media (min-width: 426px) and (max-width: 480px) {
+            .app {
+                padding: 14px;
+            }
+            .grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                max-width: 400px;
+            }
+            .card {
+                min-height: 60px;
+                padding: 14px 10px;
+                font-size: 16px;
+                border-radius: 13px;
+            }
+            .header h1 {
+                font-size: 17px;
+            }
+            .score-box {
+                font-size: 15px;
+            }
+        }
+
+        /* 481px - 576px */
+        @media (min-width: 481px) and (max-width: 576px) {
+            .app {
+                padding: 16px;
+            }
+            .grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 14px;
+                max-width: 450px;
+            }
+            .card {
+                min-height: 65px;
+                padding: 16px 12px;
+                font-size: 17px;
+                border-radius: 14px;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+            .score-box {
+                font-size: 16px;
+            }
+        }
+
+        /* 577px - 768px */
+        @media (min-width: 577px) and (max-width: 768px) {
+            .app {
+                padding: 18px;
+            }
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 14px;
+                max-width: 600px;
+            }
+            .card {
+                min-height: 70px;
+                padding: 16px 12px;
+                font-size: 18px;
+                border-radius: 14px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .score-box {
+                font-size: 17px;
+            }
+        }
+
+        /* 769px - 1024px */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .app {
+                padding: 20px;
+            }
+            .grid {
+                gap: 16px;
+                max-width: 700px;
+            }
+            .card {
+                min-height: 95px;
+                padding: 18px 14px;
+                font-size: 25px;
+            }
+            .header h1 {
+                font-size: 27px;
+            }
+            .score-box {
+                font-size: 18px;
+            }
+        }
+
+        /* 1025px - 1200px */
+        @media (min-width: 1025px) and (max-width: 1200px) {
+            .app {
+                max-width: 950px;
+                padding: 22px;
+            }
+            .grid {
+                gap: 18px;
+                max-width: 850px;
+            }
+            .card {
+                min-height: 100px;
+                padding: 20px 16px;
+                font-size: 26px;
+            }
+            .header h1 {
+                font-size: 28px;
+            }
+            .score-box {
+                font-size: 19px;
+            }
+        }
+
+        /* 1201px - 1440px */
+        @media (min-width: 1201px) and (max-width: 1440px) {
+            .app {
+                max-width: 1000px;
+                padding: 24px;
+            }
+            .grid {
+                gap: 20px;
+                max-width: 900px;
+            }
+            .card {
+                min-height: 105px;
+                padding: 22px 18px;
+                font-size: 28px;
+                border-radius: 15px;
+            }
+            .header h1 {
+                font-size: 26px;
+            }
+            .score-box {
+                font-size: 20px;
+            }
+        }
+
+        /* 1441px - 1600px */
+        @media (min-width: 1441px) and (max-width: 1600px) {
+            .app {
+                max-width: 1100px;
+                padding: 26px;
+            }
+            .grid {
+                gap: 22px;
+                max-width: 1000px;
+            }
+            .card {
+                min-height: 110px;
+                padding: 24px 20px;
+                font-size: 30px;
+                border-radius: 16px;
+            }
+            .header h1 {
+                font-size: 28px;
+            }
+            .score-box {
+                font-size: 22px;
+            }
+        }
+
+        /* 1601px - 1920px */
+        @media (min-width: 1601px) and (max-width: 1920px) {
+            .app {
+                max-width: 1200px;
+                padding: 28px;
+            }
+            .grid {
+                gap: 24px;
+                max-width: 1100px;
+            }
+            .card {
+                min-height: 120px;
+                padding: 26px 22px;
+                font-size: 32px;
+                border-radius: 17px;
+            }
+            .header h1 {
+                font-size: 30px;
+            }
+            .score-box {
+                font-size: 24px;
+            }
+        }
+
+        /* 1921px and above */
+        @media (min-width: 1921px) {
+            .app {
+                max-width: 1300px;
+                padding: 30px;
+            }
+            .grid {
+                gap: 26px;
+                max-width: 1200px;
+            }
+            .card {
+                min-height: 130px;
+                padding: 28px 24px;
+                font-size: 34px;
+                border-radius: 18px;
+            }
+            .header h1 {
+                font-size: 32px;
+            }
+            .score-box {
+                font-size: 26px;
+            }
+            .kid-card {
+                width: 420px;
+                padding: 36px 32px;
+            }
+            .kid-icon {
+                font-size: 5.2em;
+            }
+            .kid-card h3 {
+                font-size: 2.4em;
+            }
+            .final-kid-box {
+                width: 520px;
+                padding: 40px;
+            }
+            .final-kid-box h2 {
+                font-size: 2.6em;
+            }
+            #stars {
+                font-size: 2.8em;
+            }
+            .playAgain-btn {
+                padding: 18px 44px;
+                font-size: 1.2em;
+            }
+        }
+
+     
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- HEADER -->
+        <div class="header">
+            <h1>Read the words carefully.Select the two words that are synonyms.</h1>
+            <div class="score-box">Score: <span id="scoreDisplay">0</span> / 6</div>
+        </div>
+
+        <!-- GRID - Fixed order as per worksheet -->
+        <div class="grid" id="gridContainer"></div>
+
+    </div>
+
+    <!-- ===== POPUPS ===== -->
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        // ================================================================
+        //  DATA - Fixed order as per worksheet (no shuffle)
+        //  Row 1: quick, begin, heap
+        //  Row 2: close, quiet, fully
+        //  Row 3: start, pile, shut
+        //  Row 4: silent, completely, fast
+        // ================================================================
+
+        const cardsData = [
+            // Row 1
+            { word: 'quick', color: 'color-green', pairId: 0 },
+            { word: 'begin', color: 'color-blue', pairId: 1 },
+            { word: 'heap', color: 'color-purple', pairId: 2 },
+            // Row 2
+            { word: 'close', color: 'color-cream', pairId: 3 },
+            { word: 'quiet', color: 'color-yellow', pairId: 4 },
+            { word: 'fully', color: 'color-pink', pairId: 5 },
+            // Row 3
+            { word: 'start', color: 'color-blue', pairId: 1 },
+            { word: 'pile', color: 'color-purple', pairId: 2 },
+            { word: 'shut', color: 'color-cream', pairId: 3 },
+            // Row 4
+            { word: 'silent', color: 'color-yellow', pairId: 4 },
+            { word: 'completely', color: 'color-pink', pairId: 5 },
+            { word: 'fast', color: 'color-green', pairId: 0 }
+        ];
+
+        // ================================================================
+        //  STATE
+        // ================================================================
+
+        let matchedPairs = new Set();
+        let selectedCard = null;
+        let score = 0;
+        let isProcessing = false;
+
+        // ================================================================
+        //  DOM REFS
+        // ================================================================
+
+        const grid = document.getElementById('gridContainer');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+
+        const popupOverlay = document.getElementById('answerPopup');
+        const popupIcon = document.getElementById('popupIcon');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupMsg = document.getElementById('popupMsg');
+
+        const finalPopup = document.getElementById('finalPopup');
+        const finalScore = document.getElementById('finalScore');
+        const starsEl = document.getElementById('stars');
+
+        // ================================================================
+        //  AUDIO
+        // ================================================================
+
+          function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        // ================================================================
+        //  CONFETTI
+        // ================================================================
+
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 200, spread: 110, origin: { y: 0.5 } });
+            setTimeout(() => {
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.2 } });
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.8 } });
+            }, 150);
+        }
+
+        // ================================================================
+        //  POPUPS
+        // ================================================================
+
+        function showPopup(isCorrect) {
+            popupOverlay.className = 'kid-popup ' + (isCorrect ? 'kid-correct' : 'kid-wrong');
+            popupOverlay.style.display = 'flex';
+
+            if (isCorrect) {
+                popupIcon.textContent = '🌟';
+                popupTitle.textContent = 'Amazing!';
+                popupMsg.textContent = 'You got it right! ✨';
+            } else {
+                popupIcon.textContent = '😒';
+                popupTitle.textContent = 'Keep Going!';
+                popupMsg.textContent = 'Try again, you can do it! 🌈';
+            }
+
+            const sound = document.getElementById(isCorrect ? 'correctSound' : 'wrongSound');
+            if (sound) sound.play().catch(() => {});
+
+            setTimeout(() => {
+                popupOverlay.style.display = 'none';
+            }, 1600);
+        }
+
+        function showFinal() {
+            finalPopup.style.display = 'flex';
+            finalScore.textContent = `Your Score: ${score} / 6`;
+            starsEl.textContent = '⭐'.repeat(score);
+            bigConfetti();
+        }
+
+        // ================================================================
+        //  RENDER GRID - Fixed order, no shuffle
+        // ================================================================
+
+        function renderGrid() {
+            grid.innerHTML = '';
+
+            cardsData.forEach((data) => {
+                const card = document.createElement('div');
+                // All cards start white - color class stored for later
+                card.className = `card ${data.color}`;
+                card.textContent = data.word;
+                card.dataset.pairId = data.pairId;
+                card.dataset.word = data.word;
+                card.dataset.colorClass = data.color;
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('aria-label', `Card: ${data.word}`);
+
+                card.addEventListener('click', () => handleCardClick(card));
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleCardClick(card);
+                    }
+                });
+
+                grid.appendChild(card);
+            });
+        }
+
+        // ================================================================
+        //  GAME LOGIC
+        // ================================================================
+
+        function handleCardClick(card) {
+            if (isProcessing) return;
+            if (card.classList.contains('matched')) return;
+            if (card.classList.contains('disabled')) return;
+
+            if (!selectedCard) {
+                document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                selectedCard = card;
+                return;
+            }
+
+            if (selectedCard === card) {
+                card.classList.remove('selected');
+                selectedCard = null;
+                return;
+            }
+
+            const card1 = selectedCard;
+            const card2 = card;
+            const pairId1 = parseInt(card1.dataset.pairId);
+            const pairId2 = parseInt(card2.dataset.pairId);
+
+            if (matchedPairs.has(pairId1) || matchedPairs.has(pairId2)) {
+                card1.classList.remove('selected');
+                selectedCard = null;
+                return;
+            }
+
+            const isCorrect = (pairId1 === pairId2) && (card1.dataset.word !== card2.dataset.word);
+
+            if (isCorrect) {
+                isProcessing = true;
+                matchedPairs.add(pairId1);
+                score++;
+                scoreDisplay.textContent = score;
+
+                card1.classList.remove('selected');
+                // Apply color on match - use the stored color class
+                const colorClass = card1.dataset.colorClass;
+                card1.classList.add('matched', colorClass);
+                card2.classList.add('matched', colorClass);
+
+                card1.setAttribute('aria-disabled', 'true');
+                card2.setAttribute('aria-disabled', 'true');
+
+                showPopup(true);
+               speak("Correct");
+                smallConfetti();
+
+                selectedCard = null;
+                isProcessing = false;
+
+                if (matchedPairs.size === 6) {
+                    setTimeout(showFinal, 1200);
+                }
+            } else {
+                isProcessing = true;
+                card1.classList.remove('selected');
+                card1.classList.add('wrong');
+                card2.classList.add('wrong');
+
+                showPopup(false);
+                speak("Try again");
+
+                setTimeout(() => {
+                    card1.classList.remove('wrong');
+                    card2.classList.remove('wrong');
+                    selectedCard = null;
+                    isProcessing = false;
+                }, 600);
+            }
+        }
+
+        // ================================================================
+        //  KEYBOARD SUPPORT
+        // ================================================================
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && selectedCard) {
+                selectedCard.classList.remove('selected');
+                selectedCard = null;
+            }
+        });
+
+        // ================================================================
+        //  INIT
+        // ================================================================
+
+        renderGrid();
+
+        console.log('🔗 Synonym Matching Game loaded!');
+        console.log('📝 6 pairs to match. Cards in fixed order as per worksheet.');
+        console.log('🎯 All cards start white, colors appear on correct match.');
+    </script>
+
+</body>
+
+</html>

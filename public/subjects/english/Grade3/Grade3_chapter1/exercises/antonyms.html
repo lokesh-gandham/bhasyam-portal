@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antonyms Spinner Maze Game</title>
+  <style>
+    /* ==========================================================================
+       1. GLOBAL & RESET STYLES
+       ========================================================================== */
+
+           @font-face {
+    font-family: 'CCSYBold';
+    src: url('./assets/CCSYBOLD.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+@font-face {
+    font-family: 'CCSyntroman';
+    src: url('../assets/CCSYNTRO.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'CCSyntroman';
+    }
+
+    :root {
+      --bg-sky: #e0f2fe;
+      --bg-card: #ffffff;
+      --purple-main: #8b5cf6;
+      --purple-light: #f3e8ff;
+      --green-main: #22c55e;
+      --green-light: #dcfce7;
+      --red-main: #ef4444;
+      --yellow-main: #eab308;
+      --text-dark: #1e293b;
+      --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.06);
+      --font-family:'CCSyntroman';;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: var(--font-family);
+      /* background: linear-gradient(180deg, #bae6fd 0%, #e0f2fe 70%, #86efac 70%, #4ade80 100%); */
+      color: var(--text-dark);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ==========================================================================
+       2. MAIN APP LAYOUT
+       ========================================================================== */
+    .game-container {
+      width: 96vw;
+      max-width: 1200px;
+      height: 94vh;
+      max-height: 800px;
+      /* background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 28px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+      border: 4px solid #ffffff; */
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    /* HEADER */
+    header {
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: #5b21b6;
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 0px #fff;
+    }
+
+    header p {
+      font-size: 0.95rem;
+      color: #475569;
+      font-weight: 600;
+    }
+
+    /* MAIN BOARD: 3-COLUMN GRID */
+    .game-board {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 260px 1fr 260px;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    /* COLUMNS */
+    .column {
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .column-header {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 12px;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .words-header { background: #8b5cf6; }
+    .antonyms-header { background: #10b981; }
+
+    .card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      justify-content: space-around;
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 2.5px dashed #cbd5e1;
+      box-shadow: var(--shadow-soft);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+
+    .card-left-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-number {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .card-text {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .card-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px dashed #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    /* CARD STATES */
+    .card.active {
+      border: 2.5px solid var(--purple-main);
+      background: var(--purple-light);
+      transform: scale(1.02);
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+      animation: pulse 1.8s infinite;
+    }
+
+    .card.completed {
+      background: var(--green-light);
+      border: 2.5px solid var(--green-main);
+      cursor: default;
+      opacity: 0.9;
+    }
+
+    .card.completed .card-badge {
+      border: none;
+      background: var(--green-main);
+      color: white;
+    }
+
+    .card.completed .card-number {
+      background: var(--green-main);
+      color: white;
+    }
+
+    .card.disabled {
+      cursor: not-allowed;
+    }
+
+    /* ==========================================================================
+       3. CENTER MAZE & SPINNER SECTION
+       ========================================================================== */
+    .center-container {
+      position: relative;
+      background: #ffffff;
+      border-radius: 20px;
+      border: 2px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+    }
+
+    /* DECORATIVE SVG MAZE BACKGROUND */
+    .maze-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.12;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .spinner-wrapper {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* SPINNER POINTER ARROW */
+    .pointer-container {
+      position: absolute;
+      top: -16px;
+      z-index: 10;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+    }
+
+    .pointer {
+      width: 32px;
+      height: 32px;
+      fill: #f59e0b;
+      stroke: #ffffff;
+      stroke-width: 2;
+    }
+
+    /* CIRCULAR SPINNER */
+    .spinner-container {
+      position: relative;
+      width: 290px;
+      height: 290px;
+      border-radius: 50%;
+      border: 8px solid #7c3aed;
+      box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3), inset 0 0 10px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+      transition: transform 4s cubic-bezier(0.15, 0.9, 0.2, 1);
+    }
+
+    /* HUB IN THE CENTER OF WHEEL */
+    .wheel-center-hub {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 110px;
+      height: 110px;
+      background: #ffffff;
+      border-radius: 50%;
+      border: 4px solid #7c3aed;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      padding: 4px;
+    }
+
+    .hub-title {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      color: #64748b;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .hub-word {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #6d28d9;
+      margin-top: 2px;
+      word-break: break-word;
+    }
+
+    /* SEGMENT TEXT LABELS */
+    .segment-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100px;
+      height: 30px;
+      margin-top: -15px;
+      margin-left: -50px;
+      transform-origin: center center;
+      text-align: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #1e293b;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+      pointer-events: none;
+    }
+
+    /* BUTTONS */
+    .controls {
+      display: flex;
+      gap: 16px;
+      z-index: 2;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      font-family: var(--font-family);
+      font-size: 1rem;
+      font-weight: 800;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: white;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-spin {
+      background: #8b5cf6;
+    }
+
+    .btn-spin:hover:not(:disabled) {
+      background: #7c3aed;
+    }
+
+    .btn-check {
+      background: #22c55e;
+    }
+
+    .btn-check:hover:not(:disabled) {
+      background: #16a34a;
+    }
+
+    .btn:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      box-shadow: none;
+      opacity: 0.7;
+    }
+
+    /* FOOTER HINT */
+    .footer-hint {
+      z-index: 2;
+      background: #f1f5f9;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #475569;
+      margin-top: 4px;
+    }
+
+    /* ==========================================================================
+       4. ANIMATIONS & WRONG/CORRECT EFFECTS
+       ========================================================================== */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.5); }
+      70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    @keyframes bounceSuccess {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .shake-target {
+      animation: shake 0.5s ease-in-out;
+    }
+
+    .bounce-target {
+      animation: bounceSuccess 0.5s ease-in-out;
+    }
+
+    /* ==========================================================================
+       5. KID POPUP (from Flashcard Quiz)
+       ========================================================================== */
+    .kid-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      /* background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px); */
+      padding: 20px;
+    }
+
+    .kid-card {
+      background: #ffffff;
+      width: 380px;
+      max-width: 95%;
+      padding: 32px 28px;
+      border-radius: 44px;
+      text-align: center;
+      animation: kidPop 0.6s ease;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kid-card::before,
+    .kid-card::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .kid-card::before {
+      width: 200px;
+      height: 200px;
+      top: -80px;
+      right: -60px;
+      background: #ffd93d;
+    }
+
+    .kid-card::after {
+      width: 150px;
+      height: 150px;
+      bottom: -60px;
+      left: -50px;
+      background: #6bcbff;
+    }
+
+    .kid-card>* {
+      position: relative;
+      z-index: 2;
+    }
+
+    .kid-icon {
+      font-size: 4.8em;
+      margin-bottom: 6px;
+      animation: emojiBounce 0.9s infinite alternate;
+      display: inline-block;
+    }
+
+    .kid-card h3 {
+      font-size: 2.2em;
+      margin-bottom: 4px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .kid-card p {
+      font-size: 1.1em;
+      color: #555;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .kid-correct .kid-card {
+      background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+      border: 5px solid #38d9a9;
+    }
+
+    .kid-correct .kid-card h3 {
+      color: #0b8a4a;
+    }
+
+    .kid-correct .kid-card p {
+      color: #1a6a3a;
+    }
+
+    .kid-correct .kid-card::before {
+      background: #38d9a9;
+    }
+
+    .kid-correct .kid-card::after {
+      background: #38d9a9;
+    }
+
+    .kid-wrong .kid-card {
+      background: linear-gradient(145deg, #fff5f5, #fce4e4);
+      border: 5px solid #ff8a8a;
+    }
+
+    .kid-wrong .kid-card h3 {
+      color: #c0392b;
+    }
+
+    .kid-wrong .kid-card p {
+      color: #922b21;
+    }
+
+    .kid-wrong .kid-card::before {
+      background: #ff8a8a;
+    }
+
+    .kid-wrong .kid-card::after {
+      background: #ff8a8a;
+    }
+
+    @keyframes kidPop {
+      0% {
+        transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes emojiBounce {
+      from { transform: translateY(0) scale(1); }
+      to { transform: translateY(-12px) scale(1.05); }
+    }
+
+    /* ==========================================================================
+       6. FINAL POPUP (from Flashcard Quiz)
+       ========================================================================== */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+      /* background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(6px); */
+      padding: 20px;
+    }
+
+    .final-kid-box {
+      background: linear-gradient(145deg, #fff7d6, #e6fff5);
+      padding: 35px 40px;
+      border-radius: 44px;
+      text-align: center;
+      width: 480px;
+      max-width: 95%;
+      animation: finalBounce 0.8s ease;
+      border: 4px solid rgba(255, 255, 255, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .final-kid-box::before {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      top: -120px;
+      right: -100px;
+      background: #ffd93d;
+      border-radius: 50%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .final-kid-box>* {
+      position: relative;
+      z-index: 2;
+    }
+
+    .final-kid-box h2 {
+      font-size: 2.4em;
+      color: #2f9e44;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .final-kid-box p {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #2d3a3a;
+    }
+
+    #stars {
+      font-size: 2.6em;
+      margin: 14px 0;
+      letter-spacing: 6px;
+    }
+
+    .playAgain-btn {
+      background: #ffac30;
+      color: white;
+      border: none;
+      padding: 16px 38px;
+      border-radius: 40px;
+      font-size: 1.15em;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.2s;
+      box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .playAgain-btn:hover {
+      transform: translateY(-3px);
+    }
+
+    .playAgain-btn:active {
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 #d4871f;
+    }
+
+    @keyframes finalBounce {
+      0% {
+        transform: scale(0.3) perspective(400px) rotateX(15deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.08) perspective(400px) rotateX(-5deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) perspective(400px) rotateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* ==========================================================================
+       7. CONGRATULATIONS OVERLAY & CONFETTI
+       ========================================================================== */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 900px) {
+      .game-board {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+      }
+      body, html {
+        overflow: auto;
+        height: auto;
+      }
+      .game-container {
+        height: auto;
+        max-height: none;
+      }
+      .spinner-container {
+        width: 240px;
+        height: 240px;
+      }
+      .wheel-center-hub {
+        width: 90px;
+        height: 90px;
+      }
+    }
+
+            @media (min-width: 1441px) and (max-width: 1920px) {
+           
+           .kid-card {
+                width: 460px;
+                padding: 38px 34px;
+            }
+            .kid-icon {
+                font-size: 5.4em;
+            }
+            .final-kid-box {
+                width: 560px;
+                padding: 42px;
+            }
+            .final-kid-box h2 {
+                font-size: 2.8em;
+            }
+            #stars {
+                font-size: 2.8em;
+            }
+            .playAgain-btn {
+                padding: 18px 44px;
+                font-size: 1.3em;
+            }
+
+        }
+
+
+  </style>
+</head>
+<body>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="game-container">
+    <header>
+      <h1>ANTONYMS MAZE SPINNER</h1>
+      <p>Spin the wheel and find the matching opposite word!</p>
+    </header>
+
+    <main class="game-board">
+      <!-- LEFT COLUMN: VOCABULARY WORDS -->
+      <section class="column">
+        <div class="column-header words-header">Words</div>
+        <div class="card-list" id="words-list"></div>
+      </section>
+
+      <!-- CENTER COLUMN: MAZE & SPINNER -->
+      <section class="center-container" id="center-panel">
+        <!-- SVG Decorative Maze Background -->
+        <svg class="maze-bg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 20,20 H 380 V 380 H 20 Z 
+                   M 50,50 H 350 V 350 H 50 Z 
+                   M 80,80 H 320 V 320 H 80 Z 
+                   M 110,110 H 290 V 290 H 110 Z" 
+                fill="none" stroke="#64748b" stroke-width="6" stroke-linecap="round"/>
+          <path d="M 20,100 H 80 M 320,100 H 380 M 100,20 V 80 M 100,320 V 380
+                   M 200,50 V 110 M 200,290 V 350 M 50,200 H 110 M 290,200 H 350" 
+                fill="none" stroke="#64748b" stroke-width="6" stroke-linecap="round"/>
+        </svg>
+
+        <div class="spinner-wrapper">
+          <!-- Pointer -->
+          <div class="pointer-container">
+            <svg class="pointer" viewBox="0 0 24 24">
+              <!-- <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" transform="rotate(180 12 12)"/> -->
+              <path
+    d="M12 18c-.3 0-.6-.1-.8-.3l-6-6c-.6-.6-.2-1.7.7-1.7h12.2c.9 0 1.3 1.1.7 1.7l-6 6c-.2.2-.5.3-.8.3z"
+    transform="scale(1.5) translate(-4 -4)"
+/>
+            </svg>
+          </div>
+
+          <!-- Spinner Wheel -->
+          <div class="spinner-container">
+            <div class="wheel" id="wheel">
+              <svg id="wheel-svg" width="100%" height="100%" viewBox="0 0 300 300"></svg>
+            </div>
+            
+            <!-- Hub Display -->
+            <div class="wheel-center-hub">
+              <span class="hub-title">Current Word</span>
+              <span class="hub-word" id="hub-current-word">Soon</span>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="controls">
+            <button class="btn btn-spin" id="spin-btn">🔄 SPIN</button>
+            <button class="btn btn-check" id="check-btn" disabled>✓ CHECK</button>
+          </div>
+
+          <div class="footer-hint" id="status-hint">
+            💡 Select a word on the left, then spin the wheel!
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: ANTONYMS -->
+      <section class="column">
+        <div class="column-header antonyms-header">Antonyms</div>
+        <div class="card-list" id="antonyms-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===== KID POPUP (from Flashcard Quiz) ===== -->
+  <div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+      <div class="kid-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <!-- ===== FINAL POPUP (from Flashcard Quiz) ===== -->
+  <div id="finalPopup">
+    <div class="final-kid-box">
+      <h2>🎉 Congratulations!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div>
+      <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+  </div>
+
+  <!-- ===== AUDIO (from Flashcard Quiz) ===== -->
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script>
+    /* ==========================================================================
+       GAME DATA & INITIAL STATE
+       ========================================================================== */
+    const GAME_DATA = [
+      { id: 1, word: "Soon", antonym: "Late", numStr: "1" },
+      { id: 2, word: "Request", antonym: "Order", numStr: "2" },
+      { id: 3, word: "Damage", antonym: "Repair", numStr: "3" },
+      { id: 4, word: "Large", antonym: "Small", numStr: "4" },
+      { id: 5, word: "Increase", antonym: "Decrease", numStr: "5" }
+    ];
+
+    // Colors for the wheel segments
+    const SEGMENT_COLORS = ["#d8b4fe", "#38bdf8", "#fde047", "#f472b6", "#4ade80"];
+function smallConfetti() {
+    confetti({
+        particleCount: 35,
+        spread: 70,
+        origin: { y: 0.7 }
+    });
+}
+
+function bigConfetti() {
+    confetti({
+        particleCount: 200,
+        spread: 110,
+        origin: { y: 0.5 }
+    });
+
+    setTimeout(() => {
+        confetti({
+            particleCount: 120,
+            spread: 130,
+            origin: { y: 0.4, x: 0.2 }
+        });
+
+        confetti({
+            particleCount: 120,
+            spread: 130,
+            origin: { y: 0.4, x: 0.8 }
+        });
+    }, 150);
+}
+
+
+ function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+
+    class AntonymGame {
+      constructor(data) {
+        this.data = data;
+        this.activeWordId = 1; 
+        this.completedIds = new Set();
+        this.currentRotation = 0;
+        this.selectedAntonym = null;
+        this.isSpinning = false;
+        this.score = 0;
+
+this.spinCount = 0;
+this.correctSpinNumber = this.randomCorrectSpin();
+this.correctAnswerMissed = false;
+
+        // Cache DOM Elements
+        this.wordsListEl = document.getElementById("words-list");
+        this.antonymsListEl = document.getElementById("antonyms-list");
+        this.hubWordEl = document.getElementById("hub-current-word");
+        this.wheelEl = document.getElementById("wheel");
+        this.wheelSvgEl = document.getElementById("wheel-svg");
+        this.spinBtn = document.getElementById("spin-btn");
+        this.checkBtn = document.getElementById("check-btn");
+        this.statusHint = document.getElementById("status-hint");
+        this.centerPanel = document.getElementById("center-panel");
+
+        // Popup elements
+        this.popupOverlay = document.getElementById("answerPopup");
+        this.popupIcon = document.getElementById("popupIcon");
+        this.popupTitle = document.getElementById("popupTitle");
+        this.popupMsg = document.getElementById("popupMsg");
+
+        // Final popup elements
+        this.finalPopup = document.getElementById("finalPopup");
+        this.finalScore = document.getElementById("finalScore");
+        this.starsEl = document.getElementById("stars");
+
+        // Audio elements
+        this.correctSound = document.getElementById("correctSound");
+        this.wrongSound = document.getElementById("wrongSound");
+
+        this.audioCtx = null;
+
+        this.init();
+      }
+
+      init() {
+        this.renderLeftCards();
+        this.renderRightCards();
+        this.renderWheelSVG();
+        this.bindEvents();
+        this.updateActiveWord(1);
+      }
+randomCorrectSpin() {
+    return Math.floor(Math.random() * 4) + 1;
+}
+      /* ==========================================================================
+         POPUP METHODS (from Flashcard Quiz)
+         ========================================================================== */
+      showPopup(isCorrect, word, antonym) {
+        this.popupOverlay.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+        this.popupOverlay.style.display = "flex";
+
+
+        if (isCorrect) {
+           speak("Correct");
+          this.popupIcon.textContent = "🌟";
+          this.popupTitle.textContent = "Amazing!";
+          this.popupMsg.textContent = `"${word}" ↔ "${antonym}" — Perfect match! ✨`;
+        } else {
+           speak("Try again");
+          this.popupIcon.textContent = "😒";
+          this.popupTitle.textContent = "Keep Going!";
+          this.popupMsg.textContent = `"${antonym}" is not the opposite of "${word}". Try again! 🌈`;
+        }
+
+        // Play sound
+        // const sound = isCorrect ? this.correctSound : this.wrongSound;
+        // if (sound) sound.play().catch(() => { });
+if (isCorrect) {
+    smallConfetti();
+}
+        setTimeout(() => {
+          this.popupOverlay.style.display = "none";
+        }, 1800);
+      }
+
+      
+      showFinal() {
+        const total = this.data.length;
+        this.finalScore.textContent = `Your Score: ${this.score} / ${total}`;
+        this.starsEl.textContent = "⭐".repeat(this.score);
+        this.finalPopup.style.display = "flex";
+        // this.triggerConfetti();
+          bigConfetti();
+      }
+
+      /* ==========================================================================
+         RENDER METHODS
+         ========================================================================== */
+      renderLeftCards() {
+        this.wordsListEl.innerHTML = "";
+        this.data.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.dataset.id = item.id;
+          card.id = `word-card-${item.id}`;
+
+          card.innerHTML = `
+            <div class="card-left-group">
+              <div class="card-number">${item.id}</div>
+              <div class="card-text">${item.word}</div>
+            </div>
+            <div class="card-badge" id="word-badge-${item.id}"></div>
+          `;
+
+          card.addEventListener("click", () => {
+            if (!this.completedIds.has(item.id) && !this.isSpinning) {
+              this.updateActiveWord(item.id);
+            }
+          });
+
+          this.wordsListEl.appendChild(card);
+        });
+      }
+
+    renderRightCards() {
+    this.antonymsListEl.innerHTML = "";
+
+    // Shuffle antonyms
+    const shuffled = [...this.data].sort(() => Math.random() - 0.5);
+
+    shuffled.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "card disabled";
+        card.dataset.id = item.id;
+        card.id = `antonym-card-${item.id}`;
+
+        card.innerHTML = `
+            <div class="card-text">${item.antonym}</div>
+            <div class="card-badge" id="antonym-badge-${item.id}"></div>
+        `;
+
+        this.antonymsListEl.appendChild(card);
+    });
+}
+
+      renderWheelSVG() {
+        const total = this.data.length;
+        const sliceAngle = 360 / total;
+        const radius = 150;
+        const center = 150;
+
+        let svgPathContent = "";
+
+        this.data.forEach((item, index) => {
+          const startAngle = index * sliceAngle - 90;
+          const endAngle = (index + 1) * sliceAngle - 90;
+
+          const x1 = center + radius * Math.cos((Math.PI * startAngle) / 180);
+          const y1 = center + radius * Math.sin((Math.PI * startAngle) / 180);
+          const x2 = center + radius * Math.cos((Math.PI * endAngle) / 180);
+          const y2 = center + radius * Math.sin((Math.PI * endAngle) / 180);
+
+          const pathData = `M ${center} ${center} L ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2} Z`;
+
+          svgPathContent += `<path d="${pathData}" fill="${SEGMENT_COLORS[index]}" stroke="#ffffff" stroke-width="2"/>`;
+        });
+
+        this.wheelSvgEl.innerHTML = svgPathContent;
+
+        // Render text labels over sectors
+        this.data.forEach((item, index) => {
+          const midAngle = index * sliceAngle + sliceAngle / 2;
+          const label = document.createElement("div");
+          label.className = "segment-label";
+          label.innerText = item.antonym;
+          
+          // Rotate label outward from center
+          label.style.transform = `rotate(${midAngle}deg) translateY(-95px) rotate(-${midAngle}deg)`;
+          this.wheelEl.appendChild(label);
+        });
+      }
+
+      /* ==========================================================================
+         GAME LOGIC
+         ========================================================================== */
+      updateActiveWord(id) {
+        this.activeWordId = id;
+        const currentData = this.data.find(d => d.id === id);
+
+        // Update active UI card on left
+        this.data.forEach(item => {
+          const card = document.getElementById(`word-card-${item.id}`);
+          if (this.completedIds.has(item.id)) {
+            card.className = "card completed";
+          } else if (item.id === id) {
+            card.className = "card active";
+          } else {
+            card.className = "card";
+          }
+        });
+
+        // Update hub text
+        this.hubWordEl.innerText = currentData.word;
+        this.selectedAntonym = null;
+        this.checkBtn.disabled = true;
+        this.statusHint.innerText = `💡 Current active word: "${currentData.word}". Click Spin!`;
+      }
+
+      bindEvents() {
+        this.spinBtn.addEventListener("click", () => this.spinWheel());
+        this.checkBtn.addEventListener("click", () => this.checkMatch());
+      }
+
+      spinWheel() {
+        if (this.isSpinning) return;
+
+        // Find available (unmatched) antonyms
+        // const availableItems = this.data.filter(item => !this.completedIds.has(item.id));
+        // if (availableItems.length === 0) return;
+
+        // // Pick a random available antonym
+        // const chosenItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+        // this.selectedAntonym = chosenItem;
+// Count current spins
+this.spinCount++;
+
+const activeData = this.data.find(d => d.id === this.activeWordId);
+
+let chosenItem;
+
+// If the user already saw the correct answer but didn't check it,
+// show it again after 2 more spins.
+if (this.correctAnswerMissed && this.spinCount >= 2) {
+
+    chosenItem = activeData;
+    this.spinCount = 0;
+
+} else if (!this.correctAnswerMissed &&
+           this.spinCount === this.correctSpinNumber) {
+
+    // First time showing the correct answer
+    chosenItem = activeData;
+
+    // Remember that the correct answer has been shown
+    this.correctAnswerMissed = true;
+    this.spinCount = 0;
+
+} else {
+
+    const wrongItems = this.data.filter(item =>
+        !this.completedIds.has(item.id) &&
+        item.id !== this.activeWordId
+    );
+
+    chosenItem = wrongItems[
+        Math.floor(Math.random() * wrongItems.length)
+    ];
+}
+
+this.selectedAntonym = chosenItem;
+
+        // Calculate exact target angle so pointer hits chosen segment top-center
+        const totalSegments = this.data.length;
+        const segmentAngle = 360 / totalSegments;
+        const chosenIndex = this.data.findIndex(item => item.id === chosenItem.id);
+
+        // Angle needed to position segment at 0 degrees (top pointer)
+        const targetSegmentCenter = (chosenIndex * segmentAngle) + (segmentAngle / 2);
+        const stopAngle = (360 - targetSegmentCenter) % 360;
+
+        // Calculate full spins (e.g. 5 full rotations = 1800 deg)
+        const currentNormalized = this.currentRotation % 360;
+        let angleDifference = stopAngle - currentNormalized;
+        if (angleDifference <= 0) angleDifference += 360;
+
+        const extraRotations = 360 * 5; // 5 full turns
+        const finalRotation = this.currentRotation + angleDifference + extraRotations;
+
+        this.isSpinning = true;
+        this.spinBtn.disabled = true;
+        this.checkBtn.disabled = true;
+        this.statusHint.innerText = "🌀 Spinning...";
+
+        // Apply smooth rotation transition
+        this.wheelEl.style.transform = `rotate(${finalRotation}deg)`;
+        this.currentRotation = finalRotation;
+
+        // When spin finishes
+        setTimeout(() => {
+          this.isSpinning = false;
+          this.checkBtn.disabled = false;
+          this.spinBtn.disabled = false;
+          this.statusHint.innerText = `🎯 Spinner landed on "${chosenItem.antonym}". Click CHECK!`;
+        }, 4000); // 4 seconds easing duration matching CSS
+      }
+
+      checkMatch() {
+        if (!this.selectedAntonym || this.isSpinning) return;
+
+        const activeData = this.data.find(d => d.id === this.activeWordId);
+
+        if (this.selectedAntonym.id === this.activeWordId) {
+          
+          // --- SUCCESS MATCH ---
+          this.score++;
+          this.completedIds.add(this.activeWordId);
+
+          this.spinCount = 0;
+this.correctSpinNumber = this.randomCorrectSpin();
+this.correctAnswerMissed = false;
+          // Show correct popup (from Flashcard Quiz)
+          this.showPopup(true, activeData.word, activeData.antonym);
+
+          // Mark Left Card Completed
+          const wordCard = document.getElementById(`word-card-${this.activeWordId}`);
+          const wordBadge = document.getElementById(`word-badge-${this.activeWordId}`);
+          wordCard.className = "card completed";
+          wordCard.classList.add("bounce-target");
+          // wordBadge.innerText = activeData.numStr;
+          wordBadge.style.display = "none";
+          // Mark Right Card Completed
+          const antonymCard = document.getElementById(`antonym-card-${this.activeWordId}`);
+          const antonymBadge = document.getElementById(`antonym-badge-${this.activeWordId}`);
+          antonymCard.className = "card completed";
+          antonymCard.classList.add("bounce-target");
+          antonymBadge.innerText = activeData.numStr;
+
+
+          // Move correct antonym to its correct position
+const allCards = [...this.antonymsListEl.children];
+
+const currentIndex = allCards.indexOf(antonymCard);
+const targetIndex = activeData.id - 1;
+
+if (currentIndex !== targetIndex) {
+    this.antonymsListEl.removeChild(antonymCard);
+
+    const updatedCards = [...this.antonymsListEl.children];
+
+    if (targetIndex >= updatedCards.length) {
+        this.antonymsListEl.appendChild(antonymCard);
+    } else {
+        this.antonymsListEl.insertBefore(
+            antonymCard,
+            updatedCards[targetIndex]
+        );
+    }
+}
+          this.checkBtn.disabled = true;
+
+          // Check Win Condition
+          if (this.completedIds.size === this.data.length) {
+            setTimeout(() => {
+              this.showFinal();
+            }, 1000);
+          } else {
+            this.statusHint.innerText = `🎉 Great job! "${activeData.word}" matches "${activeData.antonym}"!`;
+            // Auto-advance to next unfinished word after short delay
+            setTimeout(() => {
+              const nextUnfinished = this.data.find(d => !this.completedIds.has(d.id));
+              if (nextUnfinished) {
+                this.updateActiveWord(nextUnfinished.id);
+              }
+            }, 1200);
+          }
+
+        } else {
+          // --- WRONG MATCH ---
+          this.showPopup(false, activeData.word, this.selectedAntonym.antonym);
+          
+          this.centerPanel.classList.add("shake-target");
+          this.statusHint.innerText = `❌ Oops! "${this.selectedAntonym.antonym}" is not the antonym for "${activeData.word}". Try again!`;
+
+          setTimeout(() => {
+            this.centerPanel.classList.remove("shake-target");
+          }, 500);
+
+          this.checkBtn.disabled = true;
+        }
+      }
+
+      // triggerConfetti() {
+      //   const canvas = document.getElementById("confetti-canvas");
+      //   const ctx = canvas.getContext("2d");
+      //   canvas.width = window.innerWidth;
+      //   canvas.height = window.innerHeight;
+
+      //   const pieces = [];
+      //   const colors = ['#8b5cf6', '#22c55e', '#ef4444', '#eab308', '#38bdf8', '#f472b6'];
+
+      //   for (let i = 0; i < 120; i++) {
+      //     pieces.push({
+      //       x: Math.random() * canvas.width,
+      //       y: Math.random() * canvas.height - canvas.height,
+      //       size: Math.random() * 10 + 5,
+      //       color: colors[Math.floor(Math.random() * colors.length)],
+      //       speed: Math.random() * 3 + 2,
+      //       angle: Math.random() * 360
+      //     });
+      //   }
+
+      //   function draw() {
+      //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+      //     pieces.forEach((p) => {
+      //       ctx.save();
+      //       ctx.translate(p.x, p.y);
+      //       ctx.rotate((p.angle * Math.PI) / 180);
+      //       ctx.fillStyle = p.color;
+      //       ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      //       ctx.restore();
+
+      //       p.y += p.speed;
+      //       p.angle += 2;
+
+      //       if (p.y > canvas.height) {
+      //         p.y = -20;
+      //       }
+      //     });
+      //     requestAnimationFrame(draw);
+      //   }
+      //   draw();
+      // }
+
+      triggerConfetti() {
+    confetti({
+        particleCount: 200,
+        spread: 110,
+        origin: { y: 0.5 }
+    });
+
+    setTimeout(() => {
+        confetti({
+            particleCount: 120,
+            spread: 130,
+            origin: { y: 0.4, x: 0.2 }
+        });
+
+        confetti({
+            particleCount: 120,
+            spread: 130,
+            origin: { y: 0.4, x: 0.8 }
+        });
+    }, 150);
+}
+    }
+
+    // Initialize Game on DOM Load
+    window.addEventListener("DOMContentLoaded", () => {
+      new AntonymGame(GAME_DATA);
+    });
+  </script>
+</body>
+</html>

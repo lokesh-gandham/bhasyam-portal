@@ -1,0 +1,2243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+  <title>Homophones · Smart Auto-Check</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    /* ===== BASE ===== */
+    @font-face {
+      font-family: 'CCSYBold';
+      src: url('./assets/CCSYBOLD.TTF') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'CCSyntroman';
+      src: url('../assets/CCSYNTRO.TTF') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'CCSyntroman', 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+   
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      margin: 0;
+      overflow:hidden;
+    }
+
+    .container {
+      max-width: 1020px;
+      width: 100%;
+   
+      transition: all 0.2s;
+    }
+
+    .main-heading {
+      font-size: clamp(1rem, 4.5vw, 1.8rem);
+      font-weight: 500;
+      color: #1e293b;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: 18px;
+      letter-spacing: -0.3px;
+      padding: 0 6px;
+    }
+
+    .word-strip {
+      background: #fef0e6;
+      border-radius: 60px;
+      padding: 12px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 8px 18px;
+      margin-bottom: 24px;
+      border: 2px solid #fae4d8;
+    }
+    .word-strip span {
+      font-size: clamp(0.7rem, 2vw, 1.1rem);
+      font-weight: 600;
+      color: #3d2a24;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+      transition: 0.25s ease;
+      padding: 4px 6px;
+      border-radius: 30px;
+    }
+    .word-strip span.completed {
+      background: #22c55e;
+      color: #fff;
+      padding: 4px 16px;
+      box-shadow: 0 2px 12px rgba(34, 197, 94, 0.3);
+    }
+    .word-strip .dash {
+      color: #b07a6a;
+      font-weight: 300;
+      margin: 0 2px;
+    }
+
+    .question-card {
+      /* background: #ffffff;
+      border: 2px solid #ede7e2; */
+      border-radius: 28px;
+      padding: 24px 18px 28px;
+      margin-bottom: 16px;
+      transition: border 0.2s;
+    }
+
+   .question-label{
+    width: fit-content;
+    min-width: 240px;
+    height: 56px;
+    margin: -29px auto 24px;
+    padding: 0 40px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-family:'CCSYBold';
+    font-size:28px;
+    color:#ffffff;
+
+    background:#8d64e7;
+    border-radius:18px 18px 22px 22px;
+
+    border:3px solid #ffffff;
+    box-shadow:
+        0 8px 20px rgba(155,116,239,.35),
+        inset 0 2px 0 rgba(255,255,255,.45);
+
+    position:relative;
+    z-index:5;
+}
+
+    .image-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(16px, 6vw, 50px);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .image-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .image-box .img-frame {
+      width: clamp(100px, 25vw, 220px);
+      height: clamp(100px, 25vw, 220px);
+      border-radius: 20px;
+      background: #f7f4f2;
+      border: 3px dashed #d5cdc8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: border 0.2s;
+    }
+    .image-box .img-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 10px;
+    }
+
+    .input-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(12px, 8vw, 60px);
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .input-group input {
+      width: clamp(80px, 22vw, 160px);
+      height: clamp(42px, 8vh, 58px);
+      font-size: clamp(1.1rem, 3.5vw, 1.8rem);
+      font-weight: 600;
+      text-align: center;
+      border: 3px solid #e2d6ce;
+      border-radius: 18px;
+      background: #fcfaf8;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      color: #1e293b;
+      text-transform: capitalize;
+      font-family: 'CCSyntroman';
+      letter-spacing: 0.5px;
+    }
+    .input-group input::placeholder {
+      color: #b5a8a0;
+      font-weight: 400;
+      font-size: clamp(0.6rem, 1.6vw, 0.9rem);
+      text-transform: none;
+        position: relative;
+    top: -2px;
+    }
+    .input-group input:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15);
+      background: #ffffff;
+    }
+    .input-group input.correct {
+      border-color: #22c55e;
+      background: #f0fdf4;
+      pointer-events: none;
+    }
+    .input-group input.wrong {
+      border-color: #ef4444;
+      background: #fef2f2;
+      animation: shake 0.4s ease;
+    }
+    .input-group input:disabled {
+      opacity: 0.85;
+    }
+
+    .input-label {
+      font-size: clamp(0.55rem, 1.4vw, 0.8rem);
+      font-weight: 600;
+      color: #94a3b8;
+      letter-spacing: 0.4px;
+      text-transform: capitalize;
+      margin-top: 2px;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      60% { transform: translateX(6px); }
+    }
+
+    /* ===== UPDATED CONTROLS - Matching MCQ Quiz Style ===== */
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      gap: clamp(16px, 12vw, 80px);
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .controls button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 32px;
+      border: 3px solid #ffffff;
+      border-radius: 40px;
+       font-size: 20px;
+      font-weight: 400;
+      color: #ffffff;
+      cursor: pointer;
+      transition: 0.15s ease;
+      font-family: 'CCSyntroman', 'Inter', sans-serif;
+      width: 130px;
+            height: 55px;
+    }
+
+    .controls .prev-btn {
+      background: linear-gradient(#b5dffc, #7fc0eb);
+      box-shadow: 0 4px 0 #4da5d4;
+    }
+
+    .controls .prev-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #4da5d4;
+    }
+
+    .controls .next-btn {
+      background: linear-gradient(#f1e390, #ecc74e);
+      box-shadow: 0 4px 0 #d1a72c;
+    }
+
+    .controls .next-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #d1a72c;
+    }
+
+    .controls button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: 0 4px 0 #4da5d4 !important;
+    }
+
+    .controls .next-btn:disabled {
+      box-shadow: 0 4px 0 #d1a72c !important;
+    }
+
+    .controls button i {
+      font-size: clamp(0.7rem, 1.4vw, 1rem);
+    }
+
+    /* ===== POPUPS - Same as reference ===== */
+    .kid-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 20px;
+   
+    }
+
+    .kid-card {
+      background: #ffffff;
+      width: 380px;
+      max-width: 95%;
+      padding: 32px 28px;
+      border-radius: 44px;
+      text-align: center;
+      animation: kidPop 0.6s ease;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+      border: 5px solid transparent;
+    }
+
+    .kid-card::before,
+    .kid-card::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .kid-card::before {
+      width: 200px;
+      height: 200px;
+      top: -80px;
+      right: -60px;
+      background: #ffd93d;
+    }
+
+    .kid-card::after {
+      width: 150px;
+      height: 150px;
+      bottom: -60px;
+      left: -50px;
+      background: #6bcbff;
+    }
+
+    .kid-card>* {
+      position: relative;
+      z-index: 2;
+    }
+
+    .kid-icon {
+      font-size: 4.8em;
+      margin-bottom: 6px;
+      animation: emojiBounce 0.9s infinite alternate;
+      display: inline-block;
+    }
+
+    .kid-card h3 {
+      font-size: 2.2em;
+      margin-bottom: 4px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .kid-card p {
+      font-size: 1.1em;
+      color: #555;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .kid-correct .kid-card {
+      background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+      border-color: #38d9a9;
+    }
+
+    .kid-correct .kid-card h3 {
+      color: #0b8a4a;
+    }
+
+    .kid-correct .kid-card p {
+      color: #1a6a3a;
+    }
+
+    .kid-correct .kid-card::before {
+      background: #38d9a9;
+    }
+
+    .kid-correct .kid-card::after {
+      background: #38d9a9;
+    }
+
+    .kid-wrong .kid-card {
+      background: linear-gradient(145deg, #fff5f5, #fce4e4);
+      border-color: #ff8a8a;
+    }
+
+    .kid-wrong .kid-card h3 {
+      color: #c0392b;
+    }
+
+    .kid-wrong .kid-card p {
+      color: #922b21;
+    }
+
+    .kid-wrong .kid-card::before {
+      background: #ff8a8a;
+    }
+
+    .kid-wrong .kid-card::after {
+      background: #ff8a8a;
+    }
+
+    @keyframes kidPop {
+      0% {
+        transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes emojiBounce {
+      from {
+        transform: translateY(0) scale(1);
+      }
+      to {
+        transform: translateY(-12px) scale(1.05);
+      }
+    }
+
+    /* ===== FINAL POPUP ===== */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+      padding: 20px;
+
+    }
+
+    .final-kid-box {
+      background: linear-gradient(145deg, #fff7d6, #e6fff5);
+      padding: 35px 40px;
+      border-radius: 44px;
+      text-align: center;
+      width: 480px;
+      max-width: 95%;
+      animation: finalBounce 0.8s ease;
+      border: 4px solid rgba(255, 255, 255, 0.6);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    .final-kid-box::before {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      top: -120px;
+      right: -100px;
+      background: #ffd93d;
+      border-radius: 50%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .final-kid-box>* {
+      position: relative;
+      z-index: 2;
+    }
+
+    .final-kid-box h2 {
+      font-size: 2.4em;
+      color: #2f9e44;
+      margin-bottom: 8px;
+      font-weight: 700 !important;
+    }
+
+    .final-kid-box p {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #2d3a3a;
+    }
+
+    #stars {
+      font-size: 2.6em;
+      margin: 14px 0;
+      letter-spacing: 6px;
+    }
+
+    .playAgain-btn {
+      background: #ffac30;
+      color: white;
+      border: none;
+      padding: 16px 38px;
+      border-radius: 40px;
+      font-size: 1.15em;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.2s;
+      box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .playAgain-btn:hover {
+      transform: translateY(-3px);
+    }
+
+    .playAgain-btn:active {
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 #d4871f;
+    }
+
+    @keyframes finalBounce {
+      0% {
+        transform: scale(0.3) perspective(400px) rotateX(15deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.08) perspective(400px) rotateX(-5deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) perspective(400px) rotateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* ===== COMPREHENSIVE MEDIA QUERIES: 320px to 1920px ===== */
+
+    /* 1920px and above */
+    @media (min-width: 1921px) {
+      .container {
+        max-width: 1200px;
+        padding: 40px 48px 36px;
+        border-radius: 56px;
+      }
+      .main-heading {
+        font-size: 2.2rem;
+        margin-bottom: 28px;
+      }
+      .word-strip {
+        padding: 18px 32px;
+        gap: 12px 32px;
+        border-radius: 80px;
+        margin-bottom: 32px;
+      }
+      .word-strip span {
+        font-size: 1.3rem;
+        padding: 6px 12px;
+      }
+      .question-card {
+        padding: 36px 32px 40px;
+        border-radius: 32px;
+        border-width: 3px;
+      }
+      .question-label {
+        font-size: 1.6rem;
+        margin-bottom: 24px;
+      }
+      .image-box .img-frame {
+        width: 260px;
+        height: 260px;
+        border-radius: 28px;
+        border-width: 4px;
+      }
+      .image-box .img-frame img {
+        padding: 14px;
+      }
+      .image-row {
+        gap: 60px;
+        margin-bottom: 28px;
+      }
+      .input-group input {
+        width: 190px;
+        height: 64px;
+        font-size: 2rem;
+        border-width: 4px;
+        border-radius: 20px;
+      }
+      .input-row {
+        gap: 80px;
+      }
+      .controls {
+        gap: 100px;
+        margin-top: 8px;
+      }
+      .controls button {
+        padding: 16px 44px;
+        font-size: 1.3rem;
+        border-radius: 48px;
+        gap: 14px;
+        min-width: 180px;
+      }
+    }
+
+    /* 1441px to 1920px */
+    @media (min-width: 1441px) and (max-width: 1920px) {
+      .container {
+        max-width: 1300px;
+        padding: 36px 40px 32px;
+        border-radius: 52px;
+      }
+      .main-heading {
+        font-size: 2rem;
+        margin-bottom: 24px;
+      }
+      .word-strip {
+        padding: 16px 28px;
+        gap: 10px 28px;
+        border-radius: 70px;
+        margin-bottom: 28px;
+      }
+      .word-strip span {
+        font-size: 25px;
+        padding: 5px 10px;
+      }
+      .question-card {
+        padding: 32px 28px 36px;
+        border-radius: 30px;
+        border-width: 3px;
+      }
+      .question-label {
+        font-size: 1.5rem;
+           margin: -36px auto 24px;
+      }
+      .image-box .img-frame {
+        width: 300px;
+        height: 300px;
+        border-radius: 24px;
+        border-width: 3px;
+      }
+      .image-box .img-frame img {
+        padding: 12px;
+      }
+      .image-row {
+        gap: 120px;
+        margin-bottom: 24px;
+      }
+      .input-group input::placeholder {
+        font-size: 1.3rem;
+      top: -4px;
+      }
+      .input-group input {
+        width: 180px;
+        height: 60px;
+        font-size: 35px;
+        border-width: 3px;
+        border-radius: 20px;
+      }
+      .input-row {
+        gap: 220px;
+      }
+      .controls {
+        gap: 90px;
+        margin-top: 6px;
+      }
+      .controls button {
+       width: 160px;
+        height: 60px;
+       padding: 16px 40px;
+                font-size: 22px;
+      }
+    }
+
+    /* 1280px to 1440px */
+    @media (min-width: 1281px) and (max-width: 1440px) {
+      .container {
+        max-width: 1050px;
+        padding: 32px 36px 28px;
+        border-radius: 48px;
+      }
+      .main-heading {
+        font-size: 1.8rem;
+        margin-bottom: 22px;
+      }
+      .word-strip {
+        padding: 14px 24px;
+        gap: 8px 24px;
+        border-radius: 60px;
+        margin-bottom: 26px;
+      }
+      .word-strip span {
+        font-size: 1.1rem;
+      }
+      .question-card {
+        padding: 28px 24px 32px;
+        border-radius: 28px;
+        border-width: 2px;
+      }
+      .question-label {
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+      }
+      .image-box .img-frame {
+        width: 220px;
+        height: 220px;
+        border-radius: 22px;
+      }
+      .image-box .img-frame img {
+        padding: 12px;
+      }
+      .image-row {
+        gap: 45px;
+        margin-bottom: 22px;
+      }
+      .input-group input {
+        width: 170px;
+        height: 56px;
+        font-size: 1.8rem;
+        border-radius: 18px;
+      }
+      .input-row {
+        gap: 60px;
+      }
+      .controls {
+        gap: 80px;
+        margin-top: 6px;
+      }
+      /* .controls button {
+        padding: 12px 36px;
+        font-size: 1.1rem;
+        border-radius: 40px;
+        gap: 10px;
+        min-width: 150px;
+      } */
+    }
+
+    /* 1025px to 1280px */
+    @media (min-width: 1025px) and (max-width: 1280px) {
+      .container {
+        max-width: 1000px;
+        padding: 28px 32px 24px;
+        border-radius: 44px;
+      }
+      .main-heading {
+        font-size: 1.6rem;
+        margin-bottom: 20px;
+      }
+      .word-strip {
+        padding: 12px 20px;
+        gap: 6px 20px;
+        border-radius: 50px;
+        margin-bottom: 24px;
+        border-width: 2px;
+      }
+      .word-strip span {
+        font-size: 1rem;
+        padding: 4px 8px;
+      }
+      .word-strip span.completed {
+        padding: 4px 14px;
+      }
+      .question-card {
+        padding: 24px 20px 28px;
+        border-radius: 24px;
+        border-width: 2px;
+      }
+      .question-label {
+        font-size: 1.3rem;
+        margin-bottom: 18px;
+      }
+      .image-box .img-frame {
+        width: 200px;
+        height: 200px;
+        border-radius: 20px;
+        border-width: 3px;
+      }
+      .image-box .img-frame img {
+        padding: 10px;
+      }
+      .image-row {
+        gap: 40px;
+        margin-bottom: 20px;
+      }
+      .input-group input {
+        width: 155px;
+        height: 52px;
+        font-size: 1.7rem;
+        border-width: 3px;
+        border-radius: 16px;
+      }
+      .input-row {
+        gap: 80px;
+      }
+      .controls {
+        gap: 70px;
+      }
+      /* .controls button {
+        padding: 11px 32px;
+        font-size: 1rem;
+        border-radius: 38px;
+        gap: 10px;
+        min-width: 140px;
+      } */
+      
+    }
+
+    /* 901px to 1024px */
+    @media (min-width: 901px) and (max-width: 1024px) {
+      .container {
+        max-width: 920px;
+        padding: 24px 28px 20px;
+        border-radius: 40px;
+      }
+      .main-heading {
+        font-size: 1.5rem;
+        margin-bottom: 18px;
+      }
+      .word-strip {
+        padding: 10px 18px;
+        gap: 6px 18px;
+        border-radius: 45px;
+        margin-bottom: 22px;
+      }
+      .word-strip span {
+        font-size: 0.95rem;
+      }
+      .question-card {
+        padding: 22px 18px 26px;
+        border-radius: 22px;
+      }
+      .question-label {
+        font-size: 1.2rem;
+        margin-bottom: 16px;
+      }
+      .image-box .img-frame {
+        width: 180px;
+        height: 180px;
+        border-radius: 18px;
+      }
+      .image-box .img-frame img {
+        padding: 10px;
+      }
+      .image-row {
+        gap: 35px;
+        margin-bottom: 18px;
+      }
+      .input-group input {
+        width: 145px;
+        height: 50px;
+        font-size: 1.6rem;
+        border-radius: 16px;
+      }
+      .input-row {
+        gap: 65px;
+      }
+      .controls {
+        gap: 60px;
+      }
+      .controls button {
+        padding: 10px 28px;
+        font-size: 20px;
+        border-radius: 36px;
+        gap: 8px;
+        min-width: 130px;
+      }
+    }
+
+    /* 769px to 900px */
+    @media (min-width: 769px) and (max-width: 900px) {
+      .container {
+        max-width: 820px;
+        padding: 22px 24px 18px;
+        border-radius: 36px;
+      }
+      .main-heading {
+        font-size: 1.4rem;
+        margin-bottom: 16px;
+        padding: 0 4px;
+      }
+      .word-strip {
+        padding: 10px 16px;
+        gap: 5px 16px;
+        border-radius: 40px;
+        margin-bottom: 20px;
+      }
+      .word-strip span {
+        font-size: 0.9rem;
+        padding: 3px 6px;
+      }
+      .word-strip span.completed {
+        padding: 3px 12px;
+      }
+      .question-card {
+        padding: 20px 16px 24px;
+        border-radius: 20px;
+        border-width: 2px;
+      }
+      .question-label {
+        font-size: 1.1rem;
+        margin-bottom: 16px;
+      }
+      .image-box .img-frame {
+        width: 160px;
+        height: 160px;
+        border-radius: 16px;
+        border-width: 2px;
+      }
+      .image-box .img-frame img {
+        padding: 8px;
+      }
+      .image-row {
+        gap: 30px;
+        margin-bottom: 16px;
+      }
+      .input-group input {
+        width: 135px;
+        height: 46px;
+        font-size: 1.5rem;
+        border-width: 2.5px;
+        border-radius: 14px;
+      }
+      .input-group input::placeholder {
+        font-size: 0.8rem;
+      }
+      .input-row {
+        gap: 40px;
+      }
+      .controls {
+        gap: 50px;
+      }
+      .controls button {
+        padding: 9px 26px;
+        font-size: 0.9rem;
+        border-radius: 34px;
+        gap: 8px;
+        min-width: 120px;
+      }
+      .controls button i {
+        font-size: 0.8rem;
+      }
+    }
+
+    /* 641px to 768px */
+    @media (min-width: 641px) and (max-width: 768px) {
+      .container {
+        max-width: 720px;
+        padding: 20px 20px 16px;
+        border-radius: 32px;
+      }
+      .main-heading {
+        font-size: 1.3rem;
+        margin-bottom: 14px;
+      }
+      .word-strip {
+        padding: 8px 14px;
+        gap: 4px 14px;
+        border-radius: 35px;
+        margin-bottom: 18px;
+      }
+      .word-strip span {
+        font-size: 0.85rem;
+        padding: 3px 6px;
+      }
+      .word-strip span.completed {
+        padding: 3px 10px;
+        font-size: 0.85rem;
+      }
+      .question-card {
+        padding: 18px 14px 22px;
+        border-radius: 18px;
+        border-width: 2px;
+      }
+      .question-label {
+        font-size: 1rem;
+        margin-bottom: 14px;
+      }
+      .image-box .img-frame {
+        width: 140px;
+        height: 140px;
+        border-radius: 14px;
+        border-width: 2px;
+      }
+      .image-box .img-frame img {
+        padding: 8px;
+      }
+      .image-row {
+        gap: 25px;
+        margin-bottom: 14px;
+      }
+      .input-group input {
+        width: 120px;
+        height: 42px;
+        font-size: 1.4rem;
+        border-width: 2px;
+        border-radius: 12px;
+      }
+      .input-group input::placeholder {
+        font-size: 0.7rem;
+      }
+      .input-row {
+        gap: 30px;
+      }
+      .input-label {
+        font-size: 0.6rem;
+      }
+      .controls {
+        gap: 40px;
+        margin-top: 2px;
+      }
+      .controls button {
+        padding: 8px 22px;
+        font-size: 0.85rem;
+        border-radius: 30px;
+        gap: 6px;
+        min-width: 110px;
+      }
+      .controls button i {
+        font-size: 0.7rem;
+      }
+      .kid-card {
+        width: 320px;
+        padding: 24px 20px;
+        border-radius: 36px;
+      }
+      .kid-icon {
+        font-size: 3.6rem;
+      }
+      .kid-card h3 {
+        font-size: 1.7rem;
+      }
+      .kid-card p {
+        font-size: 1rem;
+      }
+      .final-kid-box {
+        width: 400px;
+        padding: 28px 24px;
+        border-radius: 40px;
+      }
+      .final-kid-box h2 {
+        font-size: 2rem;
+      }
+      .final-kid-box p {
+        font-size: 1.1rem;
+      }
+      #stars {
+        font-size: 2rem;
+      }
+      .playAgain-btn {
+        padding: 12px 28px;
+        font-size: 1rem;
+      }
+    }
+
+    /* 551px to 640px */
+    @media (min-width: 551px) and (max-width: 640px) {
+      .container {
+        max-width: 600px;
+        padding: 18px 16px 14px;
+        border-radius: 28px;
+      }
+      .main-heading {
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+      }
+      .word-strip {
+        padding: 8px 12px;
+        gap: 4px 12px;
+        border-radius: 32px;
+        margin-bottom: 16px;
+        border-width: 1.5px;
+      }
+      .word-strip span {
+        font-size: 0.8rem;
+        padding: 2px 5px;
+      }
+      .word-strip span.completed {
+        padding: 2px 10px;
+        font-size: 0.8rem;
+      }
+      .word-strip .dash {
+        margin: 0 1px;
+      }
+      .question-card {
+        padding: 16px 12px 20px;
+        border-radius: 16px;
+        border-width: 2px;
+      }
+      .question-label {
+        font-size: 0.95rem;
+        margin-bottom: 12px;
+      }
+      .image-box .img-frame {
+        width: 120px;
+        height: 120px;
+        border-radius: 12px;
+        border-width: 2px;
+      }
+      .image-box .img-frame img {
+        padding: 6px;
+      }
+      .image-row {
+        gap: 20px;
+        margin-bottom: 12px;
+      }
+      .input-group input {
+        width: 110px;
+        height: 38px;
+        font-size: 1.3rem;
+        border-width: 2px;
+        border-radius: 12px;
+      }
+      .input-group input::placeholder {
+        font-size: 0.65rem;
+      }
+      .input-row {
+        gap: 25px;
+      }
+      .input-label {
+        font-size: 0.55rem;
+      }
+      .controls {
+        gap: 30px;
+        margin-top: 2px;
+      }
+      .controls button {
+        padding: 7px 18px;
+        font-size: 0.8rem;
+        border-radius: 28px;
+        gap: 5px;
+        min-width: 100px;
+      }
+      .controls button i {
+        font-size: 0.65rem;
+      }
+      .kid-card {
+        width: 290px;
+        padding: 20px 16px;
+        border-radius: 32px;
+        border-width: 3px;
+      }
+      .kid-icon {
+        font-size: 3.2rem;
+      }
+      .kid-card h3 {
+        font-size: 1.5rem;
+      }
+      .kid-card p {
+        font-size: 0.9rem;
+      }
+      .final-kid-box {
+        width: 360px;
+        padding: 24px 20px;
+        border-radius: 36px;
+      }
+      .final-kid-box h2 {
+        font-size: 1.8rem;
+      }
+      .final-kid-box p {
+        font-size: 1rem;
+      }
+      #stars {
+        font-size: 1.8rem;
+      }
+      .playAgain-btn {
+        padding: 10px 24px;
+        font-size: 0.9rem;
+      }
+    }
+
+    /* 481px to 550px */
+    @media (min-width: 481px) and (max-width: 550px) {
+      .container {
+        max-width: 520px;
+        padding: 16px 14px 12px;
+        border-radius: 24px;
+      }
+      .main-heading {
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+        line-height: 1.3;
+      }
+      .word-strip {
+        padding: 6px 10px;
+        gap: 3px 10px;
+        border-radius: 28px;
+        margin-bottom: 14px;
+        border-width: 1.5px;
+      }
+      .word-strip span {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+      }
+      .word-strip span.completed {
+        padding: 2px 8px;
+        font-size: 0.7rem;
+      }
+      .question-card {
+        padding: 14px 10px 18px;
+        border-radius: 14px;
+        border-width: 2px;
+      }
+      .question-label {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+      }
+      .image-box .img-frame {
+        width: 100px;
+        height: 100px;
+        border-radius: 10px;
+        border-width: 2px;
+      }
+      .image-box .img-frame img {
+        padding: 6px;
+      }
+      .image-row {
+        gap: 16px;
+        margin-bottom: 10px;
+      }
+      .input-group input {
+        width: 95px;
+        height: 36px;
+        font-size: 1.2rem;
+        border-width: 2px;
+        border-radius: 10px;
+      }
+      .input-group input::placeholder {
+        font-size: 0.6rem;
+      }
+      .input-row {
+        gap: 20px;
+      }
+      .input-label {
+        font-size: 0.5rem;
+        letter-spacing: 0.2px;
+      }
+      .controls {
+        gap: 24px;
+        margin-top: 2px;
+      }
+      .controls button {
+        padding: 6px 16px;
+        font-size: 0.75rem;
+        border-radius: 24px;
+        gap: 4px;
+        min-width: 90px;
+      }
+      .controls button i {
+        font-size: 0.6rem;
+      }
+      .kid-card {
+        width: 260px;
+        padding: 18px 14px;
+        border-radius: 28px;
+        border-width: 3px;
+      }
+      .kid-icon {
+        font-size: 2.8rem;
+      }
+      .kid-card h3 {
+        font-size: 1.3rem;
+      }
+      .kid-card p {
+        font-size: 0.85rem;
+      }
+      .final-kid-box {
+        width: 320px;
+        padding: 20px 16px;
+        border-radius: 32px;
+      }
+      .final-kid-box h2 {
+        font-size: 1.6rem;
+      }
+      .final-kid-box p {
+        font-size: 0.9rem;
+      }
+      #stars {
+        font-size: 1.6rem;
+        letter-spacing: 4px;
+      }
+      .playAgain-btn {
+        padding: 8px 20px;
+        font-size: 0.85rem;
+      }
+    }
+
+    /* 421px to 480px */
+    @media (min-width: 421px) and (max-width: 480px) {
+      .container {
+        max-width: 460px;
+        padding: 14px 12px 10px;
+        border-radius: 22px;
+      }
+      .main-heading {
+        font-size: 1rem;
+        margin-bottom: 10px;
+        line-height: 1.3;
+      }
+      .word-strip {
+        padding: 6px 8px;
+        gap: 3px 8px;
+        border-radius: 24px;
+        margin-bottom: 12px;
+        border-width: 1.5px;
+      }
+      .word-strip span {
+        font-size: 0.65rem;
+        padding: 2px 4px;
+        letter-spacing: 0.1px;
+      }
+      .word-strip span.completed {
+        padding: 2px 8px;
+        font-size: 0.65rem;
+      }
+      .question-card {
+        padding: 12px 8px 16px;
+        border-radius: 12px;
+        border-width: 1.5px;
+      }
+      .question-label {
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+      }
+      .image-box .img-frame {
+        width: 85px;
+        height: 85px;
+        border-radius: 10px;
+        border-width: 2px;
+      }
+      .image-box .img-frame img {
+        padding: 5px;
+      }
+      .image-row {
+        gap: 14px;
+        margin-bottom: 10px;
+      }
+      .input-group input {
+        width: 85px;
+        height: 34px;
+        font-size: 1.1rem;
+        border-width: 2px;
+        border-radius: 10px;
+      }
+      .input-group input::placeholder {
+        font-size: 0.55rem;
+      }
+      .input-row {
+        gap: 16px;
+      }
+      .input-label {
+        font-size: 0.45rem;
+        letter-spacing: 0.2px;
+      }
+      .controls {
+        gap: 20px;
+        margin-top: 2px;
+      }
+      .controls button {
+        padding: 5px 14px;
+        font-size: 0.7rem;
+        border-radius: 22px;
+        gap: 4px;
+        min-width: 80px;
+      }
+      .controls button i {
+        font-size: 0.55rem;
+      }
+      .kid-card {
+        width: 240px;
+        padding: 16px 12px;
+        border-radius: 24px;
+        border-width: 3px;
+      }
+      .kid-icon {
+        font-size: 2.5rem;
+      }
+      .kid-card h3 {
+        font-size: 1.2rem;
+      }
+      .kid-card p {
+        font-size: 0.8rem;
+      }
+      .final-kid-box {
+        width: 290px;
+        padding: 18px 14px;
+        border-radius: 28px;
+      }
+      .final-kid-box h2 {
+        font-size: 1.4rem;
+      }
+      .final-kid-box p {
+        font-size: 0.85rem;
+      }
+      #stars {
+        font-size: 1.4rem;
+        letter-spacing: 3px;
+        margin: 6px 0;
+      }
+      .playAgain-btn {
+        padding: 8px 18px;
+        font-size: 0.8rem;
+        box-shadow: 0 6px 0 #d4871f;
+      }
+      .playAgain-btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 2px 0 #d4871f;
+      }
+    }
+
+    /* 376px to 420px */
+    @media (min-width: 376px) and (max-width: 420px) {
+      .container {
+        max-width: 400px;
+        padding: 12px 10px 8px;
+        border-radius: 20px;
+      }
+      .main-heading {
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        line-height: 1.2;
+      }
+      .word-strip {
+        padding: 5px 8px;
+        gap: 2px 6px;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        border-width: 1px;
+      }
+      .word-strip span {
+        font-size: 0.6rem;
+        padding: 2px 3px;
+        letter-spacing: 0;
+      }
+      .word-strip span.completed {
+        padding: 2px 6px;
+        font-size: 0.6rem;
+        border-radius: 12px;
+      }
+      .question-card {
+        padding: 10px 6px 14px;
+        border-radius: 10px;
+        border-width: 1.5px;
+      }
+      .question-label {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+      }
+      .image-box .img-frame {
+        width: 75px;
+        height: 75px;
+        border-radius: 8px;
+        border-width: 2px;
+      }
+      .image-box .img-frame img {
+        padding: 4px;
+      }
+      .image-row {
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .input-group input {
+        width: 75px;
+        height: 32px;
+        font-size: 1rem;
+        border-width: 2px;
+        border-radius: 8px;
+      }
+      .input-group input::placeholder {
+        font-size: 0.5rem;
+      }
+      .input-row {
+        gap: 14px;
+      }
+      .input-label {
+        font-size: 0.4rem;
+        letter-spacing: 0.1px;
+      }
+      .controls {
+        gap: 16px;
+        margin-top: 2px;
+      }
+      .controls button {
+        padding: 4px 12px;
+        font-size: 0.65rem;
+        border-radius: 20px;
+        gap: 3px;
+        min-width: 70px;
+      }
+      .controls button i {
+        font-size: 0.5rem;
+      }
+      .kid-card {
+        width: 220px;
+        padding: 14px 10px;
+        border-radius: 22px;
+        border-width: 3px;
+      }
+      .kid-icon {
+        font-size: 2.2rem;
+      }
+      .kid-card h3 {
+        font-size: 1.1rem;
+      }
+      .kid-card p {
+        font-size: 0.75rem;
+      }
+      .final-kid-box {
+        width: 260px;
+        padding: 16px 12px;
+        border-radius: 24px;
+        border-width: 3px;
+      }
+      .final-kid-box h2 {
+        font-size: 1.3rem;
+      }
+      .final-kid-box p {
+        font-size: 0.8rem;
+      }
+      #stars {
+        font-size: 1.3rem;
+        letter-spacing: 3px;
+        margin: 6px 0;
+      }
+      .playAgain-btn {
+        padding: 6px 16px;
+        font-size: 0.75rem;
+        box-shadow: 0 5px 0 #d4871f;
+      }
+      .playAgain-btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 1px 0 #d4871f;
+      }
+    }
+
+    /* 321px to 375px */
+    @media (min-width: 321px) and (max-width: 375px) {
+      .container {
+        max-width: 360px;
+        padding: 10px 8px 8px;
+        border-radius: 18px;
+      }
+      .main-heading {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+        line-height: 1.2;
+        padding: 0 2px;
+      }
+      .word-strip {
+        padding: 4px 6px;
+        gap: 2px 5px;
+        border-radius: 18px;
+        margin-bottom: 8px;
+        border-width: 1px;
+      }
+      .word-strip span {
+        font-size: 0.55rem;
+        padding: 2px 3px;
+        letter-spacing: 0;
+      }
+      .word-strip span.completed {
+        padding: 2px 6px;
+        font-size: 0.55rem;
+        border-radius: 10px;
+      }
+      .word-strip .dash {
+        margin: 0 1px;
+      }
+      .question-card {
+        padding: 8px 5px 12px;
+        border-radius: 10px;
+        border-width: 1.5px;
+      }
+      .question-label {
+        font-size: 0.75rem;
+        margin-bottom: 6px;
+      }
+      .image-box .img-frame {
+        width: 65px;
+        height: 65px;
+        border-radius: 8px;
+        border-width: 2px;
+      }
+      .image-box .img-frame img {
+        padding: 4px;
+      }
+      .image-row {
+        gap: 10px;
+        margin-bottom: 6px;
+      }
+      .input-group input {
+        width: 65px;
+        height: 30px;
+        font-size: 0.9rem;
+        border-width: 2px;
+        border-radius: 8px;
+      }
+      .input-group input::placeholder {
+        font-size: 0.45rem;
+      }
+      .input-row {
+        gap: 10px;
+        margin-top: 2px;
+      }
+      .input-label {
+        font-size: 0.35rem;
+        letter-spacing: 0.1px;
+      }
+      .controls {
+        gap: 14px;
+        margin-top: 2px;
+      }
+      .controls button {
+        padding: 4px 10px;
+        font-size: 0.6rem;
+        border-radius: 18px;
+        gap: 3px;
+        min-width: 65px;
+      }
+      .controls button i {
+        font-size: 0.45rem;
+      }
+      .kid-card {
+        width: 200px;
+        padding: 12px 10px;
+        border-radius: 20px;
+        border-width: 2px;
+      }
+      .kid-icon {
+        font-size: 2rem;
+        margin-bottom: 2px;
+      }
+      .kid-card h3 {
+        font-size: 1rem;
+        margin-bottom: 0;
+      }
+      .kid-card p {
+        font-size: 0.7rem;
+        margin-top: 0;
+      }
+      .final-kid-box {
+        width: 240px;
+        padding: 14px 12px;
+        border-radius: 22px;
+        border-width: 2px;
+      }
+      .final-kid-box h2 {
+        font-size: 1.2rem;
+        margin-bottom: 2px;
+      }
+      .final-kid-box p {
+        font-size: 0.75rem;
+      }
+      #stars {
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+        margin: 4px 0;
+      }
+      .playAgain-btn {
+        padding: 6px 14px;
+        font-size: 0.7rem;
+        box-shadow: 0 4px 0 #d4871f;
+      }
+      .playAgain-btn:active {
+        transform: translateY(3px);
+        box-shadow: 0 1px 0 #d4871f;
+      }
+    }
+
+    /* 320px exact */
+    @media (max-width: 320px) {
+      .container {
+        max-width: 320px;
+        padding: 8px 6px 6px;
+        border-radius: 16px;
+      }
+      .main-heading {
+        font-size: 0.7rem;
+        margin-bottom: 6px;
+        line-height: 1.1;
+        padding: 0 2px;
+      }
+      .word-strip {
+        padding: 4px 5px;
+        gap: 2px 4px;
+        border-radius: 16px;
+        margin-bottom: 6px;
+        border-width: 1px;
+      }
+      .word-strip span {
+        font-size: 0.5rem;
+        padding: 1px 2px;
+        letter-spacing: 0;
+      }
+      .word-strip span.completed {
+        padding: 1px 5px;
+        font-size: 0.5rem;
+        border-radius: 8px;
+      }
+      .word-strip .dash {
+        margin: 0 1px;
+      }
+      .question-card {
+        padding: 6px 4px 10px;
+        border-radius: 8px;
+        border-width: 1px;
+      }
+      .question-label {
+        font-size: 0.7rem;
+        margin-bottom: 6px;
+      }
+      .image-box .img-frame {
+        width: 55px;
+        height: 55px;
+        border-radius: 6px;
+        border-width: 1.5px;
+      }
+      .image-box .img-frame img {
+        padding: 3px;
+      }
+      .image-row {
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .input-group input {
+        width: 55px;
+        height: 26px;
+        font-size: 0.8rem;
+        border-width: 1.5px;
+        border-radius: 6px;
+      }
+      .input-group input::placeholder {
+        font-size: 0.4rem;
+      }
+      .input-row {
+        gap: 8px;
+        margin-top: 2px;
+      }
+      .input-label {
+        font-size: 0.3rem;
+        letter-spacing: 0;
+      }
+      .controls {
+        gap: 10px;
+        margin-top: 2px;
+      }
+      .controls button {
+        padding: 3px 8px;
+        font-size: 0.55rem;
+        border-radius: 16px;
+        gap: 2px;
+        min-width: 55px;
+        border-width: 2px;
+      }
+      .controls button i {
+        font-size: 0.4rem;
+      }
+      .kid-card {
+        width: 180px;
+        padding: 10px 8px;
+        border-radius: 18px;
+        border-width: 2px;
+      }
+      .kid-icon {
+        font-size: 1.8rem;
+        margin-bottom: 2px;
+      }
+      .kid-card h3 {
+        font-size: 0.9rem;
+        margin-bottom: 0;
+      }
+      .kid-card p {
+        font-size: 0.65rem;
+        margin-top: 0;
+      }
+      .final-kid-box {
+        width: 220px;
+        padding: 12px 10px;
+        border-radius: 20px;
+        border-width: 2px;
+      }
+      .final-kid-box h2 {
+        font-size: 1.1rem;
+        margin-bottom: 2px;
+      }
+      .final-kid-box p {
+        font-size: 0.7rem;
+      }
+      #stars {
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+        margin: 4px 0;
+      }
+      .playAgain-btn {
+        padding: 4px 12px;
+        font-size: 0.65rem;
+        box-shadow: 0 3px 0 #d4871f;
+      }
+      .playAgain-btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 0 #d4871f;
+      }
+    }
+
+    /* Landscape phones and small tablets */
+    @media (max-height: 500px) and (orientation: landscape) {
+      body {
+        align-items: flex-start;
+        padding: 6px 12px;
+      }
+      .container {
+        padding: 10px 14px 8px;
+        border-radius: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .main-heading {
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+      }
+      .word-strip {
+        padding: 4px 10px;
+        gap: 3px 10px;
+        border-radius: 24px;
+        margin-bottom: 8px;
+      }
+      .word-strip span {
+        font-size: 0.6rem;
+      }
+      .question-card {
+        padding: 10px 12px 12px;
+        border-radius: 14px;
+      }
+      .question-label {
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+      }
+      .image-box .img-frame {
+        width: 70px;
+        height: 70px;
+        border-radius: 10px;
+        border-width: 2px;
+      }
+      .image-box .img-frame img {
+        padding: 4px;
+      }
+      .image-row {
+        gap: 14px;
+        margin-bottom: 6px;
+      }
+      .input-group input {
+        width: 80px;
+        height: 28px;
+        font-size: 0.9rem;
+        border-width: 2px;
+        border-radius: 8px;
+      }
+      .input-group input::placeholder {
+        font-size: 0.5rem;
+      }
+      .input-row {
+        gap: 14px;
+        margin-top: 2px;
+      }
+      .input-label {
+        font-size: 0.4rem;
+      }
+      .controls {
+        gap: 20px;
+        margin-top: 2px;
+      }
+      .controls button {
+        padding: 4px 12px;
+        font-size: 0.6rem;
+        border-radius: 20px;
+        gap: 4px;
+        min-width: 70px;
+        border-width: 2px;
+      }
+      .controls button i {
+        font-size: 0.45rem;
+      }
+      .kid-card {
+        width: 250px;
+        padding: 14px 12px;
+        border-radius: 24px;
+      }
+      .kid-icon {
+        font-size: 2.4rem;
+      }
+      .kid-card h3 {
+        font-size: 1.2rem;
+      }
+      .kid-card p {
+        font-size: 0.75rem;
+      }
+      .final-kid-box {
+        width: 320px;
+        padding: 16px 18px;
+        border-radius: 28px;
+      }
+      .final-kid-box h2 {
+        font-size: 1.4rem;
+      }
+      .final-kid-box p {
+        font-size: 0.85rem;
+      }
+      #stars {
+        font-size: 1.4rem;
+        margin: 4px 0;
+      }
+      .playAgain-btn {
+        padding: 6px 18px;
+        font-size: 0.75rem;
+        box-shadow: 0 5px 0 #d4871f;
+      }
+      .playAgain-btn:active {
+        transform: translateY(3px);
+        box-shadow: 0 2px 0 #d4871f;
+      }
+    }
+
+    /* Print */
+    @media print {
+      body {
+        background: white;
+        padding: 10px;
+        overflow: visible;
+      }
+      .container {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        background: white;
+      }
+      .controls, .kid-popup, #finalPopup, .check-btn {
+        display: none !important;
+      }
+      .input-group input {
+        border-color: #999 !important;
+        background: white !important;
+      }
+      .question-card {
+        border-color: #ccc !important;
+        box-shadow: none !important;
+      }
+      .word-strip span.completed {
+        background: #ddd !important;
+        color: #333 !important;
+        box-shadow: none !important;
+      }
+      .image-box .img-frame {
+        border-color: #bbb !important;
+        background: #f5f5f5 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1 class="main-heading">
+    Look at the pictures and write the following homophones at the right places.
+  </h1>
+
+  <div class="word-strip">
+    <span id="pair-eye">eye <span class="dash">–</span> I</span>
+    <span id="pair-write">write <span class="dash">–</span> right</span>
+    <span id="pair-sun">sun <span class="dash">–</span> son</span>
+    <span id="pair-hair">hair <span class="dash">–</span> hare</span>
+    <span id="pair-hear">hear <span class="dash">–</span> here</span>
+    <span id="pair-maze">maze <span class="dash">–</span> maize</span>
+  </div>
+
+  <div class="question-card">
+    <div class="question-label" id="questionLabel">Question 1</div>
+
+    <div class="image-row">
+      <div class="image-box">
+        <div class="img-frame">
+          <img id="leftImg" src="" alt="Left image" />
+        </div>
+      </div>
+      <div class="image-box">
+        <div class="img-frame">
+          <img id="rightImg" src="" alt="Right image" />
+        </div>
+      </div>
+    </div>
+
+    <div class="input-row">
+      <div class="input-group">
+        <input type="text" id="leftInput" placeholder="Type here..." autocomplete="off" maxlength="6" />
+      </div>
+      <div class="input-group">
+        <input type="text" id="rightInput" placeholder="Type here..." autocomplete="off" maxlength="6" />
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="prev-btn" id="prevBtn"><i class="fa-solid fa-angles-left"></i> Prev</button>
+    <button class="next-btn" id="nextBtn">Next <i class="fa-solid fa-angles-right"></i></button>
+  </div>
+</div>
+
+<!-- Popups -->
+<div id="answerPopup" class="kid-popup">
+  <div class="kid-card">
+    <div id="popupIcon" class="kid-icon"></div>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMsg"></p>
+  </div>
+</div>
+
+<div id="finalPopup">
+  <div class="final-kid-box">
+    <h2>🎉 Congratulations!</h2>
+    <p id="finalScore"></p>
+    <div id="stars"></div>
+    <button class="playAgain-btn" id="playAgainBtn">Play Again</button>
+  </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+  (function() {
+    const cardData = [
+      { leftImg: '../assets/images/p1.png', rightImg: '../assets/images/p2.png', ansL: 'sun', ansR: 'son' },
+      { leftImg: '../assets/images/p3.png', rightImg: '../assets/images/p4.png', ansL: 'hair', ansR: 'hare' },
+      { leftImg: '../assets/images/p5.png', rightImg: '../assets/images/p6.png', ansL: 'write', ansR: 'right' },
+      { leftImg: '../assets/images/p7.png', rightImg: '../assets/images/p8.png', ansL: 'eye', ansR: 'i' },
+      { leftImg: '../assets/images/p9.png', rightImg: '../assets/images/p10.png', ansL: 'maze', ansR: 'maize' },
+      { leftImg: '../assets/images/p11.png', rightImg: '../assets/images/p12.png', ansL: 'hear', ansR: 'here' }
+    ];
+
+    const pairMap = {
+      sun: 'pair-sun', son: 'pair-sun',
+      hair: 'pair-hair', hare: 'pair-hair',
+      write: 'pair-write', right: 'pair-write',
+      eye: 'pair-eye', i: 'pair-eye',
+      maze: 'pair-maze', maize: 'pair-maze',
+      hear: 'pair-hear', here: 'pair-hear'
+    };
+
+    const leftImg = document.getElementById('leftImg');
+    const rightImg = document.getElementById('rightImg');
+    const leftInput = document.getElementById('leftInput');
+    const rightInput = document.getElementById('rightInput');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const questionLabel = document.getElementById('questionLabel');
+    const popup = document.getElementById('answerPopup');
+    const popupIcon = document.getElementById('popupIcon');
+    const popupTitle = document.getElementById('popupTitle');
+    const popupMsg = document.getElementById('popupMsg');
+    const finalPopup = document.getElementById('finalPopup');
+    const finalScore = document.getElementById('finalScore');
+    const stars = document.getElementById('stars');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const correctSound = document.getElementById('correctSound');
+    const wrongSound = document.getElementById('wrongSound');
+
+    let current = 0, correctCount = 0, total = cardData.length * 2;
+    let answered = cardData.map(() => ({ left: false, right: false }));
+    let popupTimer = null, isChecking = false, debounceTimer = null;
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US'; msg.rate = 0.9; msg.volume = 0.3;
+        speechSynthesis.speak(msg);
+      }
+    }
+
+    function smallConfetti() { confetti({ particleCount: 30, spread: 60, origin: { y: 0.7 } }); }
+    function bigConfetti() {
+      confetti({ particleCount: 180, spread: 100, origin: { y: 0.5 } });
+      setTimeout(() => {
+        confetti({ particleCount: 100, spread: 120, origin: { y: 0.4, x: 0.2 } });
+        confetti({ particleCount: 100, spread: 120, origin: { y: 0.4, x: 0.8 } });
+      }, 150);
+    }
+
+    function showPopup(isCorrect) {
+      if (popupTimer) clearTimeout(popupTimer);
+      popup.className = 'kid-popup ' + (isCorrect ? 'kid-correct' : 'kid-wrong');
+      popup.style.display = 'flex';
+      if (isCorrect) {
+        popupIcon.textContent = '🌟';
+        popupTitle.textContent = 'Amazing!';
+        popupMsg.textContent = "You got it right! ✨";
+        correctSound.play().catch(() => {});
+        smallConfetti();
+        speak('Correct');
+      } else {
+        popupIcon.textContent = '😊';
+        popupTitle.textContent = "Keep Going!";
+        popupMsg.textContent = 'Try again, you can do it! 🌈';
+        wrongSound.play().catch(() => {});
+        speak('Try again');
+      }
+      popupTimer = setTimeout(() => { popup.style.display = 'none'; }, 1400);
+    }
+
+    function showFinalPopup() {
+      finalPopup.style.display = 'flex';
+      finalScore.textContent = `Your Score: 6 / 6`;
+      stars.textContent = '⭐'.repeat(5);
+      bigConfetti();
+    }
+
+    // popup.addEventListener('click', (e) => { if (e.target === popup) popup.style.display = 'none'; });
+    // finalPopup.addEventListener('click', (e) => { if (e.target === finalPopup) finalPopup.style.display = 'none'; });
+
+    function updateWordStrip() {
+      document.querySelectorAll('.word-strip span').forEach(el => el.classList.remove('completed'));
+      cardData.forEach((card, idx) => {
+        if (answered[idx].left && answered[idx].right) {
+          const id = pairMap[card.ansL];
+          if (id) document.getElementById(id).classList.add('completed');
+        }
+      });
+    }
+
+    function allCompleted() { return answered.every(c => c.left && c.right); }
+
+    function checkAnswer(input, side) {
+      if (isChecking) return;
+      const card = cardData[current];
+      const isLeft = side === 'left';
+      const answer = isLeft ? card.ansL : card.ansR;
+      const val = input.value.trim().toLowerCase();
+      if (answered[current][isLeft ? 'left' : 'right']) return;
+      if (val === '') return;
+
+      if (val === answer.toLowerCase()) {
+        isChecking = true;
+        input.classList.remove('wrong');
+        input.classList.add('correct');
+        input.disabled = true;
+        answered[current][isLeft ? 'left' : 'right'] = true;
+        correctCount++;
+        updateWordStrip();
+        showPopup(true);
+        if (answered[current].left && answered[current].right) { nextBtn.disabled = false; }
+        if (allCompleted()) { setTimeout(showFinalPopup, 800); }
+        isChecking = false;
+      } else {
+        const isPartial = answer.toLowerCase().startsWith(val);
+        const isTooLong = val.length > answer.length;
+        if (!isPartial || isTooLong) {
+          input.classList.add('wrong');
+          showPopup(false);
+          setTimeout(() => {
+            input.classList.remove('wrong');
+            input.value = '';
+            input.focus();
+            isChecking = false;
+          }, 500);
+        } else {
+          input.classList.remove('wrong');
+        }
+      }
+    }
+
+    function loadQuestion(index) {
+      const card = cardData[index];
+      leftImg.src = card.leftImg;
+      rightImg.src = card.rightImg;
+      questionLabel.textContent = `Question ${index + 1}`;
+      leftInput.value = ''; rightInput.value = '';
+      leftInput.className = ''; rightInput.className = '';
+      leftInput.disabled = false; rightInput.disabled = false;
+      if (answered[index].left) {
+        leftInput.value = card.ansL;
+        leftInput.classList.add('correct');
+        leftInput.disabled = true;
+      }
+      if (answered[index].right) {
+        rightInput.value = card.ansR;
+        rightInput.classList.add('correct');
+        rightInput.disabled = true;
+      }
+      prevBtn.disabled = (index === 0);
+      const both = answered[index].left && answered[index].right;
+      nextBtn.disabled = !both && index < cardData.length - 1;
+      if (allCompleted()) nextBtn.disabled = true;
+    }
+
+    function handleInput(input, side) {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      const val = input.value.trim();
+      if (val === '') return;
+      const isLeft = side === 'left';
+      if (answered[current][isLeft ? 'left' : 'right']) return;
+      debounceTimer = setTimeout(() => { checkAnswer(input, side); }, 400);
+    }
+
+    leftInput.addEventListener('input', function() { handleInput(this, 'left'); });
+    rightInput.addEventListener('input', function() { handleInput(this, 'right'); });
+    leftInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); if (debounceTimer) clearTimeout(debounceTimer); checkAnswer(this, 'left'); } });
+    rightInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); if (debounceTimer) clearTimeout(debounceTimer); checkAnswer(this, 'right'); } });
+
+    function protect(input) {
+      ['dragenter','dragover','dragleave','drop'].forEach(ev => input.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }));
+      input.addEventListener('paste', e => e.preventDefault());
+      input.addEventListener('contextmenu', e => e.preventDefault());
+      input.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'v') e.preventDefault(); });
+    }
+    protect(leftInput); protect(rightInput);
+
+    prevBtn.addEventListener('click', () => { if (current > 0) { current--; loadQuestion(current); } });
+    nextBtn.addEventListener('click', () => { if (current < cardData.length - 1 && answered[current].left && answered[current].right) { current++; loadQuestion(current); } });
+
+    function resetGame() {
+      correctCount = 0;
+      answered = cardData.map(() => ({ left: false, right: false }));
+      current = 0;
+      finalPopup.style.display = 'none';
+      popup.style.display = 'none';
+      updateWordStrip();
+      loadQuestion(0);
+    }
+    playAgainBtn.addEventListener('click', resetGame);
+
+    loadQuestion(0);
+    updateWordStrip();
+  })();
+</script>
+</body>
+</html>

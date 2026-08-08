@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Antonym Word Search</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<audio id="correctSound"
+src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+
+<audio id="wrongSound"
+src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+<style>
+    @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman";
+            font-weight: 400;
+        }
+body{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+   
+}
+
+.pageHeading{
+    width:100%;
+    max-width:1400px;
+    margin:0 auto 22px;
+    padding:16px 28px;
+
+    display:flex;
+    align-items:center;
+    gap:14px;
+
+    color:#5D4037;
+    font-size:25px;
+    font-weight:400;
+    line-height:1.45;
+    margin-bottom:50px;
+
+}
+
+.gameContainer{
+
+width:1400px;
+max-width:100%;
+
+display:grid;
+  grid-template-columns:280px 1fr;
+gap:70px;
+
+align-items:center;
+margin-top: -40px;
+
+}.questionPanel{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+}
+.question{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    width: 280px;          /* Increase from default */
+    height: 90px;
+    padding-left: 18px;
+    gap: 22px;
+
+    border-radius: 40px;
+    overflow: visible;
+
+    color:#fff;
+    font-size:22px;
+
+    border:4px solid rgba(255,255,255,.7);
+}
+
+.questionIcon{
+    width:70px;
+    height:70px;
+
+    border-radius:50%;
+    background:#fff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    box-shadow:0 6px 18px rgba(0,0,0,.18);
+
+    flex-shrink:0;
+}
+
+.questionIcon img{
+    width:70px;
+    height:60px;
+    object-fit:contain;
+}
+
+.questionText{
+    color:#fff;
+    font-size:22px;
+    font-weight:400;
+    letter-spacing:.3px;
+}
+.question{
+    position: relative;
+    overflow: visible;   /* Allow the number to come outside */
+}
+
+.qNo{
+    position: absolute;
+    top: -14px;      /* Move upward */
+    left: 0px;     /* Move to the left */
+
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+
+    background: #fff;
+    color: #333;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    font-weight: bold;
+
+   
+    z-index: 10;
+   
+}
+.question:hover::after{
+
+    left:130%;
+
+}
+
+.orange{
+background:#EC8765;
+}
+
+.purple{
+background:#D8B0D5;
+}
+
+.blue{
+background:#9BC9EC;
+}
+
+.yellow{
+background:#F9CB86;
+}
+
+.green{
+background:#9ED08B;
+}
+
+.lavender{
+background:#A8AEDB;
+}
+
+
+/* ===========================
+        GRID
+=========================== */
+.gridWrapper{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+    margin-top:30px;
+}
+.wordGrid{
+    display:grid;
+    grid-template-columns:repeat(11,52px);
+    grid-template-rows:repeat(12,45px);
+    gap:2px;
+}
+.cell{
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:linear-gradient(180deg,#FFFFFF,#F8FBFF);
+     width:50px;
+    height:45px;
+    border:2px solid #D9EAFB;
+    border-radius:10px;
+    box-sizing:border-box;
+    font-size:22px;
+    font-weight:600;
+    color:#37474F;
+
+    transition:.18s ease;
+}
+
+.cell{
+    position:relative;
+}
+
+.gridBadge{
+    position:absolute;
+
+    top:0px;
+    left:2px;
+
+    width:12px;
+    height:12px;
+
+    border-radius:50%;
+
+    background: #fff;
+    color: #333;
+
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:12px;
+    font-weight:500;
+
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+}
+.cell:hover{
+    background:linear-gradient(180deg,#FFFDF2,#FFEAA7);
+    transform:scale(1.06);
+    z-index:2;
+    box-shadow:0 6px 12px rgba(255,193,7,.25);
+}
+/* Slightly lighter than current */
+
+.orange{
+    background:#C297DA;   /* was #B78BD0 */
+    color:#000;
+}
+
+.purple{
+    background:#EB7DB2;   /* was #E56AA6 */
+    color:#000;
+}
+
+.blue{
+    background:#7BCD5C;   /* was #69C24A */
+    color:#000;
+}
+
+.yellow{
+    background:#79D1D1;   /* was #64C7C7 */
+    color:#000;
+}
+
+.green{
+    background:#A2D3EC;   /* was #8EC9E6 */
+    color:#000;
+}
+
+/* Grid Highlight Colors */
+.hl-orange{
+    background:#B78BD0;
+    color:#000;
+}
+
+.hl-purple{
+    background:#E56AA6;
+    color:#000;
+}
+
+.hl-blue{
+    background:#69C24A;
+    color:#000;
+}
+
+.hl-yellow{
+    background:#64C7C7;
+    color:#000;
+}
+
+.hl-green{
+    background:#8EC9E6;
+    color:#000;
+}
+.selected{
+    background:linear-gradient(180deg,#D7F0FF,#A9DCFF);
+    color:#2f4f4f;
+    font-weight:600;
+    box-shadow:inset 0 0 0 2px #42A5F5;
+}
+
+.completed{
+    opacity:.45;
+    
+    text-decoration:line-through;
+}
+.question.active{
+
+    transform:scale(1);
+
+    border-color:#27f751;
+
+}.question.completed{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;   /* Keep original alignment */
+    padding-left: 18px;            /* Same as normal question */
+    gap: 22px;                     /* Same spacing */
+    text-decoration: none;
+    opacity: 1;
+}
+
+.question.completed::after{
+    content:"✔";
+    position:absolute;
+    right:18px;
+    top:50%;
+    transform:translateY(-50%);
+
+    width:30px;
+    height:30px;
+    border-radius:50%;
+
+    background:#22C55E;
+    color:#fff;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:18px;
+    font-weight:bold;
+}
+.cell,
+.cell *,
+.question,
+.question *{
+    cursor:pointer;
+    user-select:none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+}
+.actionButtons{
+    width:100%;
+    display:flex;
+    justify-content:center;   /* Center both buttons */
+    align-items:center;
+    gap:22px;                 /* Space between Check & Hint */
+   
+}
+.checkBtn{
+     background:linear-gradient(135deg,#43A047,#2E7D32);
+    color:#fff;
+   
+    cursor:pointer;
+    transition:.25s;
+}
+
+
+.checkBtn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+   /* ===== ORIGINAL POPUP OVERLAY – UNCHANGED ===== */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+       .popup{
+    background:#fff;
+    width:350px;
+    border-radius:40px;
+    padding:0;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+
+    border:1px solid rgba(255,255,255,.9);
+
+    /* Premium Floating Shadow */
+    box-shadow:
+        0 2px 6px rgba(0,0,0,.05),
+        0 10px 18px rgba(0,0,0,.08),
+        0 22px 35px rgba(0,0,0,.12),
+        0 45px 70px rgba(0,0,0,.18),
+        0 70px 110px rgba(0,0,0,.10);
+
+    animation: popupSlide .45s cubic-bezier(.34,1.56,.64,1);
+}
+.popup{
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,.7),
+        0 8px 16px rgba(0,0,0,.06),
+        0 18px 36px rgba(0,0,0,.10),
+        0 35px 70px rgba(0,0,0,.18),
+        0 0 40px rgba(255,255,255,.25);
+}
+
+        @keyframes popupSlide {
+            0% {
+                transform: scale(0.5) translateY(60px) rotate(-5deg);
+                opacity: 0;
+            }
+            60% {
+                transform: scale(1.05) translateY(-8px) rotate(2deg);
+            }
+            100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .popup-top {
+            padding: 35px 24px 20px;
+            position: relative;
+        }
+
+        .popup.final .popup-top {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .popup-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .popup.final .popup-icon-wrap {
+            background: #ffffff;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes iconPop {
+            0% { transform: scale(0) rotate(-30deg); }
+            60% { transform: scale(1.2) rotate(10deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .popup-icon-wrap span {
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-bottom {
+            padding: 18px 24px 22px;
+            background: #fff;
+        }
+        
+.popup.correct{
+    background:#fff;
+    border:3px solid #4CAF50;
+}
+
+.popup.correct .popup-top{
+    background:#fff;
+}
+
+.popup.correct .popup-bottom{
+    background:#fff;
+    border-top:none;
+}
+
+.popup.correct .popup-title{
+    color:#2E7D32;
+}
+
+.popup.correct .popup-msg{
+    color:#4B5563;
+}
+
+.popup.correct .popup-icon-wrap{
+    background:#4CAF50;
+}
+
+
+/* =========================
+   WRONG POPUP
+========================= */
+
+.popup.wrong{
+    background:#fff;
+    border:3px solid #EF5350;
+}
+
+.popup.wrong .popup-top{
+    background:#fff;
+}
+
+.popup.wrong .popup-bottom{
+    background:#fff;
+    border-top:none;
+}
+
+.popup.wrong .popup-title{
+    color:#D32F2F;
+}
+
+.popup.wrong .popup-msg{
+    color:#4B5563;
+}
+
+.popup.wrong .popup-icon-wrap{
+    background:#EF5350;
+}
+
+        .popup.final .popup-bottom {
+            border-top: 2px solid #ffe0b2;
+        }
+.popup-score{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    text-align:center;
+
+    font-size:20px;
+    font-weight:700;
+
+    color:#2D2A4A;
+
+    margin:0 auto 12px;
+
+    letter-spacing:.3px;
+}
+
+.popup-stars{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:8px;
+
+    font-size:34px;
+
+    margin:10px auto 18px;
+}
+
+.popup-score span{
+
+    margin-right:8px;
+
+    font-weight:600;
+}
+
+.popup-score strong{
+
+    font-size:24px;
+
+    font-weight:700;
+
+    color:#FF7A00;
+}
+        @keyframes starDance {
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .play-again-popup {
+            background: linear-gradient(135deg, #ff922b, #f76707);
+            color: #fff;
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+        }
+
+/* =========================
+   FINAL POPUP - CLEAN WHITE
+========================= */
+.popup.final{
+    background:#FFFFFF;
+    border:3px solid #4CAF50;
+    box-shadow:0 18px 45px rgba(15,23,42,.12);
+}
+
+.popup.final .popup-top{
+    background:linear-gradient(135deg,#F8FAFC,#EEF5FB);
+}
+
+.popup.final .popup-bottom{
+    background:#FFFFFF;
+    border-top:2px solid #EDF2F7;
+}
+
+/* Title */
+
+.popup.final .popup-title{
+    color:#334155;
+    font-size:30px;
+    font-weight:600;
+    letter-spacing:.3px;
+}
+
+/* Score */
+
+.popup.final .popup-score{
+    color:#0F172A;
+    font-size:24px;
+    font-weight:500;
+    margin:12px 0 15px;
+}
+
+/* Stars */
+
+.popup.final .popup-stars{
+    color:#FACC15;
+    font-size:38px;
+    letter-spacing:6px;
+}
+
+/* Trophy Circle */
+
+.popup.final .popup-icon-wrap{
+    width:95px;
+    height:95px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:#F1F5F9;
+    border:5px solid #BBF7D0;
+    border-radius:50%;
+
+    box-shadow:
+        0 12px 30px rgba(15,23,42,.08),
+        0 0 0 8px rgba(187,247,208,.35);
+}
+
+.popup.final .popup-icon-wrap span{
+    font-size:52px;
+}
+
+/* Play Again Button */
+
+.popup.final .play-again-popup{
+    width:100%;
+    height:58px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+
+    border:none;
+    border-radius:16px;
+
+    background:#4CAF50;
+
+    color:#fff;
+    font-size:18px;
+    font-weight:700;
+
+    cursor:pointer;
+    transition:.25s;
+
+    box-shadow:0 10px 24px rgba(34,197,94,.28);
+}
+/* 
+.popup.final .play-again-popup:hover{
+    background:linear-gradient(135deg,#16A34A,#15803D);
+    transform:translateY(-2px);
+    box-shadow:0 14px 30px rgba(34,197,94,.35);
+} */
+
+.popup-msg{
+    font-size:18px;
+    font-weight:500;
+    line-height:1.5;
+    color:#4B5563;
+}
+/* ===============================
+        MOBILE
+================================ */
+
+@media(max-width:768px){
+
+.popup{
+
+    width:290px;
+
+}
+
+.popup-icon-wrap{
+
+    width:74px;
+    height:74px;
+    font-size:40px;
+
+}
+
+.popup-title{
+
+    font-size:24px;
+
+}
+
+.popup-msg{
+
+    font-size:16px;
+
+}
+
+.popup-score{
+
+    font-size:22px;
+
+}
+
+.popup-stars{
+
+    font-size:28px;
+
+}
+
+.play-again-popup{
+
+    font-size:16px;
+
+    padding:12px;
+
+}
+
+}
+
+
+
+@keyframes kidPop{
+
+    0%{
+
+        transform:scale(.2);
+
+        opacity:0;
+
+    }
+
+    60%{
+
+        transform:scale(1.12);
+
+    }
+
+    100%{
+
+        transform:scale(1);
+
+        opacity:1;
+
+    }
+
+}
+
+@keyframes emojiBounce{
+
+    from{
+
+        transform:translateY(0);
+
+    }
+
+    to{
+
+        transform:translateY(-10px);
+
+    }
+
+}
+
+@keyframes finalBounce{
+
+    0%{
+
+        transform:scale(.3);
+
+        opacity:0;
+
+    }
+
+    60%{
+
+        transform:scale(1.12);
+
+    }
+
+    100%{
+
+        transform:scale(1);
+
+        opacity:1;
+
+    }
+
+}
+.hintBtn{
+    position:static;
+    align-self:flex-end;   /* Right-align below the grid */
+    background:linear-gradient(135deg,#4facfe,#00c6ff);
+    color:#fff;
+    padding:10px 22px;
+    border-radius:30px;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 8px 20px rgba(0,0,0,.18);
+    transition:.3s;
+}
+
+.hintBtn:hover{
+    transform:scale(1.05);
+}
+
+.hintBtn:active{
+
+    transform:scale(.95);
+
+}
+.hintPopup{
+
+    position:fixed;
+
+    inset:0;
+
+    display:none;
+
+    justify-content:center;
+
+    align-items:center;
+
+
+    z-index:99999;
+
+}
+
+.hintBox{
+
+    width:470px;
+
+    background:white;
+
+    border-radius:28px;
+
+    padding:30px;
+
+    text-align:left;
+
+    animation:popupScale .4s;
+
+}
+
+.hintBox h2{
+
+    text-align:center;
+
+    color:#1E88E5;
+
+    margin-bottom:20px;
+
+}
+.hintSteps{
+    font-size:18px;
+    line-height:1.6;
+    color:#444;
+}
+
+.hintSteps div{
+    margin-bottom:10px;
+}
+
+.hintBox button{
+    margin-top:20px;
+}
+
+.hintBox button{
+
+    margin-top:25px;
+
+    width:100%;
+
+    border:none;
+
+    background:#43A047;
+
+    color:white;
+
+    font-size:20px;
+
+    padding:14px;
+
+    border-radius:14px;
+
+    cursor:pointer;
+
+    font-weight:700;
+
+}
+
+.hintBox button:hover{
+
+    background:#2E7D32;
+
+}
+.checkBtn,
+.hintBtn{
+    width:140px;
+    height:48px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:30px;
+    font-size:20px;
+    font-weight:500;
+
+    cursor:pointer;
+    transition:.25s;
+    margin-top: -20px;
+}
+@keyframes popupScale{
+
+    from{
+
+        transform:scale(.4);
+
+        opacity:0;
+
+    }
+
+    to{
+
+        transform:scale(1);
+
+        opacity:1;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+.kid-card{
+
+    width:270px;
+
+    padding:20px;
+
+}
+
+.kid-icon{
+
+    font-size:52px;
+
+}
+
+.kid-card h3{
+
+    font-size:26px;
+
+}
+
+.kid-card p{
+
+    font-size:18px;
+
+}
+
+.final-kid-box{
+
+    width:90%;
+
+    padding:25px;
+
+}
+
+.final-kid-box h2{
+
+    font-size:30px;
+
+}
+
+.final-kid-box p{
+
+    font-size:22px;
+
+}
+
+#stars{
+
+    font-size:32px;
+
+}
+
+.playAgain-btn{
+
+    font-size:18px;
+
+    padding:12px 26px;
+
+}
+
+}
+
+@media (max-width:768px){
+    .pageHeading{
+        font-size:18px;
+        padding:14px 18px;
+    }
+
+    .headingIcon{
+        width:42px;
+        height:42px;
+        font-size:22px;
+    }
+}
+/* ===============================
+   Monitor (1441px - 1920px)
+================================ */
+@media screen and (min-width:1441px) and (max-width:1920px){
+
+    .pageHeading{
+        max-width:1700px;
+        font-size:30px;
+        text-align:center;
+        margin:0 auto 50px;
+    }
+
+    .gameContainer{
+        width:1700px;
+        max-width:95%;
+        margin:0 auto;
+
+        display:grid;
+        grid-template-columns:380px 1fr;
+        gap:120px;
+        align-items:center;
+    }
+    .questionIcon img{
+        width:70px;
+        height:70px;
+        object-fit:contain;
+    }
+
+ .questionPanel{
+        width:100%;
+        display:flex;
+        flex-direction:column;
+        gap:28px;
+        justify-self:center;
+    }
+
+    /* RIGHT PANEL - CENTER GRID */
+    .gridWrapper{
+        width:100%;
+        display:flex;
+        flex-direction:column;
+        align-items:center;      /* Center horizontally */
+        justify-content:center;
+    }
+
+    .wordGrid{
+        margin:0 auto;
+        grid-template-columns:repeat(11,58px);
+        grid-template-rows:repeat(12,52px);
+        gap:4px;
+    }
+
+    .cell{
+        width:56px;
+        height:50px;
+        font-size:28px;
+    }
+
+    .actionButtons{
+        justify-content:center;
+    }
+   .questionText{
+        font-size:30px;
+    }
+}
+</style>
+</head>
+
+<body>
+<h2 class="pageHeading">
+   Look at the following grid and identify the opposites of the following words
+</h2>
+<div class="gameContainer">
+    
+<div class="gameContainer">
+
+<!-- LEFT SIDE -->
+<div class="questionPanel">
+<div class="question orange" id="quickly">
+    <span class="qNo">1</span>
+    <div class="questionIcon">
+        <img src="../images/quickly.png" alt="Quickly">
+    </div>
+    <span class="questionText">Quickly</span>
+</div>
+
+<div class="question purple" id="rarely">
+    <span class="qNo">2</span>
+    <div class="questionIcon">
+        <img src="../images/rarely.png" alt="Rarely">
+    </div>
+    <span class="questionText">Rarely</span>
+</div>
+
+<div class="question blue" id="waste">
+    <span class="qNo">3</span>
+    <div class="questionIcon">
+        <img src="../images/waste.png" alt="Waste">
+    </div>
+    <span class="questionText">Waste</span>
+</div>
+
+<div class="question yellow" id="worst">
+    <span class="qNo">4</span>
+    <div class="questionIcon">
+        <img src="../images/worst.png" alt="Worst">
+    </div>
+    <span class="questionText">Worst</span>
+</div>
+
+<div class="question green" id="everything">
+    <span class="qNo">5</span>
+    <div class="questionIcon">
+        <img src="../images/everything.png" alt="Everything">
+    </div>
+    <span class="questionText">Everything</span>
+</div>
+</div>
+
+
+<!-- RIGHT SIDE -->
+
+<div class="gridWrapper">
+ 
+
+<div class="wordGrid">
+<!-- Row 1 -->
+<div class="cell" id="c1">Q</div>
+<div class="cell" id="c2">S</div>
+<div class="cell" id="c3">R</div>
+<div class="cell" id="c4">E</div>
+<div class="cell" id="c5">G</div>
+<div class="cell" id="c6">U</div>
+<div class="cell" id="c7">L</div>
+<div class="cell" id="c8">A</div>
+<div class="cell" id="c9">R</div>
+<div class="cell" id="c10">L</div>
+<div class="cell" id="c11">Y</div>
+
+<!-- Row 2 -->
+<div class="cell" id="c12">U</div>
+<div class="cell" id="c13">D</div>
+<div class="cell" id="c14">N</div>
+<div class="cell" id="c15">O</div>
+<div class="cell" id="c16">T</div>
+<div class="cell" id="c17">H</div>
+<div class="cell" id="c18">I</div>
+<div class="cell" id="c19">N</div>
+<div class="cell" id="c20">G</div>
+<div class="cell" id="c21">V</div>
+<div class="cell" id="c22">H</div>
+
+<!-- Row 3 -->
+<div class="cell" id="c23">I</div>
+<div class="cell" id="c24">C</div>
+<div class="cell" id="c25">E</div>
+<div class="cell" id="c26">U</div>
+<div class="cell" id="c27">S</div>
+<div class="cell" id="c28">E</div>
+<div class="cell" id="c29">F</div>
+<div class="cell" id="c30">U</div>
+<div class="cell" id="c31">L</div>
+<div class="cell" id="c32">Z</div>
+<div class="cell" id="c33">L</div>
+
+<!-- Row 4 -->
+<div class="cell" id="c34">C</div>
+<div class="cell" id="c35">R</div>
+<div class="cell" id="c36">T</div>
+<div class="cell" id="c37">C</div>
+<div class="cell" id="c38">R</div>
+<div class="cell" id="c39">D</div>
+<div class="cell" id="c40">B</div>
+<div class="cell" id="c41">A</div>
+<div class="cell" id="c42">O</div>
+<div class="cell" id="c43">N</div>
+<div class="cell" id="c44">G</div>
+
+<!-- Row 5 -->
+<div class="cell" id="c45">K</div>
+<div class="cell" id="c46">W</div>
+<div class="cell" id="c47">S</div>
+<div class="cell" id="c48">G</div>
+<div class="cell" id="c49">O</div>
+<div class="cell" id="c50">T</div>
+<div class="cell" id="c51">E</div>
+<div class="cell" id="c52">W</div>
+<div class="cell" id="c53">W</div>
+<div class="cell" id="c54">Y</div>
+<div class="cell" id="c55">R</div>
+
+<!-- Row 6 -->
+<div class="cell" id="c56">L</div>
+<div class="cell" id="c57">U</div>
+<div class="cell" id="c58">C</div>
+<div class="cell" id="c59">K</div>
+<div class="cell" id="c60">W</div>
+<div class="cell" id="c61">A</div>
+<div class="cell" id="c62">S</div>
+<div class="cell" id="c63">T</div>
+<div class="cell" id="c64">E</div>
+<div class="cell" id="c65">Q</div>
+<div class="cell" id="c66">A</div>
+
+<!-- Row 7 -->
+<div class="cell" id="c67">Y</div>
+<div class="cell" id="c68">L</div>
+<div class="cell" id="c69">E</div>
+<div class="cell" id="c70">R</div>
+<div class="cell" id="c71">A</div>
+<div class="cell" id="c72">R</div>
+<div class="cell" id="c73">T</div>
+<div class="cell" id="c74">L</div>
+<div class="cell" id="c75">W</div>
+<div class="cell" id="c76">W</div>
+<div class="cell" id="c77">D</div>
+
+<!-- Row 8 -->
+<div class="cell" id="c78">B</div>
+<div class="cell" id="c79">A</div>
+<div class="cell" id="c80">D</div>
+<div class="cell" id="c81">D</div>
+<div class="cell" id="c82">A</div>
+<div class="cell" id="c83">Y</div>
+<div class="cell" id="c84">B</div>
+<div class="cell" id="c85">E</div>
+<div class="cell" id="c86">G</div>
+<div class="cell" id="c87">C</div>
+<div class="cell" id="c88">U</div>
+
+<!-- Row 9 -->
+<div class="cell" id="c89">K</div>
+<div class="cell" id="c90">N</div>
+<div class="cell" id="c91">B</div>
+<div class="cell" id="c92">S</div>
+<div class="cell" id="c93">L</div>
+<div class="cell" id="c94">R</div>
+<div class="cell" id="c95">C</div>
+<div class="cell" id="c96">U</div>
+<div class="cell" id="c97">I</div>
+<div class="cell" id="c98">O</div>
+<div class="cell" id="c99">A</div>
+
+<!-- Row 10 -->
+<div class="cell" id="c100">F</div>
+<div class="cell" id="c101">G</div>
+<div class="cell" id="c102">O</div>
+<div class="cell" id="c103">O</div>
+<div class="cell" id="c104">D</div>
+<div class="cell" id="c105">A</div>
+<div class="cell" id="c106">Y</div>
+<div class="cell" id="c107">K</div>
+<div class="cell" id="c108">H</div>
+<div class="cell" id="c109">H</div>
+<div class="cell" id="c110">L</div>
+
+<!-- Row 11 -->
+<div class="cell" id="c111">E</div>
+<div class="cell" id="c112">V</div>
+<div class="cell" id="c113">E</div>
+<div class="cell" id="c114">R</div>
+<div class="cell" id="c115">Y</div>
+<div class="cell" id="c116">T</div>
+<div class="cell" id="c117">H</div>
+<div class="cell" id="c118">I</div>
+<div class="cell" id="c119">N</div>
+<div class="cell" id="c120">G</div>
+<div class="cell" id="c121">L</div>
+
+<!-- Row 12 -->
+<div class="cell" id="c122">W</div>
+<div class="cell" id="c123">N</div>
+<div class="cell" id="c124">M</div>
+<div class="cell" id="c125">P</div>
+<div class="cell" id="c126">F</div>
+<div class="cell" id="c127">K</div>
+<div class="cell" id="c128">J</div>
+<div class="cell" id="c129">Q</div>
+<div class="cell" id="c130">X</div>
+<div class="cell" id="c131">R</div>
+<div class="cell" id="c132">Y</div>
+</div>
+ <div class="actionButtons">
+ 
+</div>
+</div>
+<!-- Popup -->
+
+<div class="popup-overlay" id="popupOverlay">
+    <div class="popup" id="popupBox"></div>
+</div>
+<div id="hintPopup" class="hintPopup">
+
+    <div class="hintBox">
+
+        <h2>🎮 How to Play</h2>
+
+      <div class="hintSteps">
+    <div>👉 Choose any word from the left side.</div>
+    <div>🔍 Find its opposite (opposite meaning) hidden in the letter grid.</div>
+    <div>👆 Click each letter of the hidden word one by one in the correct order.</div>
+    <div>✅ Click the <b>Check</b> button to see if your answer is correct.</div>
+    <div>🎨 If your answer is correct, the word will be highlighted with the same color as the question.</div>
+    <div>🏆 Find and complete all the hidden opposite words to finish the game.</div>
+</div>
+        <button onclick="closeHint()">
+            Start Playing 🚀
+        </button>
+
+    </div>
+
+</div>
+</body>
+<script>
+   const answers = [
+
+{
+    question: "quickly",
+    number: 1,
+    // GRADUALLY (Vertical)
+    letters: [
+        "c44",  // G
+        "c55",  // R
+        "c66",  // A
+        "c77",  // D
+        "c88",  // U
+        "c99",  // A
+        "c110", // L
+        "c121", // L
+        "c132"  // Y
+    ]
+},
+
+{
+    question: "rarely",
+    number: 2,
+    // REGULARLY (Row 1)
+    letters: ["c3","c4","c5","c6","c7","c8","c9","c10","c11"]
+},
+
+{
+    question: "waste",
+    number: 3,
+    // USEFUL (Row 3)
+    letters: ["c26","c27","c28","c29","c30","c31"]
+},
+
+{
+    question: "worst",
+    number: 4,
+    // BEST (Vertical)
+    letters: [
+        "c40",
+        "c51",
+        "c62",
+        "c73"
+    ]
+},
+
+{
+    question: "everything",
+    number: 5,
+    // NOTHING (Row 2)
+    letters: ["c14","c15","c16","c17","c18","c19","c20"]
+}
+
+];
+
+let selected=[];
+
+let score = 0;
+
+const totalQuestions = answers.length;
+document.querySelectorAll(".cell").forEach(cell=>{
+cell.onclick = function () {
+
+  
+
+    if (cell.classList.contains("found")) return;
+
+    if (selected.includes(cell.id)) {
+        cell.classList.remove("selected");
+        selected = selected.filter(x => x != cell.id);
+        return;
+    }
+
+    selected.push(cell.id);
+    cell.classList.add("selected");
+
+  setTimeout(checkAnswer, 150);
+}
+
+});
+function checkAnswer(){
+
+    // Find a matching answer
+    const ans = answers.find(answer =>
+        answer.letters.length === selected.length &&
+        answer.letters.every(id => selected.includes(id))
+    );
+
+    // Correct
+    if(ans){
+
+        // Find left question
+        const questionBox = document.getElementById(ans.question);
+
+        // Determine highlight color
+        let color = "";
+
+        if(questionBox.classList.contains("orange")) color="hl-orange";
+        if(questionBox.classList.contains("purple")) color="hl-purple";
+        if(questionBox.classList.contains("blue")) color="hl-blue";
+        if(questionBox.classList.contains("yellow")) color="hl-yellow";
+        if(questionBox.classList.contains("green")) color="hl-green";
+
+        ans.letters.forEach((id,index)=>{
+
+            const cell=document.getElementById(id);
+
+            cell.classList.remove("selected");
+            cell.classList.add(color);
+            cell.classList.add("found");
+
+            cell.style.pointerEvents="none";
+
+            if(index===0){
+
+                const badge=document.createElement("div");
+
+                badge.className="gridBadge";
+                badge.textContent=ans.number;
+
+                cell.appendChild(badge);
+            }
+
+        });
+
+        questionBox.classList.add("completed");
+
+        score++;
+
+        document.getElementById("correctSound").play();
+
+        speak("Correct");
+
+        showPopup(true);
+
+        selected=[];
+
+        if(score===totalQuestions){
+
+            setTimeout(showFinal,1500);
+
+        }
+
+        return;
+    }
+
+    // Wrong
+    const maxLength=Math.max(...answers.map(a=>a.letters.length));
+
+    if(selected.length>=maxLength){
+
+        document.getElementById("wrongSound").play();
+
+        speak("Try Again");
+
+        showPopup(false);
+
+        selected.forEach(id=>{
+
+            document.getElementById(id).classList.remove("selected");
+
+        });
+
+        selected=[];
+
+    }
+
+}
+
+
+function speak(text){
+
+    speechSynthesis.cancel();
+
+    const msg=new SpeechSynthesisUtterance(text);
+
+    msg.lang="en-US";
+    msg.volume=.25;
+    msg.rate=1;
+    msg.pitch=1;
+
+    speechSynthesis.speak(msg);
+
+}
+function smallConfetti() {
+    confetti({
+        particleCount: 40,
+        spread: 70,
+        origin: { y: 0.7 }
+    });
+}
+function showPopup(correct) {
+
+    const overlay = document.getElementById("popupOverlay");
+    const popup = document.getElementById("popupBox");
+
+    if (correct) {
+
+        smallConfetti();
+
+        popup.className = "popup correct";
+
+        popup.innerHTML = `
+            <div class="popup-top">
+                <div class="popup-icon-wrap">
+                    <span>🌟</span>
+                </div>
+
+                <div class="popup-title">
+                    Excellent!
+                </div>
+            </div>
+
+            <div class="popup-bottom">
+                <div class="popup-msg">
+                   Awesome! You got it right! 🎉
+                </div>
+            </div>
+        `;
+
+    } else {
+
+        popup.className = "popup wrong";
+
+        popup.innerHTML = `
+            <div class="popup-top">
+                <div class="popup-icon-wrap">
+                    <span>🤔</span>
+                </div>
+
+                <div class="popup-title">
+                    Keep Trying
+                </div>
+            </div>
+
+            <div class="popup-bottom">
+                <div class="popup-msg">
+                     Nice try! Give it another shot. 😊
+                </div>
+            </div>
+        `;
+
+    }
+
+    overlay.classList.add("show");
+
+    setTimeout(() => {
+        overlay.classList.remove("show");
+    }, 1500);
+
+}
+function showWord(word,color){
+
+    // Remove previous color of this word
+    document.querySelectorAll('[data-word="'+word+'"]').forEach(cell=>{
+
+        cell.classList.remove(
+            'hl-blue',
+            'hl-orange',
+            'hl-green',
+            'hl-yellow',
+            'hl-purple',
+            'hl-lavender'
+        );
+
+        cell.classList.add(color);
+
+    });
+
+}
+function openHint(){
+
+    document.getElementById("hintPopup").style.display="flex";
+
+}
+
+function closeHint(){
+
+    document.getElementById("hintPopup").style.display="none";
+
+}
+function showFinal() {
+
+    let end = Date.now() + 1500;
+
+    (function frame() {
+
+        confetti({
+            particleCount: 3,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 }
+        });
+
+        confetti({
+            particleCount: 3,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 }
+        });
+
+        if (Date.now() < end) {
+            requestAnimationFrame(frame);
+        }
+
+    })();
+
+    const overlay = document.getElementById("popupOverlay");
+    const popup = document.getElementById("popupBox");
+
+    popup.className = "popup final";
+
+    popup.innerHTML = `
+        <div class="popup-top">
+
+            <div class="popup-icon-wrap">
+                <span>👑</span>
+            </div>
+
+            <div class="popup-title">
+                Congratulations!
+            </div>
+
+        </div>
+
+        <div class="popup-bottom">
+
+            <div class="popup-score">
+                Score : ${score}/${totalQuestions}
+            </div>
+
+            <div class="popup-stars">
+                ${"⭐".repeat(score)}
+            </div>
+
+            <button class="play-again-popup" onclick="location.reload()">
+                Play Again
+            </button>
+
+        </div>
+    `;
+
+    overlay.classList.add("show");
+}
+
+</script>
+</html>

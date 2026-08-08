@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+  <title>Connect the Opposite Words</title>
+  <link rel="stylesheet" href="../assets/css/popups.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @font-face{font-family:'CCSyBold';src:url('../assets/CCSYBOLD.TTF')format('truetype');}
+    @font-face{font-family:'CCSyntroman';src:url('../assets/CCSYNTRO.TTF')format('truetype');}
+    *{box-sizing:border-box;margin:0;padding:0;font-family:'CCSyntroman';}
+html,body{
+    height:100%;
+    width:100%;
+    margin:0;
+    padding:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    background:#fffde7;
+}
+
+.stage{
+    width:100%;
+    height:100%;
+    max-width:1400px;
+    margin:0 auto;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:flex-start;
+    gap:2px;
+}
+
+/* ===== PAGE TITLE (sits above the board, board fills the rest) ===== */
+.page-title{
+    flex:0 0 auto;
+    text-align:center;
+    color:#3A4A3F;
+    font-family:'CCSyntroman';
+    /* font-weight:600; */
+    font-size:clamp(21px, 3.4vw, 39px);
+    line-height:1.15;
+    padding:0 12px 3px;
+    letter-spacing:.3px;
+    white-space:nowrap;
+    overflow:visible;
+    margin-bottom:18px;
+}
+
+.board{
+    position:relative;
+    width:100%;
+    flex:1 1 0;
+    min-height:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:visible;
+}
+
+svg{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    overflow:visible;
+    flex-shrink:0;
+}
+
+.cell-word{
+    cursor:pointer;
+    user-select:none;
+    transition:opacity .2s ease;
+}
+
+.cell-word.matched{
+    cursor:default;
+    opacity:0.7;
+}
+
+.cell-word.selected{
+    opacity:1;
+}
+
+.cell-word.wrong{
+    animation:wrongShake .35s ease;
+}
+
+@keyframes wrongShake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-4px);}
+    75%{transform:translateX(4px);}
+}
+
+/* ===== IMAGE ONLY (no background, no border, no circle) ===== */
+
+.card-icon-bg{
+    fill:transparent !important;
+    stroke:none !important;
+    opacity:0 !important;
+}
+
+.cell-word.selected .card-icon-bg,
+.cell-word.matched .card-icon-bg{
+    fill:transparent !important;
+    stroke:none !important;
+    filter:none !important;
+    opacity:0 !important;
+}
+
+/* ===== DO NOT TOUCH CARD PILL ===== */
+
+.card-pill{
+    fill:var(--pill-bg,#fff);
+    stroke:var(--pill-border,#e2e8f0);
+    stroke-width:2.5;
+    transition:all .2s ease;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+}
+
+.cell-word.selected .card-pill{
+    stroke:#1e293b;
+    stroke-width:3;
+    filter:drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+}
+
+.cell-word.matched .card-pill{
+    fill:var(--match-pill,#ecfdf5);
+    stroke:var(--match-stroke,#34d399);
+    opacity:0.7;
+}
+
+.card-text{
+    font-size:38px;
+    fill:#1e293b;
+    text-anchor:middle;
+    dominant-baseline:middle;
+    pointer-events:none;
+}
+
+.card-illustration{
+    pointer-events:none;
+}
+
+.maze-wall{
+    stroke:#7c6f5b;
+    stroke-width:4;
+    stroke-linecap:round;
+    fill:none;
+}
+
+/* Desktop: give the puzzle maximum breathing room */
+
+@media screen and (min-width:1400px){
+    .stage{
+        max-width:1600px;
+    }
+    .page-title{
+        margin-bottom:22px;
+    }
+    svg{
+        width:95%;
+        height:95%;
+    }
+}
+
+/* Small screens: keep everything visible with zero scrolling */
+
+@media screen and (max-width:600px){
+    body{
+        padding:4px;
+    }
+
+    .page-title{
+        font-size:clamp(16px, 4.6vw, 23px);
+        padding:2px 8px 4px;
+        margin-bottom:14px;
+        
+    }
+}
+
+/* Short/landscape screens: shrink the box, not the artwork detail */
+
+@media (max-height:500px) and (orientation:landscape){
+    body{
+        padding:4px;
+    }
+
+    .page-title{
+        font-size:clamp(13px, 2.4vw, 19px);
+        padding:1px 8px 3px;
+        margin-bottom:6px;
+    }
+}
+  </style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <p class="page-title">Connect the Opposite Words</p>
+    <div class="board">
+      <svg id="mazeSvg" viewBox="0 0 1256 832" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+  </div>
+  <div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+      <div class="kid-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+  <div id="finalPopup">
+    <div class="final-kid-box">
+      <h2>🎉 Congratulations!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div>
+      <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+  </div>
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+  <script>
+  (function(){
+    const COLS=13,ROWS=9,CELL=47;
+    const OX=318,OY=191;
+    const STUB=28;
+    const PAIRS=[
+      ['spend','earn'],
+      ['inside','outside'],
+      ['hard','soft'],
+      ['appear','disappear']
+    ];
+ const WORD_IMAGES = {
+  spend: "../assets/images/moneyy.png",
+  earn: "../assets/images/piggy-bank.png",
+  inside: "../assets/images/near.png",
+  outside: "../assets/images/far.png",
+  hard: "../assets/images/rock.png",
+  soft: "../assets/images/teddy.png",
+  appear: "../assets/images/appear.png",
+  disappear: "../assets/images/magic.png"
+};
+    const positionMap={
+      'spend':{side:'top',pos:2},
+      'earn':{side:'bottom',pos:2},
+      'inside':{side:'top',pos:10},
+      'outside':{side:'bottom',pos:10},
+      'hard':{side:'left',pos:2},
+      'soft':{side:'right',pos:2},
+      'appear':{side:'left',pos:6},
+      'disappear':{side:'right',pos:6}
+    };
+    const cardStyles={
+      'spend':{bg:'#fef9ee',stripe:'#f59e0b',matchBg:'#fef3c7'},
+      'earn':{bg:'#fef9ee',stripe:'#f59e0b',matchBg:'#fef3c7'},
+      'inside':{bg:'#f5f0ff',stripe:'#8b5cf6',matchBg:'#ede9fe'},
+      'outside':{bg:'#f5f0ff',stripe:'#8b5cf6',matchBg:'#ede9fe'},
+      'hard':{bg:'#eff6ff',stripe:'#3b82f6',matchBg:'#dbeafe'},
+      'soft':{bg:'#eff6ff',stripe:'#3b82f6',matchBg:'#dbeafe'},
+      'appear':{bg:'#fdf2f8',stripe:'#ec4899',matchBg:'#fce7f3'},
+      'disappear':{bg:'#fdf2f8',stripe:'#ec4899',matchBg:'#fce7f3'}
+    };
+    const WORDS={};
+    for(const word in positionMap){
+      const cs=cardStyles[word];
+      WORDS[word]={side:positionMap[word].side,pos:positionMap[word].pos,cardBg:cs.bg,cardStripe:cs.stripe,matchBg:cs.matchBg};
+    }
+    const PATH_COLORS=["#ef4444","#3b82f6","#10b981","#f59e0b","#8b5cf6","#06b6d4","#ec4899"];
+    const svg=document.getElementById('mazeSvg');
+    const popupOverlay=document.getElementById("answerPopup");
+    const popupIcon=document.getElementById("popupIcon");
+    const popupTitle=document.getElementById("popupTitle");
+    const popupMsg=document.getElementById("popupMsg");
+    const finalPopup=document.getElementById("finalPopup");
+    const starsEl=document.getElementById("stars");
+    let grid;
+    let matchedWords=new Set();
+    let selected=null;
+    let isGameComplete=false;
+    let pathCount=0;
+    let usedPathCells=new Map();
+    let popupTimer=null;
+    let finalTriggered=false;
+
+    function speak(t){speechSynthesis.cancel();const msg=new SpeechSynthesisUtterance(t);msg.lang="en-US";msg.volume=0.25;msg.rate=1;msg.pitch=1;speechSynthesis.speak(msg);}
+    function resetPathHistory(){usedPathCells.clear();}
+
+    function generateMaze(){
+      const cells=[];
+      for(let y=0;y<ROWS;y++){
+        const row=[];
+        for(let x=0;x<COLS;x++){
+          row.push({top:true,right:true,bottom:true,left:true,visited:false,penalty:0});
+        }
+        cells.push(row);
+      }
+      const stack=[];
+      let cx=0,cy=0;
+      cells[cy][cx].visited=true;
+      stack.push([cx,cy]);
+      function neighbors(x,y){
+        const list=[];
+        if(y>0&&!cells[y-1][x].visited)list.push([x,y-1,'top','bottom']);
+        if(x<COLS-1&&!cells[y][x+1].visited)list.push([x+1,y,'right','left']);
+        if(y<ROWS-1&&!cells[y+1][x].visited)list.push([x,y+1,'bottom','top']);
+        if(x>0&&!cells[y][x-1].visited)list.push([x-1,y,'left','right']);
+        return list;
+      }
+      while(stack.length){
+        const [x,y]=stack[stack.length-1];
+        const opts=neighbors(x,y);
+        if(opts.length===0){stack.pop();continue;}
+        const [nx,ny,wallA,wallB]=opts[Math.floor(Math.random()*opts.length)];
+        cells[y][x][wallA]=false;
+        cells[ny][nx][wallB]=false;
+        cells[ny][nx].visited=true;
+        stack.push([nx,ny]);
+      }
+      const extraRemovals=Math.floor((COLS*ROWS)*0.28);
+      for(let i=0;i<extraRemovals;i++){
+        const x=Math.floor(Math.random()*COLS);
+        const y=Math.floor(Math.random()*ROWS);
+        const walls=[];
+        if(y>0&&cells[y][x].top)walls.push(['top',y-1,x,'bottom']);
+        if(x<COLS-1&&cells[y][x].right)walls.push(['right',y,x+1,'left']);
+        if(y<ROWS-1&&cells[y][x].bottom)walls.push(['bottom',y+1,x,'top']);
+        if(x>0&&cells[y][x].left)walls.push(['left',y,x-1,'right']);
+        if(walls.length>0){
+          const [wallA,ny,nx,wallB]=walls[Math.floor(Math.random()*walls.length)];
+          cells[y][x][wallA]=false;
+          cells[ny][nx][wallB]=false;
+        }
+      }
+      return cells;
+    }
+
+    function entryCell(side,pos){
+      if(side==='top')return{x:pos,y:0};
+      if(side==='bottom')return{x:pos,y:ROWS-1};
+      if(side==='left')return{x:0,y:pos};
+      if(side==='right')return{x:COLS-1,y:pos};
+    }
+    function cellCenter(cx,cy){return{x:OX+cx*CELL+CELL/2,y:OY+cy*CELL+CELL/2};}
+    function outsidePoint(side,cx,cy){
+      const c=cellCenter(cx,cy);
+      if(side==='top')return{x:c.x,y:c.y-CELL/2-STUB};
+      if(side==='bottom')return{x:c.x,y:c.y+CELL/2+STUB};
+      if(side==='left')return{x:c.x-CELL/2-STUB,y:c.y};
+      if(side==='right')return{x:c.x+CELL/2+STUB,y:c.y};
+    }
+
+    function findPath(fromCell,toCell,avoidOverlap=true){
+      const key=(x,y)=>x+','+y;
+      if(fromCell.x===toCell.x&&fromCell.y===toCell.y)return[{...fromCell}];
+      function heuristic(x1,y1,x2,y2){return Math.abs(x1-x2)+Math.abs(y1-y2);}
+      function getNeighbors(x,y){
+        const result=[];
+        const cell=grid[y][x];
+        if(!cell.top&&y>0)result.push({x,y:y-1,dir:'top'});
+        if(!cell.right&&x<COLS-1)result.push({x:x+1,y,dir:'right'});
+        if(!cell.bottom&&y<ROWS-1)result.push({x,y:y+1,dir:'bottom'});
+        if(!cell.left&&x>0)result.push({x:x-1,y,dir:'left'});
+        return result;
+      }
+      const startKey=key(fromCell.x,fromCell.y);
+      const goalKey=key(toCell.x,toCell.y);
+      const openSet=[];
+      const closedSet=new Set();
+      const gScore=new Map();
+      const fScore=new Map();
+      const cameFrom=new Map();
+      const dirFrom=new Map();
+      gScore.set(startKey,0);
+      fScore.set(startKey,heuristic(fromCell.x,fromCell.y,toCell.x,toCell.y));
+      openSet.push({key:startKey,x:fromCell.x,y:fromCell.y,f:fScore.get(startKey)});
+      while(openSet.length>0){
+        openSet.sort((a,b)=>a.f-b.f);
+        const current=openSet.shift();
+        if(current.key===goalKey){
+          const path=[];
+          let curKey=goalKey;
+          while(curKey){
+            const [cx,cy]=curKey.split(',').map(Number);
+            path.unshift({x:cx,y:cy});
+            curKey=cameFrom.get(curKey);
+            if(curKey===startKey){
+              const [sx,sy]=startKey.split(',').map(Number);
+              path.unshift({x:sx,y:sy});
+              break;
+            }
+          }
+          return path;
+        }
+        closedSet.add(current.key);
+        const neighbors=getNeighbors(current.x,current.y);
+        for(const neighbor of neighbors){
+          const nKey=key(neighbor.x,neighbor.y);
+          if(closedSet.has(nKey))continue;
+          let tentativeG=gScore.get(current.key)+1;
+          if(avoidOverlap){
+            const usageCount=usedPathCells.get(nKey)||0;
+            if(usageCount>0)tentativeG+=5+(usageCount*3);
+          }
+          const distFromSource=Math.abs(neighbor.x-fromCell.x)+Math.abs(neighbor.y-fromCell.y);
+          const distFromTarget=Math.abs(neighbor.x-toCell.x)+Math.abs(neighbor.y-toCell.y);
+          const corridor=Math.abs(fromCell.x-toCell.x)+Math.abs(fromCell.y-toCell.y);
+          const localBias=Math.max(0,(distFromSource+distFromTarget)-corridor-4);
+          tentativeG+=localBias*0.5;
+          const prevDir=dirFrom.get(current.key);
+          if(prevDir&&prevDir!==neighbor.dir)tentativeG+=0.8;
+          if(!gScore.has(nKey)||tentativeG<gScore.get(nKey)){
+            cameFrom.set(nKey,current.key);
+            gScore.set(nKey,tentativeG);
+            const h=heuristic(neighbor.x,neighbor.y,toCell.x,toCell.y);
+            fScore.set(nKey,tentativeG+h);
+            dirFrom.set(nKey,neighbor.dir);
+            const existing=openSet.find(item=>item.key===nKey);
+            if(existing){existing.f=tentativeG+h;}
+            else{openSet.push({key:nKey,x:neighbor.x,y:neighbor.y,f:tentativeG+h});}
+          }
+        }
+      }
+      if(avoidOverlap)return findPath(fromCell,toCell,false);
+      return [{...fromCell},{...toCell}];
+    }
+
+    function showPopup(isCorrect,delay=0){
+      if(popupTimer){clearTimeout(popupTimer);popupTimer=null;}
+      popupTimer=setTimeout(()=>{
+        popupOverlay.className="kid-popup "+(isCorrect?"kid-correct":"kid-wrong");
+        popupOverlay.style.display="flex";
+        if(isCorrect){popupIcon.textContent="🎉";popupTitle.textContent="Great Job!";popupMsg.textContent="You got it right!";smallConfetti();}
+        else{popupIcon.textContent="🥲";popupTitle.textContent="Oops!";popupMsg.textContent="Try again, you can do it!";}
+        const sound=document.getElementById(isCorrect?"correctSound":"wrongSound");
+        if(sound)sound.play().catch(()=>{});
+        setTimeout(()=>{popupOverlay.style.display="none";popupTimer=null;},1400);
+      },delay);
+    }
+
+    function showFinalPopup(){
+      finalPopup.style.display="flex";
+      document.getElementById("finalScore").textContent=`Your Score: ${PAIRS.length} / ${PAIRS.length}`;
+      starsEl.textContent="⭐".repeat(PAIRS.length);
+      bigConfetti();
+    }
+
+    function smallConfetti(){confetti({particleCount:35,spread:70,origin:{y:0.7}});}
+    function bigConfetti(){
+      confetti({particleCount:200,spread:110,origin:{y:0.5}});
+      setTimeout(()=>{confetti({particleCount:120,spread:130,origin:{y:0.4,x:0.2}});confetti({particleCount:120,spread:130,origin:{y:0.4,x:0.8}});},150);
+    }
+
+    function svgEl(name,attrs){
+      const el=document.createElementNS('http://www.w3.org/2000/svg',name);
+      for(const k in attrs)el.setAttribute(k,attrs[k]);
+      return el;
+    }
+
+    // Word illustration: real image from WORD_IMAGES, sized to fill the icon circle.
+    function makeIllustration(word,size){
+      const half=size/2;
+      const img=svgEl('image',{
+        href:WORD_IMAGES[word],
+        x:-half,
+        y:-half,
+        width:size,
+        height:size,
+        preserveAspectRatio:'xMidYMid meet'
+      });
+      img.setAttributeNS('http://www.w3.org/1999/xlink','href',WORD_IMAGES[word]);
+      const g=svgEl('g',{class:'card-illustration'});
+      g.appendChild(img);
+      return g;
+    }
+
+    function render(){
+      svg.innerHTML='';
+      matchedWords.clear();
+      resetPathHistory();
+      selected=null;
+      isGameComplete=false;
+      finalTriggered=false;
+      pathCount=0;
+      finalPopup.style.display='none';
+      popupOverlay.style.display='none';
+      if(popupTimer){clearTimeout(popupTimer);popupTimer=null;}
+      grid=generateMaze();
+      const wallsGroup=svgEl('g',{});
+      const pathsGroup=svgEl('g',{id:'pathsGroup'});
+      const wordsGroup=svgEl('g',{});
+      const entrySet=new Set();
+      for(const w in WORDS){
+        const info=WORDS[w];
+        const ec=entryCell(info.side,info.pos);
+        entrySet.add(ec.x+','+ec.y+':'+info.side);
+      }
+      for(let y=0;y<ROWS;y++){
+        for(let x=0;x<COLS;x++){
+          const c=grid[y][x];
+          const p0={x:OX+x*CELL,y:OY+y*CELL};
+          if(c.top){
+            const skip=y===0&&entrySet.has(x+','+y+':top');
+            if(!skip)wallsGroup.appendChild(svgEl('line',{x1:p0.x,y1:p0.y,x2:p0.x+CELL,y2:p0.y,class:'maze-wall'}));
+          }
+          if(c.left){
+            const skip=x===0&&entrySet.has(x+','+y+':left');
+            if(!skip)wallsGroup.appendChild(svgEl('line',{x1:p0.x,y1:p0.y,x2:p0.x,y2:p0.y+CELL,class:'maze-wall'}));
+          }
+          if(y===ROWS-1&&c.bottom){
+            const skip=entrySet.has(x+','+(y)+':bottom');
+            if(!skip)wallsGroup.appendChild(svgEl('line',{x1:p0.x,y1:p0.y+CELL,x2:p0.x+CELL,y2:p0.y+CELL,class:'maze-wall'}));
+          }
+          if(x===COLS-1&&c.right){
+            const skip=entrySet.has(x+','+y+':right');
+            if(!skip)wallsGroup.appendChild(svgEl('line',{x1:p0.x+CELL,y1:p0.y,x2:p0.x+CELL,y2:p0.y+CELL,class:'maze-wall'}));
+          }
+        }
+      }
+      for(const w in WORDS){
+        const info=WORDS[w];
+        const ec=entryCell(info.side,info.pos);
+        const outer=outsidePoint(info.side,ec.x,ec.y);
+        const bpos=bubblePos(info.side,outer,info.pos);
+        const g=svgEl('g',{class:'cell-word','data-word':w});
+        const isVertical=(info.side==='top'||info.side==='bottom');
+        const cr=46;
+        const iconOffset=cr+4;
+        let iconCircle,iconGroup,pill,text;
+        if(isVertical){
+          iconCircle=svgEl('circle',{cx:bpos.x,cy:bpos.y-iconOffset,r:cr,class:'card-icon-bg',fill:info.cardBg,stroke:info.cardStripe,'stroke-width':2.5});
+          iconGroup = makeIllustration(w, cr * 2.2);
+          iconGroup.setAttribute('transform',`translate(${bpos.x},${bpos.y-iconOffset})`);
+          const pw=172,ph=50;
+          pill=svgEl('rect',{x:bpos.x-pw/2,y:bpos.y+4,width:pw,height:ph,rx:ph/2,ry:ph/2,class:'card-pill'});
+          text=svgEl('text',{x:bpos.x,y:bpos.y+4+ph/2+1,class:'card-text','text-anchor':'middle'});
+        }else{
+          iconCircle=svgEl('circle',{cx:bpos.x,cy:bpos.y,r:cr,class:'card-icon-bg',fill:info.cardBg,stroke:info.cardStripe,'stroke-width':2.5});
+          iconGroup = makeIllustration(w, cr * 2.2);
+          iconGroup.setAttribute('transform',`translate(${bpos.x},${bpos.y})`);
+          const pw=172,ph=48;
+          const pillX=info.side==='left'?bpos.x+cr+12:bpos.x-cr-12-pw;
+          pill=svgEl('rect',{x:pillX,y:bpos.y-ph/2,width:pw,height:ph,rx:ph/2,ry:ph/2,class:'card-pill'});
+          const textX=pillX+pw/2;
+          text=svgEl('text',{x:textX,y:bpos.y+1,class:'card-text','text-anchor':'middle'});
+        }
+       text.textContent = w.charAt(0).toUpperCase() + w.slice(1);
+        g.appendChild(pill);
+        g.appendChild(iconCircle);
+        g.appendChild(iconGroup);
+        g.appendChild(text);
+        g.style.setProperty('--pill-bg',info.cardBg);
+        g.style.setProperty('--pill-border',info.cardStripe+'44');
+        g.style.setProperty('--match-icon-bg',info.matchBg);
+        g.style.setProperty('--match-pill',info.matchBg);
+        g.style.setProperty('--match-stroke',info.cardStripe);
+        g.addEventListener('click',()=>onWordClick(w));
+        wordsGroup.appendChild(g);
+      }
+      svg.appendChild(wallsGroup);
+      svg.appendChild(pathsGroup);
+      svg.appendChild(wordsGroup);
+    }
+
+    function bubblePos(side,outer,pos){
+      const gapV=90,gapH=220;
+      const off={x:0,y:0};
+      if(side==='top')off.y=-gapV;
+      else if(side==='bottom')off.y=gapV;
+      else if(side==='left')off.x=-gapH;
+      else if(side==='right')off.x=gapH;
+      return{x:outer.x+off.x,y:outer.y+off.y};
+    }
+
+    function onWordClick(word){
+      if(isGameComplete||matchedWords.has(word))return;
+      if(selected===null){selected=word;setSelectedClass(word,true);return;}
+      if(selected===word){setSelectedClass(word,false);selected=null;return;}
+      const isPair=PAIRS.some(p=>(p[0]===selected&&p[1]===word)||(p[1]===selected&&p[0]===word));
+      if(isPair){
+        matchedWords.add(selected);
+        matchedWords.add(word);
+        const wordA=selected,wordB=word;
+        drawSolvedPath(wordA,wordB,()=>{
+          showPopup(true,100);
+          if(matchedWords.size===Object.keys(WORDS).length&&!finalTriggered){
+            finalTriggered=true;
+            isGameComplete=true;
+            setTimeout(()=>{showFinalPopup();},1900);
+          }
+        });
+        markMatched(selected);
+        markMatched(word);
+        setSelectedClass(selected,false);
+        selected=null;
+        speak("Correct");
+      }else{
+        showPopup(false,50);
+        speak("Try again");
+        flashWrong(selected);
+        flashWrong(word);
+        setSelectedClass(selected,false);
+        selected=null;
+      }
+    }
+
+    function setSelectedClass(word,on){const el=svg.querySelector(`.cell-word[data-word="${word}"]`);if(el)el.classList.toggle('selected',on);}
+    function markMatched(word){const el=svg.querySelector(`.cell-word[data-word="${word}"]`);if(el)el.classList.add('matched');}
+    function flashWrong(word){const el=svg.querySelector(`.cell-word[data-word="${word}"]`);if(!el)return;el.classList.add('wrong');setTimeout(()=>el.classList.remove('wrong'),400);}
+
+    function drawSolvedPath(wordA,wordB,onComplete){
+      const pathIndex=pathCount++;
+      const pathColor=PATH_COLORS[pathIndex%PATH_COLORS.length];
+      const infoA=WORDS[wordA],infoB=WORDS[wordB];
+      const ecA=entryCell(infoA.side,infoA.pos);
+      const ecB=entryCell(infoB.side,infoB.pos);
+      const cellPath=findPath(ecA,ecB,true);
+      for(const cell of cellPath){
+        const key=cell.x+','+cell.y;
+        usedPathCells.set(key,(usedPathCells.get(key)||0)+1);
+      }
+      const outerA=outsidePoint(infoA.side,ecA.x,ecA.y);
+      const outerB=outsidePoint(infoB.side,ecB.x,ecB.y);
+      const angle=(pathIndex/PATH_COLORS.length)*Math.PI*2;
+      const offsetMagnitude=4+(pathIndex%3)*2;
+      const offX=Math.cos(angle)*offsetMagnitude;
+      const offY=Math.sin(angle)*offsetMagnitude;
+      const pts=[{x:outerA.x+offX,y:outerA.y+offY}];
+      for(let i=0;i<cellPath.length;i++){
+        const c=cellPath[i];
+        const p=cellCenter(c.x,c.y);
+        const pointOffX=(Math.random()-0.5)*1.5;
+        const pointOffY=(Math.random()-0.5)*1.5;
+        pts.push({x:p.x+offX+pointOffX,y:p.y+offY+pointOffY});
+      }
+      pts.push({x:outerB.x+offX,y:outerB.y+offY});
+      const d=pts.map((p,i)=>(i===0?`M ${p.x} ${p.y}`:`L ${p.x} ${p.y}`)).join(' ');
+      const group=svgEl('g',{});
+      document.getElementById('pathsGroup').appendChild(group);
+
+      const trailEl=svgEl("path",{d,fill:"none",stroke:pathColor,"stroke-width":5,"stroke-linecap":"round","stroke-linejoin":"round",opacity:"0.15"});
+      group.appendChild(trailEl);
+
+      const glowEl=svgEl("path",{d,fill:"none",stroke:pathColor,"stroke-width":10,"stroke-linecap":"round","stroke-linejoin":"round",opacity:"0"});
+      group.appendChild(glowEl);
+
+      const pathEl=svgEl("path",{d,fill:"none",stroke:pathColor,"stroke-width":4,"stroke-linecap":"round","stroke-linejoin":"round",opacity:"0"});
+      group.appendChild(pathEl);
+
+      const headEl=svgEl("circle",{r:"6",fill:pathColor,opacity:"0"});
+      group.appendChild(headEl);
+
+      const bubbleA=svg.querySelector(`.cell-word[data-word="${wordA}"]`);
+      const bubbleB=svg.querySelector(`.cell-word[data-word="${wordB}"]`);
+      [bubbleA,bubbleB].forEach(el=>{
+        if(!el)return;
+        const pill=el.querySelector('.card-pill');
+        const circle=el.querySelector('.card-icon-bg');
+        if(pill){
+          pill.style.setProperty('--match-pill',pathColor+'20');
+          pill.style.setProperty('--match-stroke',pathColor);
+        }
+        if(circle){
+          circle.style.setProperty('--match-icon-bg',pathColor+'18');
+          circle.style.setProperty('--match-stroke',pathColor);
+        }
+      });
+
+      const len=pathEl.getTotalLength();
+      trailEl.style.strokeDasharray=len;
+      trailEl.style.strokeDashoffset=len;
+      trailEl.style.transition='none';
+
+      pathEl.style.strokeDasharray='8 12';
+      pathEl.style.strokeDashoffset=len;
+      pathEl.style.transition='none';
+
+      glowEl.style.transition='none';
+      glowEl.style.opacity='0';
+
+      headEl.style.transition='none';
+      headEl.style.opacity='0';
+
+      requestAnimationFrame(()=>{
+        const duration=Math.min(0.8,0.2+len/1200);
+
+        trailEl.style.transition=`stroke-dashoffset ${duration}s linear`;
+        trailEl.style.strokeDashoffset=0;
+
+        pathEl.style.transition=`stroke-dashoffset ${duration}s linear, opacity 0.2s ease`;
+        pathEl.style.strokeDashoffset=-(len*0.3);
+        pathEl.style.opacity='1';
+
+        glowEl.style.transition=`opacity 0.3s ease ${duration*0.2}s`;
+        glowEl.style.opacity='0.2';
+
+        headEl.style.transition=`opacity 0.15s ease`;
+        headEl.style.opacity='1';
+
+        let startTime=null;
+        function animateHead(ts){
+          if(!startTime)startTime=ts;
+          const progress=Math.min((ts-startTime)/(duration*1000),1);
+          const point=pathEl.getPointAtLength(progress*len);
+          headEl.setAttribute('cx',point.x);
+          headEl.setAttribute('cy',point.y);
+          if(progress<1)requestAnimationFrame(animateHead);
+          else{
+            headEl.style.transition=`opacity 0.4s ease`;
+            headEl.style.opacity='0';
+          }
+        }
+        requestAnimationFrame(animateHead);
+
+        setTimeout(()=>{if(onComplete)onComplete();},duration*1000+100);
+      });
+    }
+
+    render();
+  })();
+  </script>
+</body>
+</html>

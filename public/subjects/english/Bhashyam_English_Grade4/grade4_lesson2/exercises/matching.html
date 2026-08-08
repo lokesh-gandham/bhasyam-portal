@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matching Game</title>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+          @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman";
+            font-weight: 400;
+        }
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* MAIN */
+
+.main {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.pageHeading{
+    width:100%;
+    max-width:1200px;
+    margin:0 auto 24px;
+
+    text-align:center;
+
+    font-size:23px;
+    font-weight:400;
+    line-height:1.4;
+
+    color:#5D4037;
+}
+
+@media (max-width:768px){
+    .pageHeading{
+        font-size:22px;
+        padding:0 12px;
+        margin-bottom:18px;
+    }
+}
+/* HEADER */
+
+h1 {
+    font-size: 28px;
+    color: #2f4f4f;
+    margin-bottom: 6px;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 35px;
+}
+
+/* GAME AREA */
+
+.game-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 200px;
+}
+
+/* SVG */
+
+#line-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* COLUMNS */
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    z-index: 2;
+    border-radius: 16px;
+}
+
+/* CARD STYLE */
+
+.item {
+  
+    background: #f7e4cf74;
+    border-radius: 60px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 14px 24px;
+    cursor: pointer;
+    font-size: 22px;
+    color: #2f4f4f;
+
+    box-shadow:
+        inset 0 2px 5px rgba(255, 255, 255, .6),
+        0 5px 12px rgba(0, 0, 0, .08);
+
+    border: 2px solid rgba(0, 0, 0, .05);
+    transition: .25s;
+}
+
+.item:hover:not(.matched) {
+    transform: translateY(-3px);
+}
+
+.item.active {
+    border: 3px solid #dfa529;
+}
+
+.item.matched {
+    opacity: 1;
+    cursor: default;
+    background: rgb(218, 255, 218);
+    border: 2px solid rgb(95, 158, 95);
+}
+
+.item.error {
+    border-color: #ef4444;
+    background: #ffe7e7;
+}
+
+.left-card{
+
+    width:380px;
+    height:100px;
+
+    position:relative;
+
+    display:flex;
+    align-items:center;
+
+    padding-left:95px;
+
+    border-radius:30px;
+
+    background:linear-gradient(
+        135deg,
+        #F8FCFF,
+        #EEF6FF
+    );
+
+    border:2px solid #8BB8FF;
+
+    box-shadow:
+        0 10px 25px rgba(0,0,0,.06);
+
+}
+.image-circle{
+
+    position:absolute;
+
+    left:-18px;
+
+    width:100px;
+    height:100px;
+
+    background:white;
+
+    border-radius:50%;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    border:3px solid #D7E7FF;
+
+    box-shadow:
+        0 8px 18px rgba(0,0,0,.08);
+
+}
+
+.image-circle img{
+
+    width:75px;
+    height:75px;
+
+    object-fit:contain;
+
+}
+.right-dot{
+
+    position:absolute;
+
+    right:-14px;
+
+    width:26px;
+    height:26px;
+
+    border-radius:50%;
+
+    background:#4D8DFF;
+
+    border:6px solid white;
+
+    box-shadow:0 3px 8px rgba(0,0,0,.15);
+
+}
+
+.right-card{
+
+    width:380px;
+
+    min-height:100px;
+
+    position:relative;
+
+    display:flex;
+
+    align-items:center;
+
+    padding:25px 35px;
+
+    border-radius:26px;
+
+    background:white;
+
+    border:2px solid #9FC3FF;
+
+    box-shadow:
+        0 8px 18px rgba(0,0,0,.05);
+
+}
+.left-dot{
+
+    position:absolute;
+
+    left:-14px;
+
+    width:26px;
+    height:26px;
+
+    border-radius:50%;
+
+    background:#4D8DFF;
+
+    border:6px solid white;
+
+    box-shadow:0 3px 8px rgba(0,0,0,.15);
+
+}
+.column{
+    width:420px;
+}
+
+.left-card,
+.right-card{
+    width:100%;
+    height:100px;
+}
+
+/* FINAL POPUP */
+/* =====================================================
+   POPUP OVERLAY
+===================================================== */
+
+.popup-overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    opacity:0;
+    transition:opacity .4s ease;
+}
+
+.popup-overlay.show{
+    display:flex;
+    opacity:1;
+}
+
+/* =====================================================
+   POPUP CARD
+===================================================== */
+.popup{
+    background:#fff;
+    width:350px;
+    border-radius:40px;
+    padding:0;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+
+    border:1px solid rgba(255,255,255,.9);
+
+    /* Premium Floating Shadow */
+    box-shadow:
+        0 2px 6px rgba(0,0,0,.05),
+        0 10px 18px rgba(0,0,0,.08),
+        0 22px 35px rgba(0,0,0,.12),
+        0 45px 70px rgba(0,0,0,.18),
+        0 70px 110px rgba(0,0,0,.10);
+
+    animation: popupSlide .45s cubic-bezier(.34,1.56,.64,1);
+}
+.popup{
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,.7),
+        0 8px 16px rgba(0,0,0,.06),
+        0 18px 36px rgba(0,0,0,.10),
+        0 35px 70px rgba(0,0,0,.18),
+        0 0 40px rgba(255,255,255,.25);
+}
+
+
+@keyframes popupSlide{
+
+    0%{
+        transform:scale(.5) translateY(60px) rotate(-5deg);
+        opacity:0;
+    }
+
+    60%{
+        transform:scale(1.05) translateY(-8px) rotate(2deg);
+    }
+
+    100%{
+        transform:scale(1) translateY(0) rotate(0);
+        opacity:1;
+    }
+}
+
+/* =====================================================
+   TOP
+===================================================== */
+
+.popup-top{
+    padding:35px 24px 20px;
+}
+
+/* =====================================================
+   ICON
+===================================================== */
+
+.popup-icon-wrap{
+
+    width:90px;
+    height:90px;
+
+    margin:0 auto 10px;
+
+    border-radius:50%;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:50px;
+
+    box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.popup.final .popup-icon-wrap{
+background:#ffffff;
+    box-shadow:0 10px 30px rgba(0,0,0,.12);
+    animation:iconPop .6s cubic-bezier(.34,1.56,.64,1);
+}
+
+.popup-icon-wrap span{
+    color:#fff;
+}
+
+@keyframes iconPop{
+
+    0%{
+        transform:scale(0) rotate(-30deg);
+    }
+
+    60%{
+        transform:scale(1.2) rotate(10deg);
+    }
+
+    100%{
+        transform:scale(1) rotate(0);
+    }
+}
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.popup-title{
+
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:-.5px;
+}
+
+/* =====================================================
+   BOTTOM
+===================================================== */
+
+.popup-bottom{
+
+    padding:18px 24px 22px;
+}
+
+/* =====================================================
+   FINAL POPUP
+===================================================== */
+
+.popup.final{
+
+    background:#F8F5FF;
+
+    border:3px solid #B79CFF;
+}
+
+.popup.final .popup-top{
+
+    background:linear-gradient(
+        135deg,
+        #EFE7FF,
+        #DDD0FF
+    );
+}
+
+.popup.final .popup-bottom{
+
+    background:#F8F5FF;
+
+    border-top:2px solid #DDD0FF;
+}
+
+.popup.final .popup-title{
+
+    color:#6C3EC1;
+}
+
+/* =====================================================
+   SCORE
+===================================================== */
+
+.popup-score{
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-size:20px;
+
+    font-weight:700;
+
+    
+
+    margin-bottom:12px;
+}
+
+.popup-score span{
+
+    margin-right:8px;
+}
+
+.popup-score strong{
+
+    font-size:20px;
+
+   
+}
+
+/* =====================================================
+   STARS
+===================================================== */
+
+.popup-stars{
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:8px;
+
+    font-size:34px;
+
+    color:#FFC83D;
+
+    margin-bottom:18px;
+
+    animation:starDance .8s ease;
+}
+
+@keyframes starDance{
+
+    0%{
+        transform:scale(0) rotate(-20deg);
+        opacity:0;
+    }
+
+    50%{
+        transform:scale(1.3) rotate(10deg);
+    }
+
+    100%{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+/* =====================================================
+   PLAY AGAIN
+===================================================== */
+
+.play-again-popup{
+
+    width:100%;
+
+    border:none;
+
+    border-radius:14px;
+
+    padding:14px 24px;
+
+    cursor:pointer;
+
+    font-size:17px;
+
+    font-weight:600;
+
+    color:#fff;
+
+    background:linear-gradient(
+        135deg,
+        #A98CFF,
+        #8F79F7
+    );
+
+    box-shadow:0 8px 20px rgba(143,121,247,.25);
+
+    transition:.25s;
+}
+
+.play-again-popup:hover{
+
+    background:linear-gradient(
+        135deg,
+        #9D81FF,
+        #846EF2
+    );
+}
+
+/* =========================
+   FINAL POPUP - CLEAN WHITE
+========================= */
+.popup.final{
+    background:#FFFFFF;
+    border:3px solid #4CAF50;
+    box-shadow:0 18px 45px rgba(15,23,42,.12);
+}
+
+.popup.final .popup-top{
+    background:linear-gradient(135deg,#F8FAFC,#EEF5FB);
+}
+
+.popup.final .popup-bottom{
+    background:#FFFFFF;
+    border-top:2px solid #EDF2F7;
+}
+
+/* Title */
+
+.popup.final .popup-title{
+    color:#334155;
+    font-size:30px;
+    font-weight:700;
+    letter-spacing:.3px;
+}
+
+/* Score */
+
+.popup.final .popup-score{
+    color:#0F172A;
+    font-size:24px;
+    font-weight:700;
+    margin:12px 0 15px;
+}
+
+/* Stars */
+
+.popup.final .popup-stars{
+    color:#FACC15;
+    font-size:38px;
+    letter-spacing:6px;
+}
+
+/* Trophy Circle */
+
+.popup.final .popup-icon-wrap{
+    width:95px;
+    height:95px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:#F1F5F9;
+    border:5px solid #BBF7D0;
+    border-radius:50%;
+
+    box-shadow:
+        0 12px 30px rgba(15,23,42,.08),
+        0 0 0 8px rgba(187,247,208,.35);
+}
+
+.popup.final .popup-icon-wrap span{
+    font-size:52px;
+}
+
+/* Play Again Button */
+
+.popup.final .play-again-popup{
+    width:100%;
+    height:58px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+
+    border:none;
+    border-radius:16px;
+
+    background:#4CAF50;
+
+    color:#fff;
+    font-size:18px;
+    font-weight:700;
+
+    cursor:pointer;
+    transition:.25s;
+
+    box-shadow:0 10px 24px rgba(34,197,94,.28);
+}
+/* 
+.popup.final .play-again-popup:hover{
+    background:linear-gradient(135deg,#16A34A,#15803D);
+    transform:translateY(-2px);
+    box-shadow:0 14px 30px rgba(34,197,94,.35);
+} */
+@media (max-width: 900px) {
+    body {
+        padding: 14px;
+        overflow-y: auto;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .main {
+        max-width: 900px;
+        margin-top: 80px;
+    }
+
+    h1 {
+        font-size: 26px;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+    }
+
+    .game-container {
+        gap: 100px;
+        width: 95%;
+    }
+
+    .column {
+        width: 42%;
+        /* two columns still fit */
+    }
+
+    .item {
+        height: 100px;
+        font-size: 19px;
+        padding: 14px 16px;
+    }
+
+    .left-img {
+        width: 50px;
+        height: 55px;
+    }
+
+    .answer-box {
+        width: 52px;
+        height: 52px;
+    }
+
+    .answer-box img {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main {
+        max-width: 720px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    .subtitle {
+        font-size: 0.8rem;
+    }
+
+    .game-container {
+        gap: 30px;
+        width: 100%;
+    }
+
+    .column {
+        width: 47%;
+        /* slightly wider to use space */
+        gap: 14px;
+    }
+
+    .item {
+        height: 140px;
+        border-radius: 15px;
+        font-size: 22px;
+        padding: 12px 14px;
+        width: 100%;
+    }
+
+    .left-img {
+        width: 45px;
+        height: 48px;
+    }
+
+    .right .item,
+    .left .item {
+        flex-direction: row;
+        text-align: center;
+        justify-content: flex-start;
+        gap: 20px;
+    }
+
+    .right .left-img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .answer-box {
+        width: 65px;
+        height: 65px;
+    }
+
+    .answer-box img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .final-kid-box {
+        width: 360px;
+        padding: 25px 28px;
+        border-radius: 28px;
+    }
+
+    .final-kid-box h2 {
+        font-size: 1.8em;
+    }
+
+    .final-kid-box p {
+        font-size: 1.1em;
+    }
+
+    #stars {
+        font-size: 2em;
+    }
+
+    .playAgain-btn {
+        padding: 12px 26px;
+        font-size: 1em;
+    }
+
+    #line-canvas {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+
+    body {
+        padding: 30px 10px 0px;
+        overflow-y: auto;
+        align-items: flex-start;
+    }
+
+    .main {
+        margin-top: 60px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    .subtitle {
+        font-size: 0.75rem;
+        margin-bottom: 25px;
+    }
+
+    .game-container {
+        gap: 20px;
+    }
+
+    .column {
+        width: 48%;
+        gap: 12px;
+    }
+
+    .item {
+        height: 120px;
+        font-size: 15px;
+        padding: 10px 12px;
+    }
+
+    .right .item,
+    .left .item {
+        flex-direction: column;
+        text-align: center;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .left-img {
+        width: 38px;
+        height: 40px;
+    }
+
+    .answer-box {
+        width: 65px;
+        height: 65px;
+    }
+
+    .answer-box img {
+        width: 34px;
+        height: 34px;
+    }
+
+    .final-kid-box {
+        width: 90%;
+        max-width: 320px;
+        padding: 22px 20px;
+        border-radius: 24px;
+    }
+
+    .final-kid-box h2 {
+        font-size: 1.6em;
+    }
+
+    .final-kid-box p {
+        font-size: 1em;
+    }
+
+    #stars {
+        font-size: 1.8em;
+    }
+
+    .playAgain-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 0.95em;
+    }
+
+    #line-canvas {
+        display: none;
+    }
+}
+
+/* ========================================
+   🖥️ Large Monitors (1441px – 1920px)
+======================================== */
+
+@media screen and (min-width:1441px) and (max-width:1920px){
+
+    .main{
+        max-width:1600px;
+    }
+
+    .game-container{
+        gap:140px;
+    }
+
+    .column{
+        width:500px;
+    }
+
+    .left-card,
+    .right-card{
+        width:100%;
+        height:120px;
+    }
+
+    .left-card{
+        padding-left:115px;
+    }
+
+    .right-card{
+        padding:25px 40px;
+    }
+
+    .image-circle{
+        width:120px;
+        height:120px;
+        left:-20px;
+    }
+
+    .image-circle img{
+        width:88px;
+        height:88px;
+    }
+
+    .right-dot,
+    .left-dot{
+        width:30px;
+        height:30px;
+    }
+
+    .title{
+        font-size:32px;
+    }
+
+    .pageHeading{
+        font-size:30px;
+        margin-bottom:35px;
+    }
+
+}
+/* ========================================
+   📺 4K Monitor
+======================================== */
+
+@media screen and (min-width:1921px){
+
+    .main{
+        max-width:1850px;
+    }
+
+    .game-container{
+        gap:180px;
+    }
+
+    .column{
+        width:600px;
+    }
+
+    .left-card,
+    .right-card{
+        width:100%;
+        height:140px;
+    }
+
+    .left-card{
+        padding-left:135px;
+    }
+
+    .right-card{
+        padding:30px 45px;
+    }
+
+    .image-circle{
+        width:135px;
+        height:135px;
+        left:-22px;
+    }
+
+    .image-circle img{
+        width:100px;
+        height:100px;
+    }
+
+    .right-dot,
+    .left-dot{
+        width:34px;
+        height:34px;
+    }
+
+    .title{
+        font-size:36px;
+    }
+
+    .pageHeading{
+        font-size:42px;
+    }
+
+}
+    </style>
+</head>
+
+<body>
+
+    <div class="main">
+        <h2 class="pageHeading">
+    Match the words related to these landforms
+</h2>
+        <div class="game-container">
+
+            <svg id="line-canvas"></svg>
+
+            <div class="column left" id="leftColumn"></div>
+            <div class="column right" id="rightColumn"></div>
+
+        </div>
+    </div>
+<div class="popup-overlay" id="popupOverlay">
+    <div class="popup" id="popupBox"></div>
+</div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <script>
+        const leftData = [
+
+{
+    id:"1",
+    text:"Mountains",
+    match:"c",
+    img:"../images/mountains.png"
+},
+
+{
+    id:"2",
+    text:"Hills",
+    match:"d",
+    img:"../images/hills.png"
+},
+
+{
+    id:"3",
+    text:"Islands",
+    match:"b",
+    img:"../images/islands.png"
+},
+
+{
+    id:"4",
+    text:"Deserts",
+    match:"e",
+    img:"../images/desert.png"
+},
+
+{
+    id:"5",
+    text:"Caves",
+    match:"a",
+    img:"../images/caves.png"
+}
+
+];
+const rightData = [
+
+{
+    match:"a",
+    text:" Natural underground hollow spaces"
+},
+
+{
+    match:"b",
+    text:" Land surrounded by water on all sides"
+},
+
+{
+    match:"c",
+    text:" Elevated landforms with steep slopes"
+},
+
+{
+    match:"d",
+    text:" Elevated areas smaller than mountains"
+},
+
+{
+    match:"e",
+    text:" Dry, hot regions filled with sand with minimal plants and water"
+}
+
+];
+let selectedLeft = null;
+let matchesFound = 0;
+let score = 0;
+let connections = [];
+
+const leftCol = document.getElementById("leftColumn");
+const rightCol = document.getElementById("rightColumn");
+const svg = document.getElementById("line-canvas");
+
+function init() {
+  leftCol.innerHTML = "";
+  rightCol.innerHTML = "";
+
+  leftData.forEach((item) => {
+    const div = document.createElement("div");
+ div.className = "item left-card";
+    div.dataset.match = item.match;
+ div.innerHTML = `
+    <div class="image-circle">
+        <img src="${item.img}" class="left-img">
+    </div>
+
+    <span class="title">
+        ${item.text}
+    </span>
+
+    <div class="right-dot"></div>
+`;
+    div.onclick = () => {
+      if (div.classList.contains("matched")) return;
+
+      document
+        .querySelectorAll(".left .item")
+        .forEach((i) => i.classList.remove("active"));
+
+      div.classList.add("active");
+      selectedLeft = div;
+    };
+
+    leftCol.appendChild(div);
+  });
+
+  rightData.forEach((item) => {
+    const div = document.createElement("div");
+   div.className = "item right-card";
+    div.dataset.id = item.match;
+div.innerHTML = `
+    <div class="left-dot"></div>
+
+    <span class="title">
+        ${item.text}
+    </span>
+`;
+
+    div.onclick = () => {
+      if (!selectedLeft || div.classList.contains("matched")) return;
+
+      if (selectedLeft.dataset.match === div.dataset.id) {
+        handleMatch(selectedLeft, div);
+      } else {
+        speak("Try again");
+        div.classList.add("error");
+        setTimeout(() => div.classList.remove("error"), 400);
+      }
+    };
+
+    rightCol.appendChild(div);
+  });
+}
+
+function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-US";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+function smallConfetti() {
+  confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+}
+function bigConfetti() {
+  confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+}
+function handleMatch(leftEl, rightEl) {
+
+    score++;
+
+    document.getElementById("correctSound").play();
+
+    speak("Correct");
+smallConfetti();
+    leftEl.classList.add("matched");
+    rightEl.classList.add("matched");
+
+    leftEl.classList.remove("active");
+
+    drawCurve(leftEl, rightEl);
+
+    connections.push({
+        from:leftEl,
+        to:rightEl
+    });
+
+    selectedLeft=null;
+
+    matchesFound++;
+
+    if(matchesFound===leftData.length){
+
+        setTimeout(showFinal,700);
+
+    }
+
+}
+
+function drawCurve(el1, el2) {
+  const rect1 = el1.getBoundingClientRect();
+  const rect2 = el2.getBoundingClientRect();
+  const containerRect = svg.getBoundingClientRect();
+
+  const x1 = rect1.right - containerRect.left;
+  const y1 = rect1.top + rect1.height / 2 - containerRect.top;
+
+  const x2 = rect2.left - containerRect.left;
+  const y2 = rect2.top + rect2.height / 2 - containerRect.top;
+
+  const cx = (x1 + x2) / 2;
+
+  const pathData = `M ${x1} ${y1} C ${cx} ${y1}, ${cx} ${y2}, ${x2} ${y2}`;
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+  path.setAttribute("d", pathData);
+  path.setAttribute("fill", "none");
+  path.setAttribute("stroke", "#22c55e");
+  path.setAttribute("stroke-width", "4");
+  path.setAttribute("stroke-dasharray", "8 6"); // dashed line
+
+  svg.appendChild(path);
+}
+function showFinal() {
+
+    let end = Date.now() + 1500;
+
+    (function frame(){
+
+        confetti({
+            particleCount:3,
+            angle:60,
+            spread:55,
+            origin:{x:0}
+        });
+
+        confetti({
+            particleCount:3,
+            angle:120,
+            spread:55,
+            origin:{x:1}
+        });
+
+        if(Date.now() < end){
+            requestAnimationFrame(frame);
+        }
+
+    })();
+
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = document.getElementById("popupBox");
+
+    popupBox.className = "popup final";
+
+    popupBox.innerHTML = `
+        <div class="popup-top">
+            <div class="popup-icon-wrap">
+                <span>👑</span>
+            </div>
+
+            <div class="popup-title">
+                Congratulations!
+            </div>
+        </div>
+
+        <div class="popup-bottom">
+
+            <div class="popup-score">
+                <span>Score:</span>
+                <strong>${score}/${leftData.length}</strong>
+            </div>
+
+            <div class="popup-stars">
+                ⭐⭐⭐
+            </div>
+
+            <button class="play-again-popup" id="playAgainBtn">
+                Play Again
+            </button>
+
+        </div>
+    `;
+
+    overlay.classList.add("show");
+
+    document.getElementById("playAgainBtn").onclick = () => {
+        location.reload();
+    };
+}
+
+window.addEventListener("resize", () => {
+  svg.innerHTML = "";
+  connections.forEach((c) => drawCurve(c.from, c.to));
+});
+
+init();
+
+    </script>
+
+</body>
+
+</html>

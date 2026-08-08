@@ -1,0 +1,1593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Matching · Number on Match</title>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ============================================================
+       CSS VARIABLES
+       ============================================================ */
+    :root {
+      --bg-main: #fcf4f6;
+      --bg-card: #fdf5f7;
+      --border-card: #f0d0dc;
+      --header-bg: #e8c8d4;
+      --header-text: #5a3d4a;
+      --item-text-color: #2f4f4f;
+      --dot-color: #d4b0be;
+      --dot-border: #e8c8d4;
+      --selected-bg: #fdebad;
+      --selected-border: #dbaa3a;
+      --matched-bg: #d4e8d4;
+      --matched-border: #8fb89a;
+      --matched-text: #1c7c54;
+      --wrong-bg: #fcd5d5;
+      --wrong-border: #d47a7a;
+      --line-color: #8a6cf0;
+      --card-height: 400px;
+      --row-height: 58px;
+      --container-gap: 2px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      /* font-family: "Livvic", sans-serif; */
+      -webkit-tap-highlight-color: transparent;
+    }
+
+       @font-face {
+    font-family: 'CCSYBold';
+    src: url('./assets/CCSYBOLD.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+@font-face {
+    font-family: 'CCSyntroman';
+    src: url('../assets/CCSYNTRO.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+           font-family: 'CCSyntroman';
+        }
+    body {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+   
+      padding: 12px;
+      overflow-x: hidden;
+    }
+
+    /* ============================================================
+       INSTRUCTION BAR
+       ============================================================ */
+    .instruction {
+      margin-bottom: 14px;
+      font-size: 22px;
+      font-weight: 400;
+      color: #5a3d4a;
+      text-align: center;
+      background: #fff9e6;
+      padding: 12px 28px;
+      border-radius: 50px;
+      border: 3px solid #ffe6b3;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      max-width: 1150px;
+      width: 100%;
+      letter-spacing: 0.3px;
+
+    }
+
+    .instruction i {
+      margin-right: 8px;
+      color: #f5a623;
+    }
+
+    /* ============================================================
+       GAME CONTAINER
+       ============================================================ */
+    .match-container {
+      width: 100%;
+      max-width: 950px;
+      display: grid;
+      grid-template-columns: 280px 1fr 280px;
+      align-items: center;
+      gap: var(--container-gap);
+      margin: 0 auto;
+    }
+
+    /* ============================================================
+       CARDS
+       ============================================================ */
+    .match-card {
+      height: 470px;
+      background: var(--bg-card);
+      border: 4px solid var(--border-card);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, .05);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      height: 52px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-size: 24px;
+      font-weight: 700;
+      border-bottom: 3px solid #f5e0e8;
+      flex-shrink: 0;
+    }
+
+    .card-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      padding: 6px 0;
+      flex-grow: 1;
+    }
+
+    /* --- ROW --- */
+    .match-row {
+      height: var(--row-height);
+      display: flex;
+      align-items: center;
+      position: relative;
+      background: var(--bg-card);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin: 0 6px;
+      border-radius: 12px;
+      padding: 0 14px;
+      border: 2px solid transparent;
+    }
+
+    .left-card .match-row {
+      justify-content: space-between;
+    }
+
+    .right-card .match-row {
+      justify-content: space-between;
+      flex-direction: row;
+    }
+
+    .match-row:hover:not(.matched):not(.selected) {
+      background: #f8eef2;
+      transform: scale(1.01);
+    }
+
+    /* --- DOT with NUMBER --- */
+    .dot {
+      width: 14px;
+      height: 14px;
+      background: var(--dot-color);
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid var(--dot-border);
+      transition: all .3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0px;
+      color: transparent;
+      font-weight: 700;
+      line-height: 1;
+      position: relative;
+    }
+
+    .dot-number {
+      font-size: 0px;
+      color: transparent;
+      display: none;
+      transition: all .3s ease;
+    }
+
+    /* --- Show number on matched dot --- */
+    .match-row.matched .dot-number {
+      display: inline;
+      font-size: 14px;
+      color: white;
+    }
+
+    .match-row.matched .dot {
+      background: var(--matched-border);
+      border-color: var(--matched-border);
+      width: 36px;
+      height: 36px;
+      font-size: 14px;
+      color: white;
+      min-width: 36px;
+    }
+
+    /* --- STATES --- */
+    .match-row.selected {
+      background: var(--selected-bg);
+      border-color: var(--selected-border);
+      transform: scale(1.02);
+    }
+
+    .match-row.matched {
+      background: var(--matched-bg);
+      border-color: var(--matched-border);
+      pointer-events: none;
+    }
+    .match-row.matched .item-text { color: var(--matched-text); }
+
+    .match-row.shake {
+      animation: shakeMatch 0.45s ease;
+      background: var(--wrong-bg);
+      border-color: var(--wrong-border);
+    }
+
+    .item-text {
+      font-size: 25px;
+      color: #2f4f4f;
+      font-weight: 400;
+      user-select: none;
+      transition: all .3s ease;
+    }
+.match-img{
+    width:80px;
+    height:52px;
+    object-fit:contain;
+    flex-shrink:0;
+}
+
+.left-card .match-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.right-card .match-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+    /* ============================================================
+       CANVAS
+       ============================================================ */
+    .canvas-area {
+      height: var(--card-height);
+      position: relative;
+    }
+    #matchCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ============================================================
+       POPUPS - Enhanced with decorative circles
+       ============================================================ */
+    .kid-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 6000;
+      padding: 20px;
+ 
+    }
+
+    .kid-card {
+      width: 380px;
+      max-width: 90%;
+      padding: 32px 28px;
+      border-radius: 44px;
+      text-align: center;
+      animation: kidPop 0.6s ease;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kid-card::before,
+    .kid-card::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .kid-card::before {
+      width: 200px;
+      height: 200px;
+      top: -80px;
+      right: -60px;
+      background: #ffd93d;
+    }
+
+    .kid-card::after {
+      width: 150px;
+      height: 150px;
+      bottom: -60px;
+      left: -50px;
+      background: #6bcbff;
+    }
+
+    .kid-card>* {
+      position: relative;
+      z-index: 2;
+    }
+
+    .kid-correct .kid-card {
+      background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+      border: 5px solid #38d9a9;
+    }
+
+    .kid-correct .kid-card h3 {
+      color: #0b8a4a;
+    }
+
+    .kid-correct .kid-card p {
+      color: #1a6a3a;
+    }
+
+    .kid-correct .kid-card::before,
+    .kid-correct .kid-card::after {
+      background: #38d9a9;
+    }
+
+    .kid-wrong .kid-card {
+      background: linear-gradient(145deg, #fff5f5, #fce4e4);
+      border: 5px solid #ff8a8a;
+    }
+
+    .kid-wrong .kid-card h3 {
+      color: #c0392b;
+    }
+
+    .kid-wrong .kid-card p {
+      color: #922b21;
+    }
+
+    .kid-wrong .kid-card::before,
+    .kid-wrong .kid-card::after {
+      background: #ff8a8a;
+    }
+
+    .kid-icon {
+      font-size: 4.8em;
+      margin-bottom: 6px;
+      animation: emojiBounce 0.9s infinite alternate;
+      display: inline-block;
+    }
+
+    .kid-card h3 {
+      font-size: 2.2em;
+      margin-bottom: 4px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .kid-card p {
+      font-size: 1.1em;
+      color: #555;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    @keyframes kidPop {
+      0% {
+        transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes emojiBounce {
+      from {
+        transform: translateY(0) scale(1);
+      }
+      to {
+        transform: translateY(-12px) scale(1.05);
+      }
+    }
+
+    /* ============================================================
+       FINAL POPUP - Enhanced
+       ============================================================ */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 7000;
+      padding: 20px;
+ 
+    }
+
+    .final-kid-box {
+      background: linear-gradient(145deg, #fff7d6, #e6fff5);
+      padding: 35px 40px;
+      border-radius: 44px;
+      text-align: center;
+      width: 480px;
+      max-width: 95%;
+      animation: finalBounce 0.8s ease;
+      border: 4px solid rgba(255, 255, 255, 0.6);
+      position: relative;
+      overflow: hidden;
+      /* box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15); */
+    }
+
+    .final-kid-box::before {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      top: -120px;
+      right: -100px;
+      background: #ffd93d;
+      border-radius: 50%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .final-kid-box>* {
+      position: relative;
+      z-index: 2;
+    }
+
+    .final-kid-box h2 {
+      font-size: 2.4em;
+      color: #2f9e44;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .final-kid-box p {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #2d3a3a;
+    }
+
+    #stars {
+      font-size: 2.6em;
+      margin: 14px 0;
+      letter-spacing: 6px;
+    }
+
+    .playAgain-btn {
+      background: #ffac30;
+      color: white;
+      border: none;
+      padding: 16px 38px;
+      border-radius: 40px;
+      font-size: 1.15em;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.2s;
+      box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .playAgain-btn:hover {
+      transform: translateY(-3px);
+    }
+
+    .playAgain-btn:active {
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 #d4871f;
+    }
+
+    @keyframes finalBounce {
+      0% {
+        transform: scale(0.3) perspective(400px) rotateX(15deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.08) perspective(400px) rotateX(-5deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) perspective(400px) rotateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* ============================================================
+       ANIMATIONS
+       ============================================================ */
+    @keyframes shakeMatch {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    /* ============================================================
+       RESPONSIVE - Show number on ALL devices when matched
+       ============================================================ */
+
+    /* --- TABLET (768–991px) – hide canvas, two columns --- */
+    @media (max-width: 991px) {
+      :root {
+        --card-height: 360px;
+        --row-height: 50px;
+        --container-gap: 4px;
+      }
+      .match-container {
+        grid-template-columns: 1fr 1fr;
+        max-width: 700px;
+      }
+      .canvas-area { display: none; }
+      .item-text { font-size: 25px; }
+      .card-header { font-size: 20px; height: 44px; }
+      .right-card .match-row { flex-direction: row; }
+      
+      .match-row.matched .dot {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+      }
+      .match-row.matched .dot-number {
+        font-size: 13px;
+      }
+    }
+
+    /* --- SMALL DEVICES (under 767px) – show text + bigger dots --- */
+    @media (max-width: 767px) {
+      .item-text {
+        display: block !important;
+        font-size: 14px !important;
+      }
+
+      .dot {
+        width: 32px;
+        height: 32px;
+        font-size: 0px;
+        color: transparent;
+        background: #d4b0be;
+        border: 3px solid #e8c8d4;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        flex-shrink: 0;
+        min-width: 32px;
+      }
+
+      .dot-number {
+        display: inline;
+        font-size: 0px;
+        color: transparent;
+      }
+
+      .match-row.matched .dot {
+        background: var(--matched-border);
+        border-color: var(--matched-border);
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+      }
+      .match-row.matched .dot-number {
+        color: white;
+        font-size: 14px;
+        display: inline;
+      }
+
+      .match-row {
+        padding: 0 8px;
+        margin: 0 4px;
+        gap: 8px;
+      }
+
+      .left-card .match-row {
+        justify-content: space-between;
+      }
+
+      .right-card .match-row {
+        justify-content: space-between;
+        flex-direction: row;
+      }
+
+      :root {
+        --card-height: 320px;
+        --row-height: 48px;
+        --container-gap: 4px;
+      }
+
+      .match-card { border-width: 3px; border-radius: 18px; }
+      .card-header { font-size: 18px; height: 40px; }
+      .instruction { font-size: 16px; padding: 10px 20px; }
+    }
+
+    /* --- VERY SMALL (under 575px) --- */
+    @media (max-width: 575px) {
+      :root {
+        --card-height: 280px;
+        --row-height: 44px;
+        --container-gap: 2px;
+      }
+      body { padding: 8px; }
+      .match-card { border-width: 3px; border-radius: 16px; }
+      .card-header { font-size: 16px; height: 36px; }
+      .match-row { margin: 0 3px; padding: 0 6px; border-radius: 8px; }
+      .item-text { font-size: 13px !important; }
+      .dot {
+        width: 28px;
+        height: 28px;
+        border-width: 2.5px;
+        min-width: 28px;
+      }
+      .match-row.matched .dot {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+      }
+      .match-row.matched .dot-number {
+        font-size: 12px;
+      }
+      .instruction { font-size: 15px; padding: 10px 16px; margin-bottom: 8px; }
+      .kid-card { width: 280px; padding: 18px; }
+      .kid-icon { font-size: 3em; }
+      .kid-card h3 { font-size: 1.6em; }
+      .final-kid-box h2 { font-size: 1.7em; }
+      #stars { font-size: 1.8em; }
+      .playAgain-btn { padding: 10px 24px; font-size: 0.95em; }
+    }
+
+    /* --- TINY (under 413px) --- */
+    @media (max-width: 413px) {
+      :root {
+        --card-height: 240px;
+        --row-height: 38px;
+        --container-gap: 1px;
+      }
+      .match-card { border-width: 2px; border-radius: 12px; }
+      .card-header { font-size: 14px; height: 30px; }
+      .match-row { margin: 0 2px; padding: 0 4px; border-radius: 6px; gap: 4px; }
+      .item-text { font-size: 11px !important; }
+      .dot {
+        width: 24px;
+        height: 24px;
+        border-width: 2px;
+        min-width: 24px;
+      }
+      .match-row.matched .dot {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+      }
+      .match-row.matched .dot-number {
+        font-size: 10px;
+      }
+      .instruction { font-size: 13px; padding: 8px 12px; border-width: 2px; }
+      .kid-card { width: 240px; padding: 14px; }
+      .kid-icon { font-size: 2.5em; }
+      .kid-card h3 { font-size: 1.3em; }
+      .final-kid-box { padding: 20px; }
+      .final-kid-box h2 { font-size: 1.4em; }
+      #stars { font-size: 1.5em; }
+      .playAgain-btn { padding: 8px 18px; font-size: 0.85em; }
+    }
+
+    /* --- EXTRA TINY (under 340px) --- */
+    @media (max-width: 340px) {
+      :root { --row-height: 32px; --container-gap: 1px; }
+      .match-row { padding: 0 2px; margin: 0 1px; gap: 2px; }
+      .item-text { font-size: 10px !important; }
+      .dot {
+        width: 20px;
+        height: 20px;
+        border-width: 1.5px;
+        min-width: 20px;
+      }
+      .match-row.matched .dot {
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+      }
+      .match-row.matched .dot-number {
+        font-size: 9px;
+      }
+      .card-header { font-size: 12px; height: 26px; }
+    }
+
+    /* --- DESKTOP SIZES (show number on matched) --- */
+    @media (min-width: 768px) {
+      .dot-number {
+        display: none !important;
+      }
+      
+      .dot {
+        width: 14px;
+        height: 14px;
+        font-size: 0px;
+        color: transparent;
+        min-width: 14px;
+      }
+      
+      .match-row.matched .dot-number {
+        display: inline !important;
+        font-size: 14px;
+        color: white;
+      }
+      
+      .match-row.matched .dot {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+        color: white;
+        background: var(--matched-border);
+        border-color: var(--matched-border);
+        min-width: 36px;
+      }
+      
+      .item-text {
+        display: block !important;
+        font-size: 25px;
+      }
+      
+      .right-card .match-row {
+        flex-direction: row;
+      }
+    }
+
+
+    /* Media Queries from 1024px to 1920px */
+
+@media (min-width: 1441px) and (max-width: 1920px) {
+    :root {
+        --card-height: 400px;
+        --row-height: 58px;
+        --container-gap: 2px;
+    }
+
+    .match-container {
+        max-width: 950px;
+        grid-template-columns: 320px 1fr 320px;
+        gap: var(--container-gap);
+        
+    }
+
+    .match-card {
+        height: 560px;
+
+        border-width: 4px;
+        border-radius: 24px;
+    }
+
+    .card-header {
+        height: 52px;
+        font-size: 24px;
+        border-bottom: 3px solid #f5e0e8;
+    }
+
+    .card-body {
+        padding: 6px 0;
+    }
+
+    .match-row {
+        height:90px;
+        margin: 0 6px;
+        border-radius: 12px;
+        padding: 0 14px;
+        border: 2px solid transparent;
+    }
+
+    .match-row:hover:not(.matched):not(.selected) {
+        background: #f8eef2;
+        transform: scale(1.01);
+    }
+
+    .item-text {
+        font-size: 30px;
+    }
+
+    .dot {
+        width: 14px;
+        height: 14px;
+        border-width: 2px;
+        min-width: 14px;
+    }
+
+    .dot-number {
+        display: none !important;
+    }
+
+    .match-row.matched .dot-number {
+        display: inline !important;
+        font-size: 14px;
+        color: white;
+    }
+
+    .match-row.matched .dot {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+        color: white;
+        background: var(--matched-border);
+        border-color: var(--matched-border);
+        min-width: 36px;
+    }
+
+    .canvas-area {
+        height: 450px;
+        display: block;
+    }
+
+    #matchCanvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    .instruction {
+        font-size: 25px;
+        padding: 12px 28px;
+        max-width: 1150px;
+        border-width: 3px;
+        margin-bottom: 14px;
+    }
+
+    .left-card .match-row {
+        justify-content: space-between;
+    }
+
+    .right-card .match-row {
+        justify-content: space-between;
+        flex-direction: row;
+    }
+
+    .match-img{
+    width:62px;
+    height:62px;
+   
+}
+
+
+
+    /* .kid-card {
+        width: 380px;
+        padding: 32px 28px;
+        border-radius: 44px;
+    }
+
+    .kid-icon {
+        font-size: 4.8em;
+        margin-bottom: 6px;
+    }
+
+    .kid-card h3 {
+        font-size: 2.2em;
+        margin-bottom: 4px;
+    }
+
+    .kid-card p {
+        font-size: 1.1em;
+        margin-top: 2px;
+    }
+
+    .final-kid-box {
+        width: 480px;
+        padding: 35px 40px;
+        border-radius: 44px;
+    }
+
+    .final-kid-box h2 {
+        font-size: 2.4em;
+        margin-bottom: 8px;
+    }
+
+    .final-kid-box p {
+        font-size: 1.3em;
+    }
+
+    #stars {
+        font-size: 2.6em;
+        margin: 14px 0;
+        letter-spacing: 6px;
+    }
+
+    .playAgain-btn {
+        padding: 16px 38px;
+        font-size: 1.15em;
+        border-radius: 40px;
+        box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+    } */
+}
+
+/* ============================================================
+   1440px BREAKPOINT
+   ============================================================ */
+@media (min-width: 1281px) and (max-width: 1440px) {
+    :root {
+        --card-height: 380px;
+        --row-height: 55px;
+        --container-gap: 2px;
+    }
+
+    .match-container {
+        max-width: 900px;
+        grid-template-columns: 270px 1fr 270px;
+    }
+
+    .match-card {
+        border-width: 4px;
+        border-radius: 22px;
+    }
+
+    .card-header {
+        height: 50px;
+        font-size: 22px;
+    }
+
+    .item-text {
+        font-size: 27px;
+    }
+
+    .instruction {
+        font-size: 25px;
+        padding: 11px 26px;
+        max-width: 1100px;
+    }
+
+    .match-row.matched .dot {
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+    }
+
+    .match-row.matched .dot-number {
+        font-size: 13px;
+    }
+
+    .match-img{
+    width:80px;
+    height:52px;
+  
+}
+
+    /* .final-kid-box {
+        width: 450px;
+        padding: 32px 36px;
+    }
+
+    .final-kid-box h2 {
+        font-size: 2.2em;
+    }
+
+    .final-kid-box p {
+        font-size: 1.2em;
+    }
+
+    #stars {
+        font-size: 2.4em;
+    }
+
+    .playAgain-btn {
+        padding: 14px 34px;
+        font-size: 1.1em;
+    } */
+}
+
+/* ============================================================
+   1280px BREAKPOINT
+   ============================================================ */
+@media (min-width: 1025px) and (max-width: 1280px) {
+    :root {
+        --card-height: 360px;
+        --row-height: 52px;
+        --container-gap: 2px;
+    }
+
+    .match-container {
+        max-width: 850px;
+        grid-template-columns: 260px 1fr 260px;
+    }
+
+    .match-card {
+        border-width: 3px;
+        border-radius: 20px;
+    }
+
+    .card-header {
+        height: 48px;
+        font-size: 20px;
+        border-bottom: 2.5px solid #f5e0e8;
+    }
+
+    .card-body {
+        padding: 5px 0;
+    }
+
+    .match-row {
+        margin: 0 5px;
+        border-radius: 10px;
+        padding: 0 12px;
+    }
+
+    .item-text {
+        font-size: 25px !important;
+    }
+
+    .dot {
+        width: 13px;
+        height: 13px;
+        border-width: 2px;
+        min-width: 13px;
+    }
+
+    .match-row.matched .dot {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+        min-width: 32px;
+    }
+
+    .match-row.matched .dot-number {
+        font-size: 13px;
+    }
+
+    .instruction {
+        font-size: 22px;
+        padding: 10px 24px;
+        max-width: 1050px;
+        border-width: 2.5px;
+        margin-bottom: 12px;
+    }
+
+    .canvas-area {
+        height: var(--card-height);
+    }
+
+    /* .kid-card {
+        width: 340px;
+        padding: 28px 24px;
+        border-radius: 38px;
+    }
+
+    .kid-icon {
+        font-size: 4.2em;
+        margin-bottom: 5px;
+    }
+
+    .kid-card h3 {
+        font-size: 2em;
+        margin-bottom: 3px;
+    }
+
+    .kid-card p {
+        font-size: 1em;
+    }
+
+    .final-kid-box {
+        width: 420px;
+        padding: 30px 34px;
+        border-radius: 38px;
+    }
+
+    .final-kid-box h2 {
+        font-size: 2.1em;
+        margin-bottom: 6px;
+    }
+
+    .final-kid-box p {
+        font-size: 1.15em;
+    }
+
+    #stars {
+        font-size: 2.2em;
+        margin: 12px 0;
+        letter-spacing: 5px;
+    }
+
+    .playAgain-btn {
+        padding: 14px 32px;
+        font-size: 1.05em;
+        border-radius: 36px;
+        box-shadow: 0 6px 0 #d4871f, 0 6px 20px rgba(255, 172, 48, 0.25);
+    }
+
+    .playAgain-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .playAgain-btn:active {
+        transform: translateY(4px);
+        box-shadow: 0 2px 0 #d4871f;
+    } */
+}
+
+/* ============================================================
+   1024px BREAKPOINT
+   ============================================================ */
+@media (min-width: 1024px) and (max-width: 1099px) {
+    :root {
+        --card-height: 470px;
+        --row-height: 48px;
+        --container-gap: 1px;
+    }
+
+    .match-container {
+        max-width: 800px;
+        grid-template-columns: 250px 1fr 250px;
+    }
+
+    .match-card {
+        border-width: 3px;
+        border-radius: 18px;
+    }
+
+    .card-header {
+        height: 44px;
+        font-size: 18px;
+        border-bottom: 2px solid #f5e0e8;
+    }
+
+    .card-body {
+        padding: 4px 0;
+    }
+
+    .match-row {
+        margin: 0 4px;
+        border-radius: 8px;
+        padding: 0 10px;
+        border-width: 1.5px;
+    }
+
+    .match-row:hover:not(.matched):not(.selected) {
+        transform: scale(1.005);
+    }
+
+    .item-text {
+        font-size: 25px !important;
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        border-width: 1.5px;
+        min-width: 12px;
+    }
+
+    .match-row.matched .dot {
+        width: 30px;
+        height: 30px;
+        font-size: 12px;
+        min-width: 30px;
+    }
+
+    .match-row.matched .dot-number {
+        font-size: 12px;
+    }
+
+    .instruction {
+        font-size: 25px;
+        padding: 10px 20px;
+        max-width: 1000px;
+        border-width: 2px;
+        margin-bottom: 12px;
+    }
+
+    .canvas-area {
+        height: var(--card-height);
+    }
+
+    /* .kid-card {
+        width: 320px;
+        padding: 24px 22px;
+        border-radius: 34px;
+    }
+
+    .kid-icon {
+        font-size: 3.8em;
+        margin-bottom: 4px;
+    }
+
+    .kid-card h3 {
+        font-size: 1.8em;
+        margin-bottom: 3px;
+    }
+
+    .kid-card p {
+        font-size: 0.95em;
+    }
+
+    .final-kid-box {
+        width: 380px;
+        padding: 26px 30px;
+        border-radius: 34px;
+    }
+
+    .final-kid-box h2 {
+        font-size: 1.9em;
+        margin-bottom: 6px;
+    }
+
+    .final-kid-box p {
+        font-size: 1.1em;
+    }
+
+    #stars {
+        font-size: 2em;
+        margin: 12px 0;
+        letter-spacing: 5px;
+    }
+
+    .playAgain-btn {
+        padding: 12px 28px;
+        font-size: 1em;
+        border-radius: 34px;
+        box-shadow: 0 6px 0 #d4871f, 0 6px 18px rgba(255, 172, 48, 0.25);
+    } */
+}
+  </style>
+</head>
+<body>
+
+  <!-- ========== INSTRUCTION BAR ========== -->
+  <div class="instruction">
+    Click on the left side, select and match with the right side correctly
+  </div>
+
+  <!-- ========== GAME CONTAINER ========== -->
+  <div class="match-container">
+    <div class="match-card left-card">
+      <div class="card-header">Part A</div>
+      <div class="card-body" id="partA"></div>
+    </div>
+
+    <div class="canvas-area">
+      <canvas id="matchCanvas"></canvas>
+    </div>
+
+    <div class="match-card right-card">
+      <div class="card-header">Part B</div>
+      <div class="card-body" id="partB"></div>
+    </div>
+  </div>
+
+  <!-- ========== POPUPS ========== -->
+  <div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+      <div id="popupIcon" class="kid-icon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <div id="finalPopup">
+    <div class="final-kid-box">
+      <h2 id="finalTitle">🎉 Congratulations!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div>
+      <button class="playAgain-btn" id="playAgainBtn">Play Again</button>
+    </div>
+  </div>
+
+  <!-- ========== AUDIO ========== -->
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+  <!-- ========== CONFETTI ========== -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
+  </script>
+
+  <!-- ========== JAVASCRIPT ========== -->
+  <script>
+    (function() {
+     const pairsData = [
+    {
+        id: 1,
+        left: "Tree",
+        right: "Apple",
+        leftImg: "../assets/images/tree.png",
+        rightImg: "../assets/images/apple.png"
+    },
+    {
+        id: 2,
+        left: "Stream",
+        right: "Water",
+        leftImg: "../assets/images/stream.png",
+        rightImg: "../assets/images/water.png"
+    },
+    {
+        id: 3,
+        left: "Oven",
+        right: "Bread",
+        leftImg: "../assets/images/oven.png",
+        rightImg: "../assets/images/bread.png"
+    },
+    {
+        id: 4,
+        left: "Witch",
+        right: "Milk",
+        leftImg: "../assets/images/witch.png",
+        rightImg: "../assets/images/milk.png"
+    },
+    {
+        id: 5,
+        left: "Parents",
+        right: "Town",
+        leftImg: "../assets/images/parents.png",
+        rightImg: "../assets/images/town.png"
+    }
+];
+      const partA = document.getElementById("partA");
+      const partB = document.getElementById("partB");
+      const canvas = document.getElementById("matchCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const popup = document.getElementById("answerPopup");
+      const popupIcon = document.getElementById("popupIcon");
+      const popupTitle = document.getElementById("popupTitle");
+      const popupMsg = document.getElementById("popupMsg");
+
+      const finalPopup = document.getElementById("finalPopup");
+      const finalTitle = document.getElementById("finalTitle");
+      const finalScore = document.getElementById("finalScore");
+      const stars = document.getElementById("stars");
+      const playAgainBtn = document.getElementById("playAgainBtn");
+
+      const correctSound = document.getElementById("correctSound");
+      const wrongSound = document.getElementById("wrongSound");
+
+      let selectedLeft = null;
+      let matchedPairs = [];
+      let score = 0;
+      let connections = [];
+      let popupTimer = null;
+
+      function speak(text) {
+        if ('speechSynthesis' in window) {
+          speechSynthesis.cancel();
+          const msg = new SpeechSynthesisUtterance(text);
+          msg.lang = "en-US";
+          msg.rate = 1.0;
+          msg.pitch = 1.0;
+          msg.volume = 0.35;
+          speechSynthesis.speak(msg);
+        }
+      }
+
+      function smallConfetti() {
+        confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 } });
+      }
+ function bigConfetti() {
+            confetti({ particleCount: 200, spread: 110, origin: { y: 0.5 } });
+            setTimeout(() => {
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.2 } });
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.8 } });
+            }, 150);
+        }
+
+      function showPopup(isCorrect) {
+        if (popupTimer) clearTimeout(popupTimer);
+        popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+        popup.style.display = "flex";
+
+        if (isCorrect) {
+          popupIcon.textContent = "🌟";
+          popupTitle.textContent = "Amazing!";
+          popupMsg.textContent = "You got it right! ✨";
+          correctSound.play().catch(() => {});
+          smallConfetti();
+          speak("Correct");
+        } else {
+          popupIcon.textContent = "😒";
+          popupTitle.textContent ="Keep Going!";
+          popupMsg.textContent = "Try again, you can do it! 🌈";
+          wrongSound.play().catch(() => {});
+          speak("Try again");
+        }
+
+        
+
+        popupTimer = setTimeout(() => {
+          popup.style.display = "none";
+        }, 1500);
+      }
+
+      function showFinalPopup() {
+        finalPopup.style.display = "flex";
+        finalTitle.textContent = "🎉 Congratulations!";
+        finalScore.textContent = `Your Score: ${score} / ${pairsData.length}`;
+        stars.textContent = "⭐".repeat(score);
+        bigConfetti();
+        // setTimeout(() => speak(`Congratulations! You matched all ${pairsData.length} pairs!`), 500);
+      }
+
+      // Close popups on outside click
+      // popup.addEventListener('click', (e) => {
+      //   if (e.target === popup) popup.style.display = 'none';
+      // });
+      // finalPopup.addEventListener('click', (e) => {
+      //   if (e.target === finalPopup) finalPopup.style.display = 'none';
+      // });
+
+      function shuffle(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      let rightItems = shuffle([...pairsData]);
+
+      function renderGame() {
+        partA.innerHTML = "";
+        partB.innerHTML = "";
+
+        pairsData.forEach(item => {
+          const row = document.createElement("div");
+          row.className = "match-row";
+          row.dataset.id = item.id;
+         row.innerHTML = `
+    <img class="match-img" src="${item.leftImg}" alt="">
+    <span class="item-text">${item.left}</span>
+    <span class="dot">
+        <span class="dot-number">${item.id}</span>
+    </span>
+`;
+          row.onclick = () => selectLeft(row, item.id);
+          partA.appendChild(row);
+        });
+
+        rightItems.forEach(item => {
+          const row = document.createElement("div");
+          row.className = "match-row";
+          row.dataset.id = item.id;
+          row.innerHTML = `
+    <span class="dot">
+        <span class="dot-number">${item.id}</span>
+    </span>
+    <span class="item-text">${item.right}</span>
+    <img class="match-img" src="${item.rightImg}" alt="">
+`;
+          row.onclick = () => selectRight(row, item.id);
+          partB.appendChild(row);
+        });
+
+        resizeCanvas();
+      }
+
+      function resizeCanvas() {
+        if (window.getComputedStyle(canvas.parentElement).display === 'none') return;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        redrawLines();
+      }
+
+      window.addEventListener("resize", resizeCanvas);
+
+      function getDotCenter(row) {
+        const dot = row.querySelector(".dot");
+        const dotRect = dot.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        return {
+          x: dotRect.left - canvasRect.left + dotRect.width / 2,
+          y: dotRect.top - canvasRect.top + dotRect.height / 2
+        };
+      }
+
+      function drawCurve(start, end) {
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        const cp1x = start.x + (end.x - start.x) * 0.4;
+        const cp1y = start.y;
+        const cp2x = start.x + (end.x - start.x) * 0.6;
+        const cp2y = end.y;
+
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, end.x, end.y);
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line-color').trim() ||
+          "#8a6cf0";
+        ctx.lineWidth = 4;
+        ctx.lineCap = "round";
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = ctx.strokeStyle;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      function redrawLines() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (window.getComputedStyle(canvas.parentElement).display === 'none') return;
+
+        connections.forEach(conn => {
+          const leftRow = document.querySelector(`.left-card .match-row[data-id="${conn.id}"]`);
+          const rightRow = document.querySelector(`.right-card .match-row[data-id="${conn.id}"]`);
+          if (leftRow && rightRow) {
+            drawCurve(getDotCenter(leftRow), getDotCenter(rightRow));
+          }
+        });
+      }
+
+      function selectLeft(element, id) {
+        if (element.classList.contains("matched")) return;
+        document.querySelectorAll(".left-card .match-row").forEach(item => item.classList.remove("selected"));
+        element.classList.add("selected");
+        selectedLeft = { id, element };
+      }
+
+      function selectRight(rightRow, rightId) {
+        if (!selectedLeft) return;
+        if (rightRow.classList.contains("matched")) return;
+
+        const leftRow = selectedLeft.element;
+        const leftId = selectedLeft.id;
+
+        if (leftId === rightId) {
+          leftRow.classList.remove("selected");
+          leftRow.classList.add("matched");
+          rightRow.classList.add("matched");
+          matchedPairs.push(leftId);
+          score++;
+          connections.push({ id: leftId });
+          redrawLines();
+          showPopup(true);
+          selectedLeft = null;
+          if (score === pairsData.length) setTimeout(showFinalPopup, 600);
+        } else {
+          showPopup(false);
+          shake(leftRow);
+          shake(rightRow);
+          leftRow.classList.remove("selected");
+          selectedLeft = null;
+        }
+      }
+
+      function shake(element) {
+        element.classList.add("shake");
+        setTimeout(() => element.classList.remove("shake"), 450);
+      }
+
+      function resetGame() {
+        score = 0;
+        matchedPairs = [];
+        selectedLeft = null;
+        connections = [];
+        finalPopup.style.display = "none";
+        popup.style.display = "none";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        rightItems = shuffle([...pairsData]);
+        renderGame();
+        // speak("Game reset! Match the pairs.");
+      }
+
+      playAgainBtn.onclick = resetGame;
+
+      renderGame();
+      setTimeout(resizeCanvas, 200);
+      // speak("Match the pairs!");
+    })();
+  </script>
+
+</body>
+</html>

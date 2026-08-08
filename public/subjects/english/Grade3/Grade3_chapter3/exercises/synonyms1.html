@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Synonyms · Word Search</title>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
+    </script>
+    <style>
+        /* ============================================================
+           ROOT VARIABLES
+        ============================================================ */
+        :root {
+            --bg-body: #f0f7ff;
+            --card-bg: #ffffff;
+            --shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+            --radius: 18px;
+        
+            --grid-size: 42px;
+        }
+
+       @font-face {
+    font-family: 'CCSYBold';
+    src: url('./assets/CCSYBOLD.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+@font-face {
+    font-family: 'CCSyntroman';
+    src: url('../assets/CCSYNTRO.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+           font-family: 'CCSyntroman';
+        }
+
+        body {
+            font-family: var(--font);
+          
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+         
+        }
+
+        .app-container {
+            max-width: 1200px;
+            width: 100%;
+          
+
+
+
+
+        }
+
+        /* ============================================================
+           LAYOUT - Grid Left, Images Right
+        ============================================================ */
+        .game-layout {
+            display: grid;
+            grid-template-columns: 65% 35%;
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* ============================================================
+           LEFT SIDE - GRID & INSTRUCTION
+        ============================================================ */
+        .left-side {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .instruction-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #2c3e50;
+            background: #fff9f0;
+            padding: 12px 18px;
+            border-radius: 14px;
+            border-left: 5px solid #ff8a3d;
+            box-shadow: 0 2px 12px rgba(255, 138, 61, 0.12);
+            line-height: 1.5;
+        }
+        .instruction-text b {
+            color: #e53935;
+        }
+
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 6px 0 2px 0;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #0a0a0a;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+            transition: all 0.3s ease;
+            cursor: default;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.3px;
+            background-color: whitesmoke;
+            text-align: center;
+        }
+
+        .chip .checkmark {
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+            color: #0b8a4a;
+        }
+
+        .chip.found .checkmark {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .chip.found {
+            transform: scale(1.05);
+            /* box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); */
+
+        }
+
+        /* .chip-blue {
+            background: linear-gradient(135deg, #4a9eff, #2b7be0);
+        }
+        .chip-pink {
+            background: linear-gradient(135deg, #ff6b9d, #e8437a);
+        }
+        .chip-green {
+            background: linear-gradient(135deg, #4cdf8b, #27ae60);
+        }
+        .chip-orange {
+            background: linear-gradient(135deg, #ffa94d, #f57c00);
+        }
+        .chip-yellow {
+            background: linear-gradient(135deg, #ffd93d, #f9a825);
+        }
+        .chip-red {
+            background: linear-gradient(135deg, #ff6b6b, #e53935);
+        } */
+
+        .grid-wrapper {
+            background: #ffffff;
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+            border: 2px solid #ffd7b3;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(8, var(--grid-size));
+            gap: 3px;
+            margin: 0 auto;
+            justify-content: center;
+        }
+
+        .grid-cell {
+            width: var(--grid-size);
+            height: var(--grid-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+            background: #fffdfa;
+            border: 2px solid #ffd7b3;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .grid-cell:hover:not(.selected):not(.found) {
+            background: #fff0e0;
+            transform: scale(1.04);
+        }
+
+        .grid-cell.selected {
+            background: #ffe0b0;
+            border-color: #ff8a3d;
+            transform: scale(1.08);
+            box-shadow: 0 0 16px rgba(255, 138, 61, 0.3);
+            z-index: 2;
+        }
+
+        .grid-cell.found {
+            transform: scale(0.95);
+            animation: popLetter 0.4s ease;
+            font-weight: 700;
+            pointer-events: none;
+        }
+
+        .grid-cell.found.chip-blue-found {
+            background: #cce5ff;
+            border-color: #4a9eff;
+            color: #1a4a8a;
+        }
+        .grid-cell.found.chip-pink-found {
+            background: #ffd6e0;
+            border-color: #ff6b9d;
+            color: #8a1a4a;
+        }
+        .grid-cell.found.chip-green-found {
+            background: #d4f0d4;
+            border-color: #4cdf8b;
+            color: #1a6a3a;
+        }
+        .grid-cell.found.chip-orange-found {
+            background: #ffe0b0;
+            border-color: #ffa94d;
+            color: #8a4a1a;
+        }
+        .grid-cell.found.chip-yellow-found {
+            background: #fff4b0;
+            border-color: #ffd93d;
+            color: #8a7a1a;
+        }
+        .grid-cell.found.chip-red-found {
+            background: #ffd6d6;
+            border-color: #ff6b6b;
+            color: #8a1a1a;
+        }
+
+        @keyframes popLetter {
+            0% {
+                transform: scale(0.5);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(0.95);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================================
+           RIGHT SIDE - IMAGES
+        ============================================================ */
+        .right-side {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .image-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 10px 6px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 2px solid #f0f0f0;
+            aspect-ratio: 1 / 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-card img {
+            width: 65%;
+            height: 65%;
+            object-fit: contain;
+            filter: grayscale(100%) brightness(0.4) opacity(0.4);
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(0.9);
+        }
+
+        .image-card .image-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #8899aa;
+            margin-top: 2px;
+            transition: all 0.4s ease;
+        }
+
+        .image-card.active {
+            border-color: #ffb74d;
+            box-shadow: 0 0 30px rgba(255, 183, 77, 0.25);
+        }
+
+        .image-card.active img {
+            filter: grayscale(0%) brightness(1) opacity(1);
+            transform: scale(1.1);
+            animation: floatImage 3s ease-in-out infinite;
+        }
+
+        .image-card.active .image-label {
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        @keyframes floatImage {
+            0%,
+            100% {
+                transform: scale(1.1) translateY(0);
+            }
+            50% {
+                transform: scale(1.15) translateY(-4px);
+            }
+        }
+
+        .image-card.active::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffb74d, #ff8a3d);
+            opacity: 0.12;
+            z-index: 0;
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%,
+            100% {
+                opacity: 0.08;
+            }
+            50% {
+                opacity: 0.2;
+            }
+        }
+        .image-card>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================================================
+           POPUPS
+        ============================================================ */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 6000;
+            padding: 20px;
+
+        }
+
+        .kid-card {
+            width: 380px;
+            max-width: 90%;
+            padding: 32px 28px;
+            border-radius: 44px;
+            text-align: center;
+            animation: kidPop 0.6s ease;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kid-card::before,
+        .kid-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .kid-card::before {
+            width: 200px;
+            height: 200px;
+            top: -80px;
+            right: -60px;
+            background: #ffd93d;
+        }
+        .kid-card::after {
+            width: 150px;
+            height: 150px;
+            bottom: -60px;
+            left: -50px;
+            background: #6bcbff;
+        }
+        .kid-card>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .kid-correct .kid-card {
+            background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+            border: 5px solid #38d9a9;
+        }
+        .kid-correct .kid-card h3 {
+            color: #0b8a4a;
+        }
+        .kid-correct .kid-card p {
+            color: #1a6a3a;
+        }
+        .kid-correct .kid-card::before,
+        .kid-correct .kid-card::after {
+            background: #38d9a9;
+        }
+
+        .kid-wrong .kid-card {
+            background: linear-gradient(145deg, #fff5f5, #fce4e4);
+            border: 5px solid #ff8a8a;
+        }
+        .kid-wrong .kid-card h3 {
+            color: #c0392b;
+        }
+        .kid-wrong .kid-card p {
+            color: #922b21;
+        }
+        .kid-wrong .kid-card::before,
+        .kid-wrong .kid-card::after {
+            background: #ff8a8a;
+        }
+
+        .kid-icon {
+            font-size: 4.8em;
+            margin-bottom: 6px;
+            animation: emojiBounce 0.9s infinite alternate;
+            display: inline-block;
+        }
+        .kid-card h3 {
+            font-size: 2.2em;
+            margin-bottom: 4px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .kid-card p {
+            font-size: 1.1em;
+            color: #555;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        @keyframes kidPop {
+            0% {
+                transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0) scale(1);
+            }
+            to {
+                transform: translateY(-12px) scale(1.05);
+            }
+        }
+
+        /* ============================================================
+           FINAL POPUP
+        ============================================================ */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 7000;
+            padding: 20px;
+
+        }
+
+        .final-kid-box {
+            background: linear-gradient(145deg, #fff7d6, #e6fff5);
+            padding: 35px 40px;
+            border-radius: 44px;
+            text-align: center;
+            width: 480px;
+            max-width: 95%;
+            animation: finalBounce 0.8s ease;
+            border: 4px solid rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+            /* box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15); */
+        }
+
+        .final-kid-box::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: -120px;
+            right: -100px;
+            background: #ffd93d;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .final-kid-box>* {
+            position: relative;
+            z-index: 2;
+        }
+        .final-kid-box h2 {
+            font-size: 2.4em;
+            color: #2f9e44;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3a3a;
+        }
+        #stars {
+            font-size: 2.6em;
+            margin: 14px 0;
+            letter-spacing: 6px;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 16px 38px;
+            border-radius: 40px;
+            font-size: 1.15em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+            letter-spacing: 0.5px;
+        }
+        .playAgain-btn:hover {
+            transform: translateY(-3px);
+        }
+        .playAgain-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #d4871f;
+        }
+
+        @keyframes finalBounce {
+            0% {
+                transform: scale(0.3) perspective(400px) rotateX(15deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.08) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+
+
+        .hint-btn{
+    position:fixed;
+    top:10px;
+    right:20px;
+    width:55px;
+    height:55px;
+    border:none;
+    border-radius:50%;
+    background:#ff9800;
+    color:#fff;
+    font-size:24px;
+    cursor:pointer;
+    z-index:9999;
+    box-shadow:0 8px 20px rgba(0,0,0,.2);
+}
+
+.hint-btn:hover{
+    transform:scale(1.08);
+}
+
+.hint-popup{
+    position:fixed;
+    inset:0;
+    /* background:rgba(0,0,0,.35); */
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:10000;
+}
+
+.hint-card{
+    width:420px;
+    max-width:90%;
+    background:#fff;
+    border-radius:25px;
+    padding:30px;
+    text-align:left;
+}
+
+.hint-card h2{
+    text-align:center;
+    margin-bottom:20px;
+    color:#ff9800;
+}
+
+.hint-step{
+    display:flex;
+    gap:12px;
+    margin:12px 0;
+    align-items:flex-start;
+}
+
+.hint-step span{
+    font-size:24px;
+}
+
+.hint-step p{
+    margin:0;
+    font-size:17px;
+}
+
+#closeHint{
+    margin-top:20px;
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:30px;
+    background:#ff9800;
+    color:#fff;
+    font-size:18px;
+    cursor:pointer;
+}
+        /* ============================================================
+           RESPONSIVE - Full coverage from 320px to 1920px
+        ============================================================ */
+
+        /* --- 4K / Extra Large (1921px+) --- */
+        @media (min-width: 1921px) {
+            .app-container {
+                max-width: 1500px;
+                padding: 40px 50px;
+                border-radius: 50px;
+            }
+            :root {
+                --grid-size: 56px;
+            }
+            .grid-cell {
+                font-size: 24px;
+                border-width: 3px;
+                border-radius: 12px;
+            }
+            .instruction-text {
+                font-size: 22px;
+                padding: 18px 28px;
+            }
+            .chip {
+                font-size: 20px;
+                padding: 12px 28px;
+                border-radius: 60px;
+            }
+            .image-card {
+                border-radius: 22px;
+                padding: 14px 10px;
+            }
+            .image-card img {
+                width: 70%;
+                height: 70%;
+            }
+            .image-card .image-label {
+                font-size: 16px;
+            }
+            .kid-card {
+                width: 480px;
+                padding: 40px 36px;
+                border-radius: 52px;
+            }
+            .kid-icon {
+                font-size: 5.6em;
+            }
+            .kid-card h3 {
+                font-size: 2.8em;
+            }
+            .final-kid-box {
+                width: 560px;
+                padding: 45px 50px;
+                border-radius: 52px;
+            }
+            .final-kid-box h2 {
+                font-size: 3em;
+            }
+            .playAgain-btn {
+                padding: 20px 50px;
+                font-size: 1.4em;
+            }
+            .game-layout {
+                gap: 36px;
+            }
+        }
+
+        /* --- Large Desktop (1441px - 1920px) --- */
+        @media (min-width: 1441px) and (max-width: 1920px) {
+            .app-container {
+                max-width: 1350px;
+                padding: 35px 40px;
+                border-radius: 45px;
+            }
+            :root {
+                --grid-size: 50px;
+            }
+            .grid-cell {
+                font-size: 22px;
+                border-width: 3px;
+                border-radius: 10px;
+            }
+            .instruction-text {
+                font-size: 20px;
+                padding: 16px 24px;
+            }
+            .chip {
+                font-size: 18px;
+                padding: 10px 24px;
+            }
+            .image-card {
+                border-radius: 20px;
+                padding: 12px 8px;
+            }
+            .image-card img {
+                width: 68%;
+                height: 68%;
+            }
+            .image-card .image-label {
+                font-size: 14px;
+            }
+            .kid-card {
+                width: 440px;
+                padding: 36px 32px;
+                border-radius: 48px;
+            }
+            .kid-icon {
+                font-size: 5.2em;
+            }
+            .kid-card h3 {
+                font-size: 2.6em;
+            }
+            .final-kid-box {
+                width: 520px;
+                padding: 40px 45px;
+                border-radius: 48px;
+            }
+            .final-kid-box h2 {
+                font-size: 2.8em;
+            }
+            .playAgain-btn {
+                padding: 18px 44px;
+                font-size: 1.3em;
+            }
+            .game-layout {
+                gap: 30px;
+            }
+        }
+
+        /* --- Desktop (1025px - 1440px) --- */
+        @media (min-width: 1025px) and (max-width: 1440px) {
+            .app-container {
+                max-width: 1150px;
+                padding: 28px 32px;
+                border-radius: 38px;
+            }
+            :root {
+                --grid-size: 44px;
+            }
+            .grid-cell {
+                font-size: 19px;
+                border-width: 2px;
+                border-radius: 8px;
+            }
+            .instruction-text {
+                font-size: 17px;
+                padding: 14px 20px;
+            }
+            .chip {
+                font-size: 15px;
+                padding: 8px 18px;
+            }
+            .image-card {
+                border-radius: 18px;
+                padding: 10px 6px;
+            }
+            .image-card img {
+                width: 65%;
+                height: 65%;
+            }
+            .image-card .image-label {
+                font-size: 12px;
+            }
+            .kid-card {
+                width: 380px;
+                padding: 32px 28px;
+                border-radius: 44px;
+            }
+            .kid-icon {
+                font-size: 4.8em;
+            }
+            .kid-card h3 {
+                font-size: 2.2em;
+            }
+            .final-kid-box {
+                width: 480px;
+                padding: 35px 40px;
+                border-radius: 44px;
+            }
+            .final-kid-box h2 {
+                font-size: 2.4em;
+            }
+            .playAgain-btn {
+                padding: 16px 38px;
+                font-size: 1.15em;
+            }
+            .game-layout {
+                gap: 24px;
+            }
+        }
+
+        /* --- Tablet Landscape (820px - 1024px) --- */
+        @media (min-width: 820px) and (max-width: 1024px) {
+            /* .game-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .right-side {
+                order: 2;
+            }
+            .left-side {
+                order: 1;
+            }
+            .right-side .images-grid {
+                grid-template-columns: repeat(3, 1fr);
+                max-width: 600px;
+                margin: 0 auto;
+            } */
+            .app-container {
+                padding: 0px 5px;
+                border-radius: 32px;
+            }
+            :root {
+                --grid-size: 40px;
+            }
+            .grid-cell {
+                font-size: 17px;
+                border-width: 2px;
+                border-radius: 8px;
+            }
+            .instruction-text {
+                font-size: 16px;
+                padding: 12px 18px;
+            }
+            .chip {
+                font-size: 14px;
+                padding: 7px 7px;
+                text-align: center;
+            }
+            .image-card {
+                border-radius: 16px;
+                padding: 8px 6px;
+            }
+            .image-card img {
+                width: 62%;
+                height: 62%;
+            }
+            .image-card .image-label {
+                font-size: 11px;
+            }
+        }
+
+        /* --- Tablet Portrait (600px - 819px) --- */
+        @media (min-width: 600px) and (max-width: 819px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+            .right-side {
+                order: 2;
+            }
+            .left-side {
+                order: 1;
+            }
+            .right-side .images-grid {
+                grid-template-columns: repeat(3, 1fr);
+                max-width: 500px;
+                margin: 0 auto;
+            }
+            .app-container {
+                padding: 20px 16px;
+                border-radius: 28px;
+            }
+            :root {
+                --grid-size: 36px;
+            }
+            .grid-cell {
+                font-size: 15px;
+                border-width: 1.5px;
+                border-radius: 6px;
+            }
+            .grid-wrapper {
+                padding: 12px;
+            }
+            .instruction-text {
+                font-size: 15px;
+                padding: 10px 16px;
+            }
+            .chip {
+                font-size: 13px;
+                padding: 6px 14px;
+            }
+            .image-card {
+                border-radius: 14px;
+                padding: 8px 4px;
+            }
+            .image-card img {
+                width: 60%;
+                height: 60%;
+            }
+            .image-card .image-label {
+                font-size: 10px;
+            }
+            .kid-card {
+                width: 300px;
+                padding: 24px 20px;
+                border-radius: 36px;
+            }
+            .kid-icon {
+                font-size: 3.6em;
+            }
+            .kid-card h3 {
+                font-size: 1.8em;
+            }
+            .final-kid-box {
+                width: 400px;
+                padding: 28px 24px;
+                border-radius: 36px;
+            }
+            .final-kid-box h2 {
+                font-size: 2em;
+            }
+            #stars {
+                font-size: 2.2em;
+            }
+            .playAgain-btn {
+                padding: 14px 30px;
+                font-size: 1em;
+            }
+        }
+
+        /* --- Mobile Large (480px - 599px) --- */
+        @media (min-width: 480px) and (max-width: 599px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .right-side {
+                order: 2;
+            }
+            .left-side {
+                order: 1;
+            }
+            .right-side .images-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+            .app-container {
+                padding: 16px 12px;
+                border-radius: 24px;
+            }
+            :root {
+                --grid-size: 30px;
+            }
+            .grid-cell {
+                font-size: 12px;
+                border-width: 1.5px;
+                border-radius: 5px;
+            }
+            .grid-wrapper {
+                padding: 10px;
+            }
+            .instruction-text {
+                font-size: 14px;
+                padding: 10px 14px;
+            }
+            .chip {
+                font-size: 12px;
+                padding: 5px 12px;
+            }
+            .image-card {
+                border-radius: 12px;
+                padding: 6px 4px;
+            }
+            .image-card img {
+                width: 55%;
+                height: 55%;
+            }
+            .image-card .image-label {
+                font-size: 9px;
+            }
+            .kid-card {
+                width: 280px;
+                padding: 20px 16px;
+                border-radius: 32px;
+            }
+            .kid-icon {
+                font-size: 3.2em;
+            }
+            .kid-card h3 {
+                font-size: 1.6em;
+            }
+            .final-kid-box {
+                width: 340px;
+                padding: 24px 20px;
+                border-radius: 32px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.8em;
+            }
+            #stars {
+                font-size: 2em;
+            }
+            .playAgain-btn {
+                padding: 12px 24px;
+                font-size: 0.95em;
+            }
+        }
+
+        /* --- Mobile Small (380px - 479px) --- */
+        @media (min-width: 380px) and (max-width: 479px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .right-side {
+                order: 2;
+            }
+            .left-side {
+                order: 1;
+            }
+            .right-side .images-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+                max-width: 320px;
+                margin: 0 auto;
+            }
+            .app-container {
+                padding: 12px 10px;
+                border-radius: 20px;
+            }
+            :root {
+                --grid-size: 26px;
+            }
+            .grid-cell {
+                font-size: 10px;
+                border-width: 1px;
+                border-radius: 4px;
+            }
+            .grid-wrapper {
+                padding: 8px;
+            }
+            .instruction-text {
+                font-size: 12px;
+                padding: 8px 12px;
+                border-left-width: 4px;
+                border-radius: 10px;
+            }
+            .chip {
+                font-size: 10px;
+                padding: 4px 10px;
+            }
+            .image-card {
+                border-radius: 10px;
+                padding: 4px 3px;
+            }
+            .image-card img {
+                width: 50%;
+                height: 50%;
+            }
+            .image-card .image-label {
+                font-size: 8px;
+            }
+            .kid-card {
+                width: 250px;
+                padding: 18px 14px;
+                border-radius: 28px;
+            }
+            .kid-icon {
+                font-size: 2.8em;
+            }
+            .kid-card h3 {
+                font-size: 1.4em;
+            }
+            .kid-card p {
+                font-size: 0.9em;
+            }
+            .final-kid-box {
+                width: 300px;
+                padding: 20px 16px;
+                border-radius: 28px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.5em;
+            }
+            .final-kid-box p {
+                font-size: 1em;
+            }
+            #stars {
+                font-size: 1.6em;
+            }
+            .playAgain-btn {
+                padding: 10px 18px;
+                font-size: 0.85em;
+            }
+        }
+
+        /* --- Mobile Extra Small (320px - 379px) --- */
+        @media (max-width: 379px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .right-side {
+                order: 2;
+            }
+            .left-side {
+                order: 1;
+            }
+            .right-side .images-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+                max-width: 260px;
+                margin: 0 auto;
+            }
+            .app-container {
+                padding: 10px 6px;
+                border-radius: 16px;
+            }
+            :root {
+                --grid-size: 22px;
+            }
+            .grid-cell {
+                font-size: 9px;
+                border-width: 1px;
+                border-radius: 3px;
+            }
+            .grid-wrapper {
+                padding: 6px;
+                border-radius: 12px;
+            }
+            .grid-container {
+                gap: 2px;
+            }
+            .instruction-text {
+                font-size: 11px;
+                padding: 6px 10px;
+                border-left-width: 3px;
+                border-radius: 8px;
+            }
+            .chip {
+                font-size: 9px;
+                padding: 3px 8px;
+                border-radius: 30px;
+            }
+            .chips-container {
+                gap: 4px;
+                padding: 4px 0;
+            }
+            .image-card {
+                border-radius: 8px;
+                padding: 3px 2px;
+            }
+            .image-card img {
+                width: 45%;
+                height: 45%;
+            }
+            .image-card .image-label {
+                font-size: 7px;
+            }
+            .kid-card {
+                width: 220px;
+                padding: 14px 12px;
+                border-radius: 24px;
+            }
+            .kid-icon {
+                font-size: 2.4em;
+            }
+            .kid-card h3 {
+                font-size: 1.2em;
+            }
+            .kid-card p {
+                font-size: 0.8em;
+            }
+            .final-kid-box {
+                width: 260px;
+                padding: 16px 12px;
+                border-radius: 24px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.3em;
+            }
+            .final-kid-box p {
+                font-size: 0.9em;
+            }
+            #stars {
+                font-size: 1.4em;
+                margin: 10px 0;
+            }
+            .playAgain-btn {
+                padding: 8px 14px;
+                font-size: 0.8em;
+                border-radius: 30px;
+            }
+            .playAgain-btn {
+                padding: 8px 14px;
+                font-size: 0.8em;
+                border-radius: 30px;
+            }
+        }
+
+        /* --- Landscape phone orientation fix --- */
+        @media (max-height: 500px) and (orientation: landscape) {
+            :root {
+                --grid-size: 28px;
+            }
+            .grid-cell {
+                font-size: 12px;
+            }
+            .app-container {
+                padding: 12px 16px;
+            }
+            .game-layout {
+                gap: 12px;
+            }
+            .instruction-text {
+                font-size: 13px;
+                padding: 8px 14px;
+            }
+            .image-card img {
+                width: 50%;
+                height: 50%;
+            }
+            .chips-container {
+                gap: 4px;
+                padding: 2px 0;
+            }
+            .chip {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+            .grid-wrapper {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+<button id="hintBtn" class="hint-btn">
+    <i class="fas fa-question"></i>
+</button>
+<div id="hintPopup" class="hint-popup">
+    <div class="hint-card">
+        <h2>🎮 How to Play</h2>
+
+        <div class="hint-step">
+            <span>1️⃣</span>
+            <p>Find the synonym hidden in the letter grid.</p>
+        </div>
+
+        <div class="hint-step">
+            <span>2️⃣</span>
+            <p>Click the first letter of the word.</p>
+        </div>
+
+        <div class="hint-step">
+            <span>3️⃣</span>
+            <p>Move over the remaining letters to select the whole word.</p>
+        </div>
+
+        <div class="hint-step">
+            <span>4️⃣</span>
+            <p>When the correct word is selected, it will be highlighted automatically.</p>
+        </div>
+
+        <button id="closeHint">Let's Play 🚀</button>
+    </div>
+</div>
+    <div class="app-container">
+
+        <!-- ===== GAME LAYOUT ===== -->
+        <div class="game-layout">
+
+            <!-- ========== LEFT SIDE - INSTRUCTION, CHIPS & GRID ========== -->
+            <div class="left-side">
+                <div class="instruction-text">
+                    <b>🔍 Observe the words in bold in the grid.</b> They are synonyms of the following words.
+                    <b>Colour them</b> with the matching colours. One is done for you.
+                </div>
+
+                <div class="chips-container" id="chipsContainer"></div>
+
+                <div class="grid-wrapper">
+                    <div class="grid-container" id="gridContainer"></div>
+                </div>
+            </div>
+
+            <!-- ========== RIGHT SIDE - IMAGES ========== -->
+            <div class="right-side">
+                <div class="images-grid" id="imagesGrid"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ===== POPUPS ===== -->
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2 id="finalTitle">🎉 Congratulations!</h2>
+            <p id="finalScore">You found all the Synonyms!</p>
+            <div id="stars">⭐⭐⭐⭐⭐</div>
+            <button class="playAgain-btn" id="playAgainBtn">🔄 Play Again</button>
+        </div>
+    </div>
+
+    <!-- ===== AUDIO ===== -->
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        // ============================================================
+        // DATA
+        // ============================================================
+        const wordData = [{
+            id: 0,
+            word: 'shout',
+            synonym: 'scream',
+            chipColor: 'chip-blue',
+            highlightClass: 'chip-blue-found',
+            image: '../assets/images/sy1.png',
+            label: 'Shout'
+        }, {
+            id: 1,
+            word: 'pretty',
+            synonym: 'cute',
+            chipColor: 'chip-pink',
+            highlightClass: 'chip-pink-found',
+            image: '../assets/images/sy2.png',
+            label: 'Pretty'
+        }, {
+            id: 2,
+            word: 'children',
+            synonym: 'kids',
+            chipColor: 'chip-green',
+            highlightClass: 'chip-green-found',
+            image: '../assets/images/sy3.png',
+            label: 'Children'
+        }, {
+            id: 3,
+            word: 'little',
+            synonym: 'small',
+            chipColor: 'chip-orange',
+            highlightClass: 'chip-orange-found',
+            image: '../assets/images/sy4.png',
+            label: 'Little'
+        }, {
+            id: 4,
+            word: 'oven',
+            synonym: 'stove',
+            chipColor: 'chip-yellow',
+            highlightClass: 'chip-yellow-found',
+            image: '../assets/images/sy5.png',
+            label: 'Oven'
+        }, {
+            id: 5,
+            word: 'energy',
+            synonym: 'stamina',
+            chipColor: 'chip-red',
+            highlightClass: 'chip-red-found',
+            image: '../assets/images/sy6.png',
+            label: 'Energy'
+        }];
+
+        // ============================================================
+        // GRID DATA - 8x8
+        // ============================================================
+        const gridSize = 8;
+        const gridData = [
+            ['s', 't', 'a', 'm', 'i', 'n', 'a', 'm'],
+            ['t', 'y', 'x', 'e', 'u', 'w', 'h', 'k'],
+            ['c', 'h', 's', 'm', 'a', 'l', 'l', 'l'],
+            ['u', 'v', 'e', 'h', 'j', 'p', 'u', 's'],
+            ['t', 'c', 'w', 'e', 'l', 'o', 'i', 't'],
+            ['e', 'w', 'k', 'i', 'd', 's', 'm', 'o'],
+            ['z', 'q', 'm', 'r', 'v', 'h', 'l', 'v'],
+            ['s', 'c', 'r', 'e', 'a', 'm', 'p', 'e']
+        ];
+
+        // ============================================================
+        // WORD POSITIONS - FIXED for 8x8 grid
+        // ============================================================
+        const wordPositions = {
+            'scream': [{ r: 7, c: 0 }, { r: 7, c: 1 }, { r: 7, c: 2 }, { r: 7, c: 3 }, { r: 7, c: 4 }, { r: 7, c: 5 }],
+            'cute': [{ r: 2, c: 0 }, { r: 3, c: 0 }, { r: 4, c: 0 }, { r: 5, c: 0 }],
+            'kids': [{ r: 5, c: 2 }, { r: 5, c: 3 }, { r: 5, c: 4 }, { r: 5, c: 5 }],
+            'small': [{ r: 2, c: 2 }, { r: 2, c: 3 }, { r: 2, c: 4 }, { r: 2, c: 5 }, { r: 2, c: 6 }],
+            'stove': [{ r: 3, c: 2 }, { r: 3, c: 3 }, { r: 3, c: 4 }, { r: 3, c: 5 }, { r: 3, c: 6 }],
+            'stamina': [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 }, { r: 0, c: 5 }, { r: 0, c: 6 }]
+        };
+
+        const synonymToId = {
+            'scream': 0,
+            'cute': 1,
+            'kids': 2,
+            'small': 3,
+            'stove': 4,
+            'stamina': 5
+        };
+
+        // ============================================================
+        // DOM REFS
+        // ============================================================
+        const gridContainer = document.getElementById('gridContainer');
+        const chipsContainer = document.getElementById('chipsContainer');
+        const imagesGrid = document.getElementById('imagesGrid');
+        const popup = document.getElementById('answerPopup');
+        const popupIcon = document.getElementById('popupIcon');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupMsg = document.getElementById('popupMsg');
+        const finalPopup = document.getElementById('finalPopup');
+        const finalTitle = document.getElementById('finalTitle');
+        const finalScore = document.getElementById('finalScore');
+        const stars = document.getElementById('stars');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const correctSound = document.getElementById('correctSound');
+        const wrongSound = document.getElementById('wrongSound');
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let foundWords = [];
+        let selectedCells = [];
+        let isSelecting = false;
+        let startCell = null;
+        let popupTimer = null;
+        let isGameComplete = false;
+const hintBtn = document.getElementById("hintBtn");
+const hintPopup = document.getElementById("hintPopup");
+const closeHint = document.getElementById("closeHint");
+
+hintBtn.onclick = () => {
+    hintPopup.style.display = "flex";
+};
+
+closeHint.onclick = () => {
+    hintPopup.style.display = "none";
+};
+
+hintPopup.onclick = (e) => {
+    if (e.target === hintPopup) {
+        hintPopup.style.display = "none";
+    }
+};
+        // ============================================================
+        // SPEECH
+        // ============================================================
+        function speak(text) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'en-US';
+            msg.volume = 0.25;
+            msg.rate = 0.9;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        // ============================================================
+        // CONFETTI
+        // ============================================================
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+ function bigConfetti() {
+            confetti({ particleCount: 200, spread: 110, origin: { y: 0.5 } });
+            setTimeout(() => {
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.2 } });
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.8 } });
+            }, 150);
+        }
+
+        // ============================================================
+        // POPUPS
+        // ============================================================
+        function showPopup(isCorrect, word) {
+            if (popupTimer) clearTimeout(popupTimer);
+            popup.className = 'kid-popup ' + (isCorrect ? 'kid-correct' : 'kid-wrong');
+            popup.style.display = 'flex';
+
+            if (isCorrect) {
+                popupIcon.textContent = '🌟';
+                popupTitle.textContent = 'Amazing!';
+                popupMsg.textContent = `You got it right! ✨`;
+                correctSound.play().catch(() => {});
+                smallConfetti();
+                speak('Correct!');
+            } else {
+                popupIcon.textContent = '😒';
+                popupTitle.textContent = 'Keep Going!';
+                popupMsg.textContent = 'Try again, you can do it! 🌈';
+                wrongSound.play().catch(() => {});
+                speak('Try again');
+            }
+            popupTimer = setTimeout(() => {
+                popup.style.display = 'none';
+            }, 1600);
+        }
+
+        function showFinalPopup() {
+            finalPopup.style.display = 'flex';
+            finalTitle.textContent = '🎉 Congratulations!';
+            finalScore.textContent = 'Your Score: 5/5';
+            stars.textContent = '⭐⭐⭐⭐⭐';
+            bigConfetti();
+            // speak('Congratulations! You found all the synonyms!');
+        }
+
+        // popup.addEventListener('click', (e) => {
+        //     if (e.target === popup) popup.style.display = 'none';
+        // });
+        // finalPopup.addEventListener('click', (e) => {
+        //     if (e.target === finalPopup) finalPopup.style.display = 'none';
+        // });
+
+        // ============================================================
+        // BUILD GRID
+        // ============================================================
+        function buildGrid() {
+            gridContainer.innerHTML = '';
+
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.textContent = gridData[r][c].toUpperCase();
+                    cell.addEventListener('click', () => handleCellClick(r, c));
+                    cell.addEventListener('mouseenter', () => handleCellHover(r, c));
+                    gridContainer.appendChild(cell);
+                }
+            }
+        }
+
+        // ============================================================
+        // BUILD CHIPS
+        // ============================================================
+        function buildChips() {
+            chipsContainer.innerHTML = '';
+            wordData.forEach((item, idx) => {
+                const chip = document.createElement('div');
+                chip.className = `chip ${item.chipColor}`;
+                chip.id = `chip-${idx}`;
+                chip.innerHTML = `
+                    ${item.word}
+                    <span class="checkmark"><i class="fas fa-check-circle"></i></span>
+                `;
+                chipsContainer.appendChild(chip);
+            });
+        }
+
+        // ============================================================
+        // BUILD IMAGES
+        // ============================================================
+        function buildImages() {
+            imagesGrid.innerHTML = '';
+            wordData.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'image-card';
+                card.id = `image-${idx}`;
+                card.innerHTML = `
+                    <img src="${item.image}" alt="${item.label}" loading="lazy">
+                    <span class="image-label">${item.label}</span>
+                `;
+                imagesGrid.appendChild(card);
+            });
+        }
+
+        // ============================================================
+        // SELECTION LOGIC
+        // ============================================================
+        function handleCellClick(row, col) {
+            if (isGameComplete) return;
+            const cell = getCellElement(row, col);
+            if (cell.classList.contains('found')) return;
+
+            clearSelection();
+            startCell = { r: row, c: col };
+            isSelecting = true;
+            selectedCells = [{ r: row, c: col }];
+            cell.classList.add('selected');
+        }
+
+        function handleCellHover(row, col) {
+            if (!isSelecting || isGameComplete) return;
+            if (startCell.r === row && startCell.c === col) return;
+
+            const cell = getCellElement(row, col);
+            if (cell.classList.contains('found')) return;
+
+            const dr = row - startCell.r;
+            const dc = col - startCell.c;
+
+            if (dr !== 0 && dc !== 0 && Math.abs(dr) !== Math.abs(dc)) return;
+            if (dr === 0 && dc === 0) return;
+
+            const maxSteps = Math.max(Math.abs(dr), Math.abs(dc));
+            const stepR = dr === 0 ? 0 : dr / Math.abs(dr);
+            const stepC = dc === 0 ? 0 : dc / Math.abs(dc);
+
+            const newCells = [];
+            let valid = true;
+            for (let i = 0; i <= maxSteps; i++) {
+                const nr = startCell.r + i * stepR;
+                const nc = startCell.c + i * stepC;
+                if (nr < 0 || nr >= gridSize || nc < 0 || nc >= gridSize) {
+                    valid = false;
+                    break;
+                }
+                const cellEl = getCellElement(nr, nc);
+                if (cellEl.classList.contains('found')) {
+                    valid = false;
+                    break;
+                }
+                newCells.push({ r: nr, c: nc });
+            }
+
+            if (!valid || newCells.length < 2) return;
+
+            clearSelection();
+            selectedCells = newCells;
+            selectedCells.forEach(({ r, c }) => {
+                const el = getCellElement(r, c);
+                el.classList.add('selected');
+            });
+
+            const selectedWord = selectedCells.map(({ r, c }) => gridData[r][c]).join('');
+            const wordId = synonymToId[selectedWord];
+            if (wordId !== undefined && !foundWords.includes(wordId)) {
+                const wordItem = wordData[wordId];
+                markWordFound(wordId, selectedCells);
+                isSelecting = false;
+                startCell = null;
+                clearSelection();
+            }
+        }
+
+        function clearSelection() {
+            document.querySelectorAll('.grid-cell.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            selectedCells = [];
+        }
+
+        function getCellElement(row, col) {
+            return gridContainer.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+        }
+
+        // ============================================================
+        // MARK WORD FOUND
+        // ============================================================
+        function markWordFound(wordId, cells) {
+            const wordItem = wordData[wordId];
+            if (foundWords.includes(wordId)) return;
+
+            foundWords.push(wordId);
+
+            cells.forEach(({ r, c }) => {
+                const el = getCellElement(r, c);
+                el.classList.add('found', wordItem.highlightClass);
+            });
+
+            const chip = document.getElementById(`chip-${wordId}`);
+            chip.classList.add('found');
+
+            const imageCard = document.getElementById(`image-${wordId}`);
+            imageCard.classList.add('active');
+
+            showPopup(true, wordItem.word);
+
+            if (foundWords.length === wordData.length) {
+                isGameComplete = true;
+                setTimeout(showFinalPopup, 1200);
+            }
+        }
+
+        // ============================================================
+        // RESET
+        // ============================================================
+        function resetGame() {
+            foundWords = [];
+            isSelecting = false;
+            startCell = null;
+            selectedCells = [];
+            isGameComplete = false;
+            popup.style.display = 'none';
+            finalPopup.style.display = 'none';
+
+            document.querySelectorAll('.grid-cell').forEach(el => {
+                el.classList.remove('selected', 'found', 'chip-blue-found', 'chip-pink-found',
+                    'chip-green-found', 'chip-orange-found', 'chip-yellow-found', 'chip-red-found');
+            });
+
+            document.querySelectorAll('.chip').forEach(el => {
+                el.classList.remove('found');
+            });
+
+            document.querySelectorAll('.image-card').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // speak('Game reset! Find the synonyms in the grid.');
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        buildGrid();
+        buildChips();
+        buildImages();
+        // speak('Find the synonyms hidden in the grid. Click the first letter, then hover over the rest!');
+
+        // Play Again button
+        playAgainBtn.onclick = resetGame;
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antonym Match Game</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+       @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman";
+            font-weight: 400;
+        }
+/* =========================================
+   PAGE
+========================================= */
+
+body{
+    margin:0;
+    overflow:hidden;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    height:100vh;
+
+    font-family:"CCSyntroman";
+
+  
+}
+
+
+/* =========================================
+   MAIN CONTAINER
+========================================= */
+
+.container{
+
+    width:100%;
+    max-width:1250px;
+
+    height:95vh;
+
+    display:flex;
+    flex-direction:column;
+
+    padding:20px 35px;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.top-area{
+  text-align:center;
+    margin-bottom:12px;
+}
+
+.page-heading{
+
+    font-size:23px;
+
+    color:#5A3E2B;
+
+    margin:0;
+
+  text-align: center;
+ margin-top: -20px;
+}
+
+.shape-instruction{
+
+    display:inline-block;
+
+    
+    padding:8px 18px;
+
+    background:#FBE7B2;
+
+    color:#5A3E2B;
+
+    font-size:25px;
+
+    border-radius:12px;
+
+    box-shadow:0 3px 8px rgba(0,0,0,.08);
+    margin-top: 10px;
+
+}
+.shape-toolbar{
+position:relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+
+     background:#eee0c7;
+    padding:8px 24px;      /* Reduced height */
+    border-radius:14px;
+
+    margin-bottom:24px;    /* Gap between toolbar and play area */
+}
+.shape-label{
+
+    position:absolute;
+
+    left:18px;
+    top:-18px;     /* overlaps the toolbar slightly */
+
+    background:#FBE7B2;
+
+    color:#5A3E2B;
+
+    padding:8px 14px;
+
+    border-radius:12px;
+
+    font-size:18px;
+    line-height:1.15;
+
+    font-weight:600;
+
+    box-shadow:0 4px 10px rgba(0,0,0,.08);
+
+    z-index:20;
+
+}
+.shape-card{
+    width:140px;
+    height: 160px;
+    cursor:pointer;
+    transition:.25s;
+}
+
+
+/* ===========================
+   COMMON
+=========================== */
+
+.shape-card{
+
+    position:relative;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+    background:transparent;
+
+    box-shadow:none;
+
+}
+
+
+.shape-card.rectangle {
+
+    width:92px;
+    height:32px;
+
+    border:2px solid #FF4B2B;
+}.shape-card.oval {
+
+    width:92px;
+    height:32px;
+
+    border:2px solid #FF4B8B;
+
+    border-radius:50px;
+}.shape-card.diamond {
+
+    width:52px;
+    height:52px;
+
+    border:2px solid #FF4B2B;
+
+    transform:rotate(45deg);
+}.shape-card.arrow {
+
+    position:relative;
+
+    width:72px;
+    height:26px;
+
+    border:2px solid #FF4B2B;
+
+    background:transparent;
+}
+
+.arrow::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:50%;
+    right:-16px;
+
+    transform:translateY(-50%);
+
+    width:0;
+    height:0;
+
+    border-top:15px solid transparent;
+    border-bottom:15px solid transparent;
+    border-left:16px solid #FF4B2B;
+}
+.shape-card.cylinder {
+
+    width:74px;
+    height:30px;
+
+    border:2px solid #FF7A00;
+
+    position:relative;
+}
+
+.cylinder::before,
+.cylinder::after{
+
+    content:"";
+
+    position:absolute;
+
+    left:-2px;
+
+    width:74px;
+    height:12px;
+
+    border:2px solid #FF7A00;
+
+    border-radius:50%;
+
+    background:#FFF6E8;
+}
+
+.cylinder::before{
+
+    top:-8px;
+
+}
+
+.cylinder::after{
+
+    bottom:-8px;
+
+}
+.shape-btn{
+    width:150px;
+    height:120px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    cursor:pointer;
+
+    border-radius:12px;
+
+    transition:.25s;
+}
+
+.shape-btn.selected{
+
+    background:#ECFFF3;
+
+    border:2px solid #6FD59A;
+
+    border-radius:12px;
+
+    box-shadow:
+        0 0 18px rgba(111,213,154,.35);
+
+}
+.shape-btn.used{
+
+    opacity: .35;
+    filter: grayscale(100%);
+    cursor: default;
+
+}
+/* =========================================
+   PLAY AREA
+========================================= */
+
+.play-area{
+
+    flex:1;
+
+    position:relative;
+
+    border-radius:35px;
+
+    background:
+        linear-gradient(
+        180deg,
+        #FDFEFF,
+        #FFFDF7);
+
+    border:4px dashed #D8E8F8;
+
+    overflow:hidden;
+
+   padding:60px 80px;
+
+}
+
+
+/* ==========================================
+   PLAY AREA
+========================================== */
+
+.play-area{
+
+    position:relative;
+
+    flex:1;
+
+   padding:60px 80px;
+
+}
+
+
+/* Both containers occupy the same area */
+
+#left,
+#right{
+
+    position:absolute;
+
+    inset:0;
+}.item{
+    position:absolute;
+    width:180px;
+    height:90px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    transform:translate(-50%,-50%);
+}
+
+.item::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:100px;
+    height:100px;
+
+    background:#eee0c7;
+
+    opacity:.95;
+
+    border-radius:42% 58% 50% 50% /
+                  45% 40% 60% 55%;
+
+    transform:rotate(-12deg);
+
+    z-index:0;
+}
+
+.item span{
+
+    position:relative;
+    z-index:2;
+
+    color:#4A4037;
+    font-size:22px;
+}
+.item:nth-child(2n)::before{
+    transform:rotate(10deg) scale(1.05);
+}
+
+.item:nth-child(3n)::before{
+    transform:rotate(-18deg) scale(.95);
+}
+
+.item:nth-child(4n)::before{
+    border-radius:55% 45% 60% 40% /
+                  40% 60% 45% 55%;
+}
+/* LEFT WORDS */
+.item{
+    position:absolute;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor: pointer;
+}
+
+.match-img{
+
+    position:absolute;
+
+    width:120px;
+    height:auto;
+
+    left:50%;
+    top:50%;
+
+    transform:translate(-50%,-50%);
+
+    pointer-events:none;
+
+    z-index:1;
+
+}
+.matched-shape{
+
+    position:absolute;
+
+     /* move above the word */
+    left:50%;
+
+    transform:translateX(-50%);
+
+    width:160px;
+    height:160px;
+
+    z-index:3;
+
+    pointer-events:none;
+
+}
+.item span{
+
+    position:relative;
+
+    z-index:2;
+
+}
+.item.active{
+    background:none;
+    border:none;
+    box-shadow:none;
+}
+
+.item.active span{
+    border:none;
+    background:none;
+    padding:0;
+    box-shadow:none;
+}
+
+/* Active border around the pastel blob */
+.item.active::before{
+
+    border:3px solid #5DADE2;
+    box-shadow:0 0 10px rgba(93,173,226,.25);
+
+}
+/* =====================================================
+   POPUP OVERLAY
+===================================================== */
+
+.popup-overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    opacity:0;
+    transition:opacity .4s ease;
+}
+
+.popup-overlay.show{
+    display:flex;
+    opacity:1;
+}
+
+
+/* =====================================================
+   POPUP CARD
+===================================================== */
+.popup{
+    background:#fff;
+    width:350px;
+    border-radius:40px;
+    padding:0;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+
+    border:1px solid rgba(255,255,255,.9);
+
+    /* Premium Floating Shadow */
+    box-shadow:
+        0 2px 6px rgba(0,0,0,.05),
+        0 10px 18px rgba(0,0,0,.08),
+        0 22px 35px rgba(0,0,0,.12),
+        0 45px 70px rgba(0,0,0,.18),
+        0 70px 110px rgba(0,0,0,.10);
+
+    animation: popupSlide .45s cubic-bezier(.34,1.56,.64,1);
+}
+.popup{
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,.7),
+        0 8px 16px rgba(0,0,0,.06),
+        0 18px 36px rgba(0,0,0,.10),
+        0 35px 70px rgba(0,0,0,.18),
+        0 0 40px rgba(255,255,255,.25);
+}
+
+@keyframes popupSlide{
+
+    0%{
+        transform:scale(.5) translateY(60px) rotate(-5deg);
+        opacity:0;
+    }
+
+    60%{
+        transform:scale(1.05) translateY(-8px) rotate(2deg);
+    }
+
+    100%{
+        transform:scale(1) translateY(0) rotate(0);
+        opacity:1;
+    }
+}
+
+
+/* =====================================================
+   POPUP TOP
+===================================================== */
+
+.popup-top{
+    padding:35px 24px 20px;
+    position:relative;
+}
+
+
+/* =====================================================
+   ICON
+===================================================== */
+
+.popup-icon-wrap{
+
+    width:90px;
+    height:90px;
+
+    margin:0 auto 10px;
+
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:50px;
+
+    box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
+
+.popup.correct .popup-icon-wrap{
+    background:#4CAF50;
+    animation:
+        iconPop .6s cubic-bezier(.34,1.56,.64,1),
+        glowGreen 1.2s ease-in-out infinite alternate;
+}
+
+.popup.wrong .popup-icon-wrap{
+    background:#EF5350;
+    animation:
+        iconPop .6s cubic-bezier(.34,1.56,.64,1),
+        glowRed 1.2s ease-in-out infinite alternate;
+}
+.popup.final .popup-icon-wrap{
+    background:#ffffff;
+    box-shadow:0 10px 30px rgba(0,0,0,.12);
+}
+
+.popup-icon-wrap span{
+    color:#fff;
+}
+
+
+/* =====================================================
+   GLOW ANIMATION
+===================================================== */
+
+@keyframes glowGreen{
+
+    from{
+        box-shadow:0 0 20px rgba(76,175,80,.3);
+    }
+
+    to{
+        box-shadow:0 0 40px rgba(76,175,80,.6);
+    }
+}
+
+@keyframes glowRed{
+
+    from{
+        box-shadow:0 0 20px rgba(239,83,80,.3);
+    }
+
+    to{
+        box-shadow:0 0 40px rgba(239,83,80,.6);
+    }
+}
+
+@keyframes iconPop{
+
+    0%{
+        transform:scale(0) rotate(-30deg);
+    }
+
+    60%{
+        transform:scale(1.2) rotate(10deg);
+    }
+
+    100%{
+        transform:scale(1) rotate(0);
+    }
+}
+
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.popup-title{
+
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:-.5px;
+}
+
+
+/* =====================================================
+   BOTTOM
+===================================================== */
+
+.popup-bottom{
+
+    padding:18px 24px 22px;
+    background:#fff;
+}
+
+.popup-msg{
+
+    font-size:18px;
+    font-weight:500;
+
+    line-height:1.45;
+
+    color:#4B5563;
+}
+
+
+/* =====================================================
+   SCORE
+===================================================== */
+
+.popup-score{
+
+    width:100%;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    margin:0 auto 12px;
+
+    font-size:20px;
+    font-weight:700;
+
+   
+}
+
+.popup-score span{
+    margin-right:8px;
+}
+
+.popup-score strong{
+
+    font-size:20px;
+    
+}
+
+
+/* =====================================================
+   STARS
+===================================================== */
+
+.popup-stars{
+
+    display:flex;
+    justify-content:center;
+    gap:8px;
+
+    font-size:34px;
+
+    margin:10px auto 18px;
+
+    color:#FFC83D;
+
+    animation:starDance .8s ease;
+}
+
+@keyframes starDance{
+
+    0%{
+        transform:scale(0) rotate(-20deg);
+        opacity:0;
+    }
+
+    50%{
+        transform:scale(1.3) rotate(10deg);
+    }
+
+    100%{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+
+/* =====================================================
+   CORRECT
+===================================================== */
+
+.popup.correct{
+
+    background:#fff;
+    border:3px solid #4CAF50;
+}
+
+.popup.correct .popup-top{
+    background:#fff;
+}
+
+.popup.correct .popup-bottom{
+    background:#fff;
+    border-top:none;
+}
+
+.popup.correct .popup-title{
+    color:#2E7D32;
+}
+
+
+/* =====================================================
+   WRONG
+===================================================== */
+
+.popup.wrong{
+
+    background:#fff;
+    border:3px solid #EF5350;
+}
+
+.popup.wrong .popup-top{
+    background:#fff;
+}
+
+.popup.wrong .popup-bottom{
+    background:#fff;
+    border-top:none;
+}
+
+.popup.wrong .popup-title{
+    color:#D32F2F;
+}
+/* =========================
+   FINAL POPUP - CLEAN WHITE
+========================= */
+.popup.final{
+    background:#FFFFFF;
+    border:3px solid #4CAF50;
+    box-shadow:0 18px 45px rgba(15,23,42,.12);
+}
+
+.popup.final .popup-top{
+    background:linear-gradient(135deg,#F8FAFC,#EEF5FB);
+}
+
+.popup.final .popup-bottom{
+    background:#FFFFFF;
+    border-top:2px solid #EDF2F7;
+}
+
+/* Title */
+
+.popup.final .popup-title{
+    color:#334155;
+    font-size:30px;
+    font-weight:700;
+    letter-spacing:.3px;
+}
+
+/* Score */
+
+.popup.final .popup-score{
+    color:#0F172A;
+    font-size:24px;
+    font-weight:700;
+    margin:12px 0 15px;
+}
+
+/* Stars */
+
+.popup.final .popup-stars{
+    color:#FACC15;
+    font-size:38px;
+    letter-spacing:6px;
+}
+
+/* Trophy Circle */
+
+.popup.final .popup-icon-wrap{
+    width:95px;
+    height:95px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:#F1F5F9;
+    border:5px solid #BBF7D0;
+    border-radius:50%;
+
+    box-shadow:
+        0 12px 30px rgba(15,23,42,.08),
+        0 0 0 8px rgba(187,247,208,.35);
+}
+
+.popup.final .popup-icon-wrap span{
+    font-size:52px;
+}
+
+/* Play Again Button */
+
+.popup.final .play-again-popup{
+    width:100%;
+    height:58px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+
+    border:none;
+    border-radius:16px;
+
+    background:#4CAF50;
+
+    color:#fff;
+    font-size:18px;
+    font-weight:700;
+
+    cursor:pointer;
+    transition:.25s;
+
+    box-shadow:0 10px 24px rgba(34,197,94,.28);
+}
+/* 
+.popup.final .play-again-popup:hover{
+    background:linear-gradient(135deg,#16A34A,#15803D);
+    transform:translateY(-2px);
+    box-shadow:0 14px 30px rgba(34,197,94,.35);
+} */
+
+/* ========================================
+   🖥️ Large Monitor (1441px – 1920px)
+======================================== */
+
+@media screen and (min-width:1441px) and (max-width:1920px){
+
+    .container{
+        max-width:1600px;
+        height:96vh;
+        padding:25px 45px;
+    }
+
+    .page-heading{
+        font-size:30px;
+        line-height:1.35;
+    }
+
+    .shape-instruction{
+        font-size:30px;
+        padding:10px 22px;
+        margin-top:12px;
+        margin-bottom:18px;
+    }
+
+    .shape-toolbar{
+        padding:12px 35px;
+        gap:25px;
+        border-radius:18px;
+        margin-bottom:30px;
+    }
+
+    .shape-btn{
+        width:170px;
+        height:130px;
+    }
+
+    .shape-card{
+        width:185px;
+        height:185px;
+    }
+
+    .play-area{
+        padding:70px 90px;
+        border-radius:38px;
+    }
+
+    .item{
+        width:240px;
+        height:120px;
+    }
+
+    .item::before{
+        width:135px;
+        height:135px;
+    }
+
+    .item span{
+        font-size:30px;
+    }
+
+    /* Default matched shape */
+    .matched-shape{
+        width:200px;
+        height:200px;
+    }
+
+    /* Individual shape sizes */
+
+    .matched-shape[src*="rectangle"]{
+        width:240px !important;
+        height:220px !important;
+    }
+
+    .matched-shape[src*="oval"]{
+        width:230px !important;
+        height:155px !important;
+    }
+
+    .matched-shape[src*="diamond"]{
+        width:220px !important;
+        height:220px !important;
+    }
+
+    .matched-shape[src*="arrow"]{
+        width:220px !important;
+        height:200px !important;
+    }
+
+    .matched-shape[src*="cylinder"]{
+        width:240px !important;
+        height:220px !important;
+    }
+
+    .matched-shape[src*="triangle"]{
+        width:340px !important;
+        height:320px !important;
+    }
+
+}
+
+/* ========================================
+   📺 4K / Ultra Wide (1921px+)
+======================================== */
+@media screen and (min-width:1921px){
+
+    .container{
+        max-width:1700px;
+        height:96vh;
+    }
+
+    .game{
+        gap:60px;
+    }
+
+    .column{
+        gap:35px;
+    }
+
+    .left .item,
+    .right .item{
+        width:430px;
+        height:115px;
+        font-size:30px;
+    }
+
+    .img-box{
+        width:95px;
+        height:95px;
+    }
+
+    .img-box img{
+        width:82px;
+        height:82px;
+    }
+
+    .center{
+        gap:25px;
+    }
+
+    .slot{
+        height:115px;
+        font-size:28px;
+    }
+
+    .slot img{
+        width:52px;
+        height:52px;
+    }
+
+    .final-kid-box{
+        width:650px;
+        padding:45px;
+    }
+
+    .final-kid-box h2{
+        font-size:3.2rem;
+    }
+
+    .final-kid-box p{
+        font-size:2rem;
+    }
+
+    #stars{
+        font-size:3.5rem;
+    }
+
+    .playAgain-btn{
+        font-size:24px;
+        padding:18px 46px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- Header -->
+
+    <div class="top-area">
+
+        <h2 class="page-heading">
+           Draw the same shape around the pair of opposites words
+        </h2>
+  <div class="shape-instruction">
+        You can use these shapes
+    </div>
+
+    </div>
+
+
+    <!-- Shape Toolbar -->
+<div class="shape-toolbar">
+ 
+<div class="shape-btn" data-shape="rectangle">
+    <img src="../images/rectangle.png" class="shape-card">
+</div>
+
+<div class="shape-btn" data-shape="oval">
+    <img src="../images/oval.png" class="shape-card">
+</div>
+
+<div class="shape-btn" data-shape="diamond">
+    <img src="../images/diamond.png" class="shape-card">
+</div>
+
+<div class="shape-btn" data-shape="arrow">
+    <img src="../images/arrow.png" class="shape-card">
+</div>
+
+<div class="shape-btn" data-shape="cylinder">
+    <img src="../images/cylinder.png" class="shape-card">
+</div>
+
+<div class="shape-btn" data-shape="triangle">
+    <img src="../images/triangle.png" class="shape-card">
+</div>
+</div>
+    <!-- Playing Area -->
+
+    <div class="play-area" id="playArea">
+
+        <div id="left"></div>
+
+        <div id="right"></div>
+
+    </div>
+
+</div>
+<div class="popup-overlay" id="popupOverlay">
+    <div class="popup" id="popupBox"></div>
+</div>
+<script>
+
+function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-US";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+
+window.speechSynthesis.onvoiceschanged = () => {};
+const words = [
+
+    // Row 1
+    { text:"Win",       match:"Lose",        x:10, y:18 },
+    { text:"Eldest",    match:"Youngest",   x:30, y:18 },
+    { text:"Follow",    match:"Lead",       x:54, y:18  },
+    { text:"Descend",   match:"Ascend",   x:88, y:20  },
+
+    // Row 2
+    { text:"Lose",      match:"Win",           x:40, y:45 },
+    { text:"Enter",     match:"Exit",         x:70, y:30 },
+
+    // Row 3
+    { text:"Ascend",    match:"Descend",     x:20, y:50 },
+    { text:"Easy",      match:"Hard",   x:60, y:56 },
+    { text:"Youngest",  match:"Eldest",    x:88, y:60 },
+
+    // Row 4
+    { text:"Lead",      match:"Follow",      x:10, y:80 },
+    { text:"Exit",      match:"Enter",          x:37, y:82 },
+    { text:"Hard",      match:"Easy",         x:72, y:80 }
+
+];
+let selected = null;
+let score = 0;
+let popupTimer = null;
+let selectedShape = null;
+document.querySelectorAll(".shape-btn").forEach(btn => {
+
+    btn.onclick = () => {
+
+        // Ignore disabled shapes
+        if (btn.classList.contains("used")) return;
+
+        document
+            .querySelectorAll(".shape-btn")
+            .forEach(x => x.classList.remove("selected"));
+
+        btn.classList.add("selected");
+
+        selectedShape = btn.dataset.shape;
+
+    };
+
+});
+
+const playArea = document.getElementById("playArea");
+
+
+words.forEach(word => {
+
+    const div = document.createElement("div");
+div.className = "item";
+div.dataset.match = word.match;
+
+
+    div.style.left = word.x + "%";
+    div.style.top = word.y + "%";
+
+    div.innerHTML = `<span>${word.text}</span>`;
+div.onclick = () => {
+
+    if (div.classList.contains("matched")) return;
+
+    // First check: user must select a shape
+    if (!selectedShape) {
+        speak("Select a shape first");
+        return;
+    }
+
+    // First word
+    if (!selected) {
+        selected = div;
+        div.classList.add("active");
+        return;
+    }
+
+    // Same word clicked
+    if (selected === div) return;
+const correctPair =
+    selected.dataset.match === div.querySelector("span").innerText;
+
+if(correctPair){
+
+        speak("Correct");
+        showPopup(true);
+
+        selected.classList.add("matched");
+        div.classList.add("matched");
+  [selected, div].forEach(item => {
+
+ const img = document.createElement("img");
+
+img.src = `../images/${selectedShape}.png`;
+img.className = "matched-shape";
+
+// Different size for each shape
+const shapeSize = {
+    rectangle: { w: 170, h: 140 },
+    oval:      { w: 170, h: 110 },
+    diamond:   { w: 150, h: 150 },
+    arrow:     { w: 170, h: 180 },
+    cylinder:  { w: 180, h: 160 },
+    triangle:  { w: 250, h: 250 }
+};
+
+// Apply size
+img.style.width = shapeSize[selectedShape].w + "px";
+img.style.height = shapeSize[selectedShape].h + "px";
+
+item.appendChild(img);
+});
+        selected.classList.remove("active");
+        div.classList.remove("active");
+
+        score++;
+
+// Disable the used shape
+const usedBtn = document.querySelector(
+    `.shape-btn[data-shape="${selectedShape}"]`
+);
+
+usedBtn.classList.remove("selected");
+usedBtn.classList.add("used");
+usedBtn.style.pointerEvents = "none";
+usedBtn.style.opacity = "0.35";
+usedBtn.style.filter = "grayscale(100%)";
+
+// Reset selection
+selectedShape = null;
+
+        confetti({
+            particleCount:70,
+            spread:80
+        });
+
+  if (score === words.length / 2) {
+
+    clearTimeout(popupTimer);
+
+    popupTimer = setTimeout(() => {
+        showFinal();
+    }, 1400);
+
+    return;
+}
+    } else {
+
+        speak("Try Again");
+        showPopup(false);
+
+        selected.classList.remove("active");
+
+        selected.classList.add("shake");
+        div.classList.add("shake");
+
+        setTimeout(()=>{
+            selected.classList.remove("shake");
+            div.classList.remove("shake");
+        },400);
+
+    }
+
+    selected = null;
+
+};
+playArea.appendChild(div);
+});
+
+function showPopup(isCorrect){
+
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = document.getElementById("popupBox");
+
+    popupBox.className = isCorrect ? "popup correct" : "popup wrong";
+
+    popupBox.innerHTML = isCorrect ? `
+        <div class="popup-top">
+            <div class="popup-icon-wrap">
+                <span>🌟</span>
+            </div>
+
+            <div class="popup-title">
+               Excellent!
+            </div>
+        </div>
+
+        <div class="popup-bottom">
+            <div class="popup-msg">
+                Awesome! You got it right! 🎉
+            </div>
+        </div>
+    `
+    :
+    `
+        <div class="popup-top">
+            <div class="popup-icon-wrap">
+                <span>🤔</span>
+            </div>
+
+            <div class="popup-title">
+                 Oops!
+            </div>
+        </div>
+
+        <div class="popup-bottom">
+            <div class="popup-msg">
+               Nice try! Give it another shot. 😊
+            </div>
+        </div>
+    `;
+
+    overlay.classList.add("show");
+
+   clearTimeout(popupTimer);
+
+popupTimer = setTimeout(() => {
+    overlay.classList.remove("show");
+}, 1400);
+}
+function showFinal() {
+
+    let end = Date.now() + 1500;
+
+    (function frame(){
+
+        confetti({
+            particleCount:3,
+            angle:60,
+            spread:55,
+            origin:{x:0}
+        });
+
+        confetti({
+            particleCount:3,
+            angle:120,
+            spread:55,
+            origin:{x:1}
+        });
+
+        if(Date.now() < end){
+            requestAnimationFrame(frame);
+        }
+
+    })();
+
+    const overlay = document.getElementById("popupOverlay");
+    const popupBox = document.getElementById("popupBox");
+
+    popupBox.className = "popup final";
+
+    popupBox.innerHTML = `
+        <div class="popup-top">
+            <div class="popup-icon-wrap">
+                <span>👑</span>
+            </div>
+
+            <div class="popup-title">
+                Congratulations!
+            </div>
+        </div>
+
+        <div class="popup-bottom">
+
+            <div class="popup-score">
+                <span>Score:</span>
+             <strong>${score}/${words.length/2}</strong>
+            </div>
+
+            <div class="popup-stars">
+                ⭐⭐⭐
+            </div>
+
+            <button class="play-again-popup" id="playAgainBtn">
+                Play Again
+            </button>
+
+        </div>
+    `;
+
+    overlay.classList.add("show");
+
+    document.getElementById("playAgainBtn").onclick = () => {
+        location.reload();
+    };
+}
+
+</script>
+
+</body>
+</html>

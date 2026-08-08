@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>😊 Emoji Quiz · Good/Bad Points</title>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'CCSYBold';
+            src: url('./assets/CCSYBOLD.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'CCSyntroman', 'Livvic', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px;
+            overflow:hidden;
+        }
+
+        .quiz-wrapper {
+            width: 100%;
+            max-width: 1100px;
+           
+            transition: 0.3s;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #2f4f4f;
+            text-align: center;
+            line-height: 1.4;
+            border-bottom: 3px dashed #d5c8ec;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        h1 span { font-size: 28px; }
+        h1 small {
+            font-size: 16px;
+            font-weight: 400;
+            color: #5a6a6a;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* ===== NEW LAYOUT: IMAGE LEFT + CONTENT RIGHT ===== */
+     .quiz-grid {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 50px;
+    margin: 20px 0;
+}
+
+.image-col {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+        .image-col > img {
+    width: 100%;
+    height: 240px;
+    max-height: 380px;
+    object-fit: contain;
+    display: block;
+
+  
+}
+
+ .content-col{
+    width:50%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+       .question-display {
+    width: 100%;
+    text-align: center;
+    margin: 15px 0 25px;
+    padding: 0 20px;
+}
+
+.question-text {
+    font-size: 30px;
+    font-weight: 400;
+    color: #1e3a3a;
+    line-height: 1.4;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    text-align: left;
+}
+        .question-text .label {
+            font-weight: 700;
+            color: #4a6a6a;
+            margin-right: 6px;
+            display: inline; /* show label */
+        }
+
+       .emoji-options {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+}
+.emoji-instruction{
+    width:100%;
+    margin-top:20px;
+    text-align:center;
+   
+    font-size:17px;
+    color:#49484b;
+    font-weight:400;
+    line-height:1.3;
+}
+        .emoji-btn {
+            width: 150px;
+            height: 150px;
+            border: 4px solid #d5c8ec;
+            border-radius: 28px;
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.25s;
+            overflow: hidden;
+            padding: 6px;
+        }
+        .emoji-btn img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            filter: grayscale(0%);
+            transition: 0.3s;
+        }
+        .emoji-btn:hover:not(.disabled) {
+            transform: scale(1.04);
+            border-color: #b29ce6;
+        }
+        .emoji-btn.correct img {
+            filter: grayscale(0%);
+        }
+        .emoji-btn.wrong {
+            animation: shake 0.5s;
+        }
+        .emoji-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-6px); }
+            80% { transform: translateX(6px); }
+        }
+
+       .controls {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 46px;
+    margin-top: 20px;
+}
+        .controls button {
+            padding: 13px 32px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 40px;
+            border: 3px solid #ffffff;
+            font-size: 20px;
+            font-weight: 400;
+            color: #ffffff;
+            cursor: pointer;
+            background: #7fc0eb;
+            transition: 0.2s;
+        }
+        #nextBtn { background: #ecc74e; }
+        #prevBtn:active { background: #6bb4e4; }
+        #nextBtn:active { background: #e6be3d; }
+        .controls button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== POPUPS (unchanged) ===== */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 20px;
+            /* background: rgba(0,0,0,0.08);
+            backdrop-filter: blur(3px); */
+        }
+        .kid-card {
+            background: #ffffff;
+            width: 380px;
+            max-width: 95%;
+            padding: 32px 28px;
+            border-radius: 44px;
+            text-align: center;
+            animation: kidPop 0.6s ease;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .kid-card::before, .kid-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .kid-card::before { width: 200px; height: 200px; top: -80px; right: -60px; background: #ffd93d; }
+        .kid-card::after { width: 150px; height: 150px; bottom: -60px; left: -50px; background: #6bcbff; }
+        .kid-card>* { position: relative; z-index: 2; }
+        .kid-icon { font-size: 4.8em; margin-bottom: 6px; animation: emojiBounce 0.9s infinite alternate; display: inline-block; }
+        .kid-card h3 { font-size: 2.2em; margin-bottom: 4px; font-weight: 700; letter-spacing: -0.5px; }
+        .kid-card p { font-size: 1.1em; color: #555; margin-top: 2px; font-weight: 500; }
+
+        .kid-correct .kid-card { background: linear-gradient(145deg, #f0fff4, #d4f5e6); border: 5px solid #38d9a9; }
+        .kid-correct .kid-card h3 { color: #0b8a4a; }
+        .kid-correct .kid-card p { color: #1a6a3a; }
+        .kid-correct .kid-card::before { background: #38d9a9; }
+        .kid-correct .kid-card::after { background: #38d9a9; }
+
+        .kid-wrong .kid-card { background: linear-gradient(145deg, #fff5f5, #fce4e4); border: 5px solid #ff8a8a; }
+        .kid-wrong .kid-card h3 { color: #c0392b; }
+        .kid-wrong .kid-card p { color: #922b21; }
+        .kid-wrong .kid-card::before { background: #ff8a8a; }
+        .kid-wrong .kid-card::after { background: #ff8a8a; }
+
+        @keyframes kidPop {
+            0% { transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg); opacity: 0; }
+            50% { transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0) perspective(400px) rotateX(0); opacity: 1; }
+        }
+        @keyframes emojiBounce {
+            from { transform: translateY(0) scale(1); }
+            to { transform: translateY(-12px) scale(1.05); }
+        }
+
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 4000;
+            padding: 20px;
+            /* background: rgba(0,0,0,0.05);
+            backdrop-filter: blur(4px); */
+        }
+        .final-kid-box {
+            background: linear-gradient(145deg, #fff7d6, #e6fff5);
+            padding: 35px 40px;
+            border-radius: 44px;
+            text-align: center;
+            width: 480px;
+            max-width: 95%;
+            animation: finalBounce 0.8s ease;
+            border: 4px solid rgba(255,255,255,0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        .final-kid-box::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: -120px;
+            right: -100px;
+            background: #ffd93d;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .final-kid-box>* { position: relative; z-index: 2; }
+        .final-kid-box h2 { font-size: 2.4em; color: #2f9e44; margin-bottom: 8px; font-weight: 700 !important; }
+        .final-kid-box p { font-size: 1.3em; font-weight: 600; color: #2d3a3a; }
+        #stars { font-size: 2.6em; margin: 14px 0; letter-spacing: 6px; }
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 16px 38px;
+            border-radius: 40px;
+            font-size: 1.15em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255,172,48,0.3);
+            letter-spacing: 0.5px;
+        }
+        .playAgain-btn:hover { transform: translateY(-3px); }
+        .playAgain-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #d4871f; }
+        @keyframes finalBounce {
+            0% { transform: scale(0.3) perspective(400px) rotateX(15deg); opacity: 0; }
+            50% { transform: scale(1.08) perspective(400px) rotateX(-5deg); opacity: 1; }
+            100% { transform: scale(1) perspective(400px) rotateX(0); opacity: 1; }
+        }
+
+        /* ============================================================ */
+        /* ===== FULL MEDIA QUERIES (preserved from original) ===== */
+        /* ============================================================ */
+
+        @media (max-width: 600px) {
+            .quiz-wrapper { padding: 20px 16px; border-radius: 32px; }
+            h1 { font-size: 18px; }
+            h1 small { font-size: 14px; }
+            .question-display { padding: 0; min-height: auto; }
+            .question-text { font-size: 18px; }
+            .emoji-btn { width: 64px; height: 64px; border-radius: 24px; }
+            .emoji-options { gap: 16px; }
+            .controls button { font-size: 16px; padding: 10px 20px; max-width: 140px; width: auto; }
+            .kid-card { width: 320px; padding: 24px 20px; border-radius: 36px; }
+            .kid-icon { font-size: 3.8em; }
+            .kid-card h3 { font-size: 1.8em; }
+            .final-kid-box { width: 92%; padding: 24px 20px; border-radius: 36px; }
+            .final-kid-box h2 { font-size: 1.8em; }
+            .final-kid-box p { font-size: 1.1em; }
+            #stars { font-size: 2em; }
+            .playAgain-btn { padding: 12px 28px; font-size: 1em; }
+            .quiz-grid { flex-direction: column; gap: 16px; }
+            .image-col img { max-height: 200px; }
+        }
+
+        @media (max-width: 480px) {
+            .quiz-wrapper { padding: 16px 12px; border-radius: 28px; }
+            h1 { font-size: 16px; }
+            h1 span { font-size: 22px; }
+            h1 small { font-size: 12px; }
+            .question-display { padding: 0; min-height: auto; margin: 0; }
+            .question-text { font-size: 16px; }
+            .emoji-btn { width: 52px; height: 52px; border-radius: 20px; border-width: 3px; }
+            .emoji-options { gap: 12px; margin: 12px 0 20px; }
+            .controls button { font-size: 14px; padding: 10px 16px; max-width: 100px; width: auto; }
+            .kid-card { width: 290px; padding: 20px 16px; border-radius: 32px; }
+            .kid-icon { font-size: 3.2em; }
+            .kid-card h3 { font-size: 1.5em; }
+            .kid-card p { font-size: 0.9em; }
+            .final-kid-box { padding: 20px 16px; border-radius: 32px; width: 95%; }
+            .final-kid-box h2 { font-size: 1.5em; }
+            .final-kid-box p { font-size: 1em; }
+            #stars { font-size: 1.8em; }
+            .playAgain-btn { padding: 10px 22px; font-size: 0.9em; }
+        }
+
+        @media (max-width: 380px) {
+            .quiz-wrapper { padding: 12px 8px; border-radius: 24px; }
+            h1 { font-size: 14px; }
+            h1 span { font-size: 18px; }
+            h1 small { font-size: 10px; }
+            .question-display { padding: 0; min-height: auto; margin: 0; }
+            .question-text { font-size: 13px; }
+            .emoji-btn { width: 42px; height: 42px; border-radius: 16px; border-width: 2px; }
+            .emoji-options { gap: 8px; margin: 8px 0 14px; }
+            .controls button { font-size: 11px; padding: 6px 10px; max-width: 70px; width: auto; border-radius: 28px; }
+            .controls { gap: 6px; }
+            .kid-card { width: 250px; padding: 14px 12px; border-radius: 28px; }
+            .kid-icon { font-size: 2.5em; }
+            .kid-card h3 { font-size: 1.2em; }
+            .kid-card p { font-size: 0.75em; }
+            .final-kid-box { padding: 14px 12px; border-radius: 28px; }
+            .final-kid-box h2 { font-size: 1.2em; }
+            .final-kid-box p { font-size: 0.8em; }
+            #stars { font-size: 1.4em; }
+            .playAgain-btn { padding: 6px 14px; font-size: 0.75em; }
+        }
+
+        @media (min-width: 601px) and (max-width: 768px) {
+            .quiz-wrapper { padding: 24px 20px; border-radius: 36px; }
+            h1 { font-size: 20px; }
+            h1 small { font-size: 15px; }
+            .question-text { font-size: 22px; }
+            .emoji-btn { width: 80px; height: 80px; border-radius: 26px; }
+            .emoji-options { gap: 24px; }
+            .controls button { font-size: 20px; padding: 13px 32px; }
+            .kid-card { width: 350px; padding: 26px 22px; border-radius: 40px; }
+            .kid-icon { font-size: 4em; }
+            .kid-card h3 { font-size: 1.9em; }
+            .final-kid-box { width: 90%; padding: 26px 22px; border-radius: 40px; }
+            .final-kid-box h2 { font-size: 2em; }
+            #stars { font-size: 2.2em; }
+            .playAgain-btn { padding: 14px 32px; font-size: 1.05em; }
+            .quiz-grid { flex-direction: column; gap: 16px; }
+        }
+
+        @media (min-width: 1025px) and (max-width: 1440px) {
+            .quiz-wrapper { max-width: 1000px; padding: 32px 36px 28px; border-radius: 52px; }
+            .quiz-grid {
+                
+                    margin: 40px 0 40px;
+            }
+            h1 { font-size: 24px; }
+            h1 small { font-size: 22px; }
+            .question-text { font-size: 30px; }
+            .emoji-btn { width: 170px; height: 170px; border-radius: 30px; }
+            .emoji-options { gap: 40px; }
+            .controls button { font-size: 20px; width: 140px; padding: 13px 32px; }
+        }
+
+        @media (min-width: 1441px) and (max-width: 1920px) {
+            .quiz-wrapper { max-width: 1200px; padding: 38px 42px 32px; border-radius: 56px; }
+            .quiz-grid {
+                gap:50px;
+                    margin: 50px 0 50px;
+            }
+            h1 { font-size: 28px; }
+            h1 span { font-size: 32px; }
+            h1 small { font-size: 18px; }
+            .question-text { font-size: 40px; }
+            .image-col img { height: 280px; }
+            .emoji-btn { width: 200px; height: 200px; border-radius: 34px; border-width: 5px; margin-inline:auto; }
+            .emoji-options { gap: 25px; }
+            .emoji-instruction{
+    margin-top:20px;
+    font-size:22px;
+}
+            .controls{
+                justify-content: center;
+                margin-inline:auto;
+            }
+            .controls button {  padding: 16px 36px;
+                font-size: 22px; width:140px; 
+              }
+            .kid-card { width: 460px; padding: 38px 34px; }
+            .kid-icon { font-size: 5.4em; }
+            .final-kid-box { width: 560px; padding: 42px; }
+            .final-kid-box h2 { font-size: 2.8em; }
+            #stars { font-size: 2.8em; }
+            .playAgain-btn { padding: 18px 44px; font-size: 1.3em; }
+        }
+
+        @media (min-width: 1921px) {
+            .quiz-wrapper { max-width: 1300px; padding: 44px 50px 38px; border-radius: 64px; }
+            h1 { font-size: 32px; }
+            h1 span { font-size: 36px; }
+            h1 small { font-size: 20px; }
+            .question-text { font-size: 42px; }
+            .emoji-btn { width: 240px; height: 240px; border-radius: 40px; border-width: 6px; }
+            .emoji-options { gap: 56px; }
+            .controls button { padding: 16px 36px; font-size: 22px; }
+            .kid-card { width: 500px; padding: 40px 36px; border-radius: 60px; }
+            .kid-icon { font-size: 5.8em; }
+            .kid-card h3 { font-size: 2.6em; }
+            .kid-card p { font-size: 1.2em; }
+            .final-kid-box { width: 580px; padding: 44px 50px; border-radius: 60px; }
+            .final-kid-box h2 { font-size: 3.2em; }
+            .final-kid-box p { font-size: 1.6em; }
+            #stars { font-size: 3.4em; }
+            .playAgain-btn { padding: 20px 52px; font-size: 1.4em; }
+        }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            body { padding: 10px; align-items: flex-start; padding-top: 15px; }
+            .quiz-wrapper { padding: 12px 16px; border-radius: 24px; max-width: 600px; }
+            h1 { font-size: 14px; margin-bottom: 8px; padding-bottom: 6px; }
+            h1 span { font-size: 18px; }
+            h1 small { font-size: 10px; }
+            .question-display { padding: 0; min-height: auto; margin: 0; }
+            .question-text { font-size: 14px; }
+            .emoji-btn { width: 44px; height: 44px; border-radius: 14px; border-width: 2px; }
+            .emoji-options { gap: 10px; margin: 6px 0 10px; }
+            .controls { margin-top: 4px; gap: 6px; }
+            .controls button { font-size: 10px; padding: 4px 10px; max-width: 60px; width: auto; border-radius: 20px; }
+            .kid-card { width: 220px; padding: 10px 12px; border-radius: 24px; }
+            .kid-icon { font-size: 2em; }
+            .kid-card h3 { font-size: 1em; }
+            .kid-card p { font-size: 0.7em; }
+            .final-kid-box { padding: 10px 14px; border-radius: 24px; width: 70%; }
+            .final-kid-box h2 { font-size: 1em; }
+            .final-kid-box p { font-size: 0.7em; }
+            #stars { font-size: 1.2em; }
+            .playAgain-btn { padding: 4px 12px; font-size: 0.65em; }
+            .quiz-grid { flex-direction: row; gap: 12px; }
+            .image-col img { max-height: 120px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-wrapper" id="quizWrapper">
+    <h1>
+        <span>👍</span> Good Point &nbsp;·&nbsp; <span>👎</span> Bad Point
+        <small>Click the option image to answer</small>
+    </h1>
+
+    <!-- ===== SIDE-BY-SIDE LAYOUT ===== -->
+   <!-- ===== QUESTION ON TOP ===== -->
+<div class="question-display">
+    <div class="question-text" id="questionText"></div>
+</div>
+
+<!-- ===== IMAGE LEFT + OPTIONS RIGHT ===== -->
+<div class="quiz-grid">
+
+    <!-- LEFT SIDE -->
+    <div class="image-col">
+        <img id="questionImage" src="" alt="Question visual">
+    </div>
+
+    <!-- RIGHT SIDE -->
+   <div class="content-col">
+
+    <div class="emoji-options" id="emojiOptions">
+
+        <button class="emoji-btn image-btn" data-emoji="🙂">
+            <img src="../assets/images/up.png" alt="Good">
+        </button>
+
+        <button class="emoji-btn image-btn" data-emoji="☹️">
+            <img src="../assets/images/down.png" alt="Bad">
+        </button>
+
+    </div>
+
+    <div class="emoji-instruction">
+        Click the correct image
+    </div>
+
+</div>
+
+</div>
+
+<!-- ===== NAVIGATION BOTTOM ===== -->
+<div class="controls">
+
+    <button id="prevBtn">
+        <i class="fa-solid fa-angles-left"></i> Prev
+    </button>
+
+    <button id="nextBtn">
+        Next <i class="fa-solid fa-angles-right"></i>
+    </button>
+
+</div>
+</div>
+</div>
+
+<!-- ===== POPUPS (unchanged) ===== -->
+<div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+        <div class="kid-icon" id="popupIcon"></div>
+        <h3 id="popupTitle"></h3>
+        <p id="popupMsg"></p>
+    </div>
+</div>
+<div id="finalPopup">
+    <div class="final-kid-box">
+        <h2>🎉 Congratulations!</h2>
+        <p id="finalScore"></p>
+        <div id="stars"></div>
+        <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+    // ===== DATA =====
+    const questions = [
+        { id:'a', text:'Q1. A minister gave the idea of giving a cow to each villager.', image:'../assets/images/tf1.png', correct:'☹️' },
+        { id:'b', text:'Q2. Tenali Ramakrishna hunted the rats.', image:'../assets/images/tf2.png', correct:'☹️' },
+        { id:'c', text:'Q3. The cats became lazy after getting milk easily every day.', image:'../assets/images/tf3.png', correct:'☹️' },
+        { id:'d', text:'Q4. Tenali Ramakrishna explained to the king what the mistake was.', image:'../assets/images/tf41.png', correct:'🙂' },
+        { id:'e', text:'Q5. The king told the villagers to stop feeding their cats with milk.', image:'../assets/images/tf5.png', correct:'🙂' }
+    ];
+
+    // ===== STATE =====
+    let currentIndex = 0;
+    let correctCount = 0;
+    let status = {};
+    let wrongDisabled = {};
+
+    // ===== DOM =====
+    const questionText = document.getElementById('questionText');
+    const questionImage = document.getElementById('questionImage');
+    const emojiBtns = document.querySelectorAll('.emoji-btn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const popupOverlay = document.getElementById('answerPopup');
+    const popupIcon = document.getElementById('popupIcon');
+    const popupTitle = document.getElementById('popupTitle');
+    const popupMsg = document.getElementById('popupMsg');
+
+    // ===== UTILITIES =====
+    function speak(t) {
+        speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(t);
+        msg.lang = 'en-US';
+        msg.volume = 0.25;
+        msg.rate = 1;
+        msg.pitch = 1;
+        speechSynthesis.speak(msg);
+    }
+    function smallConfetti() { confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } }); }
+    function bigConfetti() {
+        confetti({ particleCount: 200, spread: 110, origin: { y: 0.5 } });
+        setTimeout(() => {
+            confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.2 } });
+            confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.8 } });
+        }, 150);
+    }
+
+    // ===== POPUP =====
+    function showPopup(isCorrect) {
+        popupOverlay.className = 'kid-popup ' + (isCorrect ? 'kid-correct' : 'kid-wrong');
+        popupOverlay.style.display = 'flex';
+        if (isCorrect) {
+            popupIcon.textContent = '🌟';
+            popupTitle.textContent = 'Amazing!';
+            popupMsg.textContent = 'You got it right! ✨';
+        } else {
+            popupIcon.textContent = '😒';
+            popupTitle.textContent = 'Keep Going!';
+            popupMsg.textContent = 'Try again, you can do it! 🌈';
+        }
+        const sound = document.getElementById(isCorrect ? 'correctSound' : 'wrongSound');
+        if (sound) sound.play().catch(()=>{});
+        setTimeout(() => { popupOverlay.style.display = 'none'; }, 1600);
+    }
+
+    function showFinal() {
+        document.getElementById('finalPopup').style.display = 'flex';
+        document.getElementById('finalScore').textContent = `Your Score: ${correctCount} / ${questions.length}`;
+        document.getElementById('stars').textContent = '⭐'.repeat(correctCount);
+        bigConfetti();
+    }
+
+    // ===== RENDER =====
+    function renderQuestion() {
+        const q = questions[currentIndex];
+        const qid = q.id;
+        questionText.innerHTML = `<span class="label"></span> ${q.text}`;
+        questionImage.src = q.image;
+        questionImage.alt = q.text;
+
+        emojiBtns.forEach(btn => {
+            btn.classList.remove('correct','wrong','disabled');
+            btn.disabled = false;
+        });
+
+        if (status[qid] === 'correct') {
+            const correctEmoji = q.correct;
+            emojiBtns.forEach(btn => {
+                if (btn.dataset.emoji === correctEmoji) {
+                    btn.classList.add('correct');
+                } else {
+                    btn.classList.add('disabled');
+                    btn.disabled = true;
+                }
+            });
+        } else if (wrongDisabled[qid]) {
+            const correctEmoji = q.correct;
+            emojiBtns.forEach(btn => {
+                if (btn.dataset.emoji !== correctEmoji) {
+                    btn.classList.add('disabled');
+                    btn.disabled = true;
+                }
+            });
+        }
+
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = status[qid] !== 'correct';
+    }
+
+    // ===== HANDLE ANSWER =====
+    function handleAnswer(emoji) {
+        const q = questions[currentIndex];
+        const qid = q.id;
+        if (status[qid] === 'correct') return;
+
+        const isCorrect = emoji === q.correct;
+
+        if (isCorrect) {
+            status[qid] = 'correct';
+            correctCount++;
+            const correctEmoji = q.correct;
+            emojiBtns.forEach(btn => {
+                if (btn.dataset.emoji === correctEmoji) {
+                    btn.classList.add('correct');
+                } else {
+                    btn.classList.add('disabled');
+                    btn.disabled = true;
+                }
+            });
+            showPopup(true);
+            smallConfetti();
+            speak('Correct!');
+            nextBtn.disabled = false;
+
+            const allAnswered = questions.every(q => status[q.id] === 'correct');
+            if (allAnswered) setTimeout(showFinal, 1800);
+        } else {
+            wrongDisabled[qid] = true;
+            showPopup(false);
+            speak('Try again!');
+            const correctEmoji = q.correct;
+            emojiBtns.forEach(btn => {
+                if (btn.dataset.emoji === emoji) {
+                    btn.classList.add('wrong','disabled');
+                    btn.disabled = true;
+                    setTimeout(() => btn.classList.remove('wrong'), 600);
+                } else if (btn.dataset.emoji === correctEmoji) {
+                    btn.classList.remove('disabled');
+                    btn.disabled = false;
+                }
+            });
+        }
+    }
+
+    // ===== NAVIGATION =====
+    function goToPrev() {
+        if (currentIndex > 0) { currentIndex--; renderQuestion(); }
+    }
+    function goToNext() {
+        const q = questions[currentIndex];
+        if (status[q.id] === 'correct' && currentIndex < questions.length - 1) {
+            currentIndex++;
+            renderQuestion();
+        }
+    }
+
+    // ===== INIT =====
+    function init() {
+        renderQuestion();
+        emojiBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.disabled) return;
+                handleAnswer(btn.dataset.emoji);
+            });
+        });
+        prevBtn.addEventListener('click', goToPrev);
+        nextBtn.addEventListener('click', goToNext);
+    }
+    init();
+</script>
+</body>
+</html>

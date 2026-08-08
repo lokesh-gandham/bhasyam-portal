@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>Word Quiz · Kids</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+         @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman";
+            font-weight: 400;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .stage {
+            width: 100%;
+            max-width: 1100px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .question {
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            line-height: 1.4;
+            letter-spacing: -0.3px;
+            text-align: left;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .photo-wrap {
+            width: 400px;
+            height: 250px;
+            margin: 0 auto;
+            border-radius: 24px;
+            padding: 8px;
+            position: relative;
+            overflow: hidden;
+            object-fit: contain;
+        }
+
+        .photo-wrap::after {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border-radius: 20px;
+            z-index: 0;
+        }
+
+        .photo {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 20px;
+            display: block;
+        }
+
+        .answer-slots {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 0;
+            position: relative;
+        }
+
+        .slot-container {
+            position: relative;
+            display: inline-block;
+        }
+.answer-slot{
+
+    width:64px;
+    height:64px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    background:linear-gradient(180deg,#FFFFFF,#F8FBFF);
+
+    border:2px solid #C9DCF7;
+
+    border-radius:18px;
+
+    font-size:28px;
+    font-weight:500;
+
+    color:#2f4f4f;
+
+    cursor:pointer;
+
+    user-select:none;
+
+    transition:.25s ease;
+
+    box-shadow:
+        0 4px 10px rgba(74,110,170,.08),
+        inset 0 2px 0 rgba(255,255,255,.9);
+
+    position:relative;
+}
+
+
+/* Hover */
+.answer-slot:hover{
+
+    transform:translateY(-3px);
+
+    border-color:#87B8FF;
+
+    box-shadow:
+        0 8px 18px rgba(74,110,170,.18);
+}
+
+/* Active box */
+.answer-slot.active{
+
+    background:#EEF8FF;
+
+    border:3px solid #4EA3FF;
+
+    box-shadow:
+        0 0 0 5px rgba(78,163,255,.18);
+}
+
+/* Correct */
+.answer-slot.correct{
+
+    background:linear-gradient(180deg,#EFFFF0,#D8F8DB);
+
+    border:2px solid #61C676;
+
+    color:#228B22;
+
+    box-shadow:
+        0 0 0 4px rgba(97,198,118,.15);
+}
+
+/* Wrong */
+.answer-slot.wrong-blink{
+
+    animation:wrongShake .4s;
+}
+
+@keyframes wrongShake{
+
+    0%,100%{
+        transform:translateX(0);
+    }
+
+    20%{
+        transform:translateX(-5px);
+    }
+
+    40%{
+        transform:translateX(5px);
+    }
+
+    60%{
+        transform:translateX(-4px);
+    }
+
+    80%{
+        transform:translateX(4px);
+    }
+}
+        .answer-gap {
+            width: 15px;
+        }
+
+        .choices-popup {
+            position: absolute;
+            top: 85%;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+            z-index: 10;
+            animation: popUpFade 0.2s ease;
+            min-width: 100px;
+            justify-content: center;
+            flex-wrap: nowrap;
+        }
+
+        .choices-popup::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: transparent transparent #ffffff transparent;
+        }
+
+        @keyframes popUpFade {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        .choice-btn {
+            width: 48px;
+            height: 48px;
+            background: #effafa;
+            border: 2px solid #63bfcf;
+            color: #181818;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .choice-btn:hover {
+            background: #d5f0f0;
+            border-color: #4aa3b3;
+            transform: scale(1.05);
+        }
+.letter-container{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin-top:30px;
+    gap:20px;
+}
+
+.letter-title{
+    font-size:28px;
+    color:#35516C;
+}
+.letter-grid{
+    width:100%;
+    max-width:900px;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+    margin:0 auto;
+}
+.letter-btn{
+
+    width:52px;
+    height:52px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    background:linear-gradient(180deg,#FFFFFF,#F6F8FB);
+
+    border:1.8px solid #D7DFEA;
+
+    border-radius:14px;
+
+    font-size:24px;
+    font-weight:500;
+
+    color:#2f4f4f;
+
+    cursor:pointer;
+
+    user-select:none;
+
+    position:relative;
+
+    transition:all .25s ease;
+
+    box-shadow:
+        0 2px 8px rgba(0,0,0,.05),
+        inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+/* Small glossy highlight */
+.letter-btn::before{
+
+    content:"";
+
+    position:absolute;
+
+    top:6px;
+    left:8px;
+
+    width:65%;
+    height:8px;
+
+    background:rgba(255,255,255,.8);
+
+    border-radius:20px;
+}
+
+/* Hover */
+
+.letter-btn:hover{
+
+    transform:translateY(-3px);
+
+    border-color:#AEBFD3;
+
+    box-shadow:
+        0 8px 18px rgba(0,0,0,.10);
+}
+
+/* Click */
+
+.letter-btn:active{
+
+    transform:scale(.95);
+}
+
+/* Used Letter */
+
+.letter-btn:disabled{
+
+    background:#EEF3F7;
+
+    border-color:#D3DBE5;
+
+    color:#A2AFBE;
+
+    box-shadow:none;
+
+    cursor:default;
+
+    opacity:.8;
+}
+/* Used / Disabled Letter */
+.letter-btn.disabled{
+
+    background:linear-gradient(180deg,#E5E7EB,#D9DEE5);
+
+    border:2px solid #C5CCD6;
+
+    color:#8A97A8;
+
+    cursor:not-allowed;
+
+    opacity:1;
+
+    box-shadow:none;
+
+    transform:none;
+
+    pointer-events:none;
+
+}
+
+.letter-btn.disabled::before{
+    display:none;
+}
+
+        /* ----- responsive choice buttons & popup ----- */
+        @media (max-width: 900px) {
+            .choices-popup {
+                gap: 6px;
+                padding: 5px;
+                min-width: 80px;
+                top: 90%;
+            }
+
+            .choice-btn {
+                width: 42px;
+                height: 42px;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .choices-popup {
+                gap: 5px;
+                padding: 4px;
+                min-width: 70px;
+                top: 95%;
+                border-radius: 12px;
+            }
+
+            .choice-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+                border-radius: 8px;
+                border-width: 2px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .choices-popup {
+                gap: 4px;
+                padding: 4px;
+                min-width: 60px;
+                top: 100%;
+                border-radius: 10px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+
+            .choice-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+                border-radius: 6px;
+                border-width: 1.5px;
+            }
+
+            .choices-popup::after {
+                border-width: 4px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .choices-popup {
+                gap: 3px;
+                padding: 3px;
+                min-width: 50px;
+                top: 105%;
+            }
+
+            .choice-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 11px;
+                border-radius: 5px;
+                border-width: 1.5px;
+            }
+        }
+
+        .letter-container {
+            display: flex;
+        }
+
+        .btn {
+            width: 130px;
+            height: 55px;
+            padding: 13px 28px;
+            font-size: 18px;
+            font-weight: 500;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            color: #fff;
+            transition: all 0.2s ease;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:not(:disabled)::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
+            transform: skewX(-25deg);
+            animation: glassShine 3.5s infinite ease-in-out;
+        }
+
+        @keyframes glassShine {
+            0% {
+                left: -150%;
+            }
+
+            30% {
+                left: 150%;
+            }
+
+            100% {
+                left: 150%;
+            }
+        }
+
+        .btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:not(:disabled):active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .prev-btn {
+            background: linear-gradient(135deg, #ffc371 0%, #ffb347 100%);
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #5ba3ff 0%, #4a90e2 100%);
+        }
+
+        .nav-row {
+            display: flex;
+            gap: 50px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 60px;
+        }
+
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #ffffff;
+            width: 300px;
+            border-radius: 28px;
+            padding: 0;
+            text-align: center;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 4px 10px rgba(0, 0, 0, 0.03), 0 14px 28px rgba(26, 26, 46, 0.08), 0 30px 60px rgba(26, 26, 46, 0.12), 0 60px 100px rgba(26, 26, 46, 0.14);
+            animation: popupSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes popupSlide {
+            0% {
+                transform: scale(0.5) translateY(60px) rotate(-5deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.05) translateY(-8px) rotate(2deg);
+            }
+
+            100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .popup-top {
+            padding: 35px 24px 20px;
+            position: relative;
+        }
+
+        .popup.correct .popup-top {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        }
+
+        .popup.wrong .popup-top {
+            background: linear-gradient(135deg, #fbe9e7, #ffccbc);
+        }
+
+        .popup.final .popup-top {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .popup-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .popup.correct .popup-icon-wrap {
+            background: #4caf50;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowGreen 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.wrong .popup-icon-wrap {
+            background: #ef5350;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowRed 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.final .popup-icon-wrap {
+            background: #ffffff;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowWarm 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowGreen {
+            0% {
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+            }
+        }
+
+        @keyframes glowRed {
+            0% {
+                box-shadow: 0 0 20px rgba(239, 83, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(239, 83, 80, 0.6);
+            }
+        }
+
+        @keyframes glowWarm {
+            0% {
+                box-shadow: 0 0 5px rgba(172, 172, 172, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(163, 163, 163, 0.432);
+            }
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0) rotate(-30deg);
+            }
+
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .popup-icon-wrap span {
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-bottom {
+            padding: 18px 24px 22px;
+            background: #fff;
+        }
+
+        .popup.correct .popup-bottom {
+            border-top: 2px solid #c8e6c9;
+        }
+
+        .popup.wrong .popup-bottom {
+            border-top: 2px solid #ffccbc;
+        }
+
+        .popup.final .popup-bottom {
+            border-top: 2px solid #ffe0b2;
+        }
+
+        .popup-msg {
+            font-size: 15px;
+            font-weight: 500;
+            color: #5a5270;
+            line-height: 1.4;
+        }
+
+        .popup-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2a4a;
+            margin-bottom: 8px;
+        }
+
+        .popup-stars {
+            font-size: 34px;
+            letter-spacing: 6px;
+            animation: starDance 0.8s ease;
+            margin-bottom: 12px;
+        }
+
+        @keyframes starDance {
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .play-again-popup {
+            background: linear-gradient(135deg, #ff922b, #f76707);
+            color: #fff;
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+        }
+
+      
+.popup.final{
+    background:#F8F5FF;
+    border:3px solid #B79CFF;
+}
+
+.popup.final .popup-top{
+    background:linear-gradient(135deg,#EFE7FF,#DDD0FF);
+}
+
+.popup.final .popup-bottom{
+    background:#F8F5FF;
+    border-top:2px solid #DDD0FF;
+}
+
+.popup.final .popup-title{
+    color:#6C3EC1;
+}
+
+.popup.final .popup-score{
+    color:#6C3EC1;
+}
+
+.popup.final .popup-icon-wrap{
+    background:linear-gradient(135deg,#FFD86B,#FFC83D);
+    box-shadow:0 10px 30px rgba(255,200,61,.45);
+}
+
+.popup.final .popup-stars{
+    color:#FFC83D;
+}
+.popup.final .play-again-popup{
+    background:linear-gradient(135deg,#A98CFF,#8F79F7);
+    box-shadow:0 8px 20px rgba(143,121,247,.25);
+}
+/* 
+.popup.final .play-again-popup:hover{
+    background:linear-gradient(135deg,#9D81FF,#846EF2);
+} */
+        .question-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width:900px) {
+            body {
+                align-items: center;
+                padding: 20px;
+                overflow: auto;
+            }
+
+            .stage {
+                width: 100%;
+                max-width: 100%;
+                padding: 25px;
+                gap: 20px;
+            }
+
+            .question {
+                font-size: 30px;
+                font-weight: 400;
+                min-height: 80px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+            }
+
+            .photo-wrap {
+                width: 240px;
+                height: 180px;
+            }
+
+            .answer-slots {
+                gap: 10px;
+            }
+
+            .answer-slot {
+                width: 55px;
+                height: 55px;
+                font-size: 20px;
+            }
+
+            .answer-gap {
+                width: 12px;
+            }
+
+            .btn {
+                width: 140px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 40px;
+            }
+
+            .popup {
+                width: 320px;
+            }
+        }
+
+        @media (max-width:768px) {
+            body {
+                padding: 30px 0 10px;
+                align-items: flex-start;
+            }
+
+            .stage {
+                padding: 20px;
+                gap: 18px;
+            }
+
+            .question {
+                font-size: 30px;
+                font-weight: 400;
+                min-height: 80px;
+            }
+
+            .photo-wrap {
+                width: 220px;
+                height: 170px;
+            }
+
+            .answer-slot {
+                width: 52px;
+                height: 52px;
+                font-size: 18px;
+            }
+
+            .answer-gap {
+                width: 10px;
+            }
+
+            .btn {
+                width: 130px;
+                height: 48px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 30px;
+            }
+
+            .popup {
+                width: 300px;
+            }
+        }
+
+        @media (max-width:480px) {
+            body {
+                padding: 50px 0 10px;
+                align-items: flex-start;
+            }
+
+            .stage {
+                padding: 20px;
+                gap: 16px;
+            }
+
+            .question {
+                font-size: 22px;
+                font-weight: 400;
+                min-height: 80px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+            }
+
+            .photo-wrap {
+                width: 200px;
+                height: 120px;
+            }
+
+            .answer-slot {
+                width: 42px;
+                height: 42px;
+                font-size: 16px;
+                border-radius: 12px;
+            }
+
+            .answer-gap {
+                width: 8px;
+            }
+
+            .btn {
+                width: 120px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 20px;
+            }
+
+            .popup {
+                width: 260px;
+            }
+
+            .popup-icon-wrap {
+                width: 75px;
+                height: 75px;
+                font-size: 40px;
+            }
+
+            .popup-title {
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width:1025px) and (max-width:1440px) {
+            .stage {
+                max-width: 1100px;
+            }
+
+            .question {
+                font-size: 30px;
+                font-weight: 400;
+                min-height: 80px;
+            }
+
+            .photo-wrap {
+                width: 280px;
+                height: 210px;
+            }
+
+            .answer-slot {
+                width: 60px;
+                height: 60px;
+                font-size: 20px;
+            }
+
+            .btn {
+                width: 150px;
+                height: 55px;
+                font-size: 20px;
+            }
+        }
+
+        @media screen and (min-width:1441px) and (max-width:1920px) {
+            .stage {
+                max-width: 1200px;
+            }
+
+            .question {
+                font-size: 40px;
+                font-weight: 400;
+                min-height: 90px;
+            }
+
+            .photo-wrap {
+                width: 320px;
+                height: 260px;
+            }
+
+            .answer-slot {
+                width: 65px;
+                height: 65px;
+                font-size: 24px;
+            }
+
+            .btn {
+                width: 160px;
+                height: 58px;
+                font-size: 22px;
+            }
+            .pageHeading{
+    width:100%;
+    max-width:1200px;
+    margin:0 auto 20px;
+
+    text-align:center;
+
+    font-size:30px;
+    font-weight:700;
+    line-height:1.4;
+
+   color:#5D4037;
+}
+        }
+
+        @media screen and (min-width:1921px) {
+            .stage {
+                max-width: 1300px;
+            }
+
+            .question {
+                font-size: 40px;
+                font-weight: 400;
+                min-height: 90px;
+            }
+
+            .photo-wrap {
+                width: 360px;
+                height: 280px;
+            }
+
+            .answer-slot {
+                width: 70px;
+                height: 70px;
+                font-size: 26px;
+            }
+
+            .btn {
+                width: 170px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="stage">
+        <div class="question-wrap">
+            <h1 class="question" id="question"></h1>
+        </div>
+        <div class="photo-wrap">
+            <img class="photo" id="qImage" alt="question image" />
+        </div>
+        <div class="answer-slots" id="answerSlots"></div>
+       <div class="letter-container" id="letterContainer">
+    
+
+    <div class="letter-grid" id="letterGrid"></div>
+
+</div>
+        <div class="nav-row">
+            <button class="btn prev-btn" id="prevBtn" disabled><i class="fa-solid fa-angles-left"></i> Prev</button>
+            <button class="btn next-btn" id="nextBtn" disabled>Next <i class="fa-solid fa-angles-right"></i></button>
+        </div>
+    </main>
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup" id="popupBox"></div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        const quizData = [
+
+{
+    q:"Q1. Find the opposite of : Quickly",
+    a:"GRADUALLY",
+    img:"../images/quickly.png"
+},
+
+{
+    q:"Q2. Find the opposite of : Rarely",
+    a:"REGULARLY",
+    img:"../images/rarely.png"
+},
+
+{
+    q:"Q3. Find the opposite of : Waste",
+    a:"USEFUL",
+    img:"../images/waste.png"
+},
+
+{
+    q:"Q4. Find the opposite of : Worst",
+    a:"BEST",
+    img:"../images/worst.png"
+},
+
+{
+    q:"Q5. Find the opposite of : Everything",
+    a:"NOTHING",
+    img:"../images/everything.png"
+}
+
+];
+
+        let currentQuestionIndex = 0;
+        let quizScore = 0;
+        const answeredQuestions = Array(quizData.length).fill(false);
+        const storedAnswers = Array(quizData.length).fill("");
+
+        const qEl = document.getElementById('question');
+        const imgEl = document.getElementById('qImage');
+        const answerSlotsContainer = document.getElementById('answerSlots');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const overlay = document.getElementById('popupOverlay');
+        const popupBox = document.getElementById('popupBox');
+
+        let correctAnswer = "";
+
+        function speakText(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function createAnswerSlots(word) {
+            answerSlotsContainer.innerHTML = "";
+            let slotLetterCounter = 0;
+
+            for (let i = 0; i < word.length; i++) {
+                if (word[i] === " ") {
+                    const gap = document.createElement("div");
+                    gap.className = "answer-gap";
+                    answerSlotsContainer.appendChild(gap);
+                } else {
+                    const container = document.createElement("div");
+                    container.className = "slot-container";
+
+                    const slot = document.createElement("div");
+                    slot.className = "answer-slot";
+                    slot.dataset.index = slotLetterCounter;
+                    slot.dataset.correctLetter = word[i];
+
+
+                    container.appendChild(slot);
+                    slot.onclick=()=>{
+
+    removeLetter(Number(slot.dataset.index));
+
+};
+                    answerSlotsContainer.appendChild(container);
+                    slotLetterCounter++;
+                }
+            }
+            updateActiveBoxHighlight();
+        }
+
+function updateActiveBoxHighlight() {
+
+    if (answeredQuestions[currentQuestionIndex]) return;
+
+    const slots = document.querySelectorAll(".answer-slot");
+
+    slots.forEach(slot => slot.classList.remove("active"));
+
+    const firstEmpty = [...slots].find(slot => slot.textContent === "");
+
+    if(firstEmpty){
+        firstEmpty.classList.add("active");
+    }
+}
+function insertLetter(letter){
+
+    if(answeredQuestions[currentQuestionIndex]) return;
+
+    const slots=document.querySelectorAll(".answer-slot");
+
+    const active=[...slots].find(s=>s.classList.contains("active"));
+
+    if(!active) return;
+
+    active.textContent=letter;
+
+    updateActiveBoxHighlight();
+
+    validateSlotCompletion();
+
+}
+function removeLastFilledSlot(){
+
+    if(answeredQuestions[currentQuestionIndex]) return;
+
+    const slots = document.querySelectorAll(".answer-slot");
+
+    const filled = [...slots].filter(slot => slot.textContent !== "");
+
+    if(filled.length === 0) return;
+
+    // Last filled slot
+    const lastSlot = filled[filled.length - 1];
+
+    // Store removed letter
+    const removedLetter = lastSlot.textContent;
+
+    // Clear slot
+    lastSlot.textContent = "";
+
+    // Enable matching letter button again
+    document.querySelectorAll(".letter-btn").forEach(btn => {
+
+        if(
+            btn.textContent === removedLetter &&
+            btn.disabled
+        ){
+            btn.disabled = false;
+            btn.classList.remove("disabled");
+
+            // enable only one button
+            return;
+        }
+
+    });
+
+    updateActiveBoxHighlight();
+
+}
+function removeLetter(index){
+
+    if(answeredQuestions[currentQuestionIndex]) return;
+
+    const slots = document.querySelectorAll(".answer-slot");
+
+    const slot = slots[index];
+
+    if(slot.textContent === "") return;
+
+    const removedLetter = slot.textContent;
+
+    slot.textContent = "";
+
+    document.querySelectorAll(".letter-btn").forEach(btn => {
+
+        if(
+            btn.textContent === removedLetter &&
+            btn.disabled
+        ){
+            btn.disabled = false;
+            btn.classList.remove("disabled");
+
+            return;
+        }
+
+    });
+
+    updateActiveBoxHighlight();
+
+}
+        function validateSlotCompletion() {
+            const slots = document.querySelectorAll(".answer-slot");
+            let guess = [...slots].map(s => s.textContent).join("");
+            const target = correctAnswer.replace(/\s/g, "");
+            if (guess.length !== target.length) return;
+
+            setTimeout(() => {
+                if (guess === target) {
+                    quizScore++;
+                    answeredQuestions[currentQuestionIndex] = true;
+                    storedAnswers[currentQuestionIndex] = guess;
+                  
+                    slots.forEach(s => {
+                        s.classList.remove("active");
+                        s.classList.add("locked");
+                        s.classList.add("correct");
+                        s.onclick = null;
+                    });
+                    showCorrectPopup();
+                    nextBtn.disabled = false;
+                    if (currentQuestionIndex === quizData.length - 1) {
+                        setTimeout(showFinalPopup, 1800);
+                    }
+                } else {
+                  
+                    slots.forEach(s => s.classList.add("wrong-blink"));
+                    showWrongPopup();
+                  setTimeout(() => {
+
+    // Clear answer boxes
+    slots.forEach(s => {
+
+        s.textContent = "";
+
+        s.classList.remove("wrong-blink");
+
+    });
+
+    // Enable all letter buttons again
+    document.querySelectorAll(".letter-btn").forEach(btn => {
+
+        btn.disabled = false;
+
+        btn.classList.remove("disabled");
+
+    });
+
+    updateActiveBoxHighlight();
+
+}, 800);
+                }
+            }, 200);
+        }
+function createLetterKeyboard(answer){
+
+    const grid=document.getElementById("letterGrid");
+
+    grid.innerHTML="";
+
+    let letters=answer.replaceAll(" ","").split("");
+
+    while(letters.length<16){
+
+        let random=String.fromCharCode(65+Math.floor(Math.random()*26));
+
+        letters.push(random);
+
+    }
+
+    letters.sort(()=>Math.random()-0.5);
+
+    letters.forEach(letter=>{
+
+        const btn=document.createElement("button");
+
+        btn.className="letter-btn";
+
+        btn.textContent=letter;
+btn.onclick = () => {
+
+    insertLetter(letter);
+
+    btn.disabled = true;
+
+    btn.classList.add("disabled");
+
+};
+
+        grid.appendChild(btn);
+
+    });
+
+}
+        function showCorrectPopup() {
+            speakText('Correct');
+            confetti({ particleCount: 40, angle: 60, spread: 55, origin: { x: 0, y: 0.8 } });
+            confetti({ particleCount: 40, angle: 120, spread: 55, origin: { x: 1, y: 0.8 } });
+            popupBox.className = 'popup correct';
+            popupBox.innerHTML = `
+                <div class="popup-top"><div class="popup-icon-wrap"><span>👍</span></div><div class="popup-title">Awesome</div></div>
+                <div class="popup-bottom"><div class="popup-msg">You got it right! 🎉</div></div>
+            `;
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1500);
+        }
+
+        function showWrongPopup() {
+            speakText('Try again');
+            popupBox.className = 'popup wrong';
+            popupBox.innerHTML = `
+                <div class="popup-top"><div class="popup-icon-wrap"><span>💪</span></div><div class="popup-title">Keep Trying</div></div>
+                <div class="popup-bottom"><div class="popup-msg">Don't give up! 💪</div></div>
+            `;
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1400);
+        }
+
+        function showFinalPopup() {
+            let end = Date.now() + (1.5 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+            popupBox.className = 'popup final';
+            popupBox.innerHTML = `
+                <div class="popup-top"><div class="popup-icon-wrap"><span>👑</span></div><div class="popup-title">You Won!</div></div>
+                <div class="popup-bottom">
+                    <div class="popup-score">Score: ${quizScore}/${quizData.length}</div>
+                    <div class="popup-stars">${"⭐".repeat(quizScore)}</div>
+                    <button class="play-again-popup" id="playAgainBtn">Play Again</button>
+                </div>
+            `;
+            overlay.classList.add('show');
+            document.getElementById('playAgainBtn').addEventListener('click', resetGame);
+        }
+
+        function resetGame() {
+            currentQuestionIndex = 0;
+            quizScore = 0;
+            for (let i = 0; i < answeredQuestions.length; i++) { answeredQuestions[i] = false; storedAnswers[i] = ""; }
+            overlay.classList.remove('show');
+            renderQuestion();
+        }
+
+function renderQuestion() {
+
+    const question = quizData[currentQuestionIndex];
+
+    qEl.textContent = question.q;
+    imgEl.src = question.img;
+
+    correctAnswer = question.a.toUpperCase();
+
+    createAnswerSlots(correctAnswer);
+    createLetterKeyboard(correctAnswer);
+
+    if (answeredQuestions[currentQuestionIndex]) {
+
+        const slots = document.querySelectorAll(".answer-slot");
+        const saved = storedAnswers[currentQuestionIndex].split("");
+
+        let index = 0;
+
+        slots.forEach(slot => {
+
+            if (saved[index]) {
+
+                slot.textContent = saved[index];
+
+                slot.classList.remove("active");
+
+                slot.classList.add("locked");
+
+                slot.classList.add("correct");
+
+                slot.onclick = null;
+
+                index++;
+
+            }
+
+        });
+
+        // Disable all letter buttons
+        document.querySelectorAll(".letter-btn").forEach(btn => {
+
+            btn.disabled = true;
+
+            btn.classList.add("disabled");
+
+        });
+
+        nextBtn.disabled = false;
+
+    } else {
+
+        // Enable all letter buttons
+        document.querySelectorAll(".letter-btn").forEach(btn => {
+
+            btn.disabled = false;
+
+            btn.classList.remove("disabled");
+
+        });
+
+        nextBtn.disabled = true;
+
+    }
+
+    prevBtn.disabled = currentQuestionIndex === 0;
+}
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < quizData.length - 1 && answeredQuestions[currentQuestionIndex]) {
+                currentQuestionIndex++;
+                renderQuestion();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        });
+document.addEventListener("keydown",(e)=>{
+
+    if(answeredQuestions[currentQuestionIndex]) return;
+
+    if(e.key==="Backspace"){
+
+        e.preventDefault();
+
+        removeLastFilledSlot();
+
+    }
+
+});
+
+        renderQuestion();
+    </script>
+</body>
+
+</html>

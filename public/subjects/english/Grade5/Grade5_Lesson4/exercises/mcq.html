@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MCQ Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman";
+            font-weight: 400;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .stage {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .main-row {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .left-box {
+            flex: 1.1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .question {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            line-height: 1.4;
+            letter-spacing: -0.3px;
+            text-align: left;
+            width: 100%;
+        }
+
+        .photo-wrap {
+            width: 280px;
+            height: 210px;
+            margin: 0 auto;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            object-fit: contain;
+            margin-block: 10px;
+        }
+
+        .photo-wrap::after {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border-radius: 20px;
+            z-index: 0;
+        }
+
+        .photo {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 20px;
+            display: block;
+        }
+
+        .right-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 90%;
+            margin-inline: auto;
+        }
+
+        .option {
+            background: #ffffff;
+            border: 2px solid #f7c8a8;
+            border-radius: 24px;
+            padding: 18px 22px;
+            min-height: 100px;
+            font-size: 22px;
+            font-weight: 400;
+            color: #000000;
+            cursor: pointer;
+            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 0 #f7c8a8, 0 3px 10px rgba(200, 140, 100, 0.15);
+            text-align: left;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), transparent);
+            pointer-events: none;
+        }
+
+        .option:hover {
+            transform: translateY(-4px) scale(1.02);
+            background: linear-gradient(145deg, #fff5e6, #fde8d4);
+        }
+
+        .option.correct {
+            background: linear-gradient(145deg, #f4fff4, lch(98.47% 9.95 144.11));
+            border: 3px solid #56c796;
+            color: #000000;
+            box-shadow: 0 4px 0 #56c796;
+            pointer-events: none;
+        }
+
+        .option.correct .option-letter{
+            background: #56c796;
+        }
+
+        .option.wrong {
+            animation: softBlink 0.6s ease;
+        }
+
+        @keyframes softBlink {
+
+            0%,
+            100% {
+                background: linear-gradient(145deg, #fff3f3, #fff0f0);
+                border-color: #dd6c6c;
+                box-shadow: 0 4px 0 #dd6c6c;
+            }
+        }
+
+        .option.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.15);
+        }
+
+        .option-letter {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+            background: #06ccab;
+            background: #e09e9e;
+            margin-right: 17px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn {
+            width: 140px;
+            height: 55px;
+            font-size: 20px;
+            font-weight: 500;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            color: #fff;
+            transition: all 0.2s ease;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:not(:disabled)::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                    rgba(255, 255, 255, 0) 0%,
+                    rgba(255, 255, 255, 0.4) 50%,
+                    rgba(255, 255, 255, 0) 100%);
+            transform: skewX(-25deg);
+            animation: glassShine 3.5s infinite ease-in-out;
+        }
+
+        @keyframes glassShine {
+            0% {
+                left: -150%;
+            }
+
+            30% {
+                left: 150%;
+            }
+
+            100% {
+                left: 150%;
+            }
+        }
+
+        .prev-btn {
+            background: linear-gradient(135deg, #67b8ff, #74b2ff);
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #ffd86f, #ffb300);
+        }
+
+        .btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:not(:disabled):active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .nav-row {
+            display: flex;
+            gap: 50px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #ffffff;
+            width: 300px;
+            border-radius: 28px;
+            padding: 0;
+            text-align: center;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04),
+                0 4px 10px rgba(0, 0, 0, 0.03),
+                0 14px 28px rgba(26, 26, 46, 0.08),
+                0 30px 60px rgba(26, 26, 46, 0.12),
+                0 60px 100px rgba(26, 26, 46, 0.14);
+            animation: popupSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes popupSlide {
+            0% {
+                transform: scale(0.5) translateY(60px) rotate(-5deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.05) translateY(-8px) rotate(2deg);
+            }
+
+            100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .popup-top {
+            padding: 35px 24px 20px;
+            position: relative;
+        }
+
+        .popup.correct .popup-top {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        }
+
+        .popup.wrong .popup-top {
+            background: linear-gradient(135deg, #fbe9e7, #ffccbc);
+        }
+
+        .popup.final .popup-top {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .popup-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .popup.correct .popup-icon-wrap {
+            background: #4caf50;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowGreen 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.wrong .popup-icon-wrap {
+            background: #ef5350;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowRed 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.final .popup-icon-wrap {
+            background: #ffffff;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowWarm 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowGreen {
+            0% {
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+            }
+        }
+
+        @keyframes glowRed {
+            0% {
+                box-shadow: 0 0 20px rgba(239, 83, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(239, 83, 80, 0.6);
+            }
+        }
+
+        @keyframes glowWarm {
+            0% {
+                box-shadow: 0 0 5px rgba(172, 172, 172, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(163, 163, 163, 0.432);
+            }
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0) rotate(-30deg);
+            }
+
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .popup-icon-wrap span {
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-bottom {
+            padding: 18px 24px 22px;
+            background: #fff;
+        }
+
+        .popup.correct .popup-bottom {
+            border-top: 2px solid #c8e6c9;
+        }
+
+        .popup.wrong .popup-bottom {
+            border-top: 2px solid #ffccbc;
+        }
+
+        .popup.final .popup-bottom {
+            border-top: 2px solid #ffe0b2;
+        }
+
+        .popup-msg {
+            font-size: 20px;
+            font-weight: 500;
+            color: #5a5270;
+            line-height: 1.4;
+        }
+
+        .popup-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2a4a;
+            margin-bottom: 8px;
+        }
+
+        .popup-stars {
+            font-size: 34px;
+            letter-spacing: 6px;
+            animation: starDance 0.8s ease;
+            margin-bottom: 12px;
+        }
+
+        @keyframes starDance {
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .play-again-popup {
+            background: linear-gradient(135deg, #ff922b, #f76707);
+            color: #fff;
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+        }
+
+        .play-again-popup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(247, 103, 7, 0.45);
+        }
+
+        .play-again-popup:active {
+            transform: translateY(0);
+        }
+
+        .question-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width:900px) {
+            body {
+                align-items: center;
+                padding: 20px;
+                overflow: auto;
+            }
+
+            .main-row {
+                flex-direction: row;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .left-box {
+                width: 100%;
+            }
+
+            .right-box {
+                width: 100%;
+            }
+
+            .stage {
+                width: 100%;
+                max-width: 100%;
+                padding: 25px;
+                gap: 20px;
+            }
+
+            .question {
+                font-size: 30px;
+                font-weight: 400;
+                min-height: 80px;
+                text-align: left;
+            }
+
+            .photo-wrap {
+                width: 240px;
+                height: 180px;
+            }
+
+            .option {
+                font-size: 20px;
+                padding: 16px 20px;
+                min-height: 80px;
+            }
+
+            .option-letter {
+                width: 34px;
+                height: 34px;
+                font-size: 17px;
+                margin-right: 12px;
+            }
+
+            .btn {
+                width: 140px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 40px;
+            }
+
+            .popup {
+                width: 320px;
+            }
+        }
+
+        @media (max-width:768px) {
+            body {
+                padding: 30px 0 10px;
+                align-items: flex-start;
+            }
+
+            .main-row {
+                flex-direction: row;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .left-box {
+                width: 100%;
+            }
+
+            .right-box {
+                width: 100%;
+            }
+
+            .stage {
+                padding: 20px;
+                gap: 18px;
+            }
+
+            .question {
+                font-size: 30px;
+                font-weight: 400;
+                min-height: 80px;
+                text-align: left;
+            }
+
+            .photo-wrap {
+                width: 220px;
+                height: 170px;
+            }
+
+            .option {
+                font-size: 20px;
+                padding: 14px 18px;
+                min-height: 60px;
+            }
+
+            .option-letter {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+                margin-right: 10px;
+            }
+
+            .btn {
+                width: 130px;
+                height: 48px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 30px;
+            }
+
+            .popup {
+                width: 300px;
+            }
+        }
+
+        @media (max-width:480px) {
+            body {
+                padding: 50px 0 10px;
+                align-items: flex-start;
+            }
+
+            .main-row {
+                flex-direction: column;
+                align-items: center;
+                gap: 14px;
+            }
+
+            .left-box {
+                width: 100%;
+            }
+
+            .right-box {
+                width: 100%;
+            }
+
+            .stage {
+                padding: 20px;
+                gap: 16px;
+            }
+
+            .question {
+                font-size: 22px;
+                font-weight: 400;
+                min-height: 80px;
+                text-align: left;
+            }
+
+            .photo-wrap {
+                width: 160px;
+                height: 120px;
+            }
+
+            .option {
+                font-size: 18px;
+                padding: 12px 14px;
+                min-height: 55px;
+                border-radius: 18px;
+            }
+
+            .option-letter {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+                margin-right: 8px;
+            }
+
+            .btn {
+                width: 120px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 20px;
+            }
+
+            .popup {
+                width: 260px;
+            }
+
+            .popup-icon-wrap {
+                width: 75px;
+                height: 75px;
+                font-size: 40px;
+            }
+
+            .popup-title {
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width:1025px) and (max-width:1440px) {
+            .stage {
+                max-width: 1100px;
+            }
+
+            .question {
+                font-size: 30px;
+                font-weight: 400;
+                min-height: 80px;
+                padding-left: 25px;
+            }
+
+            .photo-wrap {
+                width: 280px;
+                height: 210px;
+            }
+
+            .photo {
+                width: 100%;
+                height: 100%;
+            }
+
+            .option {
+                font-size: 22px;
+                padding: 10px 22px;
+                min-height: 100px;
+            }
+
+            .option-letter {
+                width: 40px;
+                height: 40px;
+                font-size: 19px;
+                margin-right: 20px;
+            }
+
+            .btn {
+                width: 150px;
+                height: 55px;
+                font-size: 20px;
+            }
+        }
+
+        @media screen and (min-width:1441px) and (max-width:1920px) {
+            .stage {
+                max-width: 1200px;
+            }
+
+            .question {
+                font-size: 40px;
+                font-weight: 400;
+                min-height: 90px;
+                padding-left: 0px;
+            }
+
+            .photo-wrap {
+                width: 350px;
+                height: 270px;
+            }
+
+            .photo {
+                width: 100%;
+                height: 100%;
+            }
+
+            .option {
+                font-size: 24px;
+                padding: 20px 26px;
+                min-height: 120px;
+            }
+
+            .option-letter {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+                margin-right: 20px;
+            }
+
+            .nav-row {
+                margin-top: 30px;
+            }
+
+            .btn {
+                width: 160px;
+                height: 58px;
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width:1921px) {
+            .stage {
+                max-width: 1300px;
+            }
+
+            .question {
+                font-size: 40px;
+                font-weight: 400;
+                min-height: 90px;
+                padding-left: 0px;
+            }
+
+            .photo-wrap {
+                width: 380px;
+                height: 280px;
+            }
+
+            .photo {
+                width: 100%;
+                height: 100%;
+            }
+
+            .option {
+                font-size: 26px;
+                padding: 22px 30px;
+                min-height: 130px;
+            }
+
+            .option-letter {
+                width: 46px;
+                height: 46px;
+                font-size: 22px;
+                margin-right: 20px;
+            }
+
+            .nav-row {
+                margin-top: 30px;
+            }
+
+            .btn {
+                width: 170px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="stage">
+        <div class="question-wrap">
+            <h1 class="question" id="question"></h1>
+        </div>
+        <div class="photo-wrap">
+            <img class="photo" id="qImage" alt="question image" />
+        </div>
+        <div class="options-container" id="optionsContainer"></div>
+
+        <div class="nav-row">
+            <button class="btn prev-btn" id="prevBtn" disabled><i class="fa-solid fa-angles-left"></i> Prev</button>
+            <button class="btn next-btn" id="nextBtn" disabled>Next <i class="fa-solid fa-angles-right"></i></button>
+        </div>
+    </main>
+
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup" id="popupBox"></div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        const quizData = [
+            {
+                q: "Q1. Omphis made an alliance with Alexander because _______.",
+                img: "../assets/images/mcq1.png",
+                options: [
+                    "It was impossible to defeat Alexander's army.",
+                    "He did not like wars.",
+                    "He wanted to defeat Puru.",
+                    "Both (a) and (c)"
+                ],
+                a: 3,
+            },
+            {
+                q: "Q2. What was the wrong assumption of King Puru?",
+                img: "../assets/images/mcq2.png",
+                options: [
+                    "Alexander's army is weak.",
+                    "Alexander's army cannot cross the Jhelum River.",
+                    "Omphis cannot become a friend of Alexander.",
+                    "Alexander will not attack his kingdom."
+                ],
+                a: 1,
+            },
+            {
+                q: "Q3. What was the good plan of Puru that failed?",
+                img: "../assets/images/mcq3.png",
+                options: [
+                    "Placing elephants in the frontline of his army",
+                    "Sending his son to defend the east bank of the Jhelum",
+                    "Relaxing after knowing that Alexander has entered India",
+                    "Sending chariots to attack Alexander's cavalry"
+                ],
+                a: 0,
+            },
+            {
+                q: "Q4. Why did Puru decide to fight against Alexander?",
+                img: "../assets/images/mcq4.png",
+                options: [
+                    "To show his bravery and insult Omphis",
+                    "To win against Alexander and rule the world",
+                    "To stop westerners to rule India",
+                    "To get the title Puru the Great"
+                ],
+                a: 2,
+            },
+            {
+                q: "Q5. Alexander made Puru the governor of his kingdom because of _______.",
+                img: "../assets/images/mcq5.png",
+                options: [
+                    "Puru's bravery.",
+                    "Puru's war planning.",
+                    "Puru's love for his country.",
+                    "All of the above"
+                ],
+                a: 3,
+            }
+        ];
+
+        const optionLetters = ["A", "B", "C", "D"];
+
+        let current = 0;
+        let score = 0;
+        let answered = Array(quizData.length).fill(null);
+
+        const qEl = document.getElementById("question");
+        const imgEl = document.getElementById("qImage");
+        const optEl = document.getElementById("optionsContainer");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const overlay = document.getElementById('popupOverlay');
+        const popupBox = document.getElementById('popupBox');
+
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+        }
+
+        function showCorrectPopup() {
+            speak('Correct');
+            smallConfetti();
+            popupBox.className = 'popup correct';
+            popupBox.innerHTML = `
+            <div class="popup-top">
+                <div class="popup-icon-wrap"><span>👍</span></div>
+                <div class="popup-title">Awesome</div>
+            </div>
+            <div class="popup-bottom">
+                <div class="popup-msg">You got it right! 🎉</div>
+            </div>
+            `;
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1500);
+        }
+
+        function showWrongPopup() {
+            speak('Try again');
+            popupBox.className = 'popup wrong';
+            popupBox.innerHTML = `
+            <div class="popup-top">
+                <div class="popup-icon-wrap"><span>😔</span></div>
+                <div class="popup-title">Keep Trying</div>
+            </div>
+            <div class="popup-bottom">
+                <div class="popup-msg">Don't give up! 💪</div>
+            </div>
+            `;
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1400);
+        }
+
+        function showFinalPopup() {
+            let end = Date.now() + (1.5 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+
+            popupBox.className = 'popup final';
+            popupBox.innerHTML = `
+            <div class="popup-top">
+                <div class="popup-icon-wrap"><span>🏆</span></div>
+                <div class="popup-title">You Won!</div>
+            </div>
+            <div class="popup-bottom">
+                <div class="popup-score">Score: ${score}/${quizData.length}</div>
+                <div class="popup-stars">${"⭐".repeat(score)}</div>
+                <button class="play-again-popup" id="playAgainBtn">Play Again</button>
+            </div>
+            `;
+            overlay.classList.add('show');
+            document.getElementById('playAgainBtn').addEventListener('click', () => {
+                current = 0;
+                score = 0;
+                answered = Array(quizData.length).fill(null);
+                overlay.classList.remove('show');
+                loadQuestion();
+            });
+        }
+
+        function loadQuestion() {
+            const q = quizData[current];
+            qEl.textContent = q.q;
+            imgEl.src = q.img;
+            optEl.innerHTML = "";
+            nextBtn.disabled = answered[current] === null;
+
+            q.options.forEach((text, i) => {
+                const d = document.createElement("div");
+                d.className = "option";
+
+                const letterSpan = document.createElement("span");
+                letterSpan.className = "option-letter";
+                letterSpan.textContent = optionLetters[i];
+
+                const labelSpan = document.createElement("span");
+                labelSpan.className = "option-label";
+                labelSpan.textContent = text;
+
+                d.appendChild(letterSpan);
+                d.appendChild(labelSpan);
+
+                if (answered[current] !== null) {
+                    if (i === q.a) d.classList.add("correct");
+                    else d.classList.add("disabled");
+                }
+
+                d.onclick = () => {
+                    if (answered[current] !== null) return;
+
+                    if (i === q.a) {
+                        answered[current] = i;
+                        score++;
+
+                        d.classList.add("correct");
+                        [...optEl.children].forEach((o) => {
+                            if (o !== d) o.classList.add("disabled");
+                        });
+
+                        showCorrectPopup();
+                        nextBtn.disabled = false;
+
+                        if (answered.every((a) => a !== null)) setTimeout(showFinalPopup, 1600);
+                    } else {
+                        speak("Wrong");
+                        showWrongPopup();
+                        d.classList.add("wrong");
+                        setTimeout(() => {
+                            d.classList.remove("wrong");
+                        }, 700);
+                    }
+                };
+
+                optEl.appendChild(d);
+            });
+
+            prevBtn.disabled = current === 0;
+        }
+
+        prevBtn.onclick = () => {
+            current--;
+            loadQuestion();
+        };
+
+        nextBtn.onclick = () => {
+            current++;
+            loadQuestion();
+        };
+
+        loadQuestion();
+    </script>
+</body>
+
+</html>

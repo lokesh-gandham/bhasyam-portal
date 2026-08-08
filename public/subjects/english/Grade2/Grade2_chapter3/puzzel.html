@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predator & Prey Hunt</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+
+           @font-face {
+    font-family: 'CCSYBold';
+    src: url('./assets/CCSYBOLD.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+@font-face {
+    font-family: 'CCSyntroman';
+    src: url('../assets/CCSYNTRO.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+       
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'CCSyntroman';
+            user-select: none;
+        }
+
+        body {
+            background-color: #e3f2fd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .game-card {
+            width: 1000px;
+            border-radius: 28px;
+            padding: 10px 24px;
+            position: relative;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .main-title {
+            text-align: center;
+        }
+
+        .main-title h1 {
+            font-size: 26px;
+            font-weight: 900;
+        }
+
+        .title-predator { color: #ff4fa3; }
+        .title-prey { color: #1976d2; }
+        .title-hunt { color: #2e7d32; }
+
+        .subtitle {
+            font-size: 18px;
+            color: #282828;
+            margin-top: 2px;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 16px;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .side-column {
+            width: 175px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 24px;
+        }
+
+        .panel-header {
+            border-radius: 12px 12px 0 0;
+            padding: 8px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .predators-header { background: #ff4fa3; }
+        .prey-header { background: #1e88e5; }
+
+        .word-list-container {
+            border-radius: 0 0 16px 16px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-width: 0 2px 2px 2px;
+            border-style: solid;
+        }
+
+        .predator-container{
+    background:#fff0f8;
+    border-color:#ffb6d8;
+}
+
+        .prey-container {
+            background: #f0f7ff;
+            border-color: #bbdefb;
+        }
+
+        .animal-card {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 42px;
+        }
+
+        .animal-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-weight: bold;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .animal-icon{
+    width:52px;
+    height:52px;
+    object-fit:contain;
+    flex-shrink:0;
+}
+
+        .check-circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: white;
+        }
+
+        .predator-solved .check-circle {
+            background: #ff4fa3;
+            border-color: #ff4fa3;
+        }
+
+        .prey-solved .check-circle {
+            background: #1e88e5;
+            border-color: #1e88e5;
+        }
+
+        .center-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .grid-container {
+            background: #ffffff;
+            border: 3px solid #bbdefb;
+            border-radius: 16px;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: repeat(9, 40px);
+            gap: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .highlight-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: visible;
+            border-radius: 16px;
+        }
+
+        .cell {
+            width: 40px;
+            height: 40px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cell:hover:not(.correct-predator):not(.correct-prey) {
+            background: #e3f2fd;
+        }
+
+        .cell.selected {
+            color: #2c3e50;
+            background: transparent !important;
+            border-color: transparent !important;
+            transform: scale(1);
+            animation: none;
+        }
+
+        .cell.selected::after {
+            display: none;
+        }
+
+        .cell.correct-predator {
+           color:#ff1493;
+            cursor: not-allowed;
+            background: transparent !important;
+            border-color: transparent !important;
+            animation: none;
+        }
+
+        .cell.correct-prey {
+            color: #0d47a1;
+            cursor: not-allowed;
+            background: transparent !important;
+            border-color: transparent !important;
+            animation: none;
+        }
+
+        .cell.wrong {
+            color: #c62828;
+            animation: shake 0.3s ease;
+            background: transparent !important;
+            border-color: transparent !important;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-4px); }
+            40%, 80% { transform: translateX(4px); }
+        }
+
+        /* ===== POPUP DESIGNS ===== */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+           
+            padding: 20px;
+        }
+
+        .kid-card {
+            background: #ffffff;
+            width: 380px;
+            max-width: 95%;
+            padding: 32px 28px;
+            border-radius: 44px;
+            text-align: center;
+            animation: kidPop 0.6s ease;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative circles */
+        .kid-card::before,
+        .kid-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .kid-card::before {
+            width: 200px;
+            height: 200px;
+            top: -80px;
+            right: -60px;
+            background: #ffd93d;
+        }
+
+        .kid-card::after {
+            width: 150px;
+            height: 150px;
+            bottom: -60px;
+            left: -50px;
+            background: #6bcbff;
+        }
+
+        .kid-card>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .kid-icon {
+            font-size: 4.8em;
+            margin-bottom: 6px;
+            animation: emojiBounce 0.9s infinite alternate;
+            display: inline-block;
+        }
+
+        .kid-card h3 {
+            font-size: 2.2em;
+            margin-bottom: 4px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .kid-card p {
+            font-size: 1.1em;
+            color: #555;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        /* Correct Popup */
+        .kid-correct .kid-card {
+            background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+            border: 5px solid #38d9a9;
+        }
+
+        .kid-correct .kid-card h3 {
+            color: #0b8a4a;
+        }
+
+        .kid-correct .kid-card p {
+            color: #1a6a3a;
+        }
+
+        .kid-correct .kid-card::before {
+            background: #38d9a9;
+        }
+
+        .kid-correct .kid-card::after {
+            background: #38d9a9;
+        }
+
+        /* Wrong Popup */
+        .kid-wrong .kid-card {
+            background: linear-gradient(145deg, #fff5f5, #fce4e4);
+            border: 5px solid #ff8a8a;
+        }
+
+        .kid-wrong .kid-card h3 {
+            color: #c0392b;
+        }
+
+        .kid-wrong .kid-card p {
+            color: #922b21;
+        }
+
+        .kid-wrong .kid-card::before {
+            background: #ff8a8a;
+        }
+
+        .kid-wrong .kid-card::after {
+            background: #ff8a8a;
+        }
+
+        @keyframes kidPop {
+            0% {
+                transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0) scale(1);
+            }
+
+            to {
+                transform: translateY(-12px) scale(1.05);
+            }
+        }
+
+        /* ===== FINAL POPUP ===== */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 4000;
+           
+            padding: 20px;
+        }
+
+        .final-kid-box {
+            background: linear-gradient(145deg, #fff7d6, #e6fff5);
+            padding: 35px 40px;
+            border-radius: 44px;
+            text-align: center;
+            width: 480px;
+            max-width: 95%;
+            animation: finalBounce 0.8s ease;
+            /* box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2); */
+            border: 4px solid rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-kid-box::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: -120px;
+            right: -100px;
+            background: #ffd93d;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .final-kid-box>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.4em;
+            color: #2f9e44;
+            margin-bottom: 8px;
+            
+            font-weight: 700 !important;
+        }
+
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3a3a;
+        }
+
+        #stars {
+            font-size: 2.6em;
+            margin: 14px 0;
+            letter-spacing: 6px;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 16px 38px;
+            border-radius: 40px;
+            font-size: 1.15em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .playAgain-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .playAgain-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #d4871f;
+        }
+
+        @keyframes finalBounce {
+            0% {
+                transform: scale(0.3) perspective(400px) rotateX(15deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.08) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        .howto-play-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+        }
+        .howto-card {
+            background: white;
+            max-width: 400px;
+            padding: 30px;
+            border-radius: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .close-btn {
+            background: #1976d2;
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        .close-btn:hover { background: #0d47a1; }
+
+        /* Mobile Small */
+@media (min-width:320px) and (max-width:374px) {
+    .game-card {
+        padding: 12px 10px;
+        border-radius: 20px;
+    }
+    .main-title h1 {
+        font-size: 18px;
+    }
+    .subtitle {
+        font-size: 10px;
+    }
+    .main-layout {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    .side-column {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+    }
+    .side-column .panel-header {
+        width: 100%;
+        font-size: 12px;
+        padding: 6px;
+    }
+    .word-list-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 6px;
+        gap: 4px;
+        width: 100%;
+        border-width: 2px 2px 2px 2px;
+        border-radius: 12px;
+    }
+    .animal-card {
+        height: 34px;
+        padding: 2px 6px;
+        font-size: 11px;
+    }
+    .animal-info {
+        font-size: 11px;
+        gap: 4px;
+    }
+    .animal-emoji {
+        font-size: 16px;
+    }
+    .check-circle {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
+    }
+    .center-column {
+        width: 100%;
+    }
+    .grid-container {
+        grid-template-columns: repeat(9, 28px);
+        gap: 3px;
+        padding: 6px;
+    }
+    .cell {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+        border-radius: 5px;
+    }
+    .kid-card {
+        padding: 24px 18px;
+        width: 320px;
+    }
+    .kid-icon {
+        font-size: 3.5em;
+    }
+    .kid-card h3 {
+        font-size: 1.6em;
+    }
+    .kid-card p {
+        font-size: 0.95em;
+    }
+    .final-kid-box {
+        padding: 25px 20px;
+        width: 340px;
+    }
+    .final-kid-box h2 {
+        font-size: 1.8em;
+    }
+    .final-kid-box p {
+        font-size: 1em;
+    }
+    #stars {
+        font-size: 2em;
+    }
+    .close-btn {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
+}
+
+/* Mobile */
+@media (min-width:375px) and (max-width:424px) {
+    .game-card {
+        padding: 14px 12px;
+        border-radius: 22px;
+    }
+    .main-title h1 {
+        font-size: 20px;
+    }
+    .subtitle {
+        font-size: 10px;
+    }
+    .main-layout {
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+    }
+    .side-column {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    .side-column .panel-header {
+        width: 100%;
+        font-size: 12px;
+        padding: 6px;
+    }
+    .word-list-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 6px;
+        gap: 5px;
+        width: 100%;
+        border-width: 2px 2px 2px 2px;
+        border-radius: 12px;
+    }
+    .animal-card {
+        height: 36px;
+        padding: 2px 8px;
+        font-size: 12px;
+    }
+    .animal-info {
+        font-size: 12px;
+        gap: 5px;
+    }
+    .animal-emoji {
+        font-size: 17px;
+    }
+    .check-circle {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+    .center-column {
+        width: 100%;
+    }
+    .grid-container {
+        grid-template-columns: repeat(9, 30px);
+        gap: 3px;
+        padding: 6px;
+    }
+    .cell {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+        border-radius: 6px;
+    }
+    .kid-card {
+        padding: 26px 20px;
+        width: 340px;
+    }
+    .kid-icon {
+        font-size: 4em;
+    }
+    .kid-card h3 {
+        font-size: 1.8em;
+    }
+    .kid-card p {
+        font-size: 1em;
+    }
+    .final-kid-box {
+        padding: 28px 24px;
+        width: 370px;
+    }
+    .final-kid-box h2 {
+        font-size: 2em;
+    }
+    .final-kid-box p {
+        font-size: 1.1em;
+    }
+    #stars {
+        font-size: 2.2em;
+    }
+}
+
+/* Large Mobile */
+@media (min-width:425px) and (max-width:575px) {
+    .game-card {
+        padding: 16px 14px;
+        border-radius: 24px;
+    }
+    .main-title h1 {
+        font-size: 22px;
+    }
+    .subtitle {
+        font-size: 11px;
+    }
+    .main-layout {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+    }
+    .side-column {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+    .side-column .panel-header {
+        width: 100%;
+        font-size: 13px;
+        padding: 7px;
+    }
+    .word-list-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px;
+        gap: 6px;
+        width: 100%;
+        border-width: 2px 2px 2px 2px;
+        border-radius: 14px;
+    }
+    .animal-card {
+        height: 38px;
+        padding: 3px 10px;
+        font-size: 12px;
+    }
+    .animal-info {
+        font-size: 12px;
+        gap: 6px;
+    }
+    .animal-emoji {
+        font-size: 18px;
+    }
+    .check-circle {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+    .center-column {
+        width: 100%;
+    }
+    .grid-container {
+        grid-template-columns: repeat(9, 32px);
+        gap: 4px;
+        padding: 7px;
+    }
+    .cell {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        border-radius: 6px;
+    }
+    .kid-card {
+        padding: 28px 22px;
+        width: 360px;
+    }
+    .kid-icon {
+        font-size: 4.2em;
+    }
+    .kid-card h3 {
+        font-size: 2em;
+    }
+    .kid-card p {
+        font-size: 1.05em;
+    }
+    .final-kid-box {
+        padding: 30px 28px;
+        width: 400px;
+    }
+    .final-kid-box h2 {
+        font-size: 2.2em;
+    }
+    .final-kid-box p {
+        font-size: 1.15em;
+    }
+    #stars {
+        font-size: 2.4em;
+    }
+}
+
+/* Small Tablet */
+@media (min-width:576px) and (max-width:899px) {
+    .game-card {
+        padding: 18px 16px;
+        border-radius: 26px;
+        width: 95%;
+    }
+    .main-title h1 {
+        font-size: 24px;
+    }
+    .subtitle {
+        font-size: 11px;
+    }
+    .main-layout {
+        /* flex-direction: column; */
+        align-items: center;
+        gap: 18px;
+    }
+    .side-column {
+        width: 100%;
+        /* flex-direction: row; */
+        /* flex-wrap: wrap; */
+        justify-content: center;
+        gap: 12px;
+    }
+    .side-column .panel-header {
+        width: 100%;
+        font-size: 13px;
+        padding: 8px;
+    }
+    .word-list-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px;
+        gap: 8px;
+        width: 100%;
+        border-width: 2px 2px 2px 2px;
+        border-radius: 14px;
+    }
+    .animal-card {
+        height: 50px;
+        padding: 4px 12px;
+        font-size: 13px;
+        width: 130px;
+    }
+    .animal-info {
+        font-size: 13px;
+        gap: 6px;
+    }
+       .animal-icon{
+    width: 32px;
+    height:32px;
+    object-fit:contain;
+    flex-shrink:0;
+}
+    .check-circle {
+        width: 19px;
+        height: 19px;
+        font-size: 10px;
+    }
+    .center-column {
+        width: 100%;
+    }
+    .grid-container {
+        grid-template-columns: repeat(9, 36px);
+        gap: 4px;
+        padding: 8px;
+    }
+    .cell {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+        border-radius: 7px;
+    }
+    .kid-card {
+        padding: 30px 24px;
+        width: 380px;
+    }
+    .kid-icon {
+        font-size: 4.5em;
+    }
+    .kid-card h3 {
+        font-size: 2.1em;
+    }
+    .kid-card p {
+        font-size: 1.05em;
+    }
+    .final-kid-box {
+        padding: 32px 30px;
+        width: 430px;
+    }
+    .final-kid-box h2 {
+        font-size: 2.3em;
+    }
+    .final-kid-box p {
+        font-size: 1.2em;
+    }
+    #stars {
+        font-size: 2.5em;
+    }
+}
+
+/* Tablet */
+@media (min-width:900px) and (max-width:1440px) {
+    .game-card {
+        width: 95%;
+        padding: 18px 20px;
+        
+    }
+    .main-title h1 {
+        font-size: 24px;
+    }
+    .main-layout {
+        gap: 14px;
+    }
+    .side-column {
+        width: 200px;
+    }
+    .animal-card {
+        height: 70px;
+        padding: 4px 6px;
+    }
+    .animal-info {
+        font-size: 19px;
+        gap: 15px;
+    }
+    .animal-emoji {
+        font-size: 25px;
+    }
+    .check-circle {
+        width: 22px;
+        height: 22px;
+        font-size: 10px;
+    }
+    .grid-container {
+        grid-template-columns: repeat(9, 46px);
+        gap: 4px;
+        padding: 6px;
+    }
+    .cell {
+        width: 46px;
+        height: 46px;
+        font-size: 18px;
+        border-radius: 6px;
+    }
+    .panel-header {
+        font-size: 13px;
+        padding: 7px;
+    }
+   
+}
+
+/* Small Laptop */
+/* @media (min-width:1024px) and (max-width:1440px) {
+    .game-card {
+        width: 95%;
+        max-width: 1000px;
+    }
+    .side-column {
+        width: 165px;
+    }
+    .grid-container {
+        grid-template-columns: repeat(9, 38px);
+        gap: 4px;
+    }
+    .cell {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+    }
+} */
+
+/* Laptop */
+
+
+/* Desktop */
+@media (min-width:1441px) and (max-width:1920px) {
+    .game-card {
+        width: 1400px;
+        padding: 24px 32px;
+        border-radius: 32px;
+    }
+    .main-title h1 {
+        font-size: 30px;
+    }
+    .subtitle {
+        font-size: 25px;
+    }
+    .side-column {
+        width: 285px;
+    }
+    .panel-header {
+        font-size: 16px;
+        padding: 10px;
+    }
+    .animal-card {
+        height: 110px;
+        padding: 6px 12px;
+    }
+    .animal-info {
+        font-size: 30px;
+        gap: 18px;
+    }
+    .animal-icon{
+    width:82px;
+    height:82px;
+    object-fit:contain;
+    flex-shrink:0;
+}
+    .check-circle {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+    .grid-container {
+        grid-template-columns: repeat(9, 65px);
+        gap: 5px;
+        padding: 10px;
+    }
+    .cell {
+        width: 65px;
+        height: 65px;
+        font-size: 22px;
+        border-radius: 9px;
+    }
+       .kid-card {
+                width: 460px;
+                padding: 38px 34px;
+            }
+            .kid-icon {
+                font-size: 5.4em;
+            }
+            .final-kid-box {
+                width: 560px;
+                padding: 42px;
+            }
+            .final-kid-box h2 {
+                font-size: 2.8em;
+            }
+            #stars {
+                font-size: 2.8em;
+            }
+            .playAgain-btn {
+                padding: 18px 44px;
+                font-size: 1.3em;
+            }
+    .close-btn {
+        padding: 14px 32px;
+        font-size: 1.1em;
+    }
+}
+
+/* Full HD and above */
+@media (min-width:1921px) {
+    .game-card {
+        width: 1300px;
+        padding: 30px 40px;
+        border-radius: 36px;
+    }
+    .main-title h1 {
+        font-size: 36px;
+    }
+    .subtitle {
+        font-size: 16px;
+    }
+    .main-layout {
+        gap: 24px;
+    }
+    .side-column {
+        width: 260px;
+    }
+    .panel-header {
+        font-size: 18px;
+        padding: 12px;
+        border-radius: 14px 14px 0 0;
+    }
+    .word-list-container {
+        padding: 12px;
+        gap: 10px;
+        border-radius: 0 0 18px 18px;
+    }
+    .animal-card {
+        height: 90px;
+        padding: 8px 16px;
+        border-radius: 14px;
+    }
+    .animal-info {
+        font-size: 16px;
+        gap: 10px;
+    }
+    .animal-emoji {
+        font-size: 26px;
+    }
+    .check-circle {
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+    }
+    .grid-container {
+        grid-template-columns: repeat(9, 55px);
+        gap: 6px;
+        padding: 12px;
+        border-radius: 20px;
+    }
+    .cell {
+        width: 55px;
+        height: 55px;
+        font-size: 20px;
+        border-radius: 10px;
+    }
+    .kid-card {
+        padding: 40px 36px;
+        width: 480px;
+        border-radius: 50px;
+    }
+    .kid-icon {
+        font-size: 6em;
+    }
+    .kid-card h3 {
+        font-size: 2.8em;
+    }
+    .kid-card p {
+        font-size: 1.3em;
+    }
+    .final-kid-box {
+        padding: 45px 50px;
+        width: 580px;
+        border-radius: 50px;
+    }
+    .final-kid-box h2 {
+        font-size: 3em;
+    }
+    .final-kid-box p {
+        font-size: 1.5em;
+    }
+    #stars {
+        font-size: 3.2em;
+    }
+    .close-btn {
+        padding: 16px 40px;
+        font-size: 1.2em;
+        border-radius: 36px;
+    }
+}
+    </style>
+</head>
+<body>
+
+    <div class="game-card">
+        <div class="top-bar">
+            <div class="main-title">
+                <h1><span class="title-predator">Predator</span> & <span class="title-prey">Prey</span> <span class="title-hunt">Hunt</span></h1>
+                <div class="subtitle">Find all the predators (pink) and prey (blue) hidden in the grid.</div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div class="side-column">
+                <div class="panel-header predators-header">
+                    🐾 PREDATORS
+                </div>
+                <div class="word-list-container predator-container" id="leftWords"></div>
+            </div>
+
+            <div class="center-column">
+                <div class="grid-container" id="grid"></div>
+                <!-- "How to Play" button removed -->
+            </div>
+
+            <div class="side-column">
+                <div class="panel-header prey-header">
+                    🐾 PREY
+                </div>
+                <div class="word-list-container prey-container" id="rightWords"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden How-to-popup (no button to open it) -->
+    <div id="howToPlayPopup" class="howto-play-popup">
+        <div class="howto-card">
+            <h2>📖 How to Play</h2>
+            <p style="margin: 10px 0; font-size:14px; text-align:left;">
+                1. Click adjacent letters to select words.<br>
+                2. Predators (Left) highlight in Red.<br>
+                3. Prey (Right) highlight in Blue.<br>
+                4. Find all 10 hidden words to win!
+            </p>
+            <button class="close-btn" id="closeHowToBtn">Got it! 🎉</button>
+        </div>
+    </div>
+
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars" ></div>
+            <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        const gameData = {
+            gridLetters: [
+                ['t', 'i', 'g', 'e', 'r', 'x', 'b', 't', 'f'],
+                ['z', 'd', 'f', 't', 'u', 'm', 'i', 'i', 'i'],
+                ['l', 's', 'n', 'a', 'k', 'e', 's', 'n', 's'],
+                ['i', 'j', 'q', 'g', 'y', 'u', 'o', 's', 'h'],
+                ['z', 'f', 'd', 'l', 'e', 'b', 'n', 'e', 'x'],
+                ['a', 'r', 'b', 'b', 'h', 'j', 'w', 'c', 'd'],
+                ['r', 'o', 't', 'l', 'i', 'o', 'n', 't', 'e'],
+                ['d', 'g', 'n', 's', 'e', 'n', 'm', 's', 'e'],
+                ['g', 'p', 'e', 'l', 'i', 'c', 'a', 'n', 'r']
+            ],
+        predators: [
+        { word: 'TIGER', number: 1, icon: '../assets/images/tiger.png' },
+        { word: 'LION', number: 2, icon: '../assets/images/lion.png' },
+        { word: 'SNAKE', number: 3, icon: '../assets/images/snake.png' },
+        { word: 'LIZARD', number: 4, icon: '../assets/images/lizard.png' },
+        { word: 'PELICAN', number: 5, icon: '../assets/images/pelican.png' }
+    ],
+
+    prey: [
+        { word: 'DEER', number: 6, icon: '../assets/images/deer.png' },
+        { word: 'BISON', number: 7, icon: '../assets/images/bison.png' },
+        { word: 'FROG', number: 8, icon: '../assets/images/frog.png' },
+        { word: 'INSECT', number: 9, icon: '../assets/images/insect.png' },
+        { word: 'FISH', number: 10, icon: '../assets/images/fish.png' }
+    ]
+        };
+
+        let currentSelection = [];
+        let solvedWords = 0;
+        const totalWords = gameData.predators.length + gameData.prey.length;
+        const solvedSet = new Set();
+
+        const grid = document.getElementById('grid');
+        const leftWordsEl = document.getElementById('leftWords');
+        const rightWordsEl = document.getElementById('rightWords');
+        const closeHowTo = document.getElementById('closeHowToBtn');
+        const popupOverlay = document.getElementById('answerPopup');
+        
+        // ===== HIGHLIGHT SYSTEM =====
+        const svgNS = 'http://www.w3.org/2000/svg';
+        let highlightSvg, solvedLayer, activeLayer;
+        let solvedHighlights = [];
+        let activePath = null;
+let previousLength = 0;
+        const HIGHLIGHT_COLORS = {
+            active:   { fill: '#FFD6E8', border: '#FF7EB6' },
+            predator: { fill: '#FFD6E8', border: '#FF7EB6' },
+            prey:     { fill: '#D9EEFF', border: '#5EB8FF' },
+            wrong:    { fill: '#FFCDD2', border: '#F44336' }
+        };
+ function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+        function initHighlightLayer() {
+            highlightSvg = document.createElementNS(svgNS, 'svg');
+            highlightSvg.setAttribute('class', 'highlight-svg');
+            highlightSvg.setAttribute('preserveAspectRatio', 'none');
+            solvedLayer = document.createElementNS(svgNS, 'g');
+            activeLayer = document.createElementNS(svgNS, 'g');
+            highlightSvg.appendChild(solvedLayer);
+            highlightSvg.appendChild(activeLayer);
+            grid.insertBefore(highlightSvg, grid.firstChild);
+            updateSvgViewBox();
+            window.addEventListener('resize', updateSvgViewBox);
+        }
+
+        function updateSvgViewBox() {
+            const w = grid.clientWidth;
+            const h = grid.clientHeight;
+            if (highlightSvg) {
+                highlightSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+                redrawSolvedPaths();
+            }
+        }
+
+        function getCellCenter(cell) {
+            return {
+                x: cell.offsetLeft + cell.offsetWidth / 2,
+                y: cell.offsetTop + cell.offsetHeight / 2
+            };
+        }
+
+        function pointsToPathD(points) {
+            if (points.length === 0) return '';
+            let d = `M ${points[0].x} ${points[0].y}`;
+            for (let i = 1; i < points.length; i++) {
+                d += ` L ${points[i].x} ${points[i].y}`;
+            }
+            return d;
+        }
+
+        function getStrokeWidths() {
+            const sampleCell = document.querySelector('.cell');
+            const cellSize = sampleCell ? sampleCell.offsetWidth : 40;
+            return { outer: cellSize * 0.82, inner: cellSize * 0.64 };
+        }
+
+        function clearGroup(g) {
+            while (g.firstChild) g.removeChild(g.firstChild);
+        }
+
+        function animatePathGrow(pathEl, duration = 280) {
+            let length;
+            try { length = pathEl.getTotalLength(); } catch (e) { return; }
+            if (!length) return;
+            pathEl.style.strokeDasharray = length;
+            pathEl.style.strokeDashoffset = length;
+            pathEl.getBoundingClientRect();
+            const start = performance.now();
+            function step(ts) {
+                const elapsed = ts - start;
+                const t = Math.min(elapsed / duration, 1);
+                const eased = 1 - Math.pow(1 - t, 3);
+                pathEl.style.strokeDashoffset = length * (1 - eased);
+                if (t < 1) requestAnimationFrame(step);
+                else pathEl.style.strokeDashoffset = 0;
+            }
+            requestAnimationFrame(step);
+        }
+
+        function drawPill(group, points, colors, animate) {
+            clearGroup(group);
+            if (points.length === 0) return;
+            const d = pointsToPathD(points);
+            const { outer, inner } = getStrokeWidths();
+
+            const borderPath = document.createElementNS(svgNS, 'path');
+            borderPath.setAttribute('d', d);
+            borderPath.setAttribute('fill', 'none');
+            borderPath.setAttribute('stroke', colors.border);
+            borderPath.setAttribute('stroke-width', outer);
+            borderPath.setAttribute('stroke-linecap', 'round');
+            borderPath.setAttribute('stroke-linejoin', 'round');
+            borderPath.setAttribute('opacity', '0.65');
+            group.appendChild(borderPath);
+
+            const fillPath = document.createElementNS(svgNS, 'path');
+            fillPath.setAttribute('d', d);
+            fillPath.setAttribute('fill', 'none');
+            fillPath.setAttribute('stroke', colors.fill);
+            fillPath.setAttribute('stroke-width', inner);
+            fillPath.setAttribute('stroke-linecap', 'round');
+            fillPath.setAttribute('stroke-linejoin', 'round');
+            fillPath.setAttribute('opacity', '0.65');
+            group.appendChild(fillPath);
+
+            if (animate) {
+                animatePathGrow(borderPath);
+                animatePathGrow(fillPath);
+            }
+        }
+function updateActiveHighlight() {
+
+    if(currentSelection.length===0){
+
+        clearGroup(activeLayer);
+
+        activePath=null;
+
+        previousLength=0;
+
+        return;
+
+    }
+
+    const word=currentSelection.map(x=>x.letter).join("");
+
+    let colors=HIGHLIGHT_COLORS.active;
+
+    if(gameData.predators.some(w=>w.word.startsWith(word)))
+        colors=HIGHLIGHT_COLORS.predator;
+    else if(gameData.prey.some(w=>w.word.startsWith(word)))
+        colors=HIGHLIGHT_COLORS.prey;
+
+    // First letter
+    if(currentSelection.length===1){
+
+        clearGroup(activeLayer);
+
+        activePath=null;
+
+        previousLength=0;
+
+        const cell=currentSelection[0].element;
+
+        const p=getCellCenter(cell);
+
+        const circle=document.createElementNS(svgNS,"circle");
+
+        circle.setAttribute("cx",p.x);
+        circle.setAttribute("cy",p.y);
+        circle.setAttribute("r",cell.offsetWidth*0.35);
+
+        circle.setAttribute("fill",colors.fill);
+        circle.setAttribute("stroke",colors.border);
+        circle.setAttribute("stroke-width","4");
+
+        activeLayer.appendChild(circle);
+
+        return;
+    }
+
+    const points=currentSelection.map(x=>getCellCenter(x.element));
+
+    extendAnimatedPath(points,colors);
+
+}
+
+function extendAnimatedPath(points,colors){
+
+    const d=pointsToPathD(points);
+
+    const {outer,inner}=getStrokeWidths();
+
+    if(!activePath){
+
+        clearGroup(activeLayer);
+
+        activePath=document.createElementNS(svgNS,"path");
+
+        activePath.setAttribute("fill","none");
+        activePath.setAttribute("stroke",colors.fill);
+        activePath.setAttribute("stroke-width",inner);
+        activePath.setAttribute("stroke-linecap","round");
+        activePath.setAttribute("stroke-linejoin","round");
+
+        activeLayer.appendChild(activePath);
+    }
+
+    activePath.setAttribute("d",d);
+
+    const len=activePath.getTotalLength();
+
+    activePath.style.strokeDasharray=len;
+
+    activePath.style.strokeDashoffset=len-previousLength;
+
+    activePath.animate([
+        {strokeDashoffset:len-previousLength},
+        {strokeDashoffset:0}
+    ],{
+        duration:180,
+        fill:"forwards"
+    });
+
+    previousLength=len;
+
+}
+
+function clearActiveHighlight(){
+
+    clearGroup(activeLayer);
+
+    activePath=null;
+
+    previousLength=0;
+
+}
+
+        function addSolvedHighlight(cells, isPredator) {
+            solvedHighlights.push({ cells, isPredator });
+            redrawSolvedPaths();
+        }
+
+        function redrawSolvedPaths() {
+            if (!solvedLayer) return;
+            clearGroup(solvedLayer);
+            solvedHighlights.forEach(entry => {
+                const points = entry.cells.map(c => getCellCenter(c));
+                const wordGroup = document.createElementNS(svgNS, 'g');
+                wordGroup.setAttribute('class', 'pill-group');
+                solvedLayer.appendChild(wordGroup);
+                drawPill(wordGroup, points, entry.isPredator ? HIGHLIGHT_COLORS.predator : HIGHLIGHT_COLORS.prey, false);
+            });
+        }
+        // ===== END HIGHLIGHT SYSTEM =====
+
+        function renderWords() {
+            leftWordsEl.innerHTML = '';
+            rightWordsEl.innerHTML = '';
+
+            gameData.predators.forEach((w) => {
+                const el = document.createElement('div');
+                el.className = `animal-card ${solvedSet.has(w.number) ? 'predator-solved' : ''}`;
+                el.id = `word-${w.number}`;
+                el.innerHTML = `
+                    <div class="animal-info">
+                        <img class="animal-icon" src="${w.icon}" alt="${w.word}">
+                        <span>${w.word.charAt(0) + w.word.slice(1).toLowerCase()}</span>
+                    </div>
+                    <div class="check-circle">${solvedSet.has(w.number) ? '✓' : ''}</div>
+                `;
+                leftWordsEl.appendChild(el);
+            });
+
+            gameData.prey.forEach((w) => {
+                const el = document.createElement('div');
+                el.className = `animal-card ${solvedSet.has(w.number) ? 'prey-solved' : ''}`;
+                el.id = `word-${w.number}`;
+                el.innerHTML = `
+                    <div class="animal-info">
+                        <img class="animal-icon" src="${w.icon}" alt="${w.word}">
+                        <span>${w.word.charAt(0) + w.word.slice(1).toLowerCase()}</span>
+                    </div>
+                    <div class="check-circle">${solvedSet.has(w.number) ? '✓' : ''}</div>
+                `;
+                rightWordsEl.appendChild(el);
+            });
+        }
+
+        function buildGrid() {
+            grid.innerHTML = '';
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.textContent = gameData.gridLetters[r][c].toUpperCase();
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.dataset.letter = gameData.gridLetters[r][c].toUpperCase();
+                    cell.addEventListener('click', () => selectLetter(cell));
+                    grid.appendChild(cell);
+                }
+            }
+            initHighlightLayer();
+        }
+
+        let direction = null;
+
+        function isAdjacent(last, current) {
+
+    const r1 = Number(last.dataset.row);
+    const c1 = Number(last.dataset.col);
+
+    const r2 = Number(current.dataset.row);
+    const c2 = Number(current.dataset.col);
+
+    return Math.abs(r1 - r2) <= 1 &&
+           Math.abs(c1 - c2) <= 1 &&
+           !(r1 === r2 && c1 === c2);
+}
+
+       function selectLetter(cell) {
+
+    if (cell.classList.contains('correct-predator') ||
+        cell.classList.contains('correct-prey'))
+        return;
+
+
+           // ===== Deselect last selected letter =====
+    if (currentSelection.length > 0) {
+        const last = currentSelection[currentSelection.length - 1];
+
+        if (last.element === cell) {
+            cell.classList.remove('selected');
+            currentSelection.pop();
+
+            if (currentSelection.length <= 1) {
+                direction = null;
+            }
+
+            updateActiveHighlight();
+            return;
+        }
+    }
+    
+    if (cell.classList.contains('selected'))
+        return;
+
+    // First letter
+    if (currentSelection.length === 0) {
+
+        cell.classList.add('selected');
+
+        currentSelection.push({
+            letter: cell.dataset.letter,
+            element: cell
+        });
+
+       updateActiveHighlight();
+
+// Don't check until at least 2 letters are selected.
+return;
+    }
+
+    const lastCell = currentSelection[currentSelection.length - 1].element;
+
+    if (!isAdjacent(lastCell, cell))
+        return;
+
+    const dr =
+        Number(cell.dataset.row) -
+        Number(lastCell.dataset.row);
+
+    const dc =
+        Number(cell.dataset.col) -
+        Number(lastCell.dataset.col);
+
+    // Second letter decides direction
+    if (currentSelection.length === 1) {
+
+        direction = {
+            dr,
+            dc
+        };
+
+    } else {
+
+        if (dr !== direction.dr || dc !== direction.dc) {
+
+            return;
+
+        }
+
+    }
+
+    cell.classList.add('selected');
+
+currentSelection.push({
+    letter: cell.dataset.letter,
+    element: cell
+});
+
+updateActiveHighlight();
+
+if (currentSelection.length >= 2) {
+    checkWord();
+}
+}
+
+       function clearSelection() {
+
+    currentSelection.forEach(x =>
+        x.element.classList.remove('selected')
+    );
+
+    currentSelection = [];
+
+    direction = null;
+
+    clearActiveHighlight();
+}
+
+        function checkWord() {
+            const formedWord = currentSelection.map(x => x.letter).join('');
+            let matched = false;
+            const allWords = [...gameData.predators, ...gameData.prey];
+
+            allWords.forEach((wordData) => {
+                if (formedWord === wordData.word && !solvedSet.has(wordData.number)) {
+                    matched = true;
+                    solvedSet.add(wordData.number);
+                    solvedWords++;
+
+                    const isPredator = gameData.predators.some(p => p.number === wordData.number);
+                    const solvedCells = currentSelection.map(x => x.element);
+
+                    currentSelection.forEach((x) => {
+                        x.element.classList.remove('selected');
+                        x.element.classList.add(isPredator ? 'correct-predator' : 'correct-prey');
+                    });
+
+                    clearActiveHighlight();
+                    addSolvedHighlight(solvedCells, isPredator);
+
+                    renderWords();
+                    showPopup(true);
+                    speak("Correct");
+                    confetti({ particleCount: 40, spread: 60 });
+                    currentSelection = [];
+direction = null;
+
+                    if (solvedWords === totalWords) {
+                        setTimeout(showFinal, 1000);
+                    }
+                }
+            });
+
+            if (!matched) {
+                const possible = allWords.some(w => w.word.startsWith(formedWord) && !solvedSet.has(w.number));
+                if (!possible && formedWord.length > 0) wrongSelection();
+            }
+        }
+
+        function wrongSelection() {
+            drawPill(activeLayer, currentSelection.map(x => getCellCenter(x.element)), HIGHLIGHT_COLORS.wrong, false);
+            currentSelection.forEach((x) => {
+                x.element.classList.add('wrong');
+                setTimeout(() => {
+                    x.element.classList.remove('wrong', 'selected');
+                }, 500);
+            });
+            showPopup(false);
+            speak("Try again");
+            setTimeout(clearActiveHighlight, 500);
+            currentSelection = [];
+direction = null;
+        }
+
+        function showPopup(isCorrect) {
+            popupOverlay.className = `kid-popup ${isCorrect ? 'kid-correct' : 'kid-wrong'}`;
+            popupOverlay.style.display = 'flex';
+            document.getElementById('popupIcon').textContent = isCorrect ? '🌟' : '😒';
+            document.getElementById('popupTitle').textContent = isCorrect ? 'Amazing!' : 'Try Again!';
+            document.getElementById('popupMsg').textContent = isCorrect ? 'Great find!' : 'Keep looking!';
+
+            const sound = document.getElementById(isCorrect ? 'correctSound' : 'wrongSound');
+            if (sound) sound.play().catch(() => {});
+
+            setTimeout(() => { popupOverlay.style.display = 'none'; }, 1500);
+        }
+
+        function showFinal() {
+            document.getElementById('finalPopup').style.display = 'flex';
+            document.getElementById('finalScore').textContent = `Your Score: ${solvedWords} / ${totalWords}`;
+            document.getElementById('stars').textContent = '⭐'.repeat(5);
+            confetti({ particleCount: 150, spread: 100 });
+        }
+
+        closeHowTo.onclick = () => {
+            document.getElementById('howToPlayPopup').style.display = 'none';
+        };
+
+        window.onclick = (e) => {
+            if (e.target === popupOverlay) popupOverlay.style.display = 'none';
+            if (e.target === document.getElementById('finalPopup')) {
+                document.getElementById('finalPopup').style.display = 'none';
+            }
+        };
+
+        buildGrid();
+        renderWords();
+    </script>
+</body>
+</html>

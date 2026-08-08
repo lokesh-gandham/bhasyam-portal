@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EVS Synonym Grid Game</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman", sans-serif;
+            font-weight: 400;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .quiz {
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            position: relative;
+            gap: 10px;
+        }
+
+        .hint-button {
+            position: absolute;
+            top: 5px;
+            right: 40px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 12px;
+            background: #22b8cf;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            transition: .25s;
+            z-index: 5;
+        }
+
+        .hint-button:hover {
+            transform: translateY(-3px);
+            background: #16a5bc;
+        }
+
+        .hint-button i {
+            font-size: 20px;
+        }
+
+        .hint-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .hint-overlay.show {
+            display: flex;
+        }
+
+        .hint-popup {
+            width: 460px;
+            background: #fff;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            animation: hintPop .35s ease;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.322);
+        }
+
+        @keyframes hintPop {
+            from {
+                transform: translateY(35px) scale(.85);
+                opacity: 0;
+            }
+
+            to {
+                transform: none;
+                opacity: 1;
+            }
+        }
+
+        .hint-close {
+            position: absolute;
+            right: 14px;
+            top: 14px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #888;
+            cursor: pointer;
+            transition: .25s;
+            font-size: 17px;
+        }
+
+        .hint-close:hover {
+            background: #ef5350;
+            color: #fff;
+        }
+
+        .hint-header {
+            background: linear-gradient(135deg, #e0f9ff, #b7f1ff);
+            padding: 28px;
+            text-align: center;
+        }
+
+        .hint-icon {
+            width: 80px;
+            height: 80px;
+            margin: auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #22b8cf;
+            color: #fff;
+            font-size: 40px;
+            margin-bottom: 14px;
+            box-shadow: 0 10px 25px rgba(34, 184, 207, .35);
+        }
+
+        .hint-header h2 {
+            color: #214b57;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .hint-content {
+            padding: 28px;
+        }
+
+        .hint-step {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            margin-bottom: 18px;
+            color: #455a64;
+            font-size: 18px;
+            line-height: 1.7;
+        }
+
+        .hint-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .hint-step span {
+            font-size: 24px;
+        }
+
+        .question-box {
+            border-radius: 20px;
+            padding: 20px;
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            text-align: left;
+            margin-top: 10px;
+            background: transparent;
+        }
+
+        .words-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            text-align: center;
+            gap: 14px;
+            width: 100%;
+            margin: 0 auto;
+            max-width: 84%;
+            margin-bottom: 25px;
+        }
+
+        .word-btn {
+            padding: 12px 30px;
+            font-size: 24px;
+            font-weight: 500;
+            color: #2f4f4f;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 3px solid transparent;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-transform: capitalize;
+        }
+
+        .word-btn:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.05);
+        }
+
+        .word-btn[data-word="several"] {
+            background-color: #fce49b;
+        }
+
+        .word-btn[data-word="unusual"] {
+            background-color: #ffbaf1;
+        }
+
+        .word-btn[data-word="thick"] {
+            background-color: #7bd3eb;
+        }
+
+        .word-btn[data-word="serpents"] {
+            background: #f1aeae;
+        }
+
+        .word-btn[data-word="bill"] {
+            background-color: #aae09b;
+        }
+
+        .word-btn[data-word="several"].active {
+            border-color: #e0ac24;
+            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(224, 172, 36, 0.6);
+        }
+
+        .word-btn[data-word="unusual"].active {
+            border-color: #c98cb3;
+            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(201, 140, 179, 0.6);
+        }
+
+        .word-btn[data-word="thick"].active {
+            border-color: #3faecf;
+            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(63, 174, 207, 0.6);
+        }
+
+        .word-btn[data-word="serpents"].active {
+            border-color: #cf6969;
+            transform: scale(1.05);
+            box-shadow: 0 0 12px #d3818199;
+        }
+
+        .word-btn[data-word="bill"].active {
+            border-color: #6da35d;
+            transform: scale(1.05);
+            box-shadow: 0 0 12px rgba(109, 163, 93, 0.6);
+        }
+
+        .word-btn.completed {
+            opacity: 0.5;
+            pointer-events: none;
+            transform: none !important;
+            box-shadow: none !important;
+            border-color: transparent !important;
+        }
+
+        /* ===== UNIFIED CANDY GRID ===== */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+            width: 100%;
+            margin: 0 auto;
+            max-width: 85%;
+            padding: 0;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            position: relative;
+        }
+
+        /* UNIFIED CANDY CELL - all same color */
+        .grid-cell {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            color: #2b2d2e;
+            border: 2px solid #b1ddb9;
+            border-radius: 20px;
+            padding: 14px 8px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60px;
+            text-transform: capitalize;
+            word-break: break-word;
+            line-height: 1.2;
+            position: relative;
+            will-change: transform;
+            letter-spacing: 0.3px;
+            box-shadow:
+                inset 0 2px 0 rgba(248, 247, 247, 0.95),
+                inset 0 -4px 8px rgba(0, 0, 0, 0.075),
+                0 8px 18px rgba(0, 0, 0, .08),
+                0 2px 0 rgba(255, 255, 255, .8);
+            transform: translateY(-2px);
+        }
+
+        /* Hover: gentle lift */
+        .grid-cell:hover {
+            transform: translateY(-6px) scale(1.03);
+            border: 2px solid #eeb346;
+            box-shadow:
+                inset 0 2px 0 rgba(231, 230, 230, 0.95),
+                inset 0 -4px 8px rgba(0, 0, 0, 0.075),
+                0 8px 18px rgba(0, 0, 0, .08),
+                0 2px 0 rgba(255, 255, 255, .8);
+            filter: brightness(1.05);
+            z-index: 2;
+        }
+
+        /* Click squash */
+        .grid-cell:active:not(.matched-several):not(.matched-unusual):not(.matched-thick):not(.matched-serpents):not(.matched-bill) {
+            transform: translateY(2px) scale(0.95);
+            box-shadow:
+                0 2px 0 #fd2323,
+                0 4px 12px rgba(0, 0, 0, 0.06);
+            border-color: #fd2323;
+            transition-duration: 0.06s;
+        }
+
+        /* ===== MATCHED STYLES with unified candy base ===== */
+        .grid-cell.matched-several {
+            background: #fce49b !important;
+            border-color: #f5c959 !important;
+            box-shadow:
+                0 4px 0 #f5c959,
+                0 8px 24px rgba(224, 172, 36, 0.25) !important;
+            transform: translateY(-1px) scale(1.02);
+            pointer-events: none;
+            border: 2px solid #f5dc7a;
+        }
+
+        .grid-cell.matched-unusual {
+            background: #ffbaf1 !important;
+            border-color: #eba2d0 !important;
+            box-shadow:
+                0 4px 0 #eba2d0,
+                0 8px 24px rgba(201, 140, 179, 0.25) !important;
+            transform: translateY(-1px) scale(1.02);
+            pointer-events: none;
+            border: 2px solid #f7c4e5;
+        }
+
+        .grid-cell.matched-thick {
+            background: #b2e2f0 !important;
+            border-color: #60c0dd !important;
+            box-shadow:
+                0 4px 0 #60c0dd,
+                0 8px 24px rgba(63, 174, 207, 0.25) !important;
+            transform: translateY(-1px) scale(1.02);
+            pointer-events: none;
+            border: 2px solid #9edcee;
+        }
+
+        .grid-cell.matched-serpents {
+            background: #f1aeae !important;
+            border-color: #cf6969 !important;
+            box-shadow:
+                0 4px 0 #cf6969,
+                0 8px 24px #cf565640 !important;
+            transform: translateY(-1px) scale(1.02);
+            pointer-events: none;
+            border: 2px solid #cf6969;
+        }
+
+        .grid-cell.matched-bill {
+            background: #aae09b !important;
+            border-color: #6da35d !important;
+            box-shadow:
+                0 4px 0 #548347,
+                0 8px 24px rgba(109, 163, 93, 0.25) !important;
+            transform: translateY(-1px) scale(1.02);
+            pointer-events: none;
+            border: 2px solid #bce8aa;
+        }
+
+        /* Success pop animation */
+        .grid-cell.pop-success {
+            animation: popSuccess 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popSuccess {
+            0% {
+                transform: scale(1);
+            }
+
+            30% {
+                transform: scale(1.2) rotate(-3deg);
+            }
+
+            60% {
+                transform: scale(0.95) rotate(2deg);
+            }
+
+            100% {
+                transform: scale(1.02) rotate(0deg);
+            }
+        }
+
+        /* Wrong shake */
+        .grid-cell.wrong {
+            animation: shakeWrong 0.5s ease forwards;
+        }
+
+        @keyframes shakeWrong {
+
+            0%,
+            100% {
+                transform: translateX(0) rotate(0deg);
+            }
+
+            15% {
+                transform: translateX(-8px) rotate(-4deg);
+            }
+
+            30% {
+                transform: translateX(8px) rotate(4deg);
+            }
+
+            45% {
+                transform: translateX(-5px) rotate(-3deg);
+            }
+
+            60% {
+                transform: translateX(5px) rotate(3deg);
+            }
+
+            80% {
+                transform: translateX(-2px) rotate(-1deg);
+            }
+        }
+
+        /* Floating animation for idle cells */
+        .grid-cell:not(.matched-several):not(.matched-unusual):not(.matched-thick):not(.matched-serpents):not(.matched-bill) {
+            animation: floatIdle 3.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatIdle {
+            0% {
+                transform: translateY(-2px);
+            }
+
+            100% {
+                transform: translateY(3px);
+            }
+        }
+
+        /* Staggered delays */
+        .grid-cell:nth-child(1) {
+            animation-delay: 0.0s;
+        }
+
+        .grid-cell:nth-child(2) {
+            animation-delay: 0.12s;
+        }
+
+        .grid-cell:nth-child(3) {
+            animation-delay: 0.24s;
+        }
+
+        .grid-cell:nth-child(4) {
+            animation-delay: 0.36s;
+        }
+
+        .grid-cell:nth-child(5) {
+            animation-delay: 0.48s;
+        }
+
+        .grid-cell:nth-child(6) {
+            animation-delay: 0.08s;
+        }
+
+        .grid-cell:nth-child(7) {
+            animation-delay: 0.20s;
+        }
+
+        .grid-cell:nth-child(8) {
+            animation-delay: 0.32s;
+        }
+
+        .grid-cell:nth-child(9) {
+            animation-delay: 0.44s;
+        }
+
+        .grid-cell:nth-child(10) {
+            animation-delay: 0.56s;
+        }
+
+        .grid-cell:nth-child(11) {
+            animation-delay: 0.04s;
+        }
+
+        .grid-cell:nth-child(12) {
+            animation-delay: 0.16s;
+        }
+
+        .grid-cell:nth-child(13) {
+            animation-delay: 0.28s;
+        }
+
+        .grid-cell:nth-child(14) {
+            animation-delay: 0.40s;
+        }
+
+        .grid-cell:nth-child(15) {
+            animation-delay: 0.52s;
+        }
+
+        .grid-cell:nth-child(16) {
+            animation-delay: 0.10s;
+        }
+
+        .grid-cell:nth-child(17) {
+            animation-delay: 0.22s;
+        }
+
+        .grid-cell:nth-child(18) {
+            animation-delay: 0.34s;
+        }
+
+        .grid-cell:nth-child(19) {
+            animation-delay: 0.46s;
+        }
+
+        .grid-cell:nth-child(20) {
+            animation-delay: 0.58s;
+        }
+
+        .grid-cell:nth-child(21) {
+            animation-delay: 0.06s;
+        }
+
+        .grid-cell:nth-child(22) {
+            animation-delay: 0.18s;
+        }
+
+        .grid-cell:nth-child(23) {
+            animation-delay: 0.30s;
+        }
+
+        .grid-cell:nth-child(24) {
+            animation-delay: 0.42s;
+        }
+
+        .grid-cell:nth-child(25) {
+            animation-delay: 0.54s;
+        }
+
+        .grid-cell.matched-several,
+        .grid-cell.matched-unusual,
+        .grid-cell.matched-thick,
+        .grid-cell.matched-serpents,
+        .grid-cell.matched-bill {
+            animation: none !important;
+        }
+
+        /* ===== POPUPS (unchanged) ===== */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #ffffff;
+            width: 300px;
+            border-radius: 28px;
+            padding: 0;
+            text-align: center;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 4px 10px rgba(0, 0, 0, 0.03), 0 14px 28px rgba(26, 26, 46, 0.08), 0 30px 60px rgba(26, 26, 46, 0.12), 0 60px 100px rgba(26, 26, 46, 0.14);
+            animation: popupSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes popupSlide {
+            0% {
+                transform: scale(0.5) translateY(60px) rotate(-5deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.05) translateY(-8px) rotate(2deg);
+            }
+
+            100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .popup-top {
+            padding: 35px 24px 20px;
+            position: relative;
+        }
+
+        .popup.correct .popup-top {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        }
+
+        .popup.wrong .popup-top {
+            background: linear-gradient(135deg, #fbe9e7, #ffccbc);
+        }
+
+        .popup.final .popup-top {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .popup-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .popup.correct .popup-icon-wrap {
+            background: #4caf50;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowGreen 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.wrong .popup-icon-wrap {
+            background: #ef5350;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowRed 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.final .popup-icon-wrap {
+            background: #ffffff;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowWarm 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowGreen {
+            0% {
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+            }
+        }
+
+        @keyframes glowRed {
+            0% {
+                box-shadow: 0 0 20px rgba(239, 83, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(239, 83, 80, 0.6);
+            }
+        }
+
+        @keyframes glowWarm {
+            0% {
+                box-shadow: 0 0 5px rgba(172, 172, 172, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(163, 163, 163, 0.432);
+            }
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0) rotate(-30deg);
+            }
+
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .popup-icon-wrap span {
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-bottom {
+            padding: 18px 24px 22px;
+            background: #fff;
+        }
+
+        .popup.correct .popup-bottom {
+            border-top: 2px solid #c8e6c9;
+        }
+
+        .popup.wrong .popup-bottom {
+            border-top: 2px solid #ffccbc;
+        }
+
+        .popup.final .popup-bottom {
+            border-top: 2px solid #ffe0b2;
+        }
+
+        .popup-msg {
+            font-size: 20px;
+            font-weight: 500;
+            color: #5a5270;
+            line-height: 1.4;
+        }
+
+        .popup-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2a4a;
+            margin-bottom: 8px;
+        }
+
+        .popup-stars {
+            font-size: 34px;
+            letter-spacing: 6px;
+            animation: starDance 0.8s ease;
+            margin-bottom: 12px;
+        }
+
+        @keyframes starDance {
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .play-again-popup {
+            background: linear-gradient(135deg, #ff922b, #f76707);
+            color: #fff;
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+        }
+
+        .play-again-popup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(247, 103, 7, 0.45);
+        }
+
+        /* === MEDIA QUERIES (unchanged) === */
+        @media (max-width: 900px) {
+            body {
+                padding: 20px;
+                overflow: auto;
+                height: 100vh;
+                align-items: center;
+            }
+
+            .quiz {
+                width: 100%;
+                max-width: 700px;
+                padding: 16px;
+                margin-top: 20px;
+            }
+
+            .question-box {
+                font-size: 30px;
+                padding: 18px;
+            }
+
+            .words-row {
+                gap: 12px;
+                max-width: 99%;
+            }
+
+            .word-btn {
+                font-size: 20px;
+                padding: 10px 22px;
+                gap: 10px;
+            }
+
+            .grid-container {
+                gap: 12px;
+                max-width: 100%;
+                padding: 0;
+            }
+
+            .grid-cell {
+                font-size: 18px;
+                padding: 12px 5px;
+                min-height: 55px;
+                border-radius: 16px;
+            }
+
+            .popup {
+                width: 320px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 30px 0px 10px;
+                align-items: flex-start;
+                overflow-y: auto;
+            }
+
+            .quiz {
+                width: 100%;
+                max-width: 700px;
+                padding: 14px;
+                margin-top: 20px;
+            }
+
+            .question-box {
+                font-size: 30px;
+                padding: 16px;
+            }
+
+            .words-row {
+                gap: 10px;
+                margin-bottom: 15px;
+                max-width: 99%;
+            }
+
+            .word-btn {
+                font-size: 16px;
+                padding: 8px 16px;
+            }
+
+            .grid-container {
+                gap: 10px;
+                max-width: 100%;
+                padding: 0;
+            }
+
+            .grid-cell {
+                font-size: 15px;
+                padding: 10px 4px;
+                min-height: 50px;
+                border-radius: 14px;
+            }
+
+            .popup {
+                width: 300px;
+            }
+
+            .hint-popup {
+                width: 90%;
+            }
+
+            .hint-header {
+                padding: 24px;
+            }
+
+            .hint-header h2 {
+                font-size: 24px;
+            }
+
+            .hint-content {
+                padding: 22px;
+            }
+
+            .hint-step {
+                font-size: 16px;
+            }
+
+            .hint-button {
+                top: 12px;
+                right: 12px;
+                font-size: 16px;
+                padding: 8px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 50px 0px 10px;
+                align-items: flex-start;
+                overflow-y: auto;
+            }
+
+            .quiz {
+                padding: 10px;
+                margin-top: 10px;
+            }
+
+            .question-box {
+                font-size: 22px;
+                padding: 14px;
+            }
+
+            .words-row {
+                gap: 8px;
+                max-width: 99%;
+            }
+
+            .word-btn {
+                font-size: 14px;
+                padding: 6px 12px;
+            }
+
+            .grid-container {
+                gap: 8px;
+                max-width: 100%;
+                padding: 0;
+            }
+
+            .grid-cell {
+                font-size: 14px;
+                padding: 8px 2px;
+                min-height: 45px;
+                border-radius: 12px;
+            }
+
+            .popup {
+                width: 260px;
+            }
+
+            .popup-icon-wrap {
+                width: 75px;
+                height: 75px;
+                font-size: 40px;
+            }
+
+            .popup-title {
+                font-size: 22px;
+            }
+
+            .hint-popup {
+                width: 95%;
+            }
+
+            .hint-header h2 {
+                font-size: 22px;
+            }
+
+            .hint-icon {
+                width: 65px;
+                height: 65px;
+                font-size: 32px;
+            }
+
+            .hint-step {
+                font-size: 15px;
+                gap: 10px;
+            }
+
+            .hint-button {
+                font-size: 15px;
+                padding: 8px 12px;
+            }
+        }
+
+        @media screen and (min-width: 1025px) and (max-width: 1440px) {
+            .quiz {
+                max-width: 1100px;
+                padding: 24px;
+            }
+
+            .question-box {
+                font-size: 30px;
+            }
+
+            .words-row {
+                gap: 14px;
+                max-width: 84%;
+            }
+
+            .word-btn {
+                font-size: 26px;
+                padding: 14px 34px;
+            }
+
+            .grid-container {
+                max-width: 85%;
+                gap: 14px;
+            }
+
+            .grid-cell {
+                font-size: 22px;
+                padding: 18px 10px;
+                min-height: 65px;
+                border-radius: 20px;
+            }
+        }
+
+        @media screen and (min-width: 1441px) and (max-width: 1920px) {
+            .quiz {
+                max-width: 1200px;
+                padding: 28px;
+            }
+
+            .question-box {
+                font-size: 40px;
+            }
+
+            .words-row {
+                gap: 16px;
+                max-width: 84%;
+            }
+
+            .word-btn {
+                font-size: 28px;
+                padding: 16px 40px;
+            }
+
+            .grid-container {
+                max-width: 85%;
+                gap: 16px;
+            }
+
+            .grid-cell {
+                font-size: 24px;
+                padding: 20px 12px;
+                min-height: 70px;
+                border-radius: 24px;
+            }
+        }
+
+        @media screen and (min-width: 1921px) {
+            .quiz {
+                max-width: 1400px;
+                padding: 32px;
+            }
+
+            .question-box {
+                font-size: 40px;
+            }
+
+            .words-row {
+                gap: 18px;
+                max-width: 84%;
+            }
+
+            .word-btn {
+                font-size: 32px;
+                padding: 18px 45px;
+            }
+
+            .grid-container {
+                max-width: 85%;
+                gap: 18px;
+            }
+
+            .grid-cell {
+                font-size: 28px;
+                padding: 22px 14px;
+                min-height: 75px;
+                border-radius: 28px;
+            }
+
+            .popup {
+                width: 350px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz">
+
+        <button class="hint-button" id="hintBtn">
+            <i class="fas fa-circle-question"></i> Hint
+        </button>
+
+        <div class="question-box">
+            Synonyms of the following words are present in the grid below. Shade them with the matching colours.
+        </div>
+
+        <div class="words-row" id="wordsRow">
+            <div class="word-btn" data-word="several">several</div>
+            <div class="word-btn" data-word="unusual">unusual</div>
+            <div class="word-btn" data-word="thick">thick</div>
+            <div class="word-btn" data-word="serpents">serpents</div>
+            <div class="word-btn" data-word="bill">bill</div>
+        </div>
+
+        <div class="grid-container" id="gridContainer"></div>
+    </div>
+
+    <div class="popup-overlay" id="answerPopup">
+        <div class="popup" id="popupBox"></div>
+    </div>
+    <div class="popup-overlay" id="finalPopup">
+        <div class="popup final" id="finalPopupBox"></div>
+    </div>
+
+    <div class="hint-overlay" id="hintOverlay">
+        <div class="hint-popup">
+            <button class="hint-close" id="closeHint"><i class="fas fa-times"></i></button>
+            <div class="hint-header">
+                <div class="hint-icon">💡</div>
+                <h2>How to Play</h2>
+            </div>
+            <div class="hint-content">
+                <div class="hint-step"><span>1️⃣</span> Click any coloured word from the first row.</div>
+                <div class="hint-step"><span>2️⃣</span> Find its matching synonym inside the word grid.</div>
+                <div class="hint-step"><span>3️⃣</span> Click the correct word to shade it with the same colour.</div>
+                <div class="hint-step"><span>4️⃣</span> Match all the words to complete the activity.</div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        // ----- data & game logic (unchanged) -----
+        const wordsData = {
+            "several": ["many"],
+            "unusual": ["strange"],
+            "thick": ["dense"],
+            "serpents": ["snakes"],
+            "bill": ["beak"]
+        };
+
+        const gridWords = [
+            "much", "surprising", "a few", "snakes", "legs",
+            "natural", "many", "little", "paws", "snails",
+            "most", "dense", "less", "strange", "common",
+            "mice", "claws", "insects", "beak", "usual",
+            "more", "normal", "dark", "light", "lizard"
+        ];
+
+        let matchedCells = new Set();
+        let totalMatchesTarget = 5;
+        let currentMatchesCount = 0;
+        let activeSelectedCategory = null;
+
+        const wordsRow = document.getElementById("wordsRow");
+        const gridContainer = document.getElementById("gridContainer");
+        const popupOverlay = document.getElementById("answerPopup");
+        const popupBox = document.getElementById("popupBox");
+        const finalOverlay = document.getElementById("finalPopup");
+        const finalBox = document.getElementById("finalPopupBox");
+
+        function speak(text) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() { confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } }); }
+        function bigConfetti() { confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } }); }
+
+        function isSynonymMatched(synonym) { return matchedCells.has(synonym); }
+
+        function activateCategory(category) {
+            Array.from(wordsRow.children).forEach(btn => btn.classList.remove("active"));
+            const btn = wordsRow.querySelector(`[data-word="${category}"]`);
+            if (btn && !btn.classList.contains("completed")) {
+                btn.classList.add("active");
+                activeSelectedCategory = category;
+            }
+        }
+
+        function initGame() {
+            Array.from(wordsRow.children).forEach(btn => {
+                btn.onclick = () => {
+                    if (btn.classList.contains('completed')) return;
+                    Array.from(wordsRow.children).forEach(b => b.classList.remove('active'));
+                    activeSelectedCategory = btn.getAttribute('data-word');
+                    btn.classList.add('active');
+                };
+            });
+
+            gridWords.forEach(word => {
+                const cell = document.createElement("div");
+                cell.className = "grid-cell";
+                cell.textContent = word;
+
+                cell.onclick = () => {
+                    if (!activeSelectedCategory) {
+                        speak("Select a word from the top row first");
+                        return;
+                    }
+                    if (matchedCells.has(word)) {
+                        speak("This word is already matched");
+                        return;
+                    }
+                    const validSynonyms = wordsData[activeSelectedCategory];
+                    if (validSynonyms.includes(word)) {
+                        const categoryClass = `matched-${activeSelectedCategory}`;
+                        cell.classList.add(categoryClass);
+                        cell.classList.remove('wrong');
+                        cell.classList.add('pop-success');
+                        setTimeout(() => cell.classList.remove('pop-success'), 500);
+                        matchedCells.add(word);
+                        currentMatchesCount++;
+                        speak("Correct");
+                        smallConfetti();
+                        showPopup(true);
+                        checkCategoryCompletion(activeSelectedCategory);
+                        if (currentMatchesCount === totalMatchesTarget) {
+                            setTimeout(showFinalPopup, 1600);
+                        }
+                    } else {
+                        speak("Try again");
+                        showPopup(false);
+                        cell.classList.add("wrong");
+                        setTimeout(() => cell.classList.remove("wrong"), 600);
+                    }
+                };
+                gridContainer.appendChild(cell);
+            });
+
+            const firstBtn = wordsRow.querySelector(".word-btn");
+            activateCategory(firstBtn.dataset.word);
+        }
+
+        function checkCategoryCompletion(category) {
+            const validSynonyms = wordsData[category];
+            const allMatched = validSynonyms.every(syn => matchedCells.has(syn));
+            if (allMatched) {
+                const categoryBtn = wordsRow.querySelector(`[data-word="${category}"]`);
+                categoryBtn.classList.remove('active');
+                categoryBtn.classList.add('completed');
+                if (activeSelectedCategory === category) {
+                    const buttons = [...wordsRow.querySelectorAll(".word-btn")];
+                    const nextButton = buttons.find(btn => !btn.classList.contains("completed"));
+                    if (nextButton) activateCategory(nextButton.dataset.word);
+                    else activeSelectedCategory = null;
+                }
+            }
+        }
+
+        const hintOverlay = document.getElementById("hintOverlay");
+        document.getElementById("hintBtn").onclick = () => hintOverlay.classList.add("show");
+        document.getElementById("closeHint").onclick = () => hintOverlay.classList.remove("show");
+        hintOverlay.addEventListener("click", (e) => { if (e.target === hintOverlay) hintOverlay.classList.remove("show"); });
+
+        function showPopup(isCorrect) {
+            popupOverlay.className = 'popup-overlay show';
+            popupBox.className = 'popup ' + (isCorrect ? 'correct' : 'wrong');
+            popupBox.innerHTML = isCorrect ? `
+      <div class="popup-top"><div class="popup-icon-wrap"><span>👍</span></div><div class="popup-title">Awesome</div></div>
+      <div class="popup-bottom"><div class="popup-msg">You matched it right! 🎉</div></div>
+    ` : `
+      <div class="popup-top"><div class="popup-icon-wrap"><span>😔</span></div><div class="popup-title">Keep Trying</div></div>
+      <div class="popup-bottom"><div class="popup-msg">Don't give up! 💪</div></div>
+    `;
+            setTimeout(() => popupOverlay.classList.remove('show'), 1500);
+        }
+
+        function showFinalPopup() {
+            let end = Date.now() + (1.5 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+            finalOverlay.className = 'popup-overlay show';
+            finalBox.className = 'popup final';
+            finalBox.innerHTML = `
+      <div class="popup-top"><div class="popup-icon-wrap"><span>🏆</span></div><div class="popup-title">You Won!</div></div>
+      <div class="popup-bottom"><div class="popup-score">Score: 5/5</div><div class="popup-stars">⭐⭐⭐⭐⭐</div>
+      <button class="play-again-popup" id="playAgainBtn">Play Again</button></div>
+    `;
+            document.getElementById('playAgainBtn').addEventListener('click', () => location.reload());
+        }
+
+        initGame();
+    </script>
+</body>
+
+</html>

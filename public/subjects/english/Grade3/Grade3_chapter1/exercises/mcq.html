@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>🌈 MCQ Quiz · Kids</title>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ===== RESET & BASE ===== */
+        @font-face {
+            font-family: 'CCSYBold';
+            src: url('./assets/CCSYBOLD.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'CCSyntroman', 'Livvic', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            overflow: hidden;
+        
+        }
+
+        .quiz {
+            width: 100%;
+            max-width: 1100px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .quiz.slide-out {
+            transform: translateX(-20px) scale(0.96);
+            opacity: 0;
+        }
+
+        .quiz.slide-in {
+            animation: slideIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+        }
+
+        @keyframes slideIn {
+            0% {
+                transform: translateX(25px) scale(0.96);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #question {
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: start;
+            line-height: 1.4;
+        }
+
+        /* ===== CARDS GRID ===== */
+       .cards-grid{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(420px, 480px));
+    justify-content: center;   /* Centers the two columns */
+    align-items: center;
+    gap: 24px;
+    width: 100%;
+    margin: 10px auto;
+}
+
+        .card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 28px;
+            background: #fff;
+            border: 2px solid #d8c8ff;
+             border-color:#ff8e8e;
+            cursor: pointer;
+            transition: .3s;
+            height: 330px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .12);
+            width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+        }
+
+        /* .card:hover:not(.disabled) {
+            transform: translateY(-8px) scale(1.02); *
+             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        } */
+
+        .card img {
+            width: 100%;
+            height: 250px;
+            object-fit: contain;
+            display: block;
+            /* background: #fafaff; */
+        }
+
+        .option-text {
+            position: absolute;
+            bottom: 4px;
+            left: 18px;
+            right: 18px;
+            height: 56px;
+            /* background-color:#fff; */
+            color: #000;
+            display: flex;
+            align-items: center;    
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 500;
+            border-radius: 18px;
+            /* box-shadow: 0 6px 15px rgba(82, 60, 210, .35); */
+            transition: 0.2s;
+            letter-spacing: 0.3px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding:10px 18px;
+
+        }
+
+        /* ===== MATCHED (correct) ===== */
+        .card.matched {
+            border-color: #42d366;
+            background: #edf8ed;
+            box-shadow: 0 0 0 4px #42d366, 0 8px 30px rgba(66, 211, 102, 0.25);
+            transform: scale(1.02);
+            cursor: default;
+        }
+
+        .card.matched .option-text {
+            background: linear-gradient(180deg, #3bb85a, #2a9446);
+            box-shadow: 0 6px 15px rgba(42, 148, 70, 0.4);
+        }
+
+        /* ===== DISABLED ===== */
+        .card.disabled {
+            cursor: default;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* ===== WRONG SHAKE ===== */
+        .card.wrong-shake {
+            animation: shakeWrong 0.5s ease;
+        }
+
+        @keyframes shakeWrong {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            20% {
+                transform: translateX(-12px);
+            }
+            40% {
+                transform: translateX(12px);
+            }
+            60% {
+                transform: translateX(-8px);
+            }
+            80% {
+                transform: translateX(8px);
+            }
+        }
+
+        /* ===== CONTROLS ===== */
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .controls button {
+            width: 140px;
+            padding: 13px 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            border-radius: 35px;
+            border: 3px solid #ffffff;
+            font-size: 20px;
+            font-weight: 400;
+            color: #ffffff;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        #prevBtn {
+            background: #7fc0eb;
+        }
+
+        #nextBtn {
+            background: #ecc74e;
+        }
+
+        #prevBtn:active {
+            background: #6bb4e4;
+        }
+
+        #nextBtn:active {
+            background: #e6be3d;
+        }
+
+        .controls button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        /* ===== POPUP ===== */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            padding: 20px;
+        }
+
+        .kid-card {
+            background: #ffffff;
+            width: 380px;
+            max-width: 95%;
+            padding: 32px 28px;
+            border-radius: 44px;
+            text-align: center;
+            animation: kidPop 0.6s ease;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kid-card::before,
+        .kid-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .kid-card::before {
+            width: 200px;
+            height: 200px;
+            top: -80px;
+            right: -60px;
+            background: #ffd93d;
+        }
+
+        .kid-card::after {
+            width: 150px;
+            height: 150px;
+            bottom: -60px;
+            left: -50px;
+            background: #6bcbff;
+        }
+
+        .kid-card>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .kid-icon {
+            font-size: 4.8em;
+            margin-bottom: 6px;
+            animation: emojiBounce 0.9s infinite alternate;
+            display: inline-block;
+        }
+
+        .kid-card h3 {
+            font-size: 2.2em;
+            margin-bottom: 4px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .kid-card p {
+            font-size: 1.1em;
+            color: #555;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .kid-correct .kid-card {
+            background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+            border: 5px solid #38d9a9;
+        }
+
+        .kid-correct .kid-card h3 {
+            color: #0b8a4a;
+        }
+
+        .kid-correct .kid-card p {
+            color: #1a6a3a;
+        }
+
+        .kid-wrong .kid-card {
+            background: linear-gradient(145deg, #fff5f5, #fce4e4);
+            border: 5px solid #ff8a8a;
+        }
+
+        .kid-wrong .kid-card h3 {
+            color: #c0392b;
+        }
+
+        .kid-wrong .kid-card p {
+            color: #922b21;
+        }
+
+        @keyframes kidPop {
+            0% {
+                transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0) scale(1);
+            }
+            to {
+                transform: translateY(-12px) scale(1.05);
+            }
+        }
+
+        /* ===== FINAL POPUP ===== */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 4000;
+            padding: 20px;
+        }
+
+        .final-kid-box {
+            background: linear-gradient(145deg, #fff7d6, #e6fff5);
+            padding: 35px 40px;
+            border-radius: 44px;
+            text-align: center;
+            width: 480px;
+            max-width: 95%;
+            animation: finalBounce 0.8s ease;
+            border: 4px solid rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-kid-box::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: -120px;
+            right: -100px;
+            background: #ffd93d;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .final-kid-box>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.4em;
+            color: #2f9e44;
+            margin-bottom: 8px;
+            font-weight: 700 !important;
+        }
+
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3a3a;
+        }
+
+        #stars {
+            font-size: 2.6em;
+            margin: 14px 0;
+            letter-spacing: 6px;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 16px 38px;
+            border-radius: 40px;
+            font-size: 1.15em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .playAgain-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .playAgain-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #d4871f;
+        }
+
+        @keyframes finalBounce {
+            0% {
+                transform: scale(0.3) perspective(400px) rotateX(15deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.08) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================================ */
+        /* ===== ALL MEDIA QUERIES (unchanged) ===== */
+        /* ============================================================ */
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+            .quiz {
+                padding: 14px 10px;
+                border-radius: 28px;
+            }
+            #question {
+                font-size: 17px;
+            }
+            .cards-grid {
+                gap: 10px;
+                margin: 12px 0 18px;
+            }
+            .card {
+                height: 185px;
+                max-width: 100%;
+                border-radius: 20px;
+            }
+            .card img {
+                height: 130px;
+            }
+            .option-text {
+                height: 44px;
+                font-size: 20px;
+                bottom: 10px;
+                left: 12px;
+                right: 12px;
+                border-radius: 14px;
+            }
+            .controls button {
+                padding: 8px 16px;
+                font-size: 14px;
+                width: auto;
+            }
+            .kid-card {
+                width: 280px;
+                padding: 18px 16px;
+                border-radius: 32px;
+            }
+            .kid-icon {
+                font-size: 3em;
+            }
+            .kid-card h3 {
+                font-size: 1.4em;
+            }
+            .kid-card p {
+                font-size: 0.9em;
+            }
+            .final-kid-box {
+                width: 92%;
+                padding: 20px 16px;
+                border-radius: 32px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.5em;
+            }
+            .final-kid-box p {
+                font-size: 1em;
+            }
+            #stars {
+                font-size: 1.8em;
+            }
+            .playAgain-btn {
+                padding: 10px 22px;
+                font-size: 0.9em;
+            }
+        }
+
+        @media (min-width: 481px) and (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .quiz {
+                padding: 18px 14px;
+                border-radius: 36px;
+            }
+            #question {
+                font-size: 21px;
+            }
+            .cards-grid {
+                gap: 14px;
+                margin: 15px 0 20px;
+            }
+            .card {
+                height: 220px;
+                max-width: 260px;
+            }
+            .card img {
+                height: 160px;
+            }
+            .option-text {
+                height: 48px;
+                font-size: 22px;
+                bottom: 12px;
+                left: 14px;
+                right: 14px;
+                border-radius: 16px;
+            }
+            .controls button {
+                padding: 10px 20px;
+                font-size: 16px;
+                width: auto;
+            }
+            .kid-card {
+                width: 320px;
+                padding: 24px 22px;
+                border-radius: 36px;
+            }
+            .kid-icon {
+                font-size: 3.6em;
+            }
+            .kid-card h3 {
+                font-size: 1.6em;
+            }
+            .final-kid-box {
+                width: 90%;
+                padding: 24px 20px;
+                border-radius: 36px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.8em;
+            }
+            .final-kid-box p {
+                font-size: 1.1em;
+            }
+            #stars {
+                font-size: 2em;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .quiz {
+                padding: 22px 18px;
+                max-width: 900px;
+                border-radius: 44px;
+            }
+            #question {
+                font-size: 30px;
+            }
+            .cards-grid {
+                gap: 18px;
+            }
+            .card {
+                height: 180px;
+                width: 400px;
+            }
+            .card img {
+                height: 100px;
+                padding-top:5px;
+            }
+            .option-text {
+                height: 52px;
+                font-size: 22px;
+              
+            }
+            .controls button {
+                padding: 13px 32px;
+                font-size: 20px;
+              
+            }
+        }
+
+        @media (min-width: 1025px) and (max-width: 1440px) {
+            .quiz {
+                max-width: 1000px;
+                padding: 28px 26px;
+                border-radius: 52px;
+            }
+            #question {
+                font-size: 30px;
+            }
+            .cards-grid {
+                gap: 20px;
+            }
+            .card {
+                height: 200px;
+                max-width: 430px;
+            }
+            .card img {
+                height: 120px;
+                padding-top:5px;
+            }
+            .option-text {
+                height: 54px;
+                font-size: 22px;
+            }
+            .controls button {
+                padding: 13px 28px;
+                font-size: 20px;
+            }
+        }
+
+        @media (min-width: 1441px) and (max-width: 1920px) {
+            .quiz {
+                max-width: 1200px;
+                padding: 38px 34px;
+                border-radius: 62px;
+            }
+            #question {
+                font-size: 40px;
+                margin-bottom: 40px;
+            }
+            .cards-grid {
+                gap: 28px;
+            }
+            .card {
+                height: 280px;
+                width: 590px;
+            }
+            .card img {
+                height: 180px;
+                padding-top:10px
+            }
+            .option-text {
+                height: 74px;
+                font-size: 30px;
+                border-radius: 20px;
+            }
+            .controls button {
+                padding: 16px 36px;
+                font-size: 22px;
+            }
+            .kid-card {
+                width: 460px;
+                padding: 38px 34px;
+            }
+            .kid-icon {
+                font-size: 5.4em;
+            }
+            .final-kid-box {
+                width: 560px;
+                padding: 42px;
+            }
+            .final-kid-box h2 {
+                font-size: 2.8em;
+            }
+            #stars {
+                font-size: 2.8em;
+            }
+            .playAgain-btn {
+                padding: 18px 44px;
+                font-size: 1.3em;
+            }
+        }
+
+        @media (min-width: 1921px) {
+            .quiz {
+                max-width: 1400px;
+                padding: 46px 42px;
+                border-radius: 72px;
+            }
+            #question {
+                font-size: 42px;
+            }
+            .cards-grid {
+                gap: 32px;
+            }
+            .card {
+                height: 420px;
+                max-width: 440px;
+            }
+            .card img {
+                height: 320px;
+            }
+            .option-text {
+                height: 72px;
+                font-size: 38px;
+                border-radius: 24px;
+            }
+            .controls button {
+                padding: 16px 36px;
+                font-size: 22px;
+            }
+            .kid-card {
+                width: 500px;
+                padding: 40px 36px;
+                border-radius: 56px;
+            }
+            .kid-icon {
+                font-size: 5.6em;
+            }
+            .kid-card h3 {
+                font-size: 2.4em;
+            }
+            .final-kid-box {
+                width: 580px;
+                padding: 44px;
+                border-radius: 56px;
+            }
+            .final-kid-box h2 {
+                font-size: 3em;
+            }
+            .final-kid-box p {
+                font-size: 1.6em;
+            }
+            #stars {
+                font-size: 3.2em;
+            }
+            .playAgain-btn {
+                padding: 20px 48px;
+                font-size: 1.4em;
+            }
+        }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+            }
+            .quiz {
+                padding: 10px 16px;
+                border-radius: 24px;
+            }
+            .header {
+                margin-bottom: 8px;
+            }
+            #question {
+                font-size: 16px;
+            }
+            .cards-grid {
+                gap: 8px;
+                margin: 8px 0 12px;
+                grid-template-columns: 1fr 1fr 1fr 1fr;
+            }
+            .card {
+                height: 130px;
+                max-width: 160px;
+                border-radius: 16px;
+            }
+            .card img {
+                height: 85px;
+            }
+            .option-text {
+                height: 34px;
+                font-size: 15px;
+                bottom: 6px;
+                left: 8px;
+                right: 8px;
+                border-radius: 10px;
+            }
+            .controls button {
+                padding: 4px 12px;
+                font-size: 12px;
+                width: auto;
+            }
+            .kid-card {
+                width: 240px;
+                padding: 14px 14px;
+                border-radius: 28px;
+            }
+            .kid-icon {
+                font-size: 2.5em;
+            }
+            .kid-card h3 {
+                font-size: 1.2em;
+            }
+            .kid-card p {
+                font-size: 0.8em;
+            }
+            .final-kid-box {
+                width: 70%;
+                padding: 14px;
+                border-radius: 28px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.2em;
+            }
+            .final-kid-box p {
+                font-size: 0.8em;
+            }
+            #stars {
+                font-size: 1.4em;
+            }
+            .playAgain-btn {
+                padding: 6px 16px;
+                font-size: 0.7em;
+            }
+        }
+
+        @media (max-width: 360px) {
+            body {
+                padding: 8px;
+            }
+            .quiz {
+                padding: 10px 8px;
+                border-radius: 20px;
+            }
+            #question {
+                font-size: 14px;
+            }
+            .cards-grid {
+                gap: 6px;
+                margin: 8px 0 12px;
+            }
+            .card {
+                height: 160px;
+            }
+            .card img {
+                height: 110px;
+            }
+            .option-text {
+                height: 36px;
+                font-size: 16px;
+                bottom: 8px;
+                left: 8px;
+                right: 8px;
+                border-radius: 12px;
+            }
+            .controls button {
+                padding: 6px 12px;
+                font-size: 12px;
+                width: auto;
+            }
+            .kid-card {
+                width: 250px;
+                padding: 16px 14px;
+                border-radius: 28px;
+            }
+            .kid-icon {
+                font-size: 2.8em;
+            }
+            .kid-card h3 {
+                font-size: 1.3em;
+            }
+            .final-kid-box {
+                width: 94%;
+                padding: 16px;
+                border-radius: 28px;
+            }
+            .final-kid-box h2 {
+                font-size: 1.3em;
+            }
+            .final-kid-box p {
+                font-size: 0.9em;
+            }
+            #stars {
+                font-size: 1.6em;
+            }
+            .playAgain-btn {
+                padding: 8px 18px;
+                font-size: 0.8em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz" id="quizContainer">
+        <div class="header">
+            <div id="question"></div>
+        </div>
+
+        <div class="cards-grid" id="cardsGrid"></div>
+
+        <div class="controls">
+            <button id="prevBtn"><i class="fa-solid fa-angles-left"></i> Prev</button>
+            <button id="nextBtn">Next <i class="fa-solid fa-angles-right"></i></button>
+        </div>
+    </div>
+
+    <!-- ===== POPUPS ===== -->
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <!-- ===== FINAL POPUP ===== -->
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        // ============================================================
+        //  DATA
+        // ============================================================
+        const quizData = [{
+            q: "Q1. The villagers came to find a solution from ________.",
+            options: [
+                "../assets/images/king11.png|The king",
+                "../assets/images/ministers.png|The ministers",
+                "../assets/images/cat.png|The cat",
+                "../assets/images/cow.png|The cow"
+            ],
+            a: 0
+        }, {
+            q: "Q2. In the story, the king asks his ministers for ________.",
+            options: [
+                "../assets/images/money1.png|Money",
+                "../assets/images/idea2.png|An idea",
+                "../assets/images/gold1.png|Gold",
+                "../assets/images/milk1.png|Milk"
+            ],
+            a: 1
+        }, {
+            q: "Q3. Tenali Ramakrishna asks for the king's permission to bring his cat to the court to ________.",
+            options: [
+                "../assets/images/catch-rats.png|Show how his cat catches rats.",
+                "../assets/images/healthy-cat.png|Show how healthy his cat is.",
+                "../assets/images/runs-away-milk.png|Show that his cat runs away from milk.",
+                "../assets/images/fun-court.png|Create fun in the king's court."
+            ],
+            a: 2
+        }, {
+            q: "Q4. Everyone was shocked to see the cat running away from milk because ________.",
+            options: [
+                "../assets/images/cat-run.png|Cats cannot run.",
+                "../assets/images/drink-milk.png|Cats like to drink milk.",
+                "../assets/images/palace.png|Cats do not come to palaces.",
+                "../assets/images/cat-people1.png|Cats like people."
+            ],
+            a: 1
+        }, {
+            q: "Q5. If the cats should catch the rats, the villagers should ________.",
+            options: [
+                "../assets/images/no-milk-cat1.png|Stop feeding their cats with milk.",
+                "../assets/images/beat-cat1.png|Beat their cats every day.",
+                "../assets/images/more-milk1.png|Feed more milk.",
+                "../assets/images/rats-near-cat.png|Bring rats near their cats."
+            ],
+            a: 0
+        }];
+
+        // ============================================================
+        //  STATE
+        // ============================================================
+        let current = 0,
+            score = 0;
+        let answered = Array(quizData.length).fill(null);
+        let isTransitioning = false;
+        let selectedAnswerIndex = Array(quizData.length).fill(null);
+
+        // ============================================================
+        //  DOM REFS
+        // ============================================================
+        const qEl = document.getElementById("question");
+        const cardsGrid = document.getElementById("cardsGrid");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const quizContainer = document.getElementById("quizContainer");
+
+        const popupOverlay = document.getElementById("answerPopup");
+        const popupIcon = document.getElementById("popupIcon");
+        const popupTitle = document.getElementById("popupTitle");
+        const popupMsg = document.getElementById("popupMsg");
+
+        // ============================================================
+        //  UTILITIES
+        // ============================================================
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() { confetti({ particleCount: 35, spread: 70, origin: { y: 0.7 } }); }
+
+        function bigConfetti() {
+            confetti({ particleCount: 200, spread: 110, origin: { y: 0.5 } });
+            setTimeout(() => {
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.2 } });
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.8 } });
+            }, 150);
+        }
+
+        // ============================================================
+        //  POPUP
+        // ============================================================
+        function showPopup(isCorrect) {
+            popupOverlay.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+            popupOverlay.style.display = "flex";
+
+            if (isCorrect) {
+                popupIcon.textContent = "🌟";
+                popupTitle.textContent = "Amazing!";
+                popupMsg.textContent = "You got it right! ✨";
+            } else {
+                popupIcon.textContent = "😒";
+                popupTitle.textContent = "Keep Going!";
+                popupMsg.textContent = "Try again, you can do it! 🌈";
+            }
+
+            const sound = document.getElementById(isCorrect ? "correctSound" : "wrongSound");
+            if (sound) sound.play().catch(() => {});
+
+            setTimeout(() => {
+                popupOverlay.style.display = "none";
+            }, 1800);
+        }
+
+        // ============================================================
+        //  SUBMIT ANSWER
+        // ============================================================
+        function submitAnswer(card, origIdx, isCorrectOption) {
+            if (card.classList.contains('disabled')) return;
+            if (answered[current] !== null) return;
+
+            if (isCorrectOption) {
+                answered[current] = origIdx;
+                selectedAnswerIndex[current] = origIdx;
+                score++;
+
+                card.classList.add('matched');
+                card.classList.add('disabled');
+
+                showPopup(true);
+                speak("Correct");
+                smallConfetti();
+
+                nextBtn.disabled = false;
+
+                document.querySelectorAll('.card').forEach(c => {
+                    if (c !== card) c.classList.add('disabled');
+                });
+
+                if (answered.every(a => a !== null)) {
+                    setTimeout(showFinal, 1600);
+                }
+            } else {
+                showPopup(false);
+                speak("Try again");
+                card.classList.add('wrong-shake');
+                setTimeout(() => {
+                    card.classList.remove('wrong-shake');
+                }, 600);
+            }
+        }
+
+        // ============================================================
+        //  LOAD QUESTION (simple cards, no flip)
+        // ============================================================
+        function loadQuestion() {
+            if (isTransitioning) return;
+            isTransitioning = true;
+
+            const q = quizData[current];
+            qEl.textContent = q.q;
+
+            const isAnswered = (answered[current] !== null);
+            cardsGrid.innerHTML = "";
+            nextBtn.disabled = !isAnswered;
+
+            const order = q.options.map((_, i) => i);
+
+            order.forEach((origIdx) => {
+                const optStr = q.options[origIdx];
+                const [imgSrc, text] = optStr.split("|");
+                const isCorrect = (origIdx === q.a);
+                const isSelected = (selectedAnswerIndex[current] === origIdx);
+
+                const card = document.createElement("div");
+                card.className = "card";
+
+                if (isAnswered && isSelected) {
+                    card.classList.add("matched", "disabled");
+                } else if (isAnswered) {
+                    card.classList.add("disabled");
+                }
+
+                card.dataset.origIndex = origIdx;
+                card.dataset.correct = isCorrect;
+
+                const img = document.createElement("img");
+                img.src = imgSrc;
+                img.alt = text;
+                img.onerror = function() { this.style.display = 'none'; };
+
+                const textDiv = document.createElement("div");
+                textDiv.className = "option-text";
+                textDiv.textContent = text;
+
+                card.appendChild(img);
+                card.appendChild(textDiv);
+
+                card.addEventListener("click", function(e) {
+                    if (answered[current] !== null) return;
+                    if (this.classList.contains('disabled')) return;
+                    const isCorrectAttr = this.dataset.correct === 'true';
+                    submitAnswer(this, parseInt(this.dataset.origIndex), isCorrectAttr);
+                });
+
+                cardsGrid.appendChild(card);
+            });
+
+            prevBtn.disabled = (current === 0);
+
+            quizContainer.classList.remove("slide-in");
+            void quizContainer.offsetWidth;
+            quizContainer.classList.add("slide-in");
+
+            setTimeout(() => { isTransitioning = false; }, 450);
+        }
+
+        // ============================================================
+        //  NAVIGATION
+        // ============================================================
+        prevBtn.onclick = () => {
+            if (isTransitioning || current === 0) return;
+            current--;
+            loadQuestion();
+        };
+
+        nextBtn.onclick = () => {
+            if (isTransitioning) return;
+            if (answered[current] === null) return;
+            if (current < quizData.length - 1) {
+                current++;
+                loadQuestion();
+            } else {
+                showFinal();
+            }
+        };
+
+        // ============================================================
+        //  FINAL
+        // ============================================================
+        function showFinal() {
+            document.getElementById("finalPopup").style.display = "flex";
+            document.getElementById("finalScore").textContent = `Your Score: ${score} / ${quizData.length}`;
+            document.getElementById("stars").textContent = "⭐".repeat(score);
+            bigConfetti();
+        }
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        loadQuestion();
+    </script>
+</body>
+
+</html>

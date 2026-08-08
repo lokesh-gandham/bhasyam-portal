@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>🔗 Synonym Match · Single Tap</title>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
+    </script>
+    <style>
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'CCSyntroman', 'Livvic', sans-serif;
+        }
+
+        body {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0px;
+            margin: 0;
+            touch-action: none;
+            /* background: #f8f4ff; */
+            overflow:hidden;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 1100px;
+            padding: 20px;
+        }
+
+        .template {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 0 6px;
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #2f4f4f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instruction {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #5a6a8a;
+            background: #f0ecff;
+            padding: 0.3rem 1.4rem;
+            border-radius: 40px;
+            border: 2px solid #b7a9d4;
+        }
+
+        .cards-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            padding: 6px 0;
+        }
+
+        .card-item {
+            background: #ffffff;
+            border-radius: 30px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04), 0 0 0 2px #e6def5;
+            width: 140px;
+            min-width: 100px;
+            padding: 14px 8px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s;
+            flex: 0 1 auto;
+            background: #fffbfe;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+
+        .card-item .word-label {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3a3a;
+            letter-spacing: 0.3px;
+            padding: 2px 0 6px;
+            pointer-events: none;
+        }
+
+        .card-item .image-box {
+            width: 100%;
+            aspect-ratio: 1/1;
+            max-width: 80px;
+            background: #faf5ff;
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ece3fa;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .card-item .image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            filter: grayscale(0.2) brightness(0.98);
+            transition: filter 0.4s;
+        }
+
+        .card-item.matched .image-box img {
+            filter: grayscale(0) brightness(1);
+        }
+
+        .card-item .connection-dot {
+            width: 24px;
+            height: 24px;
+            background: #cfc1e8;
+            border-radius: 50%;
+            margin: 10px 0 2px;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 0 2px #b7a2d9;
+            transition: 0.2s;
+            cursor: pointer;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .card-item .connection-dot:hover {
+            transform: scale(1.1);
+            background: #b59edb;
+        }
+
+        .card-item .connection-dot.active-dot {
+            background: #ffb85c;
+            box-shadow: 0 0 0 4px #ffd966;
+        }
+
+        .card-item.matched .connection-dot {
+            background: #6fcf97;
+            box-shadow: 0 0 0 2px #2d9e5a;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .card-item.wrong-shake .connection-dot {
+            animation: dotShake 0.4s ease;
+            background: #f28b82;
+        }
+
+        .card-item.top-card-active {
+            box-shadow: 0 8px 18px rgba(255, 184, 92, 0.4), 0 0 0 3px #ffb85c;
+            transform: scale(1.02);
+        }
+
+        @keyframes dotShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-6px);
+            }
+
+            75% {
+                transform: translateX(6px);
+            }
+        }
+
+        .bottom-row .card-item {
+            flex-direction: column;
+            cursor: default;
+            touch-action: none;
+        }
+
+        .bottom-row .card-item .word-label {
+            order: 2;
+            margin-top: 4px;
+        }
+
+        .bottom-row .card-item .image-box {
+            order: 1;
+        }
+
+        .bottom-row .card-item .connection-dot {
+            order: 0;
+            margin-bottom: 8px;
+            margin-top: 0;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .draw-area {
+            position: relative;
+            width: 100%;
+            min-height: 140px;
+            border-radius: 48px;
+            margin: 6px 0 4px;
+            touch-action: none;
+            overflow: visible;
+        }
+
+        .draw-area svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: block;
+            overflow: visible;
+        }
+
+        .draw-area .draw-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: default;
+            touch-action: none;
+        }
+
+        .draw-area.dragging .draw-overlay {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="30" viewBox="0 0 24 30"><polygon points="2,2 20,12 12,20 2,2" fill="%234a4a4a" stroke="%23ffffff" stroke-width="1.5"/><circle cx="18" cy="10" r="4" fill="%23f5a623" stroke="%23ffffff" stroke-width="1"/></svg>') 4 4, auto;
+        }
+
+        /* ===== POPUP DESIGNS (same as Fill in Blanks) ===== */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+           
+            padding: 20px;
+        }
+
+        .kid-card {
+            background: #ffffff;
+            width: 380px;
+            max-width: 95%;
+            padding: 32px 28px;
+            border-radius: 44px;
+            text-align: center;
+            animation: kidPop 0.6s ease;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative circles */
+        .kid-card::before,
+        .kid-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .kid-card::before {
+            width: 200px;
+            height: 200px;
+            top: -80px;
+            right: -60px;
+            background: #ffd93d;
+        }
+
+        .kid-card::after {
+            width: 150px;
+            height: 150px;
+            bottom: -60px;
+            left: -50px;
+            background: #6bcbff;
+        }
+
+        .kid-card>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .kid-icon {
+            font-size: 4.8em;
+            margin-bottom: 6px;
+            animation: emojiBounce 0.9s infinite alternate;
+            display: inline-block;
+        }
+
+        .kid-card h3 {
+            font-size: 2.2em;
+            margin-bottom: 4px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .kid-card p {
+            font-size: 1.1em;
+            color: #555;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        /* Correct Popup */
+        .kid-correct .kid-card {
+            background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+            border: 5px solid #38d9a9;
+        }
+
+        .kid-correct .kid-card h3 {
+            color: #0b8a4a;
+        }
+
+        .kid-correct .kid-card p {
+            color: #1a6a3a;
+        }
+
+        .kid-correct .kid-card::before {
+            background: #38d9a9;
+        }
+
+        .kid-correct .kid-card::after {
+            background: #38d9a9;
+        }
+
+        /* Wrong Popup */
+        .kid-wrong .kid-card {
+            background: linear-gradient(145deg, #fff5f5, #fce4e4);
+            border: 5px solid #ff8a8a;
+        }
+
+        .kid-wrong .kid-card h3 {
+            color: #c0392b;
+        }
+
+        .kid-wrong .kid-card p {
+            color: #922b21;
+        }
+
+        .kid-wrong .kid-card::before {
+            background: #ff8a8a;
+        }
+
+        .kid-wrong .kid-card::after {
+            background: #ff8a8a;
+        }
+
+        @keyframes kidPop {
+            0% {
+                transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0) scale(1);
+            }
+
+            to {
+                transform: translateY(-12px) scale(1.05);
+            }
+        }
+
+        /* ===== FINAL POPUP ===== */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 4000;
+           
+            padding: 20px;
+        }
+
+        .final-kid-box {
+            background: linear-gradient(145deg, #fff7d6, #e6fff5);
+            padding: 35px 40px;
+            border-radius: 44px;
+            text-align: center;
+            width: 480px;
+            max-width: 95%;
+            animation: finalBounce 0.8s ease;
+            /* box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2); */
+            border: 4px solid rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-kid-box::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: -120px;
+            right: -100px;
+            background: #ffd93d;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .final-kid-box>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.4em;
+            color: #2f9e44;
+            margin-bottom: 8px;
+            
+            font-weight: 700 !important;
+        }
+
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3a3a;
+        }
+
+        #stars {
+            font-size: 2.6em;
+            margin: 14px 0;
+            letter-spacing: 6px;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 16px 38px;
+            border-radius: 40px;
+            font-size: 1.15em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .playAgain-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .playAgain-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #d4871f;
+        }
+
+        @keyframes finalBounce {
+            0% {
+                transform: scale(0.3) perspective(400px) rotateX(15deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.08) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================================
+           RESPONSIVE MEDIA QUERIES - 320px to 1920px
+           ============================================================ */
+
+        /* Ultra small devices (320px - 400px) */
+        @media (max-width: 400px) {
+            .app {
+                padding: 8px;
+            }
+
+            .title {
+                font-size: 16px;
+            }
+
+            .instruction {
+                font-size: 0.6rem;
+                padding: 0.15rem 0.6rem;
+            }
+
+            .cards-row {
+                gap: 8px;
+                padding: 4px 0;
+            }
+
+            .card-item {
+                width: 55px;
+                min-width: 45px;
+                padding: 4px 2px;
+                border-radius: 14px;
+            }
+
+            .card-item .word-label {
+                font-size: 9px;
+                padding: 1px 0 3px;
+            }
+
+            .card-item .image-box {
+                max-width: 40px;
+                border-radius: 10px;
+                border-width: 1.5px;
+            }
+
+            .card-item .connection-dot {
+                width: 12px;
+                height: 12px;
+                margin: 4px 0 1px;
+                border-width: 2px;
+                box-shadow: 0 0 0 1.5px #b7a2d9;
+            }
+
+            .draw-area {
+                min-height: 50px;
+                border-radius: 20px;
+                margin: 4px 0 2px;
+            }
+
+            .draw-area svg {
+                stroke-width: 3px !important;
+            }
+
+            .kid-card {
+                padding: 20px 16px;
+                width: 300px;
+            }
+
+            .kid-icon {
+                font-size: 3em;
+            }
+
+            .kid-card h3 {
+                font-size: 1.6em;
+            }
+
+            .kid-card p {
+                font-size: 0.9em;
+            }
+
+            .final-kid-box {
+                padding: 20px 16px;
+                width: 320px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 1.6em;
+            }
+
+            .final-kid-box p {
+                font-size: 1em;
+            }
+
+            #stars {
+                font-size: 1.8em;
+                margin: 10px 0;
+            }
+
+            .playAgain-btn {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+        }
+
+        /* Small phones (401px - 480px) */
+        @media (min-width: 401px) and (max-width: 480px) {
+            .app {
+                padding: 10px;
+            }
+
+            .title {
+                font-size: 18px;
+            }
+
+            .instruction {
+                font-size: 0.65rem;
+                padding: 0.2rem 0.7rem;
+            }
+
+            .cards-row {
+                gap: 10px;
+            }
+
+            .card-item {
+                width: 65px;
+                min-width: 55px;
+                padding: 6px 3px;
+                border-radius: 16px;
+            }
+
+            .card-item .word-label {
+                font-size: 10px;
+                padding: 1px 0 4px;
+            }
+
+            .card-item .image-box {
+                max-width: 45px;
+                border-radius: 12px;
+                border-width: 1.5px;
+            }
+
+            .card-item .connection-dot {
+                width: 14px;
+                height: 14px;
+                margin: 5px 0 2px;
+                border-width: 2px;
+                box-shadow: 0 0 0 2px #b7a2d9;
+            }
+
+            .draw-area {
+                min-height: 60px;
+                border-radius: 24px;
+            }
+
+            .kid-card {
+                padding: 24px 20px;
+                width: 330px;
+            }
+
+            .kid-icon {
+                font-size: 3.5em;
+            }
+
+            .kid-card h3 {
+                font-size: 1.8em;
+            }
+
+            .final-kid-box {
+                padding: 24px 20px;
+                width: 350px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 1.8em;
+            }
+
+            #stars {
+                font-size: 2em;
+            }
+
+            .playAgain-btn {
+                padding: 12px 24px;
+                font-size: 1em;
+            }
+        }
+
+        /* Medium phones (481px - 600px) */
+        @media (min-width: 481px) and (max-width: 600px) {
+            .app {
+                padding: 12px;
+            }
+
+            .title {
+                font-size: 20px;
+            }
+
+            .instruction {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.8rem;
+            }
+
+            .cards-row {
+                gap: 12px;
+            }
+
+            .card-item {
+                width: 75px;
+                min-width: 60px;
+                padding: 8px 4px;
+                border-radius: 18px;
+            }
+
+            .card-item .word-label {
+                font-size: 11px;
+                padding: 2px 0 4px;
+            }
+
+            .card-item .image-box {
+                max-width: 50px;
+                border-radius: 14px;
+            }
+
+            .card-item .connection-dot {
+                width: 16px;
+                height: 16px;
+                margin: 6px 0 2px;
+                border-width: 2px;
+            }
+
+            .draw-area {
+                min-height: 70px;
+                border-radius: 28px;
+            }
+
+            .kid-card {
+                padding: 28px 24px;
+                width: 350px;
+            }
+
+            .kid-icon {
+                font-size: 4em;
+            }
+
+            .kid-card h3 {
+                font-size: 2em;
+            }
+
+            .final-kid-box {
+                padding: 28px 24px;
+                width: 380px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 2em;
+            }
+
+            #stars {
+                font-size: 2.2em;
+            }
+
+            .playAgain-btn {
+                padding: 14px 28px;
+                font-size: 1.05em;
+            }
+        }
+
+        /* Large phones / small tablets (601px - 768px) */
+        @media (min-width: 601px) and (max-width: 768px) {
+            .app {
+                padding: 14px;
+            }
+
+            .title {
+                font-size: 22px;
+            }
+
+            .instruction {
+                font-size: 0.8rem;
+                padding: 0.25rem 1rem;
+            }
+
+            .cards-row {
+                gap: 16px;
+            }
+
+            .card-item {
+                width: 90px;
+                min-width: 70px;
+                padding: 10px 6px;
+                border-radius: 22px;
+            }
+
+            .card-item .word-label {
+                font-size: 13px;
+                padding: 2px 0 5px;
+            }
+
+            .card-item .image-box {
+                max-width: 60px;
+                border-radius: 18px;
+            }
+
+            .card-item .connection-dot {
+                width: 18px;
+                height: 18px;
+                margin: 8px 0 2px;
+                border-width: 2.5px;
+            }
+
+            .draw-area {
+                min-height: 85px;
+                border-radius: 32px;
+            }
+
+            .kid-card {
+                width: 360px;
+            }
+
+            .final-kid-box {
+                width: 420px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 2.2em;
+            }
+        }
+
+        /* Tablets (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .app {
+                padding: 16px;
+                max-width: 1000px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .instruction {
+                font-size: 0.95rem;
+            }
+
+            .cards-row {
+                gap: 22px;
+            }
+
+            .card-item {
+                width: 150px;
+                /* min-width: 85px; */
+                padding: 22px 12px;
+                border-radius: 26px;
+            }
+
+            .card-item .word-label {
+                font-size: 23px;
+                padding: 2px 0 5px;
+            }
+
+            .card-item .image-box {
+                max-width: 70px;
+                border-radius: 20px;
+            }
+
+            .card-item .connection-dot {
+                width: 20px;
+                height: 20px;
+                margin: 8px 0 2px;
+                border-width: 3px;
+            }
+
+            .draw-area {
+                min-height: 110px;
+                border-radius: 38px;
+            }
+
+            
+        }
+
+        /* Small laptops (1025px - 1280px) */
+        @media (min-width: 1025px) and (max-width: 1440px) {
+            .app {
+                padding: 18px;
+                max-width: 1000px;
+              
+            }
+
+            .title {
+                font-size: 25px;
+            }
+
+            .cards-row {
+                gap: 26px;
+            }
+
+            .card-item {
+                width: 155px;
+                /* min-width: 95px; */
+                padding: 13px 8px;
+                border-radius: 28px;
+            }
+
+            .card-item .word-label {
+                font-size: 23px;
+            }
+
+            .card-item .image-box {
+                max-width: 75px;
+                border-radius: 22px;
+            }
+
+            .card-item .connection-dot {
+                width: 22px;
+                height: 22px;
+            }
+
+            .draw-area {
+                min-height: 125px;
+                border-radius: 42px;
+            }
+        }
+
+        /* Standard desktop (1281px - 1600px) */
+        @media (min-width: 1441px) and (max-width: 1600px) {
+            .app {
+                padding: 20px;
+                max-width: 1050px;
+            }
+            .template {
+                gap: 30px;
+            }
+
+            .title {
+                font-size: 26px;
+            }
+
+            .cards-row {
+                gap: 30px;
+            }
+
+            .card-item {
+                width: 170px;
+                /* min-width: 100px; */
+                padding: 14px 8px 12px;
+                border-radius: 30px;
+            }
+
+            .card-item .word-label {
+                font-size: 30px;
+            }
+
+            .card-item .image-box {
+                max-width: 120px;
+                border-radius: 24px;
+            }
+
+            .card-item .connection-dot {
+                width: 24px;
+                height: 24px;
+            }
+
+            .draw-area {
+                min-height: 140px;
+                border-radius: 48px;
+            }
+             .kid-card {
+                width: 460px;
+                padding: 38px 34px;
+            }
+            .kid-icon {
+                font-size: 5.4em;
+            }
+            .final-kid-box {
+                width: 560px;
+                padding: 42px;
+            }
+            .final-kid-box h2 {
+                font-size: 2.8em;
+            }
+            #stars {
+                font-size: 2.8em;
+            }
+            .playAgain-btn {
+                padding: 18px 44px;
+                font-size: 1.3em;
+            }
+        }
+
+        /* Large screens (1601px - 1920px) */
+        @media (min-width: 1601px) and (max-width: 1920px) {
+            .app {
+                padding: 24px;
+                max-width: 1100px;
+            }
+
+            .title {
+                font-size: 28px;
+            }
+
+            .instruction {
+                font-size: 1.15rem;
+                padding: 0.35rem 1.5rem;
+            }
+
+            .cards-row {
+                gap: 35px;
+                padding: 8px 0;
+            }
+
+            .card-item {
+                width: 155px;
+                min-width: 110px;
+                padding: 16px 10px 14px;
+                border-radius: 32px;
+            }
+
+            .card-item .word-label {
+                font-size: 22px;
+                padding: 3px 0 7px;
+            }
+
+            .card-item .image-box {
+                max-width: 90px;
+                border-radius: 26px;
+                border-width: 2.5px;
+            }
+
+            .card-item .connection-dot {
+                width: 26px;
+                height: 26px;
+                margin: 12px 0 3px;
+                border-width: 3px;
+                box-shadow: 0 0 0 2.5px #b7a2d9;
+            }
+
+            .draw-area {
+                min-height: 155px;
+                border-radius: 52px;
+                margin: 8px 0 6px;
+            }
+
+            .draw-area svg path {
+                stroke-width: 6px !important;
+            }
+
+           .kid-card {
+                width: 460px;
+                padding: 38px 34px;
+            }
+            .kid-icon {
+                font-size: 5.4em;
+            }
+            .final-kid-box {
+                width: 560px;
+                padding: 42px;
+            }
+            .final-kid-box h2 {
+                font-size: 2.8em;
+            }
+            #stars {
+                font-size: 2.8em;
+            }
+            .playAgain-btn {
+                padding: 18px 44px;
+                font-size: 1.3em;
+            }
+        }
+
+        /* Ultra wide screens (1921px and above) */
+        @media (min-width: 1921px) {
+            .app {
+                padding: 30px;
+                max-width: 1300px;
+            }
+
+            .title {
+                font-size: 32px;
+            }
+
+            .instruction {
+                font-size: 1.3rem;
+                padding: 0.4rem 1.8rem;
+            }
+
+            .cards-row {
+                gap: 40px;
+                padding: 10px 0;
+            }
+
+            .card-item {
+                width: 180px;
+                min-width: 130px;
+                padding: 18px 12px 16px;
+                border-radius: 36px;
+            }
+
+            .card-item .word-label {
+                font-size: 25px;
+                padding: 4px 0 8px;
+            }
+
+            .card-item .image-box {
+                max-width: 100px;
+                border-radius: 28px;
+                border-width: 3px;
+            }
+
+            .card-item .connection-dot {
+                width: 30px;
+                height: 30px;
+                margin: 14px 0 4px;
+                border-width: 3px;
+                box-shadow: 0 0 0 3px #b7a2d9;
+            }
+
+            .draw-area {
+                min-height: 180px;
+                border-radius: 56px;
+                margin: 10px 0 8px;
+            }
+
+            .draw-area svg path {
+                stroke-width: 7px !important;
+            }
+
+            .kid-card {
+                width: 480px;
+                padding: 40px 36px;
+                border-radius: 52px;
+            }
+
+            .kid-icon {
+                font-size: 6em;
+            }
+
+            .kid-card h3 {
+                font-size: 2.8em;
+            }
+
+            .kid-card p {
+                font-size: 1.3em;
+            }
+
+            .final-kid-box {
+                padding: 45px 52px;
+                width: 580px;
+                border-radius: 52px;
+            }
+
+            .final-kid-box h2 {
+                font-size: 3em;
+            }
+
+            .final-kid-box p {
+                font-size: 1.6em;
+            }
+
+            #stars {
+                font-size: 3.5em;
+                margin: 18px 0;
+            }
+
+            .playAgain-btn {
+                padding: 20px 50px;
+                font-size: 1.3em;
+            }
+        }
+
+        /* Landscape phones - special handling */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .app {
+                padding: 6px 12px;
+            }
+
+            .cards-row {
+                gap: 8px;
+                padding: 2px 0;
+            }
+
+            .card-item {
+                width: 60px;
+                min-width: 50px;
+                padding: 4px 2px;
+                border-radius: 12px;
+            }
+
+            .card-item .word-label {
+                font-size: 8px;
+                padding: 1px 0 2px;
+            }
+
+            .card-item .image-box {
+                max-width: 35px;
+                border-radius: 8px;
+            }
+
+            .card-item .connection-dot {
+                width: 10px;
+                height: 10px;
+                margin: 3px 0 1px;
+                border-width: 1.5px;
+            }
+
+            .draw-area {
+                min-height: 40px;
+                border-radius: 16px;
+                margin: 3px 0 2px;
+            }
+
+            .title {
+                font-size: 14px;
+            }
+
+            .instruction {
+                font-size: 0.5rem;
+                padding: 0.1rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <div class="template">
+            <div class="header-area">
+                <div class="title"><span></span> Synonym Match</div>
+                <div class="instruction">✏️ Tap & drag from top to bottom</div>
+            </div>
+            <div class="cards-row top-row" id="topRow"></div>
+            <div class="draw-area" id="drawArea">
+                <svg id="svgLines" style="overflow: visible;"></svg>
+                <div class="draw-overlay" id="drawOverlay"></div>
+            </div>
+            <div class="cards-row bottom-row" id="bottomRow"></div>
+        </div>
+    </div>
+
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        // ============================================================
+        //  DATA
+        // ============================================================
+        const imageMap = {
+            "Helper": "../assets/images/helper.jpg",
+            "Lazy": "../assets/images/lazy.png",
+            "Seek": "../assets/images/seek.jpg",
+            "Intelligent": "../assets/images/intelligent1.jpg",
+            "Permit": "../assets/images/permint.jpg",
+            "Servant": "../assets/images/servent.png",
+            "Idle": "../assets/images/idle.png",
+            "Ask for": "../assets/images/ask.png",
+            "Sharp": "../assets/images/sharp1.jpg",
+            "Allow": "../assets/images/allow.png"
+        };
+        const synonymData = {
+            left: [
+                { word: 'Helper', match: 'Servant' },
+                { word: 'Lazy', match: 'Idle' },
+                { word: 'Seek', match: 'Ask for' },
+                { word: 'Intelligent', match: 'Sharp' },
+                { word: 'Permit', match: 'Allow' }
+            ],
+            right: [
+                { word: 'Servant' },
+                { word: 'Idle' },
+                { word: 'Ask for' },
+                { word: 'Sharp' },
+                { word: 'Allow' }
+            ]
+        };
+
+        function shuffle(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+        const shuffledRight = shuffle([...synonymData.right]);
+
+        // ============================================================
+        //  STATE
+        // ============================================================
+        let selectedTop = null;
+        let matchedPairs = {};
+        let matchCount = 0;
+        const totalMatches = synonymData.left.length;
+        let isProcessing = false;
+
+        let isDragging = false;
+        let startDot = null;
+        let currentLine = null;
+
+        const lineColors = [
+            '#E8485B', '#2E86AB', '#F9A03F', '#6A4C93', '#3CB371',
+            '#D45D79', '#4A9B9B', '#C44569', '#F19066', '#3B7A8A'
+        ];
+        let colorIndex = 0;
+
+        const topRow = document.getElementById('topRow');
+        const bottomRow = document.getElementById('bottomRow');
+        const drawArea = document.getElementById('drawArea');
+        const svg = document.getElementById('svgLines');
+        const overlay = document.getElementById('drawOverlay');
+        const popupOverlay = document.getElementById('answerPopup');
+        const popupIcon = document.getElementById('popupIcon');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupMsg = document.getElementById('popupMsg');
+
+        // ============================================================
+        //  AUDIO
+        // ============================================================
+        let audioCtx = null;
+
+        function playCorrectSound() {
+            try {
+                if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.frequency.value = 880;
+                gainNode.gain.value = 0.2;
+                oscillator.type = 'sine';
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {}
+        }
+
+        function playWrongSound() {
+            try {
+                if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.frequency.value = 440;
+                gainNode.gain.value = 0.25;
+                oscillator.type = 'sawtooth';
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
+                oscillator.stop(audioCtx.currentTime + 0.4);
+            } catch (e) {}
+        }
+
+        // ============================================================
+        //  CONFETTI
+        // ============================================================
+        function smallConfetti() { confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } }); }
+
+        function bigConfetti() {
+            confetti({ particleCount: 200, spread: 110, origin: { y: 0.5 } });
+            setTimeout(() => {
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.2 } });
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.8 } });
+            }, 150);
+        }
+
+        // ============================================================
+        //  POPUP
+        // ============================================================
+        function showPopup(isCorrect) {
+            popupOverlay.className = 'kid-popup ' + (isCorrect ? 'kid-correct' : 'kid-wrong');
+            popupOverlay.style.display = 'flex';
+            if (isCorrect) {
+                popupIcon.textContent = '🌟';
+                popupTitle.textContent = 'Amazing!';
+                popupMsg.textContent = 'You got it right! ✨';
+            } else {
+                popupIcon.textContent = '😒';
+                popupTitle.textContent = 'Keep Going!';
+                popupMsg.textContent = 'Try again, you can do it! 🌈';
+            }
+            const sound = document.getElementById(isCorrect ? 'correctSound' : 'wrongSound');
+            if (sound) sound.play().catch(() => {});
+            setTimeout(() => { popupOverlay.style.display = 'none'; }, 1800);
+        }
+
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = 'en-US';
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        // ============================================================
+        //  RENDER CARDS
+        // ============================================================
+        function renderCards() {
+            topRow.innerHTML = '';
+            bottomRow.innerHTML = '';
+            synonymData.left.forEach(item => {
+                const card = createCard(item.word, 'top', item.match);
+                topRow.appendChild(card);
+            });
+            shuffledRight.forEach(item => {
+                const card = createCard(item.word, 'bottom', null);
+                bottomRow.appendChild(card);
+            });
+        }
+
+        function createCard(word, position, match) {
+            const card = document.createElement('div');
+            card.className = 'card-item';
+            if (match) card.dataset.match = match;
+            card.dataset.word = word;
+            card.dataset.position = position;
+
+            const label = document.createElement('div');
+            label.className = 'word-label';
+            label.textContent = word;
+
+            const imgBox = document.createElement('div');
+            imgBox.className = 'image-box';
+            const img = document.createElement('img');
+            img.src = imageMap[word] || `https://picsum.photos/seed/${word}/120/120`;
+            img.alt = word;
+            img.loading = 'lazy';
+            img.onerror = function() {
+                this.style.display = 'none';
+                const p = document.createElement('div');
+                p.textContent = '🖼️';
+                p.style.fontSize = '2rem';
+                imgBox.appendChild(p);
+            };
+            imgBox.appendChild(img);
+
+            const dot = document.createElement('div');
+            dot.className = 'connection-dot';
+            dot.dataset.word = word;
+
+            card.appendChild(label);
+            card.appendChild(imgBox);
+            card.appendChild(dot);
+
+            card._dot = dot;
+            card._imgBox = imgBox;
+            card._label = label;
+
+          // CLICK / TAP MATCHING
+card.addEventListener('click', (e) => {
+
+    // Don't treat a completed drag as a click
+    if (card.dataset.justDragged === 'true') {
+        card.dataset.justDragged = 'false';
+        return;
+    }
+
+    handleCardClick(card);
+});
+
+
+if (position === 'top') {
+
+    // card.addEventListener('mousedown', (e) => {
+    //     e.preventDefault();
+    //     startDragFromCard(e, card);
+    // });
+
+    card.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    function move(ev) {
+        const dx = Math.abs(ev.clientX - startX);
+        const dy = Math.abs(ev.clientY - startY);
+
+        // Start drag only after moving 8px
+        if (dx > 8 || dy > 8) {
+            window.removeEventListener("mousemove", move);
+            window.removeEventListener("mouseup", cancel);
+
+            startDragFromCard(e, card);
+        }
+    }
+
+    function cancel() {
+        window.removeEventListener("mousemove", move);
+        window.removeEventListener("mouseup", cancel);
+    }
+
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", cancel);
+});
+
+    card.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+
+        const t = e.touches[0];
+        startDragFromCard(t, card);
+
+    }, {
+        passive: false
+    });
+}
+
+            return card;
+        }
+
+
+        function handleCardClick(card) {
+    if (isProcessing) return;
+    if (card.classList.contains('matched')) return;
+
+    const position = card.dataset.position;
+
+    // =========================
+    // TOP CARD CLICK
+    // =========================
+    if (position === 'top') {
+
+        // Remove previous selection
+        if (selectedTop && selectedTop !== card) {
+            selectedTop._dot.classList.remove('active-dot');
+            selectedTop.classList.remove('top-card-active');
+        }
+
+        // Clicking same card again = deselect
+        if (selectedTop === card) {
+            card._dot.classList.remove('active-dot');
+            card.classList.remove('top-card-active');
+            selectedTop = null;
+            return;
+        }
+
+        selectedTop = card;
+
+        card._dot.classList.add('active-dot');
+        card.classList.add('top-card-active');
+
+        // optional
+        // speak(card.dataset.word);
+
+        return;
+    }
+
+function checkClickedMatch(topCard, bottomCard) {
+
+    if (!topCard || !bottomCard) return;
+    if (isProcessing) return;
+
+    if (
+        topCard.classList.contains('matched') ||
+        bottomCard.classList.contains('matched')
+    ) return;
+
+    const topWord = topCard.dataset.word;
+    const bottomWord = bottomCard.dataset.word;
+    const correctMatch = topCard.dataset.match;
+
+    const isCorrect = correctMatch === bottomWord;
+
+
+    // =========================
+    // CORRECT
+    // =========================
+    if (isCorrect) {
+
+        isProcessing = true;
+
+        matchedPairs[topWord] = bottomWord;
+        matchCount++;
+
+        const color =
+            lineColors[colorIndex % lineColors.length];
+
+        colorIndex++;
+
+
+        // DOT COLORS
+        topCard._dot.style.background = color;
+        topCard._dot.style.boxShadow =
+            `0 0 0 2px ${color}`;
+
+        bottomCard._dot.style.background = color;
+        bottomCard._dot.style.boxShadow =
+            `0 0 0 2px ${color}`;
+
+
+        // MATCHED CLASSES
+        topCard.classList.remove('top-card-active');
+
+        topCard.classList.add('matched');
+        bottomCard.classList.add('matched');
+
+        topCard._dot.classList.remove('active-dot');
+
+        topCard._dot.classList.add('matched');
+        bottomCard._dot.classList.add('matched');
+
+
+        // DRAW CONNECTION LINE
+        redrawPermanentLines();
+
+
+        // FEEDBACK
+        showPopup(true);
+        smallConfetti();
+        speak('Correct!');
+
+
+        // RESET
+        selectedTop = null;
+        startDot = null;
+        currentLine = null;
+
+        isProcessing = false;
+
+
+        // FINAL RESULT
+        if (matchCount === totalMatches) {
+
+            setTimeout(() => {
+                showFinal();
+            }, 1200);
+        }
+
+    }
+
+    // =========================
+    // WRONG
+    // =========================
+    else {
+
+        showPopup(false);
+        speak('Try again!');
+
+        bottomCard.classList.add('wrong-shake');
+
+        setTimeout(() => {
+
+            bottomCard.classList.remove('wrong-shake');
+
+            if (topCard) {
+                topCard._dot.classList.remove('active-dot');
+                topCard.classList.remove('top-card-active');
+            }
+
+            selectedTop = null;
+
+        }, 700);
+    }
+}
+    // =========================
+    // BOTTOM CARD CLICK
+    // =========================
+    if (position === 'bottom') {
+
+        // User must select top first
+        if (!selectedTop) {
+            // speak('Select a word first');
+            return;
+        }
+
+        checkClickedMatch(selectedTop, card);
+    }
+}
+
+        // ============================================================
+        //  DRAG / DRAW – Single tap & drag
+        // ============================================================
+        function startDragFromCard(e, card) {
+            if (isProcessing) return;
+            if (card.classList.contains('matched')) return;
+
+            if (selectedTop && selectedTop !== card) {
+                selectedTop._dot.classList.remove('active-dot');
+                selectedTop.classList.remove('top-card-active');
+                selectedTop = null;
+            }
+
+            selectedTop = card;
+            card._dot.classList.add('active-dot');
+            card.classList.add('top-card-active');
+
+            const dot = card._dot;
+            const rect = dot.getBoundingClientRect();
+            startDot = {
+                cardEl: card,
+                dotEl: dot,
+                rect: rect,
+                cx: rect.left + rect.width / 2,
+                cy: rect.top + rect.height / 2
+            };
+
+            isDragging = true;
+            drawArea.classList.add('dragging');
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('stroke', '#b7a9d4');
+            path.setAttribute('stroke-width', '4');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-linecap', 'round');
+            svg.appendChild(path);
+            currentLine = path;
+
+            const wrapperRect = drawArea.getBoundingClientRect();
+            const lx = startDot.cx - wrapperRect.left;
+            const ly = startDot.cy - wrapperRect.top;
+            const d = `M ${lx} ${ly} C ${lx + 20} ${ly + 40}, ${lx + 40} ${ly + 80}, ${lx + 60} ${ly + 120}`;
+            path.setAttribute('d', d);
+
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('mouseup', onDragEnd);
+            window.addEventListener('touchmove', onDragMoveTouch, { passive: false });
+            window.addEventListener('touchend', onDragEndTouch, { passive: false });
+        }
+
+        function onDragMove(e) { if (!isDragging) return; e.preventDefault(); updateDrag(e.clientX, e.clientY); }
+
+        function onDragMoveTouch(e) { if (!isDragging) return; e.preventDefault(); const t = e.touches[0]; updateDrag(t
+                .clientX, t.clientY); }
+
+        function updateDrag(cx, cy) {
+            if (!currentLine || !startDot) return;
+            const wrapperRect = drawArea.getBoundingClientRect();
+            const sx = startDot.cx - wrapperRect.left;
+            const sy = startDot.cy - wrapperRect.top;
+            const ex = cx - wrapperRect.left;
+            const ey = cy - wrapperRect.top;
+            const cp1x = sx + (ex - sx) * 0.4;
+            const cp1y = sy + (ey - sy) * 0.1;
+            const cp2x = ex - (ex - sx) * 0.4;
+            const cp2y = ey - (ey - sy) * 0.1;
+            const d = `M ${sx} ${sy} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${ex} ${ey}`;
+            currentLine.setAttribute('d', d);
+        }
+
+        function onDragEnd(e) { if (!isDragging) return; finishDrag(e.clientX, e.clientY); }
+
+        function onDragEndTouch(e) { if (!isDragging) return; const t = e.changedTouches[0]; finishDrag(t.clientX, t
+                .clientY); }
+
+        function finishDrag(cx, cy) {
+            isDragging = false;
+            drawArea.classList.remove('dragging');
+            window.removeEventListener('mousemove', onDragMove);
+            window.removeEventListener('mouseup', onDragEnd);
+            window.removeEventListener('touchmove', onDragMoveTouch);
+            window.removeEventListener('touchend', onDragEndTouch);
+
+            if (!selectedTop || !startDot || !currentLine) {
+                cleanupDrag();
+                return;
+            }
+
+            const elements = document.elementsFromPoint(cx, cy);
+            let targetCard = null;
+            for (let el of elements) {
+                if (el.classList && el.classList.contains('card-item') && el.dataset.position === 'bottom') {
+                    targetCard = el;
+                    break;
+                }
+            }
+
+            if (targetCard && !targetCard.classList.contains('matched')) {
+                const topWord = selectedTop.dataset.word;
+                const bottomWord = targetCard.dataset.word;
+                const leftMatch = selectedTop.dataset.match;
+                const isCorrect = leftMatch === bottomWord;
+
+                if (isCorrect) {
+                    isProcessing = true;
+                    matchedPairs[topWord] = bottomWord;
+                    matchCount++;
+
+                    const color = lineColors[colorIndex % lineColors.length];
+                    colorIndex++;
+
+                    if (currentLine) {
+                        currentLine.setAttribute('stroke', color);
+                        currentLine.setAttribute('stroke-width', '5');
+                        currentLine.removeAttribute('style');
+                    }
+
+                    selectedTop._dot.style.background = color;
+                    selectedTop._dot.style.boxShadow = `0 0 0 2px ${color}`;
+                    targetCard._dot.style.background = color;
+                    targetCard._dot.style.boxShadow = `0 0 0 2px ${color}`;
+                    selectedTop._dot.classList.add('matched');
+                    targetCard._dot.classList.add('matched');
+
+                    selectedTop.classList.remove('top-card-active');
+                    selectedTop.classList.add('matched');
+                    targetCard.classList.add('matched');
+                    selectedTop._dot.classList.remove('active-dot');
+
+                    redrawPermanentLines();
+
+                    showPopup(true);
+                    smallConfetti();
+                    speak('Correct!');
+
+                    selectedTop = null;
+                    startDot = null;
+                    currentLine = null;
+                    isProcessing = false;
+
+                    if (matchCount === totalMatches) {
+                        setTimeout(showFinal, 1200);
+                    }
+                } else {
+                    if (currentLine) {
+                        currentLine.setAttribute('stroke', '#f28b82');
+                        currentLine.setAttribute('stroke-width', '4');
+                    }
+                    showPopup(false);
+                    speak('Try again!');
+                    targetCard.classList.add('wrong-shake');
+                    selectedTop._dot.classList.add('active-dot');
+
+                    const wrongLine = currentLine;
+                    const wrongTop = selectedTop;
+                    const wrongTarget = targetCard;
+
+                    setTimeout(() => {
+                        wrongTarget.classList.remove('wrong-shake');
+                        if (wrongLine && wrongLine.parentNode) {
+                            wrongLine.remove();
+                        }
+                        if (wrongTop) {
+                            wrongTop._dot.classList.remove('active-dot');
+                            wrongTop.classList.remove('top-card-active');
+                        }
+                        if (selectedTop === wrongTop) {
+                            selectedTop = null;
+                        }
+                        if (currentLine === wrongLine) {
+                            currentLine = null;
+                        }
+                        startDot = null;
+                        isProcessing = false;
+                    }, 700);
+                }
+            } else {
+                if (currentLine) {
+                    currentLine.remove();
+                    currentLine = null;
+                }
+                if (selectedTop) {
+                    selectedTop._dot.classList.remove('active-dot');
+                    selectedTop.classList.remove('top-card-active');
+                    selectedTop = null;
+                }
+                startDot = null;
+            }
+
+            if (!isProcessing) {
+                cleanupDrag();
+            }
+        }
+
+        function cleanupDrag() {
+            if (currentLine && !currentLine.getAttribute('stroke')?.includes('#')) {
+                if (!currentLine.getAttribute('stroke') || currentLine.getAttribute('stroke') === '#b7a9d4') {
+                    currentLine.remove();
+                }
+            }
+            currentLine = null;
+            document.querySelectorAll('.connection-dot.active-dot').forEach(d => d.classList.remove('active-dot'));
+            document.querySelectorAll('.card-item.top-card-active').forEach(c => c.classList.remove('top-card-active'));
+            selectedTop = null;
+            startDot = null;
+            isDragging = false;
+            drawArea.classList.remove('dragging');
+        }
+
+        // ============================================================
+        //  FINAL
+        // ============================================================
+        function showFinal() {
+            document.getElementById('finalPopup').style.display = 'flex';
+            document.getElementById('finalScore').textContent = `Your Score: ${matchCount} / ${totalMatches}`;
+            document.getElementById('stars').textContent = '⭐'.repeat(matchCount);
+            bigConfetti();
+        }
+
+        // ============================================================
+        //  REDRAW PERMANENT LINES
+        // ============================================================
+        function redrawPermanentLines() {
+            svg.innerHTML = '';
+            const topCards = document.querySelectorAll('.top-row .card-item.matched');
+            let idx = 0;
+            topCards.forEach(card => {
+                const word = card.dataset.word;
+                const matchWord = matchedPairs[word];
+                if (!matchWord) return;
+                const bottomCard = document.querySelector(`.bottom-row .card-item[data-word="${matchWord}"]`);
+                if (!bottomCard) return;
+                let dotColor = card._dot.style.background;
+                if (!dotColor || dotColor === '' || dotColor === 'rgb(111, 207, 151)') {
+                    dotColor = lineColors[idx % lineColors.length];
+                    card._dot.style.background = dotColor;
+                    card._dot.style.boxShadow = `0 0 0 2px ${dotColor}`;
+                    bottomCard._dot.style.background = dotColor;
+                    bottomCard._dot.style.boxShadow = `0 0 0 2px ${dotColor}`;
+                }
+                drawPermanentLine(card, bottomCard, dotColor);
+                idx++;
+            });
+        }
+
+        function drawPermanentLine(topCard, bottomCard, color) {
+            const wrapperRect = drawArea.getBoundingClientRect();
+            const topDot = topCard._dot;
+            const botDot = bottomCard._dot;
+            if (!topDot || !botDot) return;
+            const tr = topDot.getBoundingClientRect();
+            const br = botDot.getBoundingClientRect();
+            const lx = tr.left + tr.width / 2 - wrapperRect.left;
+            const ly = tr.top + tr.height / 2 - wrapperRect.top;
+            const rx = br.left + br.width / 2 - wrapperRect.left;
+            const ry = br.top + br.height / 2 - wrapperRect.top;
+            const cp1x = lx + (rx - lx) * 0.4;
+            const cp1y = ly + (ry - ly) * 0.1;
+            const cp2x = rx - (rx - lx) * 0.4;
+            const cp2y = ry - (ry - ly) * 0.1;
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const d = `M ${lx} ${ly} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${rx} ${ry}`;
+            path.setAttribute('d', d);
+            path.setAttribute('stroke', color);
+            path.setAttribute('stroke-width', '5');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-linecap', 'round');
+            svg.appendChild(path);
+        }
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                redrawPermanentLines();
+            }, 150);
+        });
+
+        // ============================================================
+        //  INIT
+        // ============================================================
+        renderCards();
+        console.log('🔗 Synonym Match · Single Tap version loaded');
+    </script>
+</body>
+
+</html>

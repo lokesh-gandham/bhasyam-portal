@@ -1,0 +1,1470 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>Synonym Word Search</title>
+
+
+    <audio id="correctSound"
+    src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+
+    <audio id="wrongSound"
+    src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <style>
+        @font-face {
+                font-family: 'CCSyntroman';
+                src: url('../assets/CCSYNTRO.TTF') format('truetype');
+                font-weight: normal;
+                font-style: normal;
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+                font-family: "CCSyntroman";
+                font-weight: 400;
+            }
+    body{
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+        min-height:100vh;
+        overflow: hidden;
+    }
+    .gameContainer{
+
+    width:1200px;
+    max-width:100%;
+
+    display:grid;
+    grid-template-columns:240px 1fr;
+    gap:60px;
+
+    align-items:center;
+
+    }.questionPanel{
+        display:flex;
+        flex-direction:column;
+        gap:15px;
+        margin-top: -10px;
+    }.question{
+
+        position:relative;
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+
+        height:78px;
+
+        padding:0 22px;
+
+        border-radius:20px;
+
+        color:#2f4f4f;
+
+        font-size:22px;
+
+    
+
+        letter-spacing:.4px;
+
+        cursor:pointer;
+
+        overflow:hidden;
+
+        transition:.35s;
+
+        border:4px solid rgba(255,255,255,.7);
+
+
+    }
+
+    .pageHeading{
+        width:100%;
+        max-width:1200px;
+        margin:0 auto 22px;
+        padding:16px 28px;
+
+        display:flex;
+        align-items:center;
+        gap:14px;
+
+        color:#5D4037;
+        font-size:23px;
+        font-weight:400;
+        line-height:1.35;
+
+    }
+
+    .question:hover::after{
+
+        left:130%;
+
+    }
+
+    .orange{
+    background:#EC8765;
+    }
+
+    .purple{
+    background:#D8B0D5;
+    }
+
+    .blue{
+    background:#9BC9EC;
+    }
+
+    .yellow{
+    background:#F9CB86;
+    }
+
+    .green{
+    background:#9ED08B;
+    }
+
+    .lavender{
+    background:#A8AEDB;
+    }
+
+
+    /* ===========================
+            GRID
+    =========================== */
+    .gridWrapper{
+        display:flex;
+        justify-content:center;
+        margin-top:0;
+    }
+    .wordGrid{
+
+        display:grid;
+
+        grid-template-columns:repeat(9,68px);
+        grid-template-rows:repeat(7,68px);
+
+        background:#fff;
+
+        border:6px solid #E6F0F5;
+        border-radius:22px;
+
+        overflow:hidden;
+
+        box-shadow:
+            0 8px 24px rgba(0,0,0,.08),
+            inset 0 0 0 2px rgba(255,255,255,.8);
+    }
+
+    .cell{
+
+        width:68px;
+        height:68px;
+
+        display:flex;
+        justify-content:center;
+        align-items:center;
+
+        font-size:28px;
+        font-weight:600;
+
+        color:#2f4f4f;
+
+        border-right:2px solid #E6EDF3;
+        border-bottom:2px solid #E6EDF3;
+
+        background:#fff;
+        cursor:pointer;
+    }
+    /* Highlight colors */
+
+    .hl-blue{
+
+    background:#9BC9EC;
+
+    }
+
+    .hl-orange{
+
+    background:#EC8765;
+    color:white;
+
+    }
+
+    .hl-green{
+
+    background:#9ED08B;
+
+    }
+
+    .hl-yellow{
+
+    background:#F9CB86;
+
+    }
+
+    .hl-purple{
+
+    background:#D8B0D5;
+
+    }
+
+    .hl-lavender{
+
+    background:#A8AEDB;
+
+    }
+    .cell{
+    border:2px solid #E6EDF3;
+}
+
+.selected{
+    background:linear-gradient(180deg,#EAFBF4,#D6F6E6);
+    border-color:#8FD8B8;
+}
+    .completed{
+       
+        pointer-events: none;
+       
+        cursor: default;
+        text-decoration: none;
+        transition: all .3s ease;
+    }
+    .question.active{
+
+        transform:scale(1);
+
+        border-color:#67ed82;
+
+    }.question{
+        display:flex;
+        align-items:center;
+        gap:16px;
+
+        padding:0 20px 0 10px;
+
+        justify-content:flex-start;
+    }
+
+    .question-icon{
+
+        width:65px;
+        height:65px;
+
+        flex-shrink:0;
+
+        border-radius:50%;
+
+        background:#fff;
+
+        display:flex;
+        justify-content:center;
+        align-items:center;
+
+        box-shadow:
+            0 4px 10px rgba(0,0,0,.12),
+            inset 0 2px 4px rgba(255,255,255,.8);
+    }
+
+    .question-icon img{
+
+        width:70px;
+        height:65x;
+
+        object-fit:contain;
+    }
+
+    .question.completed{
+    position: relative;
+}
+
+.question.completed::after{
+    content: "✔";
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+
+    background: #22C55E;      /* Bright green */
+    color: #FFFFFF;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    font-weight:500;
+
+    border: 3px solid #FFFFFF;
+    box-shadow: 0 4px 12px rgba(34,197,94,.45);
+}
+    /* =====================================================
+    POPUP OVERLAY
+    ===================================================== */
+
+    .popup-overlay{
+        position:fixed;
+        inset:0;
+        display:none;
+        align-items:center;
+        justify-content:center;
+        z-index:1000;
+        opacity:0;
+        transition:opacity .4s ease;
+    }
+
+    .popup-overlay.show{
+        display:flex;
+        opacity:1;
+    }
+
+
+    /* =====================================================
+    POPUP CARD
+    ===================================================== */
+    .popup{
+        background:#fff;
+        width:350px;
+        border-radius:40px;
+        padding:0;
+        text-align:center;
+        position:relative;
+        overflow:hidden;
+
+        border:1px solid rgba(255,255,255,.9);
+
+        /* Premium Floating Shadow */
+        box-shadow:
+            0 2px 6px rgba(0,0,0,.05),
+            0 10px 18px rgba(0,0,0,.08),
+            0 22px 35px rgba(0,0,0,.12),
+            0 45px 70px rgba(0,0,0,.18),
+            0 70px 110px rgba(0,0,0,.10);
+
+        animation: popupSlide .45s cubic-bezier(.34,1.56,.64,1);
+    }
+    .popup{
+        box-shadow:
+            0 0 0 1px rgba(255,255,255,.7),
+            0 8px 16px rgba(0,0,0,.06),
+            0 18px 36px rgba(0,0,0,.10),
+            0 35px 70px rgba(0,0,0,.18),
+            0 0 40px rgba(255,255,255,.25);
+    }
+
+
+    @keyframes popupSlide{
+
+        0%{
+            transform:scale(.5) translateY(60px) rotate(-5deg);
+            opacity:0;
+        }
+
+        60%{
+            transform:scale(1.05) translateY(-8px) rotate(2deg);
+        }
+
+        100%{
+            transform:scale(1) translateY(0) rotate(0);
+            opacity:1;
+        }
+    }
+
+
+    /* =====================================================
+    POPUP TOP
+    ===================================================== */
+
+    .popup-top{
+        padding:35px 24px 20px;
+        position:relative;
+    }
+
+
+    /* =====================================================
+    ICON
+    ===================================================== */
+
+    .popup-icon-wrap{
+
+        width:90px;
+        height:90px;
+
+        margin:0 auto 10px;
+
+        border-radius:50%;
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+
+        font-size:50px;
+
+        box-shadow:0 8px 24px rgba(0,0,0,.08);
+    }
+
+    .popup.correct .popup-icon-wrap{
+        background:#4CAF50;
+        animation:
+            iconPop .6s cubic-bezier(.34,1.56,.64,1),
+            glowGreen 1.2s ease-in-out infinite alternate;
+    }
+
+    .popup.wrong .popup-icon-wrap{
+        background:#EF5350;
+        animation:
+            iconPop .6s cubic-bezier(.34,1.56,.64,1),
+            glowRed 1.2s ease-in-out infinite alternate;
+    }
+
+    .popup.final .popup-icon-wrap{
+    background:#ffffff;
+        box-shadow:0 10px 30px rgba(0,0,0,.12);
+        animation:iconPop .6s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .popup-icon-wrap span{
+        color:#fff;
+    }
+
+
+    /* =====================================================
+    GLOW ANIMATION
+    ===================================================== */
+
+    @keyframes glowGreen{
+
+        from{
+            box-shadow:0 0 20px rgba(76,175,80,.3);
+        }
+
+        to{
+            box-shadow:0 0 40px rgba(76,175,80,.6);
+        }
+    }
+
+    @keyframes glowRed{
+
+        from{
+            box-shadow:0 0 20px rgba(239,83,80,.3);
+        }
+
+        to{
+            box-shadow:0 0 40px rgba(239,83,80,.6);
+        }
+    }
+
+    @keyframes iconPop{
+
+        0%{
+            transform:scale(0) rotate(-30deg);
+        }
+
+        60%{
+            transform:scale(1.2) rotate(10deg);
+        }
+
+        100%{
+            transform:scale(1) rotate(0);
+        }
+    }
+
+
+    /* =====================================================
+    TITLE
+    ===================================================== */
+
+    .popup-title{
+
+        font-size:26px;
+        font-weight:700;
+        letter-spacing:-.5px;
+    }
+
+
+    /* =====================================================
+    BOTTOM
+    ===================================================== */
+
+    .popup-bottom{
+
+        padding:18px 24px 22px;
+        background:#fff;
+    }
+
+    .popup-msg{
+
+        font-size:18px;
+        font-weight:500;
+
+        line-height:1.45;
+
+        color:#4B5563;
+    }
+
+
+    /* =====================================================
+    SCORE
+    ===================================================== */
+
+    .popup-score{
+
+        width:100%;
+
+        display:flex;
+        justify-content:center;
+        align-items:center;
+
+        margin:0 auto 12px;
+
+        font-size:20px;
+        font-weight:700;
+
+        
+    }
+
+    .popup-score span{
+        margin-right:8px;
+    }
+
+    .popup-score strong{
+
+        font-size:20px;
+        
+    }
+
+
+    /* =====================================================
+    STARS
+    ===================================================== */
+
+    .popup-stars{
+
+        display:flex;
+        justify-content:center;
+        gap:8px;
+
+        font-size:34px;
+
+        margin:10px auto 18px;
+
+        color:#FFC83D;
+
+        animation:starDance .8s ease;
+    }
+
+    @keyframes starDance{
+
+        0%{
+            transform:scale(0) rotate(-20deg);
+            opacity:0;
+        }
+
+        50%{
+            transform:scale(1.3) rotate(10deg);
+        }
+
+        100%{
+            transform:scale(1);
+            opacity:1;
+        }
+    }
+
+
+    /* =====================================================
+    CORRECT
+    ===================================================== */
+
+    .popup.correct{
+
+        background:#fff;
+        border:3px solid #4CAF50;
+    }
+
+    .popup.correct .popup-top{
+        background:#fff;
+    }
+
+    .popup.correct .popup-bottom{
+        background:#fff;
+        border-top:none;
+    }
+
+    .popup.correct .popup-title{
+        color:#2E7D32;
+    }
+
+
+    /* =====================================================
+    WRONG
+    ===================================================== */
+
+    .popup.wrong{
+
+        background:#fff;
+        border:3px solid #EF5350;
+    }
+
+    .popup.wrong .popup-top{
+        background:#fff;
+    }
+
+    .popup.wrong .popup-bottom{
+        background:#fff;
+        border-top:none;
+    }
+
+    .popup.wrong .popup-title{
+        color:#D32F2F;
+    }
+
+    /* =========================
+    FINAL POPUP - CLEAN WHITE
+    ========================= */
+    .popup.final{
+        background:#FFFFFF;
+        border:3px solid #4CAF50;
+        box-shadow:0 18px 45px rgba(15,23,42,.12);
+    }
+
+    .popup.final .popup-top{
+        background:linear-gradient(135deg,#F8FAFC,#EEF5FB);
+    }
+
+    .popup.final .popup-bottom{
+        background:#FFFFFF;
+        border-top:2px solid #EDF2F7;
+    }
+
+    /* Title */
+
+    .popup.final .popup-title{
+        color:#334155;
+        font-size:30px;
+        font-weight:700;
+        letter-spacing:.3px;
+    }
+
+    /* Score */
+
+    .popup.final .popup-score{
+        color:#0F172A;
+        font-size:24px;
+        font-weight:700;
+        margin:12px 0 15px;
+    }
+
+    /* Stars */
+
+    .popup.final .popup-stars{
+        color:#FACC15;
+        font-size:38px;
+        letter-spacing:6px;
+    }
+
+    /* Trophy Circle */
+
+    .popup.final .popup-icon-wrap{
+        width:95px;
+        height:95px;
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+
+        background:#F1F5F9;
+        border:5px solid #BBF7D0;
+        border-radius:50%;
+
+        box-shadow:
+            0 12px 30px rgba(15,23,42,.08),
+            0 0 0 8px rgba(187,247,208,.35);
+    }
+
+    .popup.final .popup-icon-wrap span{
+        font-size:52px;
+    }
+
+    /* Play Again Button */
+
+    .popup.final .play-again-popup{
+        width:100%;
+        height:58px;
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:10px;
+
+        border:none;
+        border-radius:16px;
+
+        background:#4CAF50;
+
+        color:#fff;
+        font-size:18px;
+        font-weight:700;
+
+        cursor:pointer;
+        transition:.25s;
+
+        box-shadow:0 10px 24px rgba(34,197,94,.28);
+    }
+/* 
+    .popup.final .play-again-popup:hover{
+        background:linear-gradient(135deg,#16A34A,#15803D);
+        transform:translateY(-2px);
+        box-shadow:0 14px 30px rgba(34,197,94,.35);
+    } */
+
+    @keyframes popupScale{
+
+        from{
+
+            transform:scale(.4);
+
+            opacity:0;
+
+        }
+
+        to{
+
+            transform:scale(1);
+
+            opacity:1;
+
+        }
+
+    }
+
+
+    @media(max-width:768px){
+
+    .kid-card{
+
+        width:270px;
+
+        padding:20px;
+
+    }
+
+    .kid-icon{
+
+        font-size:52px;
+
+    }
+
+    .kid-card h3{
+
+        font-size:26px;
+
+    }
+
+    .kid-card p{
+
+        font-size:18px;
+
+    }
+
+    .final-kid-box{
+
+        width:90%;
+
+        padding:25px;
+
+    }
+
+    .final-kid-box h2{
+
+        font-size:30px;
+
+    }
+
+    .final-kid-box p{
+
+        font-size:22px;
+
+    }
+
+    #stars{
+
+        font-size:32px;
+
+    }
+
+    .playAgain-btn{
+
+        font-size:18px;
+
+        padding:12px 26px;
+
+    }
+
+    }
+
+    @media(max-width:900px){
+
+    .gameContainer{
+
+    grid-template-columns:1fr;
+
+    gap:35px;
+
+    }
+
+    .questionPanel{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:18px;
+
+    }
+
+    .gridWrapper{
+
+    overflow:auto;
+
+    justify-content:flex-start;
+
+    }
+
+    .wordGrid{
+
+    min-width:549px;
+
+    }
+
+    }
+
+
+
+    @media (max-width:768px){
+        .pageHeading{
+            font-size:18px;
+            padding:14px 18px;
+        }
+
+        .headingIcon{
+            width:42px;
+            height:42px;
+            font-size:22px;
+        }
+    }
+    @media screen and (min-width:1441px) and (max-width:1920px){
+
+    .gameContainer{
+        width:1780px;
+        max-width:96vw;
+
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        gap:150px;                 /* More space between questions and grid */
+        margin:0 auto;
+        margin-left: 60px;
+    }
+
+    /* LEFT SIDE */
+    .questionPanel{
+        width:300px;               /* Increased from 320px */
+        flex-shrink:0;
+    }
+
+    .question{
+        width:380px;               /* Wider question boxes */
+        height:90px;
+        font-size:26px;
+        gap:18px;
+        padding:0 28px 0 12px;
+        font-size: 30px;
+    }
+
+    .question-icon{
+        width:80px;
+        height:80px;
+    }
+
+    .question-icon img{
+        width:105px;
+        height:90px;
+    }
+
+    .gridWrapper{
+        flex:1;
+        display:flex;
+        justify-content:flex-start; /* Push grid slightly right */
+        align-items:center;
+        padding-left:60px;          /* Move grid to the right */
+    }
+
+    .pageHeading{
+        max-width:1780px;
+        margin:0 auto 35px;
+        text-align:center;
+        font-size:30px;
+    }
+/* Bigger Grid */
+.wordGrid{
+    grid-template-columns:repeat(9,95px);
+    grid-template-rows:repeat(7,95px);
+}
+
+.cell{
+    width:95px;
+    height:95px;
+    font-size:38px;
+}
+}
+
+    @media screen and (min-width:1921px){
+
+        .gameContainer{
+            width:1900px;
+            max-width:95vw;
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            gap:150px;
+            margin:0 auto;
+        }
+
+        .questionPanel{
+            width:340px;
+            flex-shrink:0;
+        }
+
+        .gridWrapper{
+            flex:1;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+    }
+    </style>
+    </head>
+
+    <body>
+    <h2 class="pageHeading">
+        
+            Find the synonyms of the given words in the grid by colouring them in the matching colours
+        
+    </h2>
+    <div class="gameContainer">
+    <div class="gameContainer">
+
+    <!-- LEFT SIDE -->
+
+    <div class="questionPanel">
+    <div class="question orange" id="performed">
+        <div class="question-icon">
+            <img src="../images/performed2.png" alt="Performed">
+        </div>
+        <span>Performed</span>
+    </div>
+
+    <div class="question purple" id="kingdom"
+    >
+        <div class="question-icon">
+            <img src="../images/kingdom.png" alt="Kingdom">
+        </div>
+        <span>Kingdom</span>
+    </div>
+
+    <div class="question blue" id="destroy"
+    >
+        <div class="question-icon">
+            <img src="../images/destroy.png" alt="Destroy">
+        </div>
+        <span>Destroy</span>
+    </div>
+
+    <div class="question yellow" id="hard"
+    >
+        <div class="question-icon">
+            <img src="../images/hard.png" alt="Hard">
+        </div>
+        <span>Hard</span>
+    </div>
+
+    <div class="question green" id="complete"
+    >
+        <div class="question-icon">
+            <img src="../images/complete.png" alt="Complete">
+        </div>
+        <span>Complete</span>
+    </div>
+
+    <div class="question lavender" id="scared"
+    >
+        <div class="question-icon">
+            <img src="../images/scared.png" alt="Scared">
+        </div>
+        <span>Scared</span>
+    </div>
+    </div>
+
+
+    <!-- RIGHT SIDE -->
+    <!-- RIGHT SIDE -->
+
+    <div class="gridWrapper">
+
+        <div class="gridSection">
+
+            <div class="wordGrid">
+
+                <!-- Row 1 -->
+                <div class="cell" id="c1">S</div>
+                <div class="cell" id="c2">P</div>
+                <div class="cell" id="c3">O</div>
+                <div class="cell" id="c4">I</div>
+                <div class="cell" id="c5">L</div>
+                <div class="cell" id="c6">H</div>
+                <div class="cell" id="c7">K</div>
+                <div class="cell" id="c8">L</div>
+                <div class="cell" id="c9">S</div>
+
+                <!-- Row 2 -->
+                <div class="cell" id="c10">E</div>
+                <div class="cell" id="c11">E</div>
+                <div class="cell" id="c12">R</div>
+                <div class="cell" id="c13">B</div>
+                <div class="cell" id="c14">X</div>
+                <div class="cell" id="c15">K</div>
+                <div class="cell" id="c16">D</div>
+                <div class="cell" id="c17">O</div>
+                <div class="cell" id="c18">T</div>
+
+                <!-- Row 3 -->
+                <div class="cell" id="c19">F</div>
+                <div class="cell" id="c20">U</div>
+                <div class="cell" id="c21">L</div>
+                <div class="cell" id="c22">L</div>
+                <div class="cell" id="c23">Y</div>
+                <div class="cell" id="c24">Q</div>
+                <div class="cell" id="c25">I</div>
+                <div class="cell" id="c26">H</div>
+                <div class="cell" id="c27">A</div>
+
+                <!-- Row 4 -->
+                <div class="cell" id="c28">T</div>
+                <div class="cell" id="c29">Y</div>
+                <div class="cell" id="c30">D</div>
+                <div class="cell" id="c31">J</div>
+                <div class="cell" id="c32">K</div>
+                <div class="cell" id="c33">P</div>
+                <div class="cell" id="c34">D</div>
+                <div class="cell" id="c35">J</div>
+                <div class="cell" id="c36">T</div>
+
+                <!-- Row 5 -->
+                <div class="cell" id="c37">A</div>
+                <div class="cell" id="c38">F</div>
+                <div class="cell" id="c39">R</div>
+                <div class="cell" id="c40">A</div>
+                <div class="cell" id="c41">I</div>
+                <div class="cell" id="c42">D</div>
+                <div class="cell" id="c43">Z</div>
+                <div class="cell" id="c44">W</div>
+                <div class="cell" id="c45">E</div>
+
+                <!-- Row 6 -->
+                <div class="cell" id="c46">S</div>
+                <div class="cell" id="c47">H</div>
+                <div class="cell" id="c48">G</div>
+                <div class="cell" id="c49">I</div>
+                <div class="cell" id="c50">W</div>
+                <div class="cell" id="c51">X</div>
+                <div class="cell" id="c52">B</div>
+                <div class="cell" id="c53">Q</div>
+                <div class="cell" id="c54">A</div>
+
+                <!-- Row 7 -->
+                <div class="cell" id="c55">D</div>
+                <div class="cell" id="c56">I</div>
+                <div class="cell" id="c57">F</div>
+                <div class="cell" id="c58">F</div>
+                <div class="cell" id="c59">I</div>
+                <div class="cell" id="c60">C</div>
+                <div class="cell" id="c61">U</div>
+                <div class="cell" id="c62">L</div>
+                <div class="cell" id="c63">T</div>
+
+            </div>
+
+            <!-- Buttons Below Grid -->
+            <div class="buttonRow">
+
+            
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup" id="popupBox"></div>
+    </div>
+    <div id="hintPopup" class="hintPopup">
+
+    
+
+    </div>
+    </body>
+    <script>
+        const answers = [
+    {
+    letters:["c1","c2","c3","c4","c5"],
+    question:"destroy"
+    },
+    {
+    letters:["c16","c25","c34"],
+    question:"performed"
+    },
+    {
+    letters:["c19","c20","c21","c22","c23"],
+    question:"complete"
+    },
+    {
+    letters:["c37","c38","c39","c40","c41","c42"],
+    question:"scared"
+    },
+    {
+    letters:["c55","c56","c57","c58","c59","c60","c61","c62","c63"],
+    question:"hard"
+    },
+    {
+    letters:["c9","c18","c27","c36","c45"],
+    question:"kingdom"
+    }
+    ];
+
+    let selected=[];
+
+    let score = 0;
+
+
+    const totalQuestions = answers.length;
+    document.querySelectorAll(".cell").forEach(cell=>{
+
+    cell.onclick=function(){
+
+    if(cell.classList.contains("found")) return;
+
+    if(selected.includes(cell.id)){
+
+    cell.classList.remove("selected");
+
+    selected=selected.filter(x=>x!=cell.id);
+
+    }
+    else{
+    selected.push(cell.id);
+  cell.classList.add("selected");
+
+clearTimeout(window.wordTimer);
+
+window.wordTimer = setTimeout(checkAnswer, 350);
+
+    }
+
+
+    }
+
+    });
+function checkAnswer() {
+
+    // 1. Check if any answer is fully matched
+    for (const ans of answers) {
+
+        if (document.getElementById(ans.question).classList.contains("completed"))
+            continue;
+
+        const correct =
+            selected.length === ans.letters.length &&
+            ans.letters.every(id => selected.includes(id));
+
+        if (correct) {
+
+            const q = document.getElementById(ans.question);
+
+            let color = "";
+
+            if (q.classList.contains("orange")) color = "hl-orange";
+            if (q.classList.contains("purple")) color = "hl-purple";
+            if (q.classList.contains("blue")) color = "hl-blue";
+            if (q.classList.contains("yellow")) color = "hl-yellow";
+            if (q.classList.contains("green")) color = "hl-green";
+            if (q.classList.contains("lavender")) color = "hl-lavender";
+
+            ans.letters.forEach(id => {
+
+                const cell = document.getElementById(id);
+
+                cell.classList.remove("selected");
+                cell.classList.add(color);
+                cell.classList.add("found");
+                cell.style.pointerEvents = "none";
+
+            });
+
+            q.classList.add("completed");
+
+            selected = [];
+
+            score++;
+
+            document.getElementById("correctSound").play();
+
+            speak("Correct");
+
+            showCorrectPopup();
+
+            if (score === totalQuestions) {
+
+                setTimeout(showFinal, 1500);
+
+            }
+
+            return;
+        }
+    }
+
+    // 2. Don't show wrong until selection is impossible
+
+    let possible = false;
+
+    for (const ans of answers) {
+
+        if (document.getElementById(ans.question).classList.contains("completed"))
+            continue;
+
+        const matched = selected.every(id => ans.letters.includes(id));
+
+        if (matched) {
+            possible = true;
+            break;
+        }
+    }
+
+    // Still building a word
+    if (possible) return;
+
+    // Impossible selection -> Wrong
+
+    document.getElementById("wrongSound").play();
+
+    speak("Try Again");
+
+    showWrongPopup();
+
+    selected.forEach(id => {
+
+        document.getElementById(id).classList.remove("selected");
+
+    });
+
+    selected = [];
+
+}
+
+    function speak(text){
+
+        speechSynthesis.cancel();
+
+        const msg=new SpeechSynthesisUtterance(text);
+
+        msg.lang="en-US";
+        msg.volume=.25;
+        msg.rate=1;
+        msg.pitch=1;
+
+        speechSynthesis.speak(msg);
+
+    }
+    function smallConfetti() {
+        confetti({
+            particleCount: 35,
+            spread: 60,
+            origin: { y: 0.6 }
+        });
+    }
+    function showCorrectPopup() {
+
+        speak("Correct");
+
+        smallConfetti();
+
+        const overlay = document.getElementById("popupOverlay");
+        const popupBox = document.getElementById("popupBox");
+
+        popupBox.className = "popup correct";
+
+        popupBox.innerHTML = `
+            <div class="popup-top">
+                <div class="popup-icon-wrap">
+                    <span>🌟</span>
+                </div>
+
+                <div class="popup-title">
+                    Excellent!
+                </div>
+            </div>
+
+            <div class="popup-bottom">
+                <div class="popup-msg">
+                Awesome! You got it right! 🎉
+                </div>
+            </div>
+        `;
+
+        overlay.classList.add("show");
+
+        setTimeout(() => {
+            overlay.classList.remove("show");
+        }, 1500);
+    }
+    function showWrongPopup() {
+
+        speak("Try again");
+
+        const overlay = document.getElementById("popupOverlay");
+        const popupBox = document.getElementById("popupBox");
+
+        popupBox.className = "popup wrong";
+
+        popupBox.innerHTML = `
+            <div class="popup-top">
+                <div class="popup-icon-wrap">
+                    <span>🤔</span>
+                </div>
+
+                <div class="popup-title">
+                    Oops!
+                </div>
+            </div>
+
+            <div class="popup-bottom">
+                <div class="popup-msg">
+                    Nice try! Give it another shot. 😊
+                </div>
+            </div>
+        `;
+
+        overlay.classList.add("show");
+
+        setTimeout(() => {
+            overlay.classList.remove("show");
+        }, 1500);
+    }
+    function showWord(word,color){
+
+        // Remove previous color of this word
+        document.querySelectorAll('[data-word="'+word+'"]').forEach(cell=>{
+
+            cell.classList.remove(
+                'hl-blue',
+                'hl-orange',
+                'hl-green',
+                'hl-yellow',
+                'hl-purple',
+                'hl-lavender'
+            );
+
+            cell.classList.add(color);
+
+        });
+
+    }
+    function openHint(){
+
+        document.getElementById("hintPopup").style.display="flex";
+
+    }
+
+    function closeHint(){
+
+        document.getElementById("hintPopup").style.display="none";
+
+    }
+    function showFinal() {
+
+        let end = Date.now() + 1500;
+
+        (function frame() {
+
+            confetti({
+                particleCount:3,
+                angle:60,
+                spread:55,
+                origin:{x:0}
+            });
+
+            confetti({
+                particleCount:3,
+                angle:120,
+                spread:55,
+                origin:{x:1}
+            });
+
+            if(Date.now() < end){
+                requestAnimationFrame(frame);
+            }
+
+        })();
+
+        const overlay = document.getElementById("popupOverlay");
+        const popupBox = document.getElementById("popupBox");
+
+        popupBox.className = "popup final";
+
+        popupBox.innerHTML = `
+            <div class="popup-top">
+                <div class="popup-icon-wrap">
+                    <span>👑</span>
+                </div>
+
+                <div class="popup-title">
+                    Congratulations!
+                </div>
+            </div>
+
+            <div class="popup-bottom">
+
+                <div class="popup-score">
+                    <span>Score:</span>
+                <strong>${score}/${totalQuestions}</strong>
+                </div>
+
+                <div class="popup-stars">
+                    ⭐⭐⭐
+                </div>
+
+                <button class="play-again-popup" id="playAgainBtn">
+                    Play Again
+                </button>
+
+            </div>
+        `;
+
+        overlay.classList.add("show");
+
+        document.getElementById("playAgainBtn").onclick = () => {
+            location.reload();
+        };
+    }
+
+    </script>
+    </html>

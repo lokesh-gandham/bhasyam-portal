@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drag the Same Shape · Synonyms</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;700&display=swap');
+     @font-face {
+    font-family: 'CCSYBold';
+    src: url('./assets/CCSYBOLD.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+@font-face {
+    font-family: 'CCSyntroman';
+    src: url('../assets/CCSYNTRO.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'CCSyntroman';
+    }
+
+    body {
+      font-family: 'CCSyntroman';
+     
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px 16px 40px;
+      margin: 0;
+      overflow:hidden;
+    }
+
+    .board {
+      max-width: 980px;
+      width: 100%;
+      background: #fffffd;
+      border-radius: 28px;
+       padding: 18px 28px 0px;
+      box-shadow: 0 10px 0 rgba(0, 0, 0, 0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .banner {
+      text-align: center;
+      background: #ffffff;
+      color: #2f4f4f;
+      font-family: 'CCSyntroman';
+      font-weight: 800;
+      font-size: clamp(22px, 4vw, 34px);
+      padding: 6px 10px;
+      border-radius: 18px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 6px 0 #f2f0f5;
+      margin-bottom: 0px;
+    }
+    /* .banner span { color: #FFC93C; } */
+
+    .subtitle {
+      text-align: start;
+      color: #5a4a2e;
+      font-weight: 500;
+      font-size: 20px;
+      margin: 14px 0 22px;
+    }
+    .subtitle b { color: #E0457B; }
+
+    /* top row : words with shape + image (emoji as image) */
+    .row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .word-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.05);
+      min-height: 130px;
+      justify-content: center;
+    }
+
+    .shape-label {
+    
+      font-weight: 700;
+      font-size:25px;
+      padding: 10px 6px;
+      width: 84%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      text-transform:capitalize;
+    }
+
+   .shape-img {
+    width: 48px;
+    height: 48px;
+
+    object-fit: contain;
+    object-position: center;
+
+    display: block;
+    margin: 0 auto 5px;
+
+    flex-shrink: 0;
+}
+
+/* Pentagon image */
+.pentagon .shape-img {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 3px;
+}
+
+    .sq { border: 3px solid #E84C4C; border-radius: 10px; color: #E84C4C; }
+    .ov { border: 3px solid #3FA34D; border-radius: 50%; color: #3FA34D; }
+    .cl { border: 3px solid #2E9BF0; border-radius: 46% 54% 42% 58% / 55% 45% 55% 45%; color: #2E9BF0; }
+    .cy { border: 3px solid #7A4FD1; border-radius: 40% 40% 15% 15% / 20% 20% 8% 8%; color: #7A4FD1; }
+
+    .pentagon {
+      width: 84%;
+      max-width: 145px;
+      height: 100px;
+      margin: 0 auto;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #E0457B;
+      border: none;
+      background: #E0457B;
+      clip-path: polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%);
+    }
+
+    .pentagon::before {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      background: #fff;
+      clip-path: polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%);
+      z-index: 0;
+    }
+
+    .pentagon > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .pentagon .shape-icon {
+      font-size: 26px;
+      margin-bottom: 0;
+    }
+    .pentagon span {
+      font-size: 25px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+
+.selected-zone{
+
+    transform:scale(1.05);
+
+    box-shadow:0 0 0 4px #4caf50;
+
+    transition:.2s;
+
+}
+    /* drop row (dashed) */
+    .drop-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      background: #FBF6E9;
+      border-radius: 20px;
+      padding: 26px 14px;
+      margin-bottom: 26px;
+    }
+
+    .dropzone {
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    
+      font-weight: 500;
+      font-size: 25px;
+      transition: background 0.2s, transform 0.15s;
+      background: transparent;
+      position: relative;
+      text-transform: capitalize;
+    }
+
+    .dropzone .placeholder-text {
+      color: #bbb;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      opacity: 0.8;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .dropzone.filled .placeholder-text {
+      opacity: 0;
+    }
+
+    .dz-sq { border: 3px dashed #E84C4C; border-radius: 12px; color: #E84C4C; }
+    .dz-ov { border: 3px dashed #3FA34D; border-radius: 50%; color: #3FA34D; }
+    .dz-cl { border: 3px dashed #2E9BF0; border-radius: 46% 54% 42% 58% / 55% 45% 55% 45%; color: #2E9BF0; }
+    .dz-cy { border: 3px dashed #7A4FD1; border-radius: 22% 22% 8% 8%; color: #7A4FD1; }
+
+    /* ==============================
+       PENTAGON DROP ZONE - FIXED
+    ============================== */
+    .dz-pentagon {
+      width: 84%;
+      max-width: 145px;
+      height: 96px;
+      margin: 0 auto;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent !important;
+      color: #E0457B;
+    }
+
+    /* SVG dashed pentagon */
+    .pentagon-outline {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .pentagon-outline polygon {
+      fill: transparent;
+      stroke: #E0457B;
+      stroke-width: 3;
+      stroke-dasharray: 8 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    /* Text stays above SVG */
+    .dz-pentagon .placeholder-text,
+    .dz-pentagon .placed {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Correct matched word */
+    .dz-pentagon .placed {
+      font-size: 25px;
+      font-weight: 500;
+      color: #E0457B;
+    }
+
+    /* IMPORTANT: don't allow .filled to turn pentagon white */
+    .dz-pentagon.filled {
+      background: transparent !important;
+    }
+
+    .dropzone.filled { background: #fff; }
+    .dropzone.correct { animation: pop 0.35s ease; }
+    .dropzone.wrong { animation: shake 0.4s ease; }
+
+    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* bank chips */
+    .bank {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+    }
+
+    .chip {
+      background: #fff;
+      border: 2px solid #E4DCC8;
+      border-radius: 12px;
+      padding: 16px 8px;
+      text-align: center;
+     
+      font-weight: 500;
+      font-size: 25px;
+      color: #33302A;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.06);
+      transition: box-shadow 0.15s, opacity 0.2s;
+      position: relative;
+      text-transform: capitalize;
+    }
+    .chip:active { cursor: grabbing; }
+    .chip.dragging {
+      position: fixed !important;
+      z-index: 50 !important;
+      pointer-events: none !important;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
+      transform: translate(0, 0) !important;
+    }
+    .chip.placed { 
+      visibility: hidden; 
+      pointer-events: none;
+      
+    }
+
+    /* ===== POPUPS ===== */
+    .kid-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 20px;
+    }
+
+    .kid-card {
+      background: #ffffff;
+      width: 380px;
+      max-width: 95%;
+      padding: 32px 28px;
+      border-radius: 44px;
+      text-align: center;
+      animation: kidPop 0.6s ease;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kid-card::before,
+    .kid-card::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .kid-card::before {
+      width: 200px;
+      height: 200px;
+      top: -80px;
+      right: -60px;
+      background: #ffd93d;
+    }
+
+    .kid-card::after {
+      width: 150px;
+      height: 150px;
+      bottom: -60px;
+      left: -50px;
+      background: #6bcbff;
+    }
+
+    .kid-card>* {
+      position: relative;
+      z-index: 2;
+    }
+
+    .kid-icon {
+      font-size: 4.8em;
+      margin-bottom: 6px;
+      animation: emojiBounce 0.9s infinite alternate;
+      display: inline-block;
+    }
+
+    .kid-card h3 {
+      font-size: 2.2em;
+      margin-bottom: 4px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+     
+    }
+
+    .kid-card p {
+      font-size: 1.1em;
+      color: #555;
+      margin-top: 2px;
+      font-weight: 500;
+    
+    }
+
+    .kid-correct .kid-card {
+      background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+      border: 5px solid #38d9a9;
+    }
+
+    .kid-correct .kid-card h3 {
+      color: #0b8a4a;
+    }
+
+    .kid-correct .kid-card p {
+      color: #1a6a3a;
+    }
+
+    .kid-correct .kid-card::before {
+      background: #38d9a9;
+    }
+
+    .kid-correct .kid-card::after {
+      background: #38d9a9;
+    }
+
+    .kid-wrong .kid-card {
+      background: linear-gradient(145deg, #fff5f5, #fce4e4);
+      border: 5px solid #ff8a8a;
+    }
+
+    .kid-wrong .kid-card h3 {
+      color: #c0392b;
+    }
+
+    .kid-wrong .kid-card p {
+      color: #922b21;
+    }
+
+    .kid-wrong .kid-card::before {
+      background: #ff8a8a;
+    }
+
+    .kid-wrong .kid-card::after {
+      background: #ff8a8a;
+    }
+
+    @keyframes kidPop {
+      0% {
+        transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes emojiBounce {
+      from { transform: translateY(0) scale(1); }
+      to { transform: translateY(-12px) scale(1.05); }
+    }
+
+    /* ===== FINAL POPUP ===== */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+      padding: 20px;
+    }
+
+    .final-kid-box {
+      background: linear-gradient(145deg, #fff7d6, #e6fff5);
+      padding: 35px 40px;
+      border-radius: 44px;
+      text-align: center;
+      width: 480px;
+      max-width: 95%;
+      animation: finalBounce 0.8s ease;
+      border: 4px solid rgba(255, 255, 255, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .final-kid-box::before {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      top: -120px;
+      right: -100px;
+      background: #ffd93d;
+      border-radius: 50%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .final-kid-box>* {
+      position: relative;
+      z-index: 2;
+    }
+
+    .final-kid-box h2 {
+      font-size: 2.4em;
+      color: #2f9e44;
+      margin-bottom: 8px;
+      font-weight: 700 !important;
+      
+    }
+
+    .final-kid-box p {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #2d3a3a;
+     
+    }
+
+    #stars {
+      font-size: 2.6em;
+      margin: 14px 0;
+      letter-spacing: 6px;
+    }
+
+    .playAgain-btn {
+      background: #ffac30;
+      color: white;
+      border: none;
+      padding: 16px 38px;
+      border-radius: 40px;
+      font-size: 1.15em;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.2s;
+      box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+      letter-spacing: 0.5px;
+      
+    }
+
+    .playAgain-btn:hover {
+      transform: translateY(-3px);
+    }
+
+    .playAgain-btn:active {
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 #d4871f;
+    }
+
+    @keyframes finalBounce {
+      0% {
+        transform: scale(0.3) perspective(400px) rotateX(15deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.08) perspective(400px) rotateX(-5deg);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1) perspective(400px) rotateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* status message */
+    .status {
+      text-align: center;
+     
+      font-weight: 700;
+      font-size: 20px;
+      color: #3FA34D;
+      min-height: 30px;
+      margin-top: -8px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 700px) {
+      .row, .drop-row, .bank { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+      .word-card { min-height: 100px; padding: 10px 4px; }
+      .dropzone { height: 76px; }
+      .pentagon {
+        width: 90%;
+        height: 72px;
+      }
+      .dz-pentagon {
+        width: 90%;
+        height: 72px;
+      }
+      .chip { padding: 12px 4px; }
+      .dropzone .placeholder-text { font-size: 11px; }
+      .shape-icon { font-size: 24px; }
+      .kid-card { width: 320px; padding: 24px 22px; border-radius: 36px; }
+      .kid-icon { font-size: 3.6em; }
+      .kid-card h3 { font-size: 1.6em; }
+      .final-kid-box { width: 90%; padding: 24px 20px; border-radius: 36px; }
+      .final-kid-box h2 { font-size: 1.8em; }
+      .final-kid-box p { font-size: 1.1em; }
+      #stars { font-size: 2em; }
+    }
+
+    @media (max-width: 480px) {
+      .kid-card { width: 280px; padding: 18px 16px; border-radius: 32px; }
+      .kid-icon { font-size: 3em; }
+      .kid-card h3 { font-size: 1.4em; }
+      .kid-card p { font-size: 0.9em; }
+      .final-kid-box { width: 92%; padding: 20px 16px; border-radius: 32px; }
+      .final-kid-box h2 { font-size: 1.5em; }
+      .final-kid-box p { font-size: 1em; }
+      #stars { font-size: 1.8em; }
+      .playAgain-btn { padding: 10px 22px; font-size: 0.9em; }
+    }
+
+    @media (min-width: 1025px) and (max-width: 1440px) {
+      .board { max-width: 1000px; }
+      
+    }
+
+    @media (min-width: 1441px) and (max-width: 1920px) {
+      .board { max-width: 1300px;   padding: 28px 28px 36px; }
+      .status {
+      margin-top: 18px;
+    }
+    .subtitle{
+    font-size:25px;
+    }
+    .shape-img {
+    width: 90px;
+    height: 90px;
+    }
+    .pentagon .shape-img {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 3px;
+}
+
+
+      .kid-card { width: 460px; padding: 34px 32px; }
+      .kid-icon { font-size: 5em; }
+      .kid-card h3 { font-size: 2em; }
+      .final-kid-box { width: 500px; padding: 38px; }
+      .final-kid-box h2 { font-size: 2.6em; }
+      .final-kid-box p { font-size: 1.4em; }
+      #stars { font-size: 2.8em; }
+      .playAgain-btn { padding: 16px 40px; font-size: 1.2em; }
+    }
+@media (min-width: 1441px) and (max-width: 1920px) {
+
+    .shape-label {
+        width: 84%;
+        min-height: 140px;
+        padding: 10px 8px;
+        font-size: 30px;
+    }
+
+    .shape-icon {
+        font-size: 34px;
+    }
+
+    .pentagon {
+        width: 94%;
+        max-width: 180px;
+        height: 145px;
+    }
+
+    .pentagon .shape-icon {
+        font-size: 31px;
+    }
+
+    .pentagon span {
+        font-size: 30px;
+    }
+
+    .dropzone {
+        height: 135px;
+        font-size: 30px;
+    }
+
+    .dropzone .placeholder-text {
+        font-size: 15px;
+    }
+
+    .dz-pentagon {
+        width: 84%;
+        max-width: 180px;
+        height: 135px;
+    }
+
+    .pentagon-outline polygon {
+        stroke-width: 3;
+        stroke-dasharray: 8 6;
+    }
+}
+
+
+    @media (min-width: 1921px) {
+      .board { max-width: 1200px; }
+      .kid-card { width: 440px; padding: 34px 32px; border-radius: 48px; }
+      .kid-icon { font-size: 5em; }
+      .kid-card h3 { font-size: 2em; }
+      .final-kid-box { width: 500px; padding: 38px; border-radius: 48px; }
+      .final-kid-box h2 { font-size: 2.6em; }
+      .final-kid-box p { font-size: 1.4em; }
+      #stars { font-size: 2.8em; }
+      .playAgain-btn { padding: 16px 40px; font-size: 1.2em; }
+    }
+  </style>
+</head>
+<body>
+<div class="board">
+  <div class="banner">Synonyms</div>
+  <div class="subtitle">Look at the shape around the word. Drag the word into the matching shape, or click the shape and then the correct word.</div>
+
+  <!-- TOP ROW: words with shape -->
+<div class="row">
+
+  <!-- START -->
+  <div class="word-card">
+    <div class="shape-label sq">
+      <img src="../assets/images/start1.png"
+           class="shape-img"
+           alt="Start">
+      <span>start</span>
+    </div>
+  </div>
+
+  <!-- BIG -->
+  <div class="word-card">
+    <div class="shape-label ov">
+      <img src="../assets/images/large.png"
+           class="shape-img"
+           alt="Big">
+      <span>big</span>
+    </div>
+  </div>
+
+  <!-- SOON -->
+  <div class="word-card">
+    <div class="shape-label cl">
+      <img src="../assets/images/soon.png"
+           class="shape-img"
+           alt="Soon">
+      <span>soon</span>
+    </div>
+  </div>
+
+  <!-- OVER -->
+  <div class="word-card">
+    <div class="shape-label cy">
+      <img src="../assets/images/over.png"
+           class="shape-img"
+           alt="Over">
+      <span>over</span>
+    </div>
+  </div>
+
+  <!-- TWO -->
+  <div class="word-card">
+    <div class="pentagon">
+      <img src="../assets/images/two.png"
+           class="shape-img"
+           alt="Two">
+      <span>two</span>
+    </div>
+  </div>
+
+</div>
+
+  <!-- DROP ZONES -->
+  <div class="drop-row" id="dropRow">
+    <div class="dropzone dz-sq" data-shape="sq" data-answer="begin">
+      <span class="placeholder-text">⬇ drop here</span>
+    </div>
+    <div class="dropzone dz-ov" data-shape="ov" data-answer="large">
+      <span class="placeholder-text">⬇ drop here</span>
+    </div>
+    <div class="dropzone dz-cl" data-shape="cl" data-answer="early">
+      <span class="placeholder-text">⬇ drop here</span>
+    </div>
+    <div class="dropzone dz-cy" data-shape="cy" data-answer="across">
+      <span class="placeholder-text">⬇ drop here</span>
+    </div>
+    <div class="dropzone dz-pentagon" data-shape="pentagon" data-answer="both">
+      <svg class="pentagon-outline" viewBox="0 0 145 96" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points="72.5,3 141,37 117,92 28,92 4,37" />
+      </svg>
+      <span class="placeholder-text">⬇ drop here</span>
+    </div>
+  </div>
+
+  <!-- BANK (synonym chips) -->
+  <div class="bank" id="bank">
+    <div class="chip" data-word="begin">begin</div>
+    <div class="chip" data-word="both">both</div>
+    <div class="chip" data-word="early">early</div>
+    <div class="chip" data-word="large">large</div>
+    <div class="chip" data-word="across">across</div>
+  </div>
+
+  <!-- status message -->
+  <div class="status" id="status"></div>
+</div>
+
+<!-- ===== POPUPS ===== -->
+<div id="answerPopup" class="kid-popup">
+  <div class="kid-card">
+    <div class="kid-icon" id="popupIcon"></div>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMsg"></p>
+  </div>
+</div>
+
+<div id="finalPopup">
+  <div class="final-kid-box">
+    <h2>🎉 Congratulations!</h2>
+    <p id="finalScore"></p>
+    <div id="stars"></div>
+    <button class="playAgain-btn" id="playAgainBtn">Play Again</button>
+  </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+  (function() {
+    const bank = document.getElementById('bank');
+    const statusEl = document.getElementById('status');
+    const popupOverlay = document.getElementById('answerPopup');
+    const popupIcon = document.getElementById('popupIcon');
+    const popupTitle = document.getElementById('popupTitle');
+    const popupMsg = document.getElementById('popupMsg');
+    const finalPopup = document.getElementById('finalPopup');
+    const finalScore = document.getElementById('finalScore');
+    const starsEl = document.getElementById('stars');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const correctSound = document.getElementById('correctSound');
+    const wrongSound = document.getElementById('wrongSound');
+
+    let solved = 0;
+    const total = document.querySelectorAll('.chip').length;
+    let popupTimer = null;
+
+    // Store original chip order and data
+    let originalChipsHTML = '';
+
+    // ---- Store original chips ----
+    function storeOriginalChips() {
+      const chips = Array.from(bank.children);
+      originalChipsHTML = chips.map(chip => chip.outerHTML).join('');
+    }
+
+    // ---- shuffle chips ----
+    function shuffleChips() {
+      const chips = Array.from(bank.children);
+      for (let i = chips.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        bank.appendChild(chips[j]);
+      }
+    }
+
+    // ---- popup functions ----
+    function showPopup(isCorrect) {
+      if (popupTimer) clearTimeout(popupTimer);
+
+      const popup = popupOverlay;
+      popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+      popup.style.display = "flex";
+
+      if (isCorrect) {
+        popupIcon.textContent = "🌟";
+        popupTitle.textContent = "Amazing!";
+        popupMsg.textContent = "You matched it right! ✨";
+        try { correctSound.play().catch(() => {}); } catch(_) {}
+        smallConfetti();
+      } else {
+        popupIcon.textContent = "😒";
+        popupTitle.textContent = "Keep Going!";
+        popupMsg.textContent = "Try again, you can do it! 🌈";
+        try { wrongSound.play().catch(() => {}); } catch(_) {}
+      }
+
+      popupTimer = setTimeout(() => {
+        popup.style.display = "none";
+      }, 1800);
+    }
+
+     function speak(text) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 35, spread: 70, origin: { y: 0.7 } });
+            }
+        }
+
+        function bigConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 80, spread: 100, origin: { y: 0.6 } });
+            }
+        }
+
+    function showFinal() {
+      finalPopup.style.display = "flex";
+      finalScore.textContent = `Your Score : ${solved} / ${total}`;
+      starsEl.textContent = "⭐".repeat(solved);
+      bigConfetti();
+    }
+
+    // ---- RESET GAME ----
+    function resetGame() {
+      // Clear all drop zones
+      document.querySelectorAll('.dropzone').forEach(z => {
+        z.classList.remove('filled', 'correct', 'wrong');
+        // Remove all children except placeholder
+        const children = z.children;
+        for (let i = children.length - 1; i >= 0; i--) {
+          if (!children[i].classList.contains('placeholder-text') && !children[i].classList.contains('pentagon-outline')) {
+            children[i].remove();
+          }
+        }
+        // Ensure placeholder exists
+        if (!z.querySelector('.placeholder-text')) {
+          const ph = document.createElement('span');
+          ph.className = 'placeholder-text';
+          ph.textContent = '⬇ drop here';
+          z.appendChild(ph);
+        }
+        // Ensure SVG exists for pentagon
+        if (z.classList.contains('dz-pentagon') && !z.querySelector('.pentagon-outline')) {
+          const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('class', 'pentagon-outline');
+          svg.setAttribute('viewBox', '0 0 145 96');
+          svg.setAttribute('preserveAspectRatio', 'none');
+          svg.setAttribute('aria-hidden', 'true');
+          const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+          polygon.setAttribute('points', '72.5,3 141,37 117,92 28,92 4,37');
+          svg.appendChild(polygon);
+          z.prepend(svg);
+        }
+      });
+
+      // Restore bank to original state
+      bank.innerHTML = originalChipsHTML;
+      
+      // Reset state
+      solved = 0;
+      statusEl.textContent = '';
+      finalPopup.style.display = 'none';
+      popupOverlay.style.display = 'none';
+      if (popupTimer) clearTimeout(popupTimer);
+    }
+
+    playAgainBtn.addEventListener('click', resetGame);
+    statusEl.addEventListener('dblclick', resetGame);
+    document.querySelector('.banner').addEventListener('dblclick', resetGame);
+
+    // ---- drag state ----
+    let dragEl = null;
+    let startX = 0, startY = 0, origParent = null, placeholder = null;
+    let selectedZone = null;
+    
+function onPointerDown(e) {
+
+    const chip = e.target.closest('.chip');
+
+    if (!chip || chip.classList.contains('placed')) return;
+
+    // If a box is already selected, don't drag.
+    // Just check the answer.
+    if(selectedZone){
+
+        checkSelectedAnswer(chip);
+
+        return;
+    }
+
+    e.preventDefault();
+      
+      const rect = chip.getBoundingClientRect();
+      dragEl = chip;
+      origParent = chip.parentElement;
+
+      placeholder = document.createElement('div');
+      placeholder.style.width = rect.width + 'px';
+      placeholder.style.height = rect.height + 'px';
+      placeholder.style.visibility = 'hidden';
+      origParent.insertBefore(placeholder, chip);
+
+      // Set fixed position for dragging
+      chip.style.position = 'fixed';
+      chip.style.left = rect.left + 'px';
+      chip.style.top = rect.top + 'px';
+      chip.style.width = rect.width + 'px';
+      chip.style.zIndex = '50';
+      chip.style.pointerEvents = 'none';
+      chip.classList.add('dragging');
+
+      startX = e.clientX - rect.left;
+      startY = e.clientY - rect.top;
+
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+    }
+
+    function onPointerMove(e) {
+      if (!dragEl) return;
+      dragEl.style.left = (e.clientX - startX) + 'px';
+      dragEl.style.top = (e.clientY - startY) + 'px';
+    }
+
+    function onPointerUp(e) {
+      if (!dragEl) return;
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerup', onPointerUp);
+
+      // Reset chip styles
+      dragEl.classList.remove('dragging');
+      dragEl.style.position = '';
+      dragEl.style.left = '';
+      dragEl.style.top = '';
+      dragEl.style.width = '';
+      dragEl.style.zIndex = '';
+      dragEl.style.pointerEvents = '';
+
+      const dropEl = document.elementFromPoint(e.clientX, e.clientY);
+      const zone = dropEl ? dropEl.closest('.dropzone') : null;
+
+      if (zone && !zone.classList.contains('filled')) {
+        const word = dragEl.dataset.word;
+        const answer = zone.dataset.answer;
+        if (word === answer) {
+          // Remove placeholder text but keep SVG for pentagon
+          const placeholderText = zone.querySelector('.placeholder-text');
+          if (placeholderText) placeholderText.remove();
+
+          zone.classList.add('filled', 'correct');
+          const label = document.createElement('span');
+          label.className = 'placed';
+          label.textContent = word;
+          
+          // For pentagon, keep the SVG and add the label
+          if (zone.classList.contains('dz-pentagon')) {
+            // Keep the SVG, just add the label
+            zone.appendChild(label);
+          } else {
+            // For other shapes, replace content
+            zone.innerHTML = '';
+            zone.appendChild(label);
+          }
+          
+          dragEl.classList.add('placed');
+          placeholder.remove();
+          solved++;
+          showPopup(true);
+          speak("Correct");
+          if (solved === total) {
+            // statusEl.textContent = '🎉 All matched!';
+            setTimeout(showFinal, 800);
+          }
+        } else {
+          zone.classList.add('wrong');
+          showPopup(false);
+          speak("Try again");
+          setTimeout(() => zone.classList.remove('wrong'), 400);
+          origParent.insertBefore(dragEl, placeholder);
+          placeholder.remove();
+        }
+      } else {
+        origParent.insertBefore(dragEl, placeholder);
+        placeholder.remove();
+      }
+
+      dragEl = null;
+      placeholder = null;
+    }
+
+    document.querySelectorAll(".dropzone").forEach(zone => {
+
+    zone.addEventListener("click", function(){
+
+        if(this.classList.contains("filled")) return;
+
+        document.querySelectorAll(".dropzone").forEach(z=>{
+            z.classList.remove("selected-zone");
+        });
+
+        selectedZone=this;
+
+        this.classList.add("selected-zone");
+
+    });
+
+});
+function checkSelectedAnswer(chip){
+
+    const word = chip.dataset.word;
+    const answer = selectedZone.dataset.answer;
+
+    if(word === answer){
+
+        selectedZone.classList.add("filled","correct");
+
+        // Remove only placeholder
+        const placeholder = selectedZone.querySelector(".placeholder-text");
+        if(placeholder){
+            placeholder.remove();
+        }
+
+        // Create label
+        const label = document.createElement("span");
+        label.className = "placed";
+        label.textContent = word;
+
+        // KEEP SVG FOR PENTAGON
+        if(selectedZone.classList.contains("dz-pentagon")){
+
+            selectedZone.appendChild(label);
+
+        }else{
+
+            // Remove only placeholder/old label
+            selectedZone.querySelector(".placed")?.remove();
+
+            selectedZone.innerHTML = "";
+            selectedZone.appendChild(label);
+
+        }
+
+        chip.classList.add("placed");
+
+        selectedZone.classList.remove("selected-zone");
+        selectedZone = null;
+
+        solved++;
+
+        showPopup(true);
+        speak("Correct");
+
+        if(solved === total){
+            setTimeout(showFinal,800);
+        }
+
+    }else{
+
+        selectedZone.classList.add("wrong");
+
+        showPopup(false);
+        speak("Try again");
+
+        setTimeout(()=>{
+            if(selectedZone){
+                selectedZone.classList.remove("wrong");
+            }
+        },400);
+    }
+}
+    bank.addEventListener('pointerdown', onPointerDown);
+
+    // close popup on click
+    popupOverlay.addEventListener('click', () => {
+      popupOverlay.style.display = 'none';
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        popupOverlay.style.display = 'none';
+        finalPopup.style.display = 'none';
+      }
+    });
+
+    // ---- INIT ----
+    storeOriginalChips();
+    shuffleChips();
+
+ 
+  })();
+</script>
+</body>
+</html>

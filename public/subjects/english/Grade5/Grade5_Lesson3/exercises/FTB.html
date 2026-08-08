@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Fill The Blanks Quiz</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman";
+            font-weight: 400;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* MAIN CONTAINER */
+
+        .main-container {
+            width: 750px;
+        }
+
+        /* QUIZ CARD */
+
+        .quiz-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* QUESTION */
+
+        .question-area {
+            width: 85%;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .question-area h2 {
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            text-align: start;
+        }
+
+        /* IMAGE AREA (Clean White Box Shadow Style) */
+
+        .image-area {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 10px 0 20px;
+        }
+
+        .image-area img {
+            width: 350px;
+            height: 220px;
+            padding-bottom: 5px;
+            object-fit: contain;
+            /* border-radius: 18px;
+            border: none;
+            background: #ffffff;
+            box-shadow: rgb(255 255 255 / 0%) 0px 50px 100px -20px, rgb(178 175 175 / 30%) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset; */
+        }
+
+        /* INPUT AREA */
+
+        .input-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* CLEAN MINIMALIST INPUT STYLE */
+        #answerInput {
+            width: 100%;
+            max-width: 500px;
+            height: 60px;
+            padding: 0 24px;
+            font-size: 22px;
+            font-weight: 400;
+            color: #1a2a3a;
+            background: #ffffff;
+            border: 2px solid #3271d68f;
+            border-radius: 16px;
+            box-shadow: 0 0 0 4px rgba(59, 131, 246, 0.055);
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        #answerInput::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        #answerInput:focus {
+            outline: none;
+            background: #ffffff;
+            border-color: #ffc18e;
+            box-shadow: 0 0 0 4px rgba(246, 165, 59, 0.1);
+        }
+
+        #answerInput:disabled {
+            opacity: 1;
+            cursor: not-allowed;
+            border-color: #07972b;
+            background: #ffffff;
+            color: #2f4f36;
+            box-shadow: 0 0 0 4px #07972b1a;
+        }
+
+        /* Correct state */
+        .input-correct {
+            border-color: #10b981;
+            background: #ffffff;
+            color: #07972b;
+            box-shadow: 0 0 0 4px #60f63b1a;
+        }
+
+        /* Wrong state */
+        .input-wrong {
+            border-color: #f87171 !important;
+            background: #fef2f2 !important;
+            box-shadow: none !important;
+            animation: wrongShake 0.4s ease;
+        }
+
+        @keyframes wrongShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-8px);
+            }
+
+            75% {
+                transform: translateX(8px);
+            }
+        }
+
+        /* CLEAN TICK SUBMIT BUTTON */
+        #submitBtn {
+            background: #21ce94;
+            border: none;
+            width: 140px;
+            height: 55px;
+            border-radius: 20px;
+            color: white;
+            font-size: 22px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        #submitBtn:hover:not(:disabled) {
+            background: #15b884;
+            transform: scale(1.05);
+        }
+
+        #submitBtn:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+            background: #98e97f;
+        }
+
+        #submitBtn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        /* NAV BUTTONS - Updated to match MCQ style */
+        .nav-buttons {
+            width: 80%;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nav-buttons button {
+            width: 140px;
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            border-radius: 18px;
+            border: none;
+            font-size: 20px;
+            font-weight: 500;
+            color: #fff;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+        #prevBtn {
+            background: linear-gradient(135deg, #67b8ff, #74b2ff);
+        }
+
+        #nextBtn {
+            background: linear-gradient(135deg, #ffd86f, #ffb300);
+        }
+
+        .nav-buttons button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            filter: brightness(1.05);
+        }
+
+        .nav-buttons button:active:not(:disabled) {
+            transform: scale(.96);
+        }
+
+        .nav-buttons button:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        /* POPUP CONTAINER */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #ffffff;
+            width: 300px;
+            border-radius: 28px;
+            padding: 0;
+            text-align: center;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 4px 10px rgba(0, 0, 0, 0.03), 0 14px 28px rgba(26, 26, 46, 0.08), 0 30px 60px rgba(26, 26, 46, 0.12), 0 60px 100px rgba(26, 26, 46, 0.14);
+            animation: popupSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes popupSlide {
+            0% {
+                transform: scale(0.5) translateY(60px) rotate(-5deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.05) translateY(-8px) rotate(2deg);
+            }
+
+            100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .popup-top {
+            padding: 35px 24px 20px;
+            position: relative;
+        }
+
+        .popup.correct .popup-top {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        }
+
+        .popup.wrong .popup-top {
+            background: linear-gradient(135deg, #fbe9e7, #ffccbc);
+        }
+
+        .popup.final .popup-top {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .popup-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .popup.correct .popup-icon-wrap {
+            background: #4caf50;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowGreen 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.wrong .popup-icon-wrap {
+            background: #ef5350;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowRed 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.final .popup-icon-wrap {
+            background: #ffffff;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowWarm 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowGreen {
+            0% {
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+            }
+        }
+
+        @keyframes glowRed {
+            0% {
+                box-shadow: 0 0 20px rgba(239, 83, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(239, 83, 80, 0.6);
+            }
+        }
+
+        @keyframes glowWarm {
+            0% {
+                box-shadow: 0 0 5px rgba(172, 172, 172, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(163, 163, 163, 0.432);
+            }
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0) rotate(-30deg);
+            }
+
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .popup-icon-wrap span {
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-bottom {
+            padding: 18px 24px 22px;
+            background: #fff;
+        }
+
+        .popup.correct .popup-bottom {
+            border-top: 2px solid #c8e6c9;
+        }
+
+        .popup.wrong .popup-bottom {
+            border-top: 2px solid #ffccbc;
+        }
+
+        .popup.final .popup-bottom {
+            border-top: 2px solid #ffe0b2;
+        }
+
+        .popup-msg {
+            font-size: 20px;
+            font-weight: 500;
+            color: #5a5270;
+            line-height: 1.4;
+        }
+
+        .popup-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2a4a;
+            margin-bottom: 8px;
+        }
+
+        .popup-stars {
+            font-size: 34px;
+            letter-spacing: 6px;
+            animation: starDance 0.8s ease;
+            margin-bottom: 12px;
+        }
+
+        @keyframes starDance {
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .play-again-popup {
+            background: linear-gradient(135deg, #ff922b, #f76707);
+            color: #fff;
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+        }
+
+        .play-again-popup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(247, 103, 7, 0.45);
+        }
+
+        .play-again-popup:active {
+            transform: translateY(0);
+        }
+
+        /* RESPONSIVE DESIGN */
+
+        @media (max-width: 900px) {
+            body {
+                padding: 20px;
+                overflow: auto;
+                height: 100vh;
+                align-items: center;
+            }
+
+            .main-container {
+                width: 100%;
+                max-width: 700px;
+            }
+
+            .question-area {
+                width: 100%;
+            }
+
+            .question-area h2 {
+                font-size: 30px;
+            }
+
+            .image-area img {
+                width: 280px;
+                height: 200px;
+            }
+
+            #answerInput {
+                max-width: 420px;
+                height: 55px;
+                font-size: 20px;
+                padding: 0 20px;
+            }
+
+            .nav-buttons {
+                padding: 0 20px;
+            }
+
+            .nav-buttons button {
+                width: 140px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .popup {
+                width: 320px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 30px 0px 10px;
+                align-items: flex-start;
+            }
+
+            .question-area {
+                width: 100%;
+            }
+
+            .image-area img {
+                width: 230px;
+                height: 170px;
+            }
+
+            .question-area h2 {
+                font-size: 30px;
+            }
+
+            #answerInput {
+                width: 90%;
+                max-width: 320px;
+                height: 50px;
+                font-size: 18px;
+                padding: 0 18px;
+            }
+
+            #submitBtn {
+                width: 120px;
+                height: 46px;
+                font-size: 18px;
+            }
+
+            .nav-buttons {
+                margin-top: 20px;
+            }
+
+            .nav-buttons button {
+                width: 130px;
+                height: 48px;
+                font-size: 18px;
+            }
+
+            .popup {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 50px 0px 10px;
+                align-items: flex-start;
+            }
+
+            .question-area h2 {
+                font-size: 22px;
+                padding: 0px 15px;
+            }
+
+            .image-area img {
+                width: 200px;
+                height: 150px;
+            }
+
+            #answerInput {
+                width: 80%;
+                height: 50px;
+                font-size: 20px;
+                padding: 0 16px;
+            }
+
+            #answerInput:disabled {
+                font-size: 20px;
+                font-weight: 400;
+            }
+
+            .nav-buttons {
+                width: 100%;
+                margin-inline: 10px;
+                gap: 30px;
+            }
+
+            #submitBtn {
+                width: 120px;
+                height: 45px;
+                font-size: 16px;
+            }
+
+            .nav-buttons button {
+                width: 120px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .popup {
+                width: 260px;
+            }
+
+            .popup-icon-wrap {
+                width: 75px;
+                height: 75px;
+                font-size: 40px;
+            }
+
+            .popup-title {
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width: 1025px) and (max-width: 1440px) {
+            .main-container {
+                width: 1100px;
+            }
+
+            .question-area h2 {
+                font-size: 30px;
+            }
+
+            .image-area img {
+                width: 380px;
+                height: 240px;
+            }
+
+            #answerInput {
+                max-width: 550px;
+                height: 65px;
+                font-size: 24px;
+                padding: 0 26px;
+            }
+
+            #submitBtn {
+                width: 140px;
+                height: 55px;
+                font-size: 22px;
+            }
+
+            .nav-buttons button {
+                width: 150px;
+                height: 55px;
+                font-size: 20px;
+            }
+        }
+
+        @media screen and (min-width: 1441px) and (max-width: 1920px) {
+            .main-container {
+                width: 1200px;
+            }
+
+            .question-area h2 {
+                font-size: 40px;
+            }
+
+            .image-area img {
+                width: 420px;
+                height: 260px;
+            }
+
+            #answerInput {
+                max-width: 600px;
+                height: 70px;
+                font-size: 26px;
+                padding: 0 28px;
+            }
+
+            #submitBtn {
+                width: 150px;
+                height: 55px;
+                font-size: 24px;
+            }
+
+            .nav-buttons button {
+                width: 160px;
+                height: 58px;
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width: 1921px) {
+            .main-container {
+                width: 1300px;
+            }
+
+            .question-area h2 {
+                font-size: 40px;
+            }
+
+            .image-area img {
+                width: 460px;
+                height: 280px;
+            }
+
+            #answerInput {
+                max-width: 650px;
+                height: 75px;
+                font-size: 28px;
+                padding: 0 30px;
+            }
+
+            #submitBtn {
+                width: 160px;
+                height: 60px;
+                font-size: 26px;
+            }
+
+            .nav-buttons button {
+                width: 170px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .popup {
+                width: 90%;
+                max-width: 320px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-container">
+        <div class="quiz-container">
+
+            <div class="question-area">
+                <h2 id="questionText"></h2>
+            </div>
+
+            <div class="image-area">
+                <img id="questionImage">
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="answerInput" placeholder="Enter your answer...">
+                <button id="submitBtn">Check</button>
+            </div>
+
+            <div class="nav-buttons">
+                <button id="prevBtn"><i class="fa-solid fa-angles-left"></i> Prev</button>
+                <button id="nextBtn">Next <i class="fa-solid fa-angles-right"></i></button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup" id="popupBox"></div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <script>
+        const questions = [
+            {
+                question: "Q1. The white dome-like structure was ______.",
+                answer: "an egg of roc",
+                image: "../assets/images/ftb1.png",
+            },
+            {
+                question: "Q2. The bird's leg was as big as ______.",
+                answer: "the trunk of a huge tree",
+                image: "../assets/images/ftb2.png",
+            },
+            {
+                question: "Q3. The bird took a ______ in its bill and flew away.",
+                answer: "giant serpent",
+                image: "../assets/images/ftb3.png",
+            },
+            {
+                question: "Q4. The new island where the bird dropped Sindbad was surrounded by ______ on all sides.",
+                answer: "high mountains",
+                image: "../assets/images/ftb4.png",
+            },
+            {
+                question: "Q5. Sindbad was happy to escape from the deadly valley of ______.",
+                answer: "serpents",
+                image: "../assets/images/ftb5.png",
+            },
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        const answers = new Array(questions.length).fill(null);
+
+        const questionText = document.getElementById("questionText");
+        const image = document.getElementById("questionImage");
+        const input = document.getElementById("answerInput");
+
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const submitBtn = document.getElementById("submitBtn");
+
+        const overlay = document.getElementById('popupOverlay');
+        const popupBox = document.getElementById('popupBox');
+
+        function loadQuestion() {
+            const q = questions[currentQuestion];
+            questionText.innerText = q.question;
+            image.src = q.image;
+
+            input.value = answers[currentQuestion] || "";
+            input.disabled = answers[currentQuestion] !== null;
+            submitBtn.disabled = answers[currentQuestion] !== null || !input.value.trim();
+
+            input.classList.remove("input-wrong", "input-correct");
+
+            if (answers[currentQuestion] !== null) {
+                input.classList.add("input-correct");
+            }
+
+            prevBtn.disabled = currentQuestion === 0;
+            nextBtn.disabled = answers[currentQuestion] === null;
+        }
+
+        input.addEventListener("input", () => {
+            if (answers[currentQuestion] === null) {
+
+                const pos = input.selectionStart;
+
+                input.value = input.value.toLowerCase();
+
+                if (input.value.length > 0) {
+                    input.value =
+                        input.value.charAt(0).toUpperCase() +
+                        input.value.slice(1);
+                }
+
+                input.setSelectionRange(pos, pos);
+
+                submitBtn.disabled = !input.value.trim();
+            }
+        });
+
+        input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" && !submitBtn.disabled) {
+                e.preventDefault();
+                submitBtn.click();
+            }
+        });
+
+        input.addEventListener("dragover", (e) => { e.preventDefault(); });
+        input.addEventListener("drop", (e) => { e.preventDefault(); });
+
+        function speakText(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function showCorrectPopup() {
+            speakText('Correct');
+            smallConfetti();
+            popupBox.className = 'popup correct';
+            popupBox.innerHTML = `
+                <div class="popup-top"><div class="popup-icon-wrap"><span>👍</span></div><div class="popup-title">Awesome</div></div>
+                <div class="popup-bottom"><div class="popup-msg">You got it right! 🎉</div></div>
+            `;
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1500);
+        }
+
+        function showWrongPopup() {
+            speakText('Try again');
+            popupBox.className = 'popup wrong';
+            popupBox.innerHTML = `
+                <div class="popup-top"><div class="popup-icon-wrap"><span>😔</span></div><div class="popup-title">Keep Trying</div></div>
+                <div class="popup-bottom"><div class="popup-msg">Don't give up! 💪</div></div>
+            `;
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1400);
+        }
+
+        function showFinalPopup() {
+            let end = Date.now() + (1.5 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+            popupBox.className = 'popup final';
+            popupBox.innerHTML = `
+                <div class="popup-top"><div class="popup-icon-wrap"><span>🏆</span></div><div class="popup-title">You Won!</div></div>
+                <div class="popup-bottom">
+                    <div class="popup-score">Score: ${score}/${questions.length}</div>
+                    <div class="popup-stars">${"⭐".repeat(score)}</div>
+                    <button class="play-again-popup" id="playAgainBtn">Play Again</button>
+                </div>
+            `;
+            overlay.classList.add('show');
+            document.getElementById('playAgainBtn').addEventListener('click', () => location.reload());
+        }
+
+        submitBtn.onclick = function () {
+            const userAnswer = input.value.trim().toLowerCase();
+            const correctAnswer = questions[currentQuestion].answer.toLowerCase();
+
+            if (userAnswer === correctAnswer) {
+                const formattedAnswer =
+                    input.value.trim().charAt(0).toUpperCase() +
+                    input.value.trim().slice(1).toLowerCase();
+
+                answers[currentQuestion] = formattedAnswer;
+                score++;
+
+                input.classList.remove("input-wrong");
+                input.classList.add("input-correct");
+
+                showCorrectPopup();
+                loadQuestion();
+
+                if (answers.every((a) => a !== null)) {
+                    setTimeout(showFinalPopup, 1600);
+                }
+            } else {
+                input.classList.remove("input-correct");
+                input.classList.add("input-wrong");
+
+                showWrongPopup();
+
+                setTimeout(() => {
+                    input.classList.remove("input-wrong");
+                }, 600);
+
+                input.value = "";
+                submitBtn.disabled = true;
+            }
+        };
+
+        nextBtn.onclick = function () {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            }
+        };
+
+        prevBtn.onclick = function () {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        };
+
+        loadQuestion();
+    </script>
+
+</body>
+
+</html>

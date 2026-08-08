@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔗 Synonym Matching Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ===== RESET & BASE ===== */
+          @font-face {
+    font-family: 'CCSYBold';
+    src: url('./assets/CCSYBOLD.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+@font-face {
+    font-family: 'CCSyntroman';
+    src: url('../assets/CCSYNTRO.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+           font-family: 'CCSyntroman';
+        }
+       
+        body {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+             overflow: hidden;
+          
+        }
+
+        .app {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .template {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+
+            padding: 25px 30px 30px;
+
+        }
+
+        /* ===== HEADER ===== */
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2f4f4f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .title span {
+            font-size: 28px;
+        }
+
+        .instruction {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #5a6a8a;
+            background: #ffffff;
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            text-align: center;
+            border: 2px solid #5a6a8a;
+        }
+
+        /* ===== GAME WRAP ===== */
+        .game-wrap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 200px;
+            position: relative;
+            min-height: 400px;
+        }
+
+        /* ===== SIDE WORDS - EQUAL BOXES ===== */
+        .side-words {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-shrink: 0;
+            z-index: 2;
+            width: 250px;
+        }
+
+        .side-words.right {
+            align-items: center;
+        }
+
+        .word-item {
+            position: relative;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 14px;
+            border: 2.5px solid #d5c8ec;
+            font-size: 22px;
+            font-weight: 500;
+            color: #1e3a3a;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: 100%;
+            height: 100px;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.04);
+            letter-spacing: 0.5px;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .image-item {
+            padding: 6px;
+            background: #fff;
+            border-radius: 12px;
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .word-item.active {
+            background: #ffeaa7 !important;
+            border-color: #ffb300 !important;
+            transform: scale(1.05);
+            box-shadow: 0 4px 16px rgba(255, 179, 0, 0.3);
+        }
+
+        .word-item.matched {
+            background: #d4f5e0;
+            border-color: #42d366;
+            color: #1a6a3a;
+            cursor: default;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .word-item.wrong {
+            animation: shake 0.5s ease;
+            background: #fce4e4 !important;
+            border-color: #ff8a8a !important;
+        }
+
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            20% {
+                transform: translateX(-10px);
+            }
+            40% {
+                transform: translateX(10px);
+            }
+            60% {
+                transform: translateX(-6px);
+            }
+            80% {
+                transform: translateX(6px);
+            }
+        }
+
+        /* ===== SVG LINES ===== */
+        .svg-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .svg-wrapper svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ===== POPUP DESIGNS ===== */
+        .kid-popup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .kid-card {
+            background: #ffffff;
+            width: 380px;
+            max-width: 95%;
+            padding: 32px 28px;
+            border-radius: 44px;
+            text-align: center;
+            animation: kidPop 0.6s ease;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kid-card::before,
+        .kid-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .kid-card::before {
+            width: 200px;
+            height: 200px;
+            top: -80px;
+            right: -60px;
+            background: #ffd93d;
+        }
+
+        .kid-card::after {
+            width: 150px;
+            height: 150px;
+            bottom: -60px;
+            left: -50px;
+            background: #6bcbff;
+        }
+
+        .kid-card>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .kid-icon {
+            font-size: 4.8em;
+            margin-bottom: 6px;
+            animation: emojiBounce 0.9s infinite alternate;
+            display: inline-block;
+        }
+
+        .kid-card h3 {
+            font-size: 2.2em;
+            margin-bottom: 4px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .kid-card p {
+            font-size: 1.1em;
+            color: #555;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .kid-correct .kid-card {
+            background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+            border: 5px solid #38d9a9;
+        }
+
+        .kid-correct .kid-card h3 {
+            color: #0b8a4a;
+        }
+
+        .kid-correct .kid-card p {
+            color: #1a6a3a;
+        }
+
+        .kid-correct .kid-card::before {
+            background: #38d9a9;
+        }
+
+        .kid-correct .kid-card::after {
+            background: #38d9a9;
+        }
+
+        .kid-wrong .kid-card {
+            background: linear-gradient(145deg, #fff5f5, #fce4e4);
+            border: 5px solid #ff8a8a;
+        }
+
+        .kid-wrong .kid-card h3 {
+            color: #c0392b;
+        }
+
+        .kid-wrong .kid-card p {
+            color: #922b21;
+        }
+
+        .kid-wrong .kid-card::before {
+            background: #ff8a8a;
+        }
+
+        .kid-wrong .kid-card::after {
+            background: #ff8a8a;
+        }
+
+        @keyframes kidPop {
+            0% {
+                transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) rotate(0) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes emojiBounce {
+            from {
+                transform: translateY(0) scale(1);
+            }
+            to {
+                transform: translateY(-12px) scale(1.05);
+            }
+        }
+
+        /* ===== FINAL POPUP ===== */
+        #finalPopup {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+
+            padding: 20px;
+        }
+
+        .final-kid-box {
+            background: linear-gradient(145deg, #fff7d6, #e6fff5);
+            padding: 35px 40px;
+            border-radius: 44px;
+            text-align: center;
+            width: 480px;
+            max-width: 95%;
+            animation: finalBounce 0.8s ease;
+            border: 4px solid rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .final-kid-box::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: -120px;
+            right: -100px;
+            background: #ffd93d;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .final-kid-box>* {
+            position: relative;
+            z-index: 2;
+        }
+
+        .final-kid-box h2 {
+            font-size: 2.4em;
+            color: #2f9e44;
+            margin-bottom: 8px;
+            font-weight: 700 !important;
+        }
+
+        .final-kid-box p {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3a3a;
+        }
+
+        #stars {
+            font-size: 2.6em;
+            margin: 14px 0;
+            letter-spacing: 6px;
+        }
+
+        .playAgain-btn {
+            background: #ffac30;
+            color: white;
+            border: none;
+            padding: 16px 38px;
+            border-radius: 40px;
+            font-size: 1.15em;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .playAgain-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .playAgain-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #d4871f;
+        }
+
+        @keyframes finalBounce {
+            0% {
+                transform: scale(0.3) perspective(400px) rotateX(15deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.08) perspective(400px) rotateX(-5deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) perspective(400px) rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============================================================ */
+        /* ===== MEDIA QUERIES - 320px to 1920px ===== */
+        /* ============================================================ */
+
+        /* 320px - 375px */
+        @media (min-width: 220px) and (max-width: 375px) {
+            .template {
+                padding: 10px 8px;
+                border-radius: 24px;
+                gap: 16px;
+            }
+            .title {
+                font-size: 14px;
+            }
+            .title span {
+                font-size: 16px;
+            }
+            .instruction {
+                font-size: 8px;
+                padding: 0.15rem 0.5rem;
+                border-width: 1.5px;
+            }
+            .game-wrap {
+                gap: 12px;
+                flex-direction: row;
+                align-items: center;
+                min-height: 300px;
+            }
+            .side-words {
+                width: 90px;
+                gap: 6px;
+            }
+            .side-words.right {
+                width: 90px;
+            }
+            .word-item {
+                height: 50px;
+                font-size: 10px;
+                padding: 4px 6px;
+                border-radius: 8px;
+                border-width: 1.5px;
+            }
+            .image-item {
+                padding: 3px;
+            }
+            .svg-wrapper {
+                display: none;
+            }
+            .header-area {
+                gap: 4px;
+            }
+        }
+
+        /* 376px - 425px */
+        @media (min-width: 376px) and (max-width: 425px) {
+            .template {
+                padding: 12px 10px;
+                border-radius: 28px;
+                gap: 18px;
+            }
+            .title {
+                font-size: 16px;
+            }
+            .title span {
+                font-size: 18px;
+            }
+            .instruction {
+                font-size: 9px;
+                padding: 0.2rem 0.6rem;
+                border-width: 1.5px;
+            }
+            .game-wrap {
+                gap: 15px;
+                flex-direction: row;
+                align-items: center;
+                min-height: 320px;
+            }
+            .side-words {
+                width: 100px;
+                gap: 7px;
+            }
+            .side-words.right {
+                width: 100px;
+            }
+            .word-item {
+                height: 55px;
+                font-size: 11px;
+                padding: 5px 8px;
+                border-radius: 9px;
+                border-width: 2px;
+            }
+            .image-item {
+                padding: 4px;
+            }
+            .svg-wrapper {
+                display: none;
+            }
+        }
+
+        /* 426px - 480px */
+        @media (min-width: 426px) and (max-width: 480px) {
+            .template {
+                padding: 14px 12px;
+                border-radius: 30px;
+                gap: 20px;
+            }
+            .title {
+                font-size: 18px;
+            }
+            .title span {
+                font-size: 20px;
+            }
+            .instruction {
+                font-size: 10px;
+                padding: 0.2rem 0.7rem;
+            }
+            .game-wrap {
+                gap: 20px;
+                flex-direction: row;
+                align-items: center;
+                min-height: 340px;
+            }
+            .side-words {
+                width: 110px;
+                gap: 8px;
+            }
+            .side-words.right {
+                width: 110px;
+            }
+            .word-item {
+                height: 60px;
+                font-size: 12px;
+                padding: 6px 10px;
+                border-radius: 10px;
+            }
+            .image-item {
+                padding: 4px;
+            }
+            .svg-wrapper {
+                display: none;
+            }
+        }
+
+        /* 481px - 576px */
+        @media (min-width: 481px) and (max-width: 576px) {
+            .template {
+                padding: 16px 14px;
+                border-radius: 32px;
+                gap: 24px;
+            }
+            .title {
+                font-size: 20px;
+            }
+            .title span {
+                font-size: 22px;
+            }
+            .instruction {
+                font-size: 11px;
+                padding: 0.25rem 0.8rem;
+            }
+            .game-wrap {
+                gap: 25px;
+                flex-direction: row;
+                align-items: center;
+                min-height: 360px;
+            }
+            .side-words {
+                width: 130px;
+                gap: 10px;
+            }
+            .side-words.right {
+                width: 130px;
+            }
+            .word-item {
+                height: 65px;
+                font-size: 14px;
+                padding: 8px 12px;
+                border-radius: 11px;
+            }
+            .image-item {
+                padding: 5px;
+            }
+            .svg-wrapper {
+                display: none;
+            }
+        }
+
+        /* 577px - 768px */
+        @media (min-width: 577px) and (max-width: 768px) {
+            .template {
+                padding: 18px 16px;
+                border-radius: 36px;
+                gap: 28px;
+            }
+            .title {
+                font-size: 22px;
+            }
+            .title span {
+                font-size: 24px;
+            }
+            .instruction {
+                font-size: 12px;
+                padding: 0.3rem 0.9rem;
+            }
+            .game-wrap {
+                gap: 30px;
+                flex-direction: row;
+                align-items: center;
+                min-height: 380px;
+            }
+            .side-words {
+                width: 150px;
+                gap: 12px;
+            }
+            .side-words.right {
+                width: 150px;
+            }
+            .word-item {
+                height: 70px;
+                font-size: 16px;
+                padding: 10px 14px;
+                border-radius: 12px;
+            }
+            .image-item {
+                padding: 6px;
+            }
+            .svg-wrapper {
+                display: none;
+            }
+        }
+
+        /* 769px - 1024px */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .template {
+                padding: 20px 18px;
+                border-radius: 40px;
+                gap: 32px;
+            }
+            .title {
+                font-size: 24px;
+            }
+            .title span {
+                font-size: 26px;
+            }
+            .instruction {
+                font-size: 17px;
+                padding: 0.35rem 1rem;
+            }
+            .game-wrap {
+                gap: 170px;
+                min-height: 400px;
+            }
+            .side-words {
+                width: 200px;
+                gap: 14px;
+            }
+            .side-words.right {
+                width: 200px;
+            }
+            .word-item {
+                height: 100px;
+                font-size: 20px;
+                padding: 4px 14px;
+                border-radius: 13px;
+            }
+            .image-item {
+                padding: 6px;
+            }
+        }
+
+        /* 1025px - 1200px */
+        @media (min-width: 1025px) and (max-width: 1200px) {
+            .template {
+                padding: 22px 20px;
+                border-radius: 42px;
+                gap: 20px;
+            }
+            .title {
+                font-size: 26px;
+            }
+            .title span {
+                font-size: 28px;
+            }
+            .instruction {
+                font-size: 17px;
+                padding: 0.4rem 1.1rem;
+            }
+            .game-wrap {
+                gap: 180px;
+                min-height: 420px;
+            }
+            .side-words {
+                width: 220px;
+                gap: 16px;
+            }
+            .side-words.right {
+                width: 220px;
+            }
+            .word-item {
+                height: 110px;
+                font-size: 22px;
+                padding: 12px 16px;
+                border-radius: 14px;
+            }
+            .image-item {
+                padding: 7px;
+            }
+        }
+
+        /* 1201px - 1440px */
+        @media (min-width: 1201px) and (max-width: 1440px) {
+            .template {
+                max-width: 1100px;
+                padding: 25px 24px;
+                border-radius: 46px;
+                gap: 38px;
+            }
+            .title {
+                font-size: 28px;
+            }
+            .title span {
+                font-size: 30px;
+            }
+            .instruction {
+                font-size: 17px;
+                padding: 0.45rem 1.2rem;
+            }
+            .game-wrap {
+                gap: 190px;
+                min-height: 440px;
+            }
+            .side-words {
+                width: 230px;
+                gap: 18px;
+            }
+            .side-words.right {
+                width: 230px;
+            }
+            .word-item {
+                height: 120px;
+                font-size: 22px;
+                padding: 12px 18px;
+                border-radius: 15px;
+            }
+            .image-item {
+                padding: 8px;
+            }
+        }
+
+        /* 1441px - 1600px */
+        @media (min-width: 1441px) and (max-width: 1600px) {
+            .template {
+                max-width: 1200px;
+                padding: 28px 26px;
+                border-radius: 48px;
+                gap: 40px;
+            }
+            .title {
+                font-size: 30px;
+            }
+            .title span {
+                font-size: 32px;
+            }
+            .instruction {
+                font-size: 16px;
+                padding: 0.5rem 1.3rem;
+            }
+            .game-wrap {
+                gap: 230px;
+                min-height: 460px;
+            }
+            .side-words {
+                width: 230px;
+                gap: 20px;
+            }
+            .side-words.right {
+                width: 230px;
+            }
+            .word-item {
+                height: 130px;
+                font-size: 24px;
+                padding: 14px 20px;
+                border-radius: 16px;
+            }
+            .image-item {
+                padding: 8px;
+            }
+        }
+
+        /* 1601px - 1920px */
+        @media (min-width: 1601px) and (max-width: 1920px) {
+            .template {
+                max-width: 1300px;
+                padding: 32px 30px;
+                border-radius: 52px;
+                gap: 44px;
+            }
+            .title {
+                font-size: 32px;
+            }
+            .title span {
+                font-size: 34px;
+            }
+            .instruction {
+                font-size: 17px;
+                padding: 0.55rem 1.4rem;
+            }
+            .game-wrap {
+                gap: 220px;
+                min-height: 480px;
+            }
+            .side-words {
+                width: 240px;
+                gap: 22px;
+            }
+            .side-words.right {
+                width: 240px;
+            }
+            .word-item {
+                height: 130px;
+                font-size: 25px;
+                padding: 14px 22px;
+                border-radius: 17px;
+            }
+            .image-item {
+                padding: 9px;
+            }
+        }
+
+        /* 1921px and above */
+        @media (min-width: 1921px) {
+            .template {
+                max-width: 1400px;
+                padding: 35px 35px;
+                border-radius: 56px;
+                gap: 48px;
+            }
+            .title {
+                font-size: 34px;
+            }
+            .title span {
+                font-size: 36px;
+            }
+            .instruction {
+                font-size: 18px;
+                padding: 0.6rem 1.5rem;
+            }
+            .game-wrap {
+                gap: 260px;
+                min-height: 500px;
+            }
+            .side-words {
+                width: 240px;
+                gap: 24px;
+            }
+            .side-words.right {
+                width: 240px;
+            }
+            .word-item {
+                height: 140px;
+                font-size: 26px;
+                padding: 16px 24px;
+                border-radius: 18px;
+            }
+            .image-item {
+                padding: 10px;
+            }
+        }
+
+      
+    </style>
+</head>
+
+<body>
+
+    <div class="app">
+        <div class="template">
+
+            <!-- Header -->
+            <div class="header-area">
+                <div class="title">
+                    <span></span> Matching
+                </div>
+                <div class="instruction">
+                    Click a image, then its match!
+                </div>
+            </div>
+
+            <!-- Game Wrap -->
+            <div class="game-wrap" id="gameWrap">
+
+                <!-- LEFT SIDE -->
+                <div class="side-words" id="leftWords"></div>
+
+                <!-- SVG LINES -->
+                <div class="svg-wrapper" id="svgWrapper">
+                    <svg id="svgLines"></svg>
+                </div>
+
+                <!-- RIGHT SIDE -->
+                <div class="side-words right" id="rightWords"></div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===== POPUPS ===== -->
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <!-- ===== FINAL POPUP ===== -->
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        // ================================================================
+        //  DATA - Synonyms with Images
+        // ================================================================
+        const matchData = {
+            left: [{
+                img: "../assets/images/day-night.png",
+                match: "Day and night"
+            }, {
+                img: "../assets/images/give-take.png",
+                match: "Give and take"
+            }, {
+                img: "../assets/images/bread-butter.png",
+                match: "Bread and butter"
+            }, {
+                img: "../assets/images/black-white.png",
+                match: "Black and white"
+            }, {
+                img: "../assets/images/sticks-stones.png",
+                match: "Sticks and stones"
+            }],
+            right: [
+                { text: "Bread and butter" },
+                { text: "Black and white" },
+                { text: "Give and take" },
+                { text: "Sticks and stones" },
+                { text: "Day and night" }
+            ]
+        };
+
+        // ================================================================
+        //  STATE
+        // ================================================================
+        let selectedLeft = null;
+        let matchedPairs = {};
+        let matchCount = 0;
+        const totalMatches = matchData.left.length;
+        let isProcessing = false;
+
+        // ================================================================
+        //  DOM REFS
+        // ================================================================
+        const leftWordsEl = document.getElementById('leftWords');
+        const rightWordsEl = document.getElementById('rightWords');
+        const svg = document.getElementById('svgLines');
+        const svgWrapper = document.getElementById('svgWrapper');
+
+        const popupOverlay = document.getElementById('answerPopup');
+        const popupIcon = document.getElementById('popupIcon');
+        const popupTitle = document.getElementById('popupTitle');
+        const popupMsg = document.getElementById('popupMsg');
+
+        // ================================================================
+        //  AUDIO
+        // ================================================================
+     function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+        // ================================================================
+        //  CONFETTI
+        // ================================================================
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function bigConfetti() {
+            confetti({ particleCount: 200, spread: 110, origin: { y: 0.5 } });
+            setTimeout(() => {
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.2 } });
+                confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.8 } });
+            }, 150);
+        }
+
+        // ================================================================
+        //  POPUP
+        // ================================================================
+        function showPopup(isCorrect) {
+            popupOverlay.className = 'kid-popup ' + (isCorrect ? 'kid-correct' : 'kid-wrong');
+            popupOverlay.style.display = 'flex';
+
+            if (isCorrect) {
+                popupIcon.textContent = '🌟';
+                popupTitle.textContent = 'Amazing!';
+                popupMsg.textContent = 'You got it right! ✨';
+            } else {
+                popupIcon.textContent = '😒';
+                popupTitle.textContent = 'Keep Going!';
+                popupMsg.textContent = 'Try again, you can do it! 🌈';
+            }
+
+            const sound = document.getElementById(isCorrect ? 'correctSound' : 'wrongSound');
+            if (sound) sound.play().catch(() => {});
+
+            setTimeout(() => {
+                popupOverlay.style.display = 'none';
+            }, 1800);
+        }
+
+        // ================================================================
+        //  SPEECH
+        // ================================================================
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = 'en-US';
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        // ================================================================
+        //  RENDER WORDS
+        // ================================================================
+        function renderWords() {
+            leftWordsEl.innerHTML = "";
+            rightWordsEl.innerHTML = "";
+
+            // LEFT SIDE (Images)
+            matchData.left.forEach((item) => {
+                const el = document.createElement("div");
+                el.className = "word-item image-item";
+                el.dataset.match = item.match;
+                el.dataset.side = "left";
+
+                el.innerHTML = `
+                    <img src="${item.img}" alt="${item.match}">
+                `;
+
+                el.onclick = () => handleLeftClick(el);
+                leftWordsEl.appendChild(el);
+            });
+
+            // RIGHT SIDE (Text) - Shuffle
+            const shuffledRight = [...matchData.right].sort(() => Math.random() - 0.5);
+
+            shuffledRight.forEach((item) => {
+                const el = document.createElement("div");
+                el.className = "word-item";
+                el.dataset.word = item.text;
+                el.dataset.side = "right";
+el.textContent =
+    item.text.charAt(0).toUpperCase() + item.text.slice(1).toLowerCase();
+                el.onclick = () => handleRightClick(el);
+                rightWordsEl.appendChild(el);
+            });
+        }
+
+        // ================================================================
+        //  HANDLE LEFT CLICK
+        // ================================================================
+        function handleLeftClick(el) {
+            if (isProcessing) return;
+            if (el.classList.contains('matched')) return;
+
+            document.querySelectorAll('.side-words .word-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            el.classList.add('active');
+            selectedLeft = el;
+        }
+
+        // ================================================================
+        //  HANDLE RIGHT CLICK
+        // ================================================================
+        function handleRightClick(el) {
+            if (isProcessing) return;
+            if (el.classList.contains('matched')) return;
+
+            if (!selectedLeft) {
+                el.classList.add('wrong');
+                setTimeout(() => {
+                    el.classList.remove('wrong');
+                }, 400);
+                return;
+            }
+
+            const leftMatch = selectedLeft.dataset.match;
+            const rightWord = el.dataset.word;
+            const isCorrect = leftMatch === rightWord;
+
+            if (isCorrect) {
+                isProcessing = true;
+                matchedPairs[selectedLeft.dataset.match] = rightWord;
+                matchCount++;
+
+                selectedLeft.classList.remove('active');
+                selectedLeft.classList.add('matched');
+                el.classList.add('matched');
+
+                drawCurvedLine(selectedLeft, el);
+
+                showPopup(true);
+                
+                smallConfetti();
+                speak('Correct!');
+
+                selectedLeft = null;
+                isProcessing = false;
+
+                if (matchCount === totalMatches) {
+                    setTimeout(showFinal, 1200);
+                }
+            } else {
+                isProcessing = true;
+                showPopup(false);
+               
+                speak('Try again!');
+
+                selectedLeft.classList.add('wrong');
+                el.classList.add('wrong');
+
+                setTimeout(() => {
+                    selectedLeft.classList.remove('wrong');
+                    selectedLeft.classList.remove('active');
+                    el.classList.remove('wrong');
+                    selectedLeft = null;
+                    isProcessing = false;
+                }, 600);
+            }
+        }
+
+        // ================================================================
+        //  DRAW CURVED LINE
+        // ================================================================
+        function drawCurvedLine(leftEl, rightEl) {
+            const wrapperRect = svgWrapper.getBoundingClientRect();
+
+            const leftRect = leftEl.getBoundingClientRect();
+            const lx = leftRect.right - wrapperRect.left;
+            const ly = leftRect.top + leftRect.height / 2 - wrapperRect.top;
+
+            const rightRect = rightEl.getBoundingClientRect();
+            const rx = rightRect.left - wrapperRect.left;
+            const ry = rightRect.top + rightRect.height / 2 - wrapperRect.top;
+
+            const cp1x = lx + (rx - lx) * 0.5;
+            const cp1y = ly + (ry - ly) * 0.2;
+            const cp2x = rx - (rx - lx) * 0.5;
+            const cp2y = ry - (ry - ly) * 0.2;
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const d = `M ${lx} ${ly} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${rx} ${ry}`;
+            path.setAttribute('d', d);
+            path.setAttribute('stroke', '#42d366');
+            path.setAttribute('stroke-width', '4');
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke-linecap', 'round');
+
+            svg.appendChild(path);
+        }
+
+        // ================================================================
+        //  SHOW FINAL
+        // ================================================================
+        function showFinal() {
+            document.getElementById('finalPopup').style.display = 'flex';
+            document.getElementById('finalScore').textContent = `Your Score: ${matchCount} / ${totalMatches}`;
+            document.getElementById('stars').textContent = '⭐'.repeat(matchCount);
+            bigConfetti();
+          
+        }
+
+        // ================================================================
+        //  INIT
+        // ================================================================
+        renderWords();
+
+        console.log('🔗 Synonym Matching Quiz loaded!');
+        console.log(`📝 Total pairs to match: ${totalMatches}`);
+    </script>
+
+</body>
+
+</html>

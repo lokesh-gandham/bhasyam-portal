@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Assessments</title>
+  <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="../../grade1_lesson2/assets/CSS/mcq.css?v=lesson3fill4">
+  <link rel="stylesheet" href="../../grade1-typography.css?v=grade1font1">
+  <style>
+    .feedback-popout {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      background: transparent;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+      overflow: hidden;
+    }
+    .feedback-popout.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .feedback-card {
+      width: min(360px, 92vw);
+      min-height: 170px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 16px 36px rgba(49, 39, 82, 0.16);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 22px 24px;
+      text-align: center;
+      transform: translateY(16px) scale(0.92);
+      transition: transform 0.25s ease;
+    }
+    .feedback-popout.show .feedback-card {
+      transform: translateY(0) scale(1);
+    }
+    .feedback-badge {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+    }
+    .feedback-popout.correct .feedback-badge {
+      background: linear-gradient(135deg, #40bf6a, #13824a);
+    }
+    .feedback-popout.wrong .feedback-badge {
+      background: linear-gradient(135deg, #ff7a7a, #d73030);
+    }
+    .feedback-popout.final .feedback-badge {
+      background: linear-gradient(135deg, #f6b43f, #8b5cf6);
+    }
+    .feedback-card h3 {
+      color: #33284f;
+      font-size: 28px;
+      line-height: 1.05;
+      font-weight: 700;
+    }
+    .feedback-card p {
+      max-width: 300px;
+      color: #5a5071;
+      font-size: 17px;
+      line-height: 1.3;
+      font-weight: 500;
+    }
+    .playAgain-btn {
+      min-width: 118px;
+      min-height: 40px;
+      border: 0;
+      border-radius: 8px;
+      background: #8b5cf6;
+      color: #fff;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      box-shadow: 0 6px 12px rgba(139, 92, 246, 0.24);
+      transition: all 0.3s ease;
+    }
+    .playAgain-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(139, 92, 246, 0.24);
+      background: #7c3aed;
+    }
+    .feedback-confetti {
+      display: none !important;
+    }
+    .quiz .controls {
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 4px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .quiz .controls .prev,
+    .quiz .controls .next {
+      min-width: 130px;
+      height: 52px;
+      min-height: 52px;
+      padding: 0 22px;
+      border: none;
+      border-radius: 25px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    }
+    .quiz .controls .prev {
+      background: linear-gradient(135deg, #9a7ad4, #7c5cbf);
+    }
+    .quiz .controls .next {
+      background: linear-gradient(135deg, #5cb3d4, #3d9bc0);
+    }
+    .quiz .controls .prev:hover {
+      background: linear-gradient(135deg, #b08ce8, #8b6bcb);
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 8px 24px rgba(124, 92, 191, 0.35);
+    }
+    .quiz .controls .next:hover {
+      background: linear-gradient(135deg, #6ec0de, #4daace);
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 8px 24px rgba(61, 155, 192, 0.35);
+    }
+    .quiz .controls button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none;
+    }
+    .quiz .controls .prev i,
+    .quiz .controls .next i {
+      display: inline-flex !important;
+    }
+    .quiz .controls .prev::before,
+    .quiz .controls .next::after {
+      content: none !important;
+      display: none !important;
+    }
+    .quiz .option {
+      padding: 56px 10px 10px;
+      overflow: hidden;
+    }
+    .quiz .option .option-label {
+      min-width: 210px;
+      min-height: 48px;
+      padding: 6px 20px 6px 28px;
+      font-size: clamp(22px, 2vw, 30px);
+      line-height: 1.05;
+    }
+    .quiz .option .choice-visual {
+      min-height: 0;
+      height: 100%;
+      max-height: 100%;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: hidden;
+    }
+    .quiz .option .choice-visual img {
+      width: auto;
+      max-width: 100%;
+      height: auto;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    @media (max-width: 900px) {
+      .quiz .controls .prev,
+      .quiz .controls .next {
+        min-width: 110px;
+        height: 46px;
+        min-height: 46px;
+        font-size: 16px;
+      }
+    }
+    @media (max-width: 520px) {
+      .quiz .controls .prev,
+      .quiz .controls .next {
+        min-width: 94px;
+        height: 42px;
+        min-height: 42px;
+        padding: 0 16px;
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz">
+    <h2 id="question"></h2>
+    <div class="options" id="options"></div>
+    <div class="controls">
+      <button class="prev" id="prevBtn" type="button"><i class="fa-solid fa-angles-left"></i> Prev</button>
+      <button class="next" id="nextBtn" type="button">Next <i class="fa-solid fa-angles-right"></i></button>
+    </div>
+  </div>
+
+  <audio id="correctSound" preload="auto" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound" preload="auto" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+  <script>
+    const quizData = [
+      {
+        q: "Q1. There are ______ students in the class.",
+        img: "../assets/images/students-removebg-preview.png",
+        options: [
+          { text: "Five", img: "../assets/images/hallwithoutimage.png" },
+          { text: "Small, Big", img: "../assets/images/bigsmall.png" },
+          { text: "Pink", img: "../assets/images/five.png" },
+          { text: "Long", img: "../assets/images/longneck.png" }
+        ],
+        a: 0,
+        fills: ["five"]
+      },
+      {
+        q: "Q2. The hall is decorated with ______ coloured balloons.",
+        img: "../assets/images/studentshall-removebg-preview.png",
+        options: [
+          { text: "Five", img: "../assets/images/hallwithoutimage.png" },
+          { text: "Pink", img: "../assets/images/five.png" },
+          { text: "Small, Big", img: "../assets/images/bigsmall.png" },
+          { text: "Long", img: "../assets/images/longneck.png" }
+        ],
+        a: 1,
+        fills: ["pink"]
+      },
+      {
+        q: "Q3. Rita's gift is very ______, but Reena's gift is ______.",
+        img: "../assets/images/giftsimage.png",
+        options: [
+          { text: "Long", img: "../assets/images/longneck.png" },
+          { text: "Small, Big", img: "../assets/images/bigsmall.png" },
+          { text: "Five", img: "../assets/images/hallwithoutimage.png" },
+          { text: "Pink", img: "../assets/images/five.png" }
+        ],
+        a: 1,
+        fills: ["small", "big"]
+      },
+      {
+        q: "Q4. A giraffe has a ______ neck.",
+        img: "../assets/images/girafee-removebg-preview.png",
+        options: [
+          { text: "Small, Big", img: "../assets/images/bigsmall.png" },
+          { text: "Five", img: "../assets/images/hallwithoutimage.png" },
+          { text: "Long", img: "../assets/images/longneck.png" },
+          { text: "Pink", img: "../assets/images/five.png" }
+        ],
+        a: 2,
+        fills: ["long"]
+      }
+    ];
+
+    let current = 0;
+    let score = 0;
+    let answered = Array(quizData.length).fill(null);
+    let popupTimer = null;
+    let isComplete = false;
+    let state_blank = {};
+
+    const qEl = document.getElementById("question");
+    const optEl = document.getElementById("options");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function speak(t) {
+      if (!("speechSynthesis" in window)) return;
+      speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance(t);
+      msg.lang = "en-US";
+      msg.volume = 1;
+      msg.rate = 1;
+      msg.pitch = 1;
+      speechSynthesis.speak(msg);
+    }
+
+    function playSound(type) {
+      const sound = document.getElementById(type === "correct" ? "correctSound" : "wrongSound");
+      if (!sound) return;
+      sound.currentTime = 0;
+      sound.play().catch(() => {});
+    }
+
+    function smallConfetti() {
+      try { confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } }); } catch(e) {}
+    }
+
+    function bigConfetti() {
+      try {
+        confetti({ particleCount: 80, spread: 110, origin: { y: 0.6 } });
+        setTimeout(() => confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } }), 200);
+      } catch(e) {}
+    }
+
+    function confettiMarkup() {
+      return Array.from({ length: 24 }, (_, i) => `<span style="--i:${i}"></span>`).join("");
+    }
+
+    function closePopup(popup) {
+      if (!popup) return;
+      popup.classList.remove("show");
+      window.setTimeout(() => popup.remove(), 220);
+    }
+
+    function showPopup(type, title, body) {
+      clearTimeout(popupTimer);
+      document.querySelectorAll(".feedback-popout").forEach(el => el.remove());
+
+      const popup = document.createElement("div");
+      popup.className = `feedback-popout ${type}`;
+      popup.innerHTML = `
+        <div class="feedback-confetti" aria-hidden="true">${confettiMarkup()}</div>
+        <div class="feedback-card" role="dialog" aria-live="assertive">
+          <div class="feedback-badge">${type === "wrong" ? "!" : type === "final" ? "A+" : "OK"}</div>
+          <h3>${title}</h3>
+          ${body ? `<p>${body}</p>` : ""}
+          ${type === "final" ? '<button class="playAgain-btn" type="button">Play again</button>' : ""}
+        </div>
+      `;
+      document.body.appendChild(popup);
+      requestAnimationFrame(() => popup.classList.add("show"));
+
+      const playBtn = popup.querySelector(".playAgain-btn");
+      if (playBtn) playBtn.onclick = () => location.reload();
+
+      if (type !== "final") {
+        popupTimer = window.setTimeout(() => closePopup(popup), 1500);
+      }
+    }
+
+    function showFeedback(isCorrect) {
+      playSound(isCorrect ? "correct" : "wrong");
+      speak(isCorrect ? "Correct" : "Try again");
+      if (isCorrect) smallConfetti();
+      showPopup(
+        isCorrect ? "correct" : "wrong",
+        isCorrect ? "Correct!" : "Try again",
+        ""
+      );
+    }
+
+    function showFinal() {
+      if (isComplete) return;
+      isComplete = true;
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      bigConfetti();
+      showPopup("final", "Great job!", `You completed Fill in the blanks.`);
+    }
+
+    function filledQuestionMarkup(q) {
+      if (!q.fills) return q.q;
+      let filledQ = q.q;
+      q.fills.forEach((text) => {
+        filledQ = filledQ.replace("______", `<u><b>${text}</b></u>`);
+      });
+      return filledQ;
+    }
+
+    function loadQuestion() {
+      const q = quizData[current];
+      const isMulti = Array.isArray(q.answers);
+      if (answered[current] !== null && q.fills) {
+        qEl.innerHTML = filledQuestionMarkup(q);
+      } else {
+        qEl.textContent = q.q;
+      }
+      optEl.innerHTML = "";
+      nextBtn.disabled = isComplete || current === quizData.length - 1 || answered[current] === null;
+
+      if (isMulti) {
+        if (!state_blank) state_blank = {};
+        if (!state_blank[current]) state_blank[current] = { picked: [], done: false };
+        const sb = state_blank[current];
+
+        q.options.forEach((option, i) => {
+          const d = document.createElement("div");
+          d.className = "option";
+          const label = document.createElement("div");
+          label.className = "option-label";
+          const number = document.createElement("span");
+          number.className = "choice-number";
+          number.textContent = `${i + 1}.`;
+          const text = document.createElement("span");
+          text.className = "choice-text";
+          text.textContent = option.text;
+          label.appendChild(number);
+          label.appendChild(text);
+          const visual = document.createElement("div");
+          visual.className = "choice-visual";
+          if (option.img) {
+            const image = document.createElement("img");
+            image.src = option.img;
+            image.alt = option.text;
+            visual.appendChild(image);
+          }
+          d.appendChild(label);
+          d.appendChild(visual);
+
+          if (sb.done) {
+            d.classList.add(q.answers.includes(i) ? "correct" : "disabled");
+          } else if (sb.picked.includes(i)) {
+            d.classList.add("used");
+          }
+
+          d.onclick = () => {
+            if (sb.done || sb.picked.includes(i)) return;
+            const step = sb.picked.length;
+            if (i === q.answers[step]) {
+              sb.picked.push(i);
+              d.classList.add("correct");
+              if (sb.picked.length === q.answers.length) {
+                sb.done = true;
+                answered[current] = true;
+                score++;
+                [...optEl.children].forEach((o, oi) => {
+                  if (!q.answers.includes(oi)) o.classList.add("disabled");
+                });
+                showFeedback(true);
+                nextBtn.disabled = isComplete || current === quizData.length - 1;
+                if (answered.every((a) => a !== null || (Array.isArray(a) && a.length))) setTimeout(showFinal, 1700);
+              }
+            } else {
+              d.classList.add("wrong");
+              showFeedback(false);
+              setTimeout(() => { d.classList.remove("wrong"); }, 700);
+            }
+          };
+          optEl.appendChild(d);
+        });
+      } else {
+        q.options.forEach((option, i) => {
+          const d = document.createElement("div");
+          d.className = "option";
+          const label = document.createElement("div");
+          label.className = "option-label";
+          const number = document.createElement("span");
+          number.className = "choice-number";
+          number.textContent = `${i + 1}.`;
+          const text = document.createElement("span");
+          text.className = "choice-text";
+          text.textContent = option.text;
+          label.appendChild(number);
+          label.appendChild(text);
+          const visual = document.createElement("div");
+          visual.className = "choice-visual";
+          if (option.img) {
+            const image = document.createElement("img");
+            image.src = option.img;
+            image.alt = option.text;
+            visual.appendChild(image);
+          }
+          d.appendChild(label);
+          d.appendChild(visual);
+
+          if (answered[current] !== null) {
+            if (i === q.a) d.classList.add("correct");
+            else d.classList.add("disabled");
+          }
+
+          d.onclick = () => {
+            if (answered[current] !== null) return;
+            if (i === q.a) {
+              answered[current] = i;
+              score++;
+              d.classList.add("correct");
+              [...optEl.children].forEach((o) => {
+                if (o !== d) o.classList.add("disabled");
+              });
+              if (q.fills) {
+                qEl.innerHTML = filledQuestionMarkup(q);
+              }
+              showFeedback(true);
+              nextBtn.disabled = isComplete || current === quizData.length - 1;
+              if (answered.every((a) => a !== null)) setTimeout(showFinal, 1700);
+            } else {
+              d.classList.add("wrong");
+              showFeedback(false);
+              setTimeout(() => { d.classList.remove("wrong"); }, 700);
+            }
+          };
+          optEl.appendChild(d);
+        });
+      }
+
+      prevBtn.disabled = isComplete || current === 0;
+    }
+
+    prevBtn.onclick = () => {
+      if (isComplete || prevBtn.disabled) return;
+      current--;
+      loadQuestion();
+    };
+    nextBtn.onclick = () => {
+      if (isComplete || nextBtn.disabled) return;
+      current++;
+      loadQuestion();
+    };
+
+    loadQuestion();
+  </script>
+</body>
+</html>

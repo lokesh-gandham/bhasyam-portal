@@ -1,0 +1,1570 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Antonyms Basket Game</title>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    /* ===== RESET ===== */
+        @font-face {
+    font-family: 'CCSYBold';
+    src: url('./assets/CCSYBOLD.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+ 
+@font-face {
+    font-family: 'CCSyntroman';
+    src: url('../assets/CCSYNTRO.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'CCSyntroman'; }
+
+    body {
+       font-family: 'CCSyntroman';
+     
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px 16px 40px;
+      overflow:hidden;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* ===== HEADER ===== */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .speaker-btn {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: #eaf3ff;
+      font-size: 19px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #c9deff;
+      transition: transform 0.15s;
+      display:none;
+    }
+    .speaker-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #c9deff; }
+
+    .instructions {
+      flex: 1;
+     
+      font-weight: 500;
+      font-size: 22px;
+      line-height: 1.5;
+      color: #3a4a45;
+      padding-top: 4px;
+    }
+    .instructions b { color: #e0457b; }
+
+    .badge {
+      flex-shrink: 0;
+      background: #ffd9e6;
+      color: #7a3350;
+     
+      font-weight: 700;
+      font-size: 17px;
+      padding: 10px 22px;
+      border-radius: 30px;
+      align-self: center;
+    }
+
+    /* ===== CLUE ROW ===== */
+    .clue-row {
+      display: flex;
+      align-items: stretch;
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .clue-sign {
+      flex-shrink: 0;
+      width: 96px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .sign-board {
+      background: linear-gradient(155deg, #c98a46, #a5652c);
+      border: 3px solid #7a4a1e;
+      border-radius: 10px;
+      color: #fff8ec;
+     
+      font-weight: 700;
+      font-size: 15px;
+      text-align: center;
+      line-height: 1.3;
+      padding: 12px 6px;
+      width: 96px;
+      box-shadow: 0 4px 0 #6b3f19;
+      position: relative;
+      z-index: 2;
+    }
+
+    .sign-post {
+      width: 10px;
+      height: 26px;
+      background: linear-gradient(90deg, #8a5a2b, #6b3f19);
+      margin-top: -2px;
+      border-radius: 0 0 3px 3px;
+    }
+
+    .clue-box {
+      flex: 1;
+      background: #fdf1e0;
+      border: 3px dashed #eab887;
+      border-radius: 22px;
+      padding: 10px 0 18px 92px;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: center;
+      gap: 10px 22px;
+    }
+
+    .clue-word {
+      width:120px;
+      font-weight: 500;
+      font-size: 22px;
+      color: #2d2d2d;
+      text-transform: capitalize;
+      cursor: grab;
+      padding: 3px 6px;
+      border-radius: 10px;
+      transition: background 0.15s, opacity 0.15s, transform 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .clue-word:active { cursor: grabbing; }
+    .clue-word::before { content: '★'; color: #ff5c8a; font-size: 12px; }
+
+    .clue-word:hover:not(.used):not(.disabled) { background: #ffe6cf; transform: translateY(-1px); }
+
+    .clue-word.selected {
+      background: #e2ecff;
+      color: #2451b8;
+      
+    }
+    .clue-word.selected::before { color: #4d7fff; }
+
+    .clue-word.used {
+      background: #d4f8d4;
+      color: #2e7d32;
+      opacity: 0.75;
+      cursor: default;
+     
+    }
+    .clue-word.used::before { color: #2e7d32; }
+
+    .clue-word.disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+    .clue-word.dragging {
+      opacity: 0.4;
+      transform: scale(0.95);
+    }
+
+    /* ===== STAGE ===== */
+    .stage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 34px;
+      position: relative;
+    }
+
+    .basket-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .basket-visual {
+      position: relative;
+      width: min(280px, 62vw);
+      aspect-ratio: 1 / 1;
+      cursor: pointer;
+    }
+
+    .basket-visual svg { width: 100%; height: 100%; display: block; }
+
+    .basket-slots {
+      position: absolute;
+      top: 41%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .slot {
+      width: 100%;
+      min-height: 38px;
+      background: #ffffff;
+      border: 2px solid #e3ddd0;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      font-weight: 700;
+      font-size: clamp(14px, 1.8vw, 19px);
+      color: #b7b0a2;
+      text-transform: capitalize;
+      padding: 6px 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      transition: all 0.2s ease;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .slot.drag-over {
+      border-color: #4d7fff;
+      background: #e2ecff;
+      box-shadow: 0 0 0 4px rgba(77, 127, 255, 0.2);
+    }
+
+    .slot.filled { color: #1e293b; }
+    .slot.correct { background: #d1fae5; border-color: #22c55e; color: #065f46; }
+    .slot.wrong { animation: shake 0.4s ease; border-color: #ef4444; background: #fee2e2; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .slot-divider {
+   
+      font-weight: 800;
+      font-size: 15px;
+      color: #6b5842;
+      pointer-events: none;
+    }
+
+    .basket-visual.wrong-shake { animation: shake 0.4s ease; }
+
+    /* ===== BASKET LABEL ===== */
+    .basket-label {
+     
+      font-weight: 700;
+      font-size: 18px;
+      color: #4a4a4a;
+      background: #fff;
+      padding: 8px 24px;
+      border-radius: 30px;
+      border: 2px solid #e3ddd0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display:none;
+    }
+    .basket-label.solved {
+      background: #d1fae5;
+      border-color: #22c55e;
+      color: #065f46;
+    }
+
+    /* ===== TIP BUBBLE ===== */
+    .tip-bubble {
+      position: relative;
+      background: #e2f9ec;
+      border-radius: 22px;
+      padding: 16px 20px;
+      max-width: 190px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+    .tip-bubble::before {
+      content: '';
+      position: absolute;
+      left: -9px;
+      top: 30px;
+      width: 18px;
+      height: 18px;
+      background: #e2f9ec;
+      transform: rotate(45deg);
+      border-radius: 3px;
+    }
+    .tip-title {
+
+      font-weight: 700;
+      font-size: 15px;
+      color: #1f6b3c;
+      margin-bottom: 4px;
+    }
+    .tip-bubble p {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #3d6b52;
+      line-height: 1.4;
+    }
+
+    /* ===== NAV ===== */
+    .controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            margin-top: 15px;
+        }
+
+        .controls button {
+            width: 150px;
+            padding: 13px 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            border-radius: 40px;
+            /* border: 3px solid #ffffff; */
+            border:none;
+            font-size: 20px;
+            font-weight: 400;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .controls button:active:not(:disabled) {
+            transform: translateY(0px);
+        }
+
+        .prev {
+            background: linear-gradient(135deg, #7fc0eb, #5ba3d9);
+        }
+
+        .next {
+            background: linear-gradient(135deg, #ecc74e, #e0b83a);
+        }
+
+        .controls button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+    /* ===== POPUPS ===== */
+    .kid-popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+      padding: 20px;
+    }
+
+    .kid-card {
+      background: #ffffff;
+      width: 380px;
+      max-width: 95%;
+      padding: 32px 28px;
+      border-radius: 44px;
+      text-align: center;
+      animation: kidPop 0.6s ease;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kid-card::before,
+    .kid-card::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .kid-card::before {
+      width: 200px;
+      height: 200px;
+      top: -80px;
+      right: -60px;
+      background: #ffd93d;
+    }
+
+    .kid-card::after {
+      width: 150px;
+      height: 150px;
+      bottom: -60px;
+      left: -50px;
+      background: #6bcbff;
+    }
+
+    .kid-card > * { position: relative; z-index: 2; }
+
+    .kid-icon {
+      font-size: 4.8em;
+      margin-bottom: 6px;
+      animation: emojiBounce 0.9s infinite alternate;
+      display: inline-block;
+    }
+
+    .kid-card h3 {
+      font-size: 2.2em;
+      margin-bottom: 4px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .kid-card p {
+      font-size: 1.1em;
+      color: #555;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .kid-correct .kid-card {
+      background: linear-gradient(145deg, #f0fff4, #d4f5e6);
+      border: 5px solid #38d9a9;
+    }
+    .kid-correct .kid-card h3 { color: #0b8a4a; }
+    .kid-correct .kid-card p { color: #1a6a3a; }
+    .kid-correct .kid-card::before,
+    .kid-correct .kid-card::after { background: #38d9a9; }
+
+    .kid-wrong .kid-card {
+      background: linear-gradient(145deg, #fff5f5, #fce4e4);
+      border: 5px solid #ff8a8a;
+    }
+    .kid-wrong .kid-card h3 { color: #c0392b; }
+    .kid-wrong .kid-card p { color: #922b21; }
+    .kid-wrong .kid-card::before,
+    .kid-wrong .kid-card::after { background: #ff8a8a; }
+
+    @keyframes kidPop {
+      0% { transform: scale(0.3) rotate(-8deg) perspective(400px) rotateX(10deg); opacity: 0; }
+      50% { transform: scale(1.1) rotate(2deg) perspective(400px) rotateX(-5deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0) perspective(400px) rotateX(0); opacity: 1; }
+    }
+
+    @keyframes emojiBounce {
+      from { transform: translateY(0) scale(1); }
+      to { transform: translateY(-12px) scale(1.05); }
+    }
+
+    /* ===== FINAL POPUP ===== */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 4000;
+      padding: 20px;
+    }
+
+    #finalPopup.show { display: flex; }
+
+    .final-card {
+      background: linear-gradient(145deg, #fff7d6, #e6fff5);
+      padding: 35px 40px;
+      border-radius: 44px;
+      text-align: center;
+      width: 480px;
+      max-width: 95%;
+      animation: finalBounce .8s ease;
+      border: 4px solid rgba(255, 255, 255, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .final-card::before {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      top: -120px;
+      right: -100px;
+      background: #ffd93d;
+      border-radius: 50%;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .final-card > * { position: relative; z-index: 2; }
+
+    .final-card h2 {
+      font-size: 2.4em;
+      color: #2f9e44;
+      margin-bottom: 8px;
+      font-weight: 700 !important;
+    }
+
+    .final-card p {
+      font-size: 1.3em;
+      font-weight: 600;
+      color: #2d3a3a;
+    }
+
+    #starsRow {
+      font-size: 2.6em;
+      margin: 14px 0;
+      letter-spacing: 6px;
+    }
+
+    .play-again-btn {
+      background: #ffac30;
+      color: white;
+      border: none;
+      padding: 16px 38px;
+      border-radius: 40px;
+      font-size: 1.15em;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.2s;
+      box-shadow: 0 8px 0 #d4871f, 0 8px 24px rgba(255, 172, 48, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .play-again-btn:hover { transform: translateY(-3px); }
+    .play-again-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #d4871f; }
+
+    @keyframes finalBounce {
+      0% { transform: scale(0.3) perspective(400px) rotateX(15deg); opacity: 0; }
+      50% { transform: scale(1.08) perspective(400px) rotateX(-5deg); opacity: 1; }
+      100% { transform: scale(1) perspective(400px) rotateX(0); opacity: 1; }
+    }
+
+    /* ============================================================ */
+    /* ===== MEDIA QUERIES (from original) ===== */
+    /* ============================================================ */
+
+    /* 320px - 480px: 1 column, stacked */
+    @media (max-width: 480px) {
+      .app {
+        padding: 10px;
+      }
+      .top-bar {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .instructions {
+        text-align: center;
+      }
+      .badge {
+        align-self: center;
+      }
+      .clue-row {
+        flex-direction: column;
+      }
+      .clue-sign {
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+        gap: 8px;
+      }
+      .sign-board {
+        width: 80px;
+        font-size: 13px;
+        padding: 8px 4px;
+      }
+      .sign-post {
+        height: 16px;
+      }
+      .clue-box {
+        padding: 12px 14px;
+        gap: 8px 14px;
+      }
+      .clue-word {
+        font-size: 13px;
+      }
+      .stage {
+        flex-direction: column;
+        gap: 16px;
+      }
+      .basket-visual {
+        width: 220px;
+      }
+      .slot {
+        min-height: 32px;
+        font-size: 14px;
+        padding: 4px 8px;
+      }
+      .slot-divider {
+        font-size: 13px;
+      }
+      .basket-label {
+        font-size: 15px;
+        padding: 6px 18px;
+      }
+      .tip-bubble {
+        max-width: 100%;
+      }
+      .tip-bubble::before {
+        display: none;
+      }
+      .tip-title {
+        font-size: 14px;
+      }
+      .tip-bubble p {
+        font-size: 12px;
+      }
+      .nav-btn {
+        padding: 10px 18px;
+        font-size: 14px;
+      }
+      .kid-card {
+        width: 280px;
+        padding: 20px 16px;
+        border-radius: 32px;
+      }
+      .kid-icon {
+        font-size: 3.2em;
+      }
+      .kid-card h3 {
+        font-size: 1.4em;
+      }
+      .final-card {
+        padding: 28px 20px;
+        border-radius: 32px;
+      }
+      .final-card h2 {
+        font-size: 1.5em;
+      }
+      #starsRow {
+        font-size: 1.8em;
+      }
+      .play-again-btn {
+        padding: 10px 24px;
+        font-size: 0.95em;
+      }
+    }
+
+    /* 481px - 600px: 2 columns */
+    @media (min-width: 481px) and (max-width: 600px) {
+      .app {
+        padding: 12px;
+      }
+      .clue-row {
+        flex-direction: column;
+      }
+      .clue-sign {
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+        gap: 8px;
+      }
+      .sign-board {
+        width: 80px;
+        font-size: 13px;
+        padding: 8px 4px;
+      }
+      .sign-post {
+        height: 16px;
+      }
+      .clue-box {
+        padding: 14px 16px;
+        gap: 8px 16px;
+      }
+      .clue-word {
+        font-size: 14px;
+      }
+      .stage {
+        flex-direction: column;
+        gap: 18px;
+      }
+      .basket-visual {
+        width: 240px;
+      }
+      .slot {
+        min-height: 34px;
+        font-size: 15px;
+        padding: 5px 10px;
+      }
+      .basket-label {
+        font-size: 16px;
+        padding: 6px 20px;
+      }
+      .tip-bubble {
+        max-width: 100%;
+      }
+      .tip-bubble::before {
+        display: none;
+      }
+      .nav-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+    }
+
+    /* 601px - 768px: 2 columns */
+    @media (min-width: 601px) and (max-width: 768px) {
+      .app {
+        padding: 14px;
+      }
+      .clue-row {
+        flex-direction: column;
+      }
+      .clue-sign {
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+        gap: 8px;
+      }
+      .sign-board {
+        width: 90px;
+        font-size: 14px;
+        padding: 10px 6px;
+      }
+      .sign-post {
+        height: 20px;
+      }
+      .clue-box {
+        padding: 14px 18px;
+        gap: 10px 18px;
+      }
+      .clue-word {
+        font-size: 15px;
+      }
+      .stage {
+        flex-direction: column;
+        gap: 20px;
+      }
+      .basket-visual {
+        width: 260px;
+      }
+      .slot {
+        min-height: 36px;
+        font-size: 16px;
+        padding: 5px 10px;
+      }
+      .basket-label {
+        font-size: 17px;
+        padding: 7px 22px;
+      }
+      .tip-bubble {
+        max-width: 100%;
+      }
+      .tip-bubble::before {
+        display: none;
+      }
+      .nav-btn {
+        padding: 11px 22px;
+        font-size: 15px;
+      }
+    }
+
+    /* 769px - 1024px: 3 columns */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .app {
+        max-width: 1000px;
+        padding: 16px;
+      }
+      .clue-row {
+        gap: 14px;
+      }
+      .clue-sign {
+        width: 80px;
+      }
+      .sign-board {
+        width: 80px;
+        font-size: 14px;
+        padding: 10px 4px;
+      }
+      .clue-box {
+        padding: 16px 20px;
+        gap: 10px 18px;
+      }
+      .clue-word {
+        font-size: 22px;
+      }
+      .stage {
+        gap: 30px;
+      }
+      .basket-visual {
+        width: 300px;
+      }
+      .slot {
+        min-height: 36px;
+        font-size: 24px;
+        padding: 5px 10px;
+      }
+      .tip-bubble {
+        max-width: 160px;
+        padding: 14px 16px;
+      }
+      .tip-title {
+        font-size: 14px;
+      }
+      .tip-bubble p {
+        font-size: 12px;
+      }
+      .nav-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+    }
+
+    /* 1025px - 1200px: 3 columns */
+    @media (min-width: 1025px) and (max-width: 1440px) {
+      .app {
+        max-width: 1000px;
+      }
+      .clue-word {
+        font-size: 24px;
+      }
+      .basket-visual {
+        width: 300px;
+      }
+      .slot {
+        min-height: 38px;
+        font-size: 24px;
+        padding: 6px 10px;
+      }
+      .tip-bubble {
+        max-width: 170px;
+      }
+    }
+
+    /* 1201px - 1440px */
+    /* @media (min-width: 1201px) and (max-width: 1440px) {
+      .app {
+        max-width: 900px;
+      }
+      .clue-word {
+        font-size: 17px;
+      }
+      .basket-visual {
+        width: 270px;
+      }
+      .slot {
+        min-height: 40px;
+        font-size: 18px;
+        padding: 6px 12px;
+      }
+      .basket-label {
+        font-size: 18px;
+      }
+      .tip-bubble {
+        max-width: 190px;
+      }
+    } */
+
+    /* 1441px - 1920px */
+    @media (min-width: 1441px) and (max-width: 1920px) {
+      .app {
+        max-width: 1300px;
+        
+      }
+      .top-bar {
+        gap: 80px;
+      }
+      .instructions {
+        font-size: 25px;
+      }
+      .badge {
+        font-size: 19px;
+        padding: 12px 26px;
+      }
+      .clue-sign {
+        width: 110px;
+      }
+      .sign-board {
+        width: 110px;
+        font-size: 17px;
+        padding: 14px 8px;
+      }
+      .sign-post {
+        width: 12px;
+        height: 30px;
+      }
+      .clue-box {
+        padding: 10px 20px 10px 90px;
+        gap: 12px 24px;
+        border-radius: 26px;
+       
+      }
+      .clue-word {
+        font-size: 30px;
+        padding: 4px 8px;
+        width:170px;
+        text-align:center;
+      }
+      .clue-word::before {
+        font-size: 14px;
+      }
+      .stage {
+        gap: 50px;
+      }
+      .basket-visual {
+        width: 500px;
+      }
+      .slot {
+        min-height: 54px;
+        font-size: 30px;
+        padding: 8px 24px;
+        border-radius: 22px;
+      }
+      .slot-divider {
+        font-size: 17px;
+      }
+      .basket-label {
+        font-size: 20px;
+        padding: 10px 28px;
+        border-radius: 34px;
+      }
+      .tip-bubble {
+        max-width: 210px;
+        padding: 18px 22px;
+        border-radius: 24px;
+      }
+      .tip-title {
+        font-size: 17px;
+      }
+      .tip-bubble p {
+        font-size: 15px;
+      }
+       .controls button {
+                font-size: 22px;
+                padding: 15px 40px;
+            }
+    
+    }
+
+    /* 1921px+ */
+    @media (min-width: 1921px) {
+      .app {
+        max-width: 1200px;
+        padding: 30px;
+      }
+      .top-bar {
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+      .instructions {
+        font-size: 20px;
+      }
+      .badge {
+        font-size: 22px;
+        padding: 14px 32px;
+        border-radius: 36px;
+      }
+      .clue-sign {
+        width: 120px;
+      }
+      .sign-board {
+        width: 120px;
+        font-size: 18px;
+        padding: 16px 10px;
+        border-radius: 12px;
+      }
+      .sign-post {
+        width: 14px;
+        height: 34px;
+      }
+      .clue-box {
+        padding: 24px 28px;
+        gap: 14px 28px;
+        border-radius: 30px;
+        border-width: 4px;
+      }
+      .clue-word {
+        font-size: 20px;
+        padding: 4px 10px;
+        border-radius: 12px;
+        gap: 8px;
+      }
+      .clue-word::before {
+        font-size: 15px;
+      }
+      .stage {
+        gap: 60px;
+        margin-bottom: 40px;
+      }
+      .basket-visual {
+        width: 320px;
+      }
+      .basket-slots {
+        gap: 8px;
+      }
+      .slot {
+        min-height: 50px;
+        font-size: 22px;
+        padding: 8px 16px;
+        border-radius: 26px;
+        border-width: 3px;
+      }
+      .slot-divider {
+        font-size: 20px;
+      }
+      .basket-label {
+        font-size: 22px;
+        padding: 12px 32px;
+        border-radius: 38px;
+        border-width: 3px;
+      }
+      .tip-bubble {
+        max-width: 240px;
+        padding: 20px 24px;
+        border-radius: 28px;
+      }
+      .tip-title {
+        font-size: 18px;
+      }
+      .tip-bubble p {
+        font-size: 16px;
+      }
+      .nav-btn {
+        font-size: 20px;
+        padding: 16px 34px;
+        border-radius: 38px;
+      }
+      .kid-card {
+        width: 440px;
+        padding: 38px 34px;
+        border-radius: 52px;
+      }
+      .kid-icon {
+        font-size: 5.4em;
+      }
+      .kid-card h3 {
+        font-size: 2.4em;
+      }
+      .kid-card p {
+        font-size: 1.2em;
+      }
+      .final-card {
+        width: 540px;
+        padding: 48px 44px;
+        border-radius: 44px;
+      }
+      .final-card h2 {
+        font-size: 36px;
+      }
+      #starsRow {
+        font-size: 36px;
+        margin: 16px 0;
+      }
+      .play-again-btn {
+        padding: 18px 44px;
+        font-size: 20px;
+        border-radius: 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="top-bar">
+    <button class="speaker-btn" id="speakerBtn" aria-label="Read instructions"></button>
+    <p class="instructions">Observe the words in the clue box. Each word has its opposite in the clue box. Put the word and its <b>opposite</b> in the same basket.</p>
+    <span class="badge">Antonyms</span>
+  </div>
+
+  <div class="clue-row">
+    <div class="clue-sign">
+      <div class="sign-board">Clue<br>Box</div>
+      <div class="sign-post"></div>
+    </div>
+    <div class="clue-box" id="clueBox"></div>
+  </div>
+
+  <div class="stage">
+    <div class="basket-column">
+      <div class="basket-visual" id="basketVisual">
+        <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="weave" width="18" height="14" patternUnits="userSpaceOnUse">
+              <rect width="18" height="7" fill="#d69a55"/>
+              <rect y="7" width="18" height="7" fill="#c1813c"/>
+              <line x1="0" y1="0" x2="0" y2="14" stroke="#a8672c" stroke-width="1" opacity="0.5"/>
+              <line x1="9" y1="0" x2="9" y2="14" stroke="#a8672c" stroke-width="1" opacity="0.3"/>
+            </pattern>
+          </defs>
+          <path d="M95,118 C95,32 205,32 205,118" fill="none" stroke="#8a5a2b" stroke-width="16" stroke-linecap="round"/>
+          <path d="M95,118 C95,32 205,32 205,118" fill="none" stroke="#a5692f" stroke-width="7" stroke-linecap="round"/>
+          <path d="M55,120 L245,120 L214,266 Q150,280 86,266 Z" fill="url(#weave)" stroke="#8a5a2b" stroke-width="5" stroke-linejoin="round"/>
+          <rect x="47" y="104" width="206" height="28" rx="14" fill="#c1813c" stroke="#8a5a2b" stroke-width="4"/>
+          <g transform="translate(150,30)">
+            <path d="M0,0 L-28,-15 Q-40,-8 -35,4 Q-29,14 -3,7 Z" fill="#6fbf4a" stroke="#4f9032" stroke-width="2"/>
+            <path d="M0,0 L28,-15 Q40,-8 35,4 Q29,14 3,7 Z" fill="#6fbf4a" stroke="#4f9032" stroke-width="2"/>
+            <circle cx="0" cy="0" r="7" fill="#5aa93b" stroke="#4f9032" stroke-width="2"/>
+          </g>
+        </svg>
+        <div class="basket-slots">
+          <div class="slot" id="slot1"></div>
+          <div class="slot-divider">×</div>
+          <div class="slot" id="slot2"></div>
+        </div>
+      </div>
+      <div class="basket-label" id="basketLabel">Basket 1</div>
+    </div>
+
+    <div class="tip-bubble">
+      <div class="tip-title">💡 Tip</div>
+      <p>Click a word to place it, or drag & drop into a slot.</p>
+    </div>
+  </div>
+ <div class="controls">
+            <button class="prev" id="prevBtn"><i class="fa-solid fa-angles-left"></i> Prev</button>
+            <button class="next" id="nextBtn">Next <i class="fa-solid fa-angles-right"></i></button>
+        </div>
+
+</div>
+
+<!-- ===== POPUPS ===== -->
+<div id="answerPopup" class="kid-popup">
+  <div class="kid-card">
+    <div class="kid-icon" id="popupIcon">🌟</div>
+    <h3 id="popupTitle">Great!</h3>
+    <p id="popupMsg">You got it right ✨</p>
+  </div>
+</div>
+
+<div class="final-popup" id="finalPopup">
+  <div class="final-card">
+    <h2>🎉 Congratulations!</h2>
+    <p id="finalScoreText"></p>
+    <div id="starsRow"></div>
+    <button class="play-again-btn" onclick="location.reload()">Play Again</button>
+  </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+(function () {
+  // ============================
+  // DATA
+  // ============================
+  const antonymPairs = [
+    ['protect', 'harm'],
+    ['idle', 'busy'],
+    ['forget', 'remember'],
+    ['wise', 'foolish'],
+    ['sadly', 'happily']
+  ];
+  const clueWords = ['protect', 'idle', 'harm', 'forget', 'busy', 'remember', 'wise', 'sadly', 'foolish', 'happily'];
+
+  // ============================
+  // DOM REFS
+  // ============================
+  const clueBox = document.getElementById('clueBox');
+  const slot1 = document.getElementById('slot1');
+  const slot2 = document.getElementById('slot2');
+  const basketVisual = document.getElementById('basketVisual');
+  const basketLabel = document.getElementById('basketLabel');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const speakerBtn = document.getElementById('speakerBtn');
+  const finalPopup = document.getElementById('finalPopup');
+  const finalScoreText = document.getElementById('finalScoreText');
+  const starsRow = document.getElementById('starsRow');
+  const correctSound = document.getElementById('correctSound');
+  const wrongSound = document.getElementById('wrongSound');
+  const popupOverlay = document.getElementById('answerPopup');
+  const popupIcon = document.getElementById('popupIcon');
+  const popupTitle = document.getElementById('popupTitle');
+  const popupMsg = document.getElementById('popupMsg');
+
+  // ============================
+  // STATE
+  // ============================
+  let current = 0;
+  const baskets = antonymPairs.map(() => ({
+  filled: [null, null],
+  solved: false,
+  pairIndex: null
+}));
+  let dragData = null;
+
+  // ============================
+  // HELPERS
+  // ============================
+  function solvedWordsSet() {
+  const usedWords = new Set();
+
+  baskets.forEach(basket => {
+    if (basket.solved && basket.pairIndex !== null) {
+      const pair = antonymPairs[basket.pairIndex];
+
+      usedWords.add(pair[0]);
+      usedWords.add(pair[1]);
+    }
+  });
+
+  return usedWords;
+}
+
+  function speak(text) {
+    if (!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = 'en-US';
+    msg.rate = 0.95;
+    speechSynthesis.speak(msg);
+  }
+
+  function smallConfetti() {
+    if (window.confetti) confetti({ particleCount: 60, spread: 75, origin: { y: 0.6 } });
+  }
+
+  function bigConfetti() {
+    if (!window.confetti) return;
+    confetti({ particleCount: 200, spread: 110, origin: { y: 0.5 } });
+    setTimeout(() => {
+      confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.2 } });
+      confetti({ particleCount: 120, spread: 130, origin: { y: 0.4, x: 0.8 } });
+    }, 150);
+  }
+
+  // ============================
+  // POPUP
+  // ============================
+  function showPopup(isCorrect) {
+    popupOverlay.className = 'kid-popup ' + (isCorrect ? 'kid-correct' : 'kid-wrong');
+    popupOverlay.style.display = 'flex';
+
+    if (isCorrect) {
+      popupIcon.textContent = '🌟';
+      popupTitle.textContent = 'Amazing!';
+      popupMsg.textContent = 'You got it right! ✨';
+    } else {
+      popupIcon.textContent = '😒';
+      popupTitle.textContent = 'Keep Going!';
+      popupMsg.textContent = 'Try again, you can do it! 🌈';
+    }
+
+    setTimeout(() => {
+      popupOverlay.style.display = 'none';
+    }, 1400);
+  }
+
+  // ============================
+  // CHECK LOGIC (auto-triggered)
+  // ============================
+ function checkBasket() {
+  const state = baskets[current];
+
+  if (state.solved) return;
+
+  const [w1, w2] = state.filled;
+
+  if (!w1 || !w2) return;
+
+  // Find ANY valid antonym pair matching these two words
+  const matchedPairIndex = antonymPairs.findIndex(pair =>
+    (pair[0] === w1 && pair[1] === w2) ||
+    (pair[0] === w2 && pair[1] === w1)
+  );
+
+  // Check if this pair is valid AND has not already been used
+  const pairAlreadyUsed = baskets.some(
+    basket => basket.solved && basket.pairIndex === matchedPairIndex
+  );
+
+  if (matchedPairIndex !== -1 && !pairAlreadyUsed) {
+
+    // CORRECT
+    state.solved = true;
+
+    // Remember which antonym pair was used in this basket
+    state.pairIndex = matchedPairIndex;
+
+    correctSound.play().catch(() => {});
+    speak('Correct!');
+    smallConfetti();
+    showPopup(true);
+
+    renderAll();
+
+    if (baskets.every(b => b.solved)) {
+      setTimeout(showFinal, 900);
+    }
+
+  } else {
+
+    // WRONG
+    slot1.classList.add('wrong');
+    slot2.classList.add('wrong');
+
+    wrongSound.play().catch(() => {});
+    speak('Try again');
+    showPopup(false);
+
+    setTimeout(() => {
+      slot1.classList.remove('wrong');
+      slot2.classList.remove('wrong');
+
+      state.filled = [null, null];
+
+      renderAll();
+    }, 650);
+  }
+}
+  // ============================
+  // RENDER
+  // ============================
+ function renderClueBox() {
+  clueBox.innerHTML = '';
+
+  // Words belonging to ANY already completed pair
+  const usedWords = solvedWordsSet();
+
+  // Words currently sitting in the visible basket
+  const currentFilled = baskets[current].filled;
+
+  clueWords.forEach(word => {
+    const span = document.createElement('span');
+
+    span.className = 'clue-word';
+    span.textContent = word;
+
+    // ---------------------------------
+    // 1. Previously correctly used word
+    // ---------------------------------
+    if (usedWords.has(word)) {
+      span.classList.add('used');
+      span.draggable = false;
+
+      // IMPORTANT:
+      // don't attach click/drag events
+      clueBox.appendChild(span);
+      return;
+    }
+
+    // ---------------------------------
+    // 2. Word currently selected
+    // ---------------------------------
+    if (currentFilled.includes(word)) {
+      span.classList.add('selected');
+    }
+
+    // ---------------------------------
+    // 3. Every other unused word works
+    // ---------------------------------
+    span.draggable = true;
+
+    span.addEventListener('click', () => {
+      onWordClick(word);
+    });
+
+    span.addEventListener('dragstart', (e) => {
+      onDragStart(e, word, span);
+    });
+
+    span.addEventListener('dragend', (e) => {
+      onDragEnd(e);
+    });
+
+    clueBox.appendChild(span);
+  });
+}
+
+  function renderBasket() {
+    const state = baskets[current];
+    basketLabel.textContent = state.solved ? 'Basket ' + (current + 1) + ' ✓' : 'Basket ' + (current + 1);
+    basketLabel.classList.toggle('solved', state.solved);
+
+    [slot1, slot2].forEach((el, i) => {
+      el.classList.remove('correct', 'wrong', 'filled', 'drag-over');
+      const w = state.filled[i];
+      el.textContent = w || '';
+      if (w) el.classList.add('filled');
+      if (state.solved) el.classList.add('correct');
+    });
+
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = !state.solved;
+    // nextBtn.textContent = current === antonymPairs.length - 1 ? 'Finish 🎉' : 'Next →';
+  }
+
+  function renderAll() {
+    renderClueBox();
+    renderBasket();
+  }
+
+  // ============================
+  // WORD CLICK
+  // ============================
+  function onWordClick(word) {
+    const state = baskets[current];
+    if (state.solved) return;
+    const solvedWords = solvedWordsSet();
+    if (solvedWords.has(word)) return;
+
+    const idx = state.filled.indexOf(word);
+    if (idx !== -1) {
+      state.filled[idx] = null;
+      renderAll();
+      return;
+    }
+    const emptyIdx = state.filled.indexOf(null);
+    if (emptyIdx === -1) return;
+    state.filled[emptyIdx] = word;
+    renderAll();
+    if (state.filled.every(w => w !== null)) {
+      setTimeout(checkBasket, 200);
+    }
+  }
+
+  // ============================
+  // DRAG & DROP
+  // ============================
+  function onDragStart(e, word, element) {
+    const state = baskets[current];
+    if (state.solved) return;
+    const solvedWords = solvedWordsSet();
+    if (solvedWords.has(word)) {
+      e.preventDefault();
+      return;
+    }
+    dragData = { word, element };
+    element.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'copy';
+    e.dataTransfer.setData('text/plain', word);
+  }
+
+  function onDragEnd(e) {
+    if (dragData) {
+      dragData.element.classList.remove('dragging');
+      dragData = null;
+    }
+    document.querySelectorAll('.slot').forEach(el => el.classList.remove('drag-over'));
+  }
+
+  function setupDropTargets() {
+    [slot1, slot2].forEach(slot => {
+      slot.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        if (!slot.classList.contains('filled')) {
+          slot.classList.add('drag-over');
+        }
+      });
+      slot.addEventListener('dragleave', () => {
+        slot.classList.remove('drag-over');
+      });
+      slot.addEventListener('drop', (e) => {
+        e.preventDefault();
+        slot.classList.remove('drag-over');
+        const word = e.dataTransfer.getData('text/plain');
+        if (!word) return;
+        const state = baskets[current];
+        if (state.solved) return;
+        const solvedWords = solvedWordsSet();
+        if (solvedWords.has(word)) return;
+
+        const slotIndex = slot === slot1 ? 0 : 1;
+        if (state.filled[slotIndex] !== null) {
+          const existingWord = state.filled[slotIndex];
+          state.filled[slotIndex] = null;
+          const otherIdx = slotIndex === 0 ? 1 : 0;
+          if (state.filled[otherIdx] === existingWord) state.filled[otherIdx] = null;
+        }
+        const otherIdx = slotIndex === 0 ? 1 : 0;
+        if (state.filled[otherIdx] === word) state.filled[otherIdx] = null;
+
+        state.filled[slotIndex] = word;
+        renderAll();
+        if (state.filled.every(w => w !== null)) {
+          setTimeout(checkBasket, 200);
+        }
+      });
+    });
+  }
+
+  basketVisual.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  });
+
+  basketVisual.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const word = e.dataTransfer.getData('text/plain');
+    if (!word) return;
+    const state = baskets[current];
+    if (state.solved) return;
+    const solvedWords = solvedWordsSet();
+    if (solvedWords.has(word)) return;
+
+    const emptyIdx = state.filled.indexOf(null);
+    if (emptyIdx === -1) return;
+    const otherIdx = emptyIdx === 0 ? 1 : 0;
+    if (state.filled[otherIdx] === word) state.filled[otherIdx] = null;
+    state.filled[emptyIdx] = word;
+    renderAll();
+    if (state.filled.every(w => w !== null)) {
+      setTimeout(checkBasket, 200);
+    }
+  });
+
+  // ============================
+  // FINAL
+  // ============================
+  function showFinal() {
+    const score = baskets.filter(b => b.solved).length;
+    finalScoreText.textContent = 'Your Score: ' + score + ' / ' + antonymPairs.length;
+    starsRow.textContent = '⭐'.repeat(score);
+    finalPopup.classList.add('show');
+    bigConfetti();
+  }
+
+  // ============================
+  // NAVIGATION
+  // ============================
+  prevBtn.addEventListener('click', () => {
+    if (current === 0) return;
+    if (!baskets[current].solved) baskets[current].filled = [null, null];
+    current--;
+    renderAll();
+  });
+
+  nextBtn.addEventListener('click', () => {
+    if (!baskets[current].solved) return;
+    if (current === antonymPairs.length - 1) { showFinal(); return; }
+    current++;
+    renderAll();
+  });
+
+  speakerBtn.addEventListener('click', () => {
+    speak('Observe the words in the clue box. Each word has its opposite in the clue box. Put the word and its opposite in the same basket.');
+  });
+
+  // ============================
+  // INIT
+  // ============================
+  setupDropTargets();
+  renderAll();
+})();
+</script>
+</body>
+</html>

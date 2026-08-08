@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Antonyms Worksheet Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman";
+            font-weight: 400;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .quiz {
+            width: 100%;
+            max-width: 900px;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            position: relative;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .question-box {
+            width: 100%;
+            border-radius: 20px;
+            font-size: 26px;
+            font-weight: 400;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: left;
+            color: #2f4f4f;
+        }
+
+        .words-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border: 1px solid #199b9b;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #fff;
+            width: 100%;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        .grid-cell {
+            border: 1px solid #199b9b;
+            padding: 14px 15px;
+            font-size: 24px;
+            text-align: left;
+            color: #333;
+            text-transform: capitalize;
+        }
+
+        .bg-tint {
+            background-color: #ffebd2;
+        }
+
+        .answers-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            width: 100%;
+            max-width: 850px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .quiz-page {
+            display: none;
+            width: 100%;
+        }
+
+        .quiz-page.active-page {
+            display: block;
+        }
+
+        .pair-card {
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border: 2px solid #02a597;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .row-num,
+        .row-word {
+            display: flex;
+            width: 100%;
+        }
+
+        .row-num {
+            /* border-bottom: 2px solid #444; */
+            background: #fdfdfd;
+        }
+
+        .cell-half {
+            width: 50%;
+            text-align: center;
+            padding: 10px 5px;
+            font-size: clamp(18px, 2vw, 26px);
+            color: #555;
+        }
+
+        .cell-half:first-child {
+            border-right: 2px solid #02a597;
+        }
+
+        .row-word .cell-half {
+            padding: 14px 8px;
+            font-size: clamp(18px, 2vw, 26px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 75px;
+            text-transform: capitalize;
+        }
+
+        .row-word .cell-half.fixed-text {
+            color: #000;
+        }
+
+        .input-box {
+            width: 50%;
+            height: 50px;
+            padding: 4px;
+            font-size: 26px;
+            font-weight: 600;
+            border: none;
+            border: 2px solid #00ada5;
+            border-radius: 10px;
+            background: transparent;
+            text-align: center;
+            color: #2f4f4f;
+            outline: none;
+            position: relative;
+        }
+
+        .input-box:focus {
+            border-color: #f6b84c;
+        }
+
+        .input-box:disabled {
+            border: 2px solid #0f9941;
+            color: #2f4f4f;
+            pointer-events: none;
+            text-transform: capitalize;
+        }
+
+        .input-box.wrong {
+            animation: softBlink .6s ease;
+        }
+
+        @keyframes softBlink {
+
+            0%,
+            100% {
+                border-color: #FF8F8F;
+                color: #ef5350;
+            }
+        }
+
+        .input-hint {
+            position: absolute;
+            background: #ffffff;
+            border: 2px solid #03ad66;
+            color: #000;
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-size: 18px;
+            white-space: nowrap;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transform: translateY(-8px) scale(.8);
+
+            transition: .28s ease;
+
+            z-index: 9999;
+        }
+
+        .input-hint.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .input-hint::before {
+            content: "";
+            position: absolute;
+            top: -6px;
+            left: 24px;
+
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 6px solid #03ad66;
+        }
+
+        /* ---- SEPARATOR LINE ABOVE CHECK BUTTON ---- */
+        .check-btn-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f9f9f9;
+            border-top: 2px solid #02a597;
+            padding: 12px 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        .check-btn-wrapper .label-badge {
+            display: inline-block;
+            background: #e8e8e8;
+            color: #444;
+            font-size: clamp(14px, 1.4vw, 18px);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            padding: 4px 18px;
+            border-radius: 20px;
+            margin-bottom: 8px;
+            border: 1px solid #ccc;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .check-btn {
+            background: #21ce94;
+            border: none;
+            width: 100px;
+            height: 40px;
+            border-radius: 15px;
+            color: white;
+            font-size: 20px;
+            font-weight: 400;
+            cursor: pointer;
+            box-shadow: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .check-btn:hover:not(:disabled) {
+            background: #15b884;
+            transform: scale(1.05);
+        }
+
+        .check-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.3;
+            /* background: #cbd5e1; */
+            transform: none;
+        }
+
+        .check-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        /* Example style – non‑clickable badge */
+        .example-badge {
+            /* background: #eef2f7;
+            border: 2px solid #b0b8c4;
+            border-radius: 30px; */
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: clamp(18px, 1.8vw, 24px);
+            font-weight: 600;
+            color: #2c3e50;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.04);
+            letter-spacing: 0.3px;
+            cursor: default;
+        }
+
+        .example-badge i {
+            color: #27ae60;
+            font-size: clamp(18px, 1.6vw, 24px);
+        }
+
+        .navigation-wrapper {
+            width: 80%;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nav-btn {
+            width: 140px;
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            border-radius: 18px;
+            border: none;
+            font-size: 20px;
+            font-weight: 500;
+            color: #fff;
+            cursor: pointer;
+            transition: .25s;
+        }
+
+        #prevPageBtn {
+            background: linear-gradient(135deg, #67b8ff, #74b2ff);
+        }
+
+        #nextPageBtn {
+            background: linear-gradient(135deg, #ffd86f, #ffb300);
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            filter: brightness(1.05);
+        }
+
+        .nav-btn:active:not(:disabled) {
+            transform: scale(.96);
+        }
+
+        .nav-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== POPUPS ===== */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #ffffff;
+            width: 300px;
+            border-radius: 28px;
+            padding: 0;
+            text-align: center;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 4px 10px rgba(0, 0, 0, 0.03), 0 14px 28px rgba(26, 26, 46, 0.08), 0 30px 60px rgba(26, 26, 46, 0.12), 0 60px 100px rgba(26, 26, 46, 0.14);
+            animation: popupSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes popupSlide {
+            0% {
+                transform: scale(0.5) translateY(60px) rotate(-5deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.05) translateY(-8px) rotate(2deg);
+            }
+
+            100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .popup-top {
+            padding: 35px 24px 20px;
+            position: relative;
+        }
+
+        .popup.correct .popup-top {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        }
+
+        .popup.wrong .popup-top {
+            background: linear-gradient(135deg, #fbe9e7, #ffccbc);
+        }
+
+        .popup.final .popup-top {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .popup-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .popup.correct .popup-icon-wrap {
+            background: #4caf50;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowGreen 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.wrong .popup-icon-wrap {
+            background: #ef5350;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowRed 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.final .popup-icon-wrap {
+            background: #ffffff;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowWarm 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowGreen {
+            0% {
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+            }
+        }
+
+        @keyframes glowRed {
+            0% {
+                box-shadow: 0 0 20px rgba(239, 83, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(239, 83, 80, 0.6);
+            }
+        }
+
+        @keyframes glowWarm {
+            0% {
+                box-shadow: 0 0 5px rgba(172, 172, 172, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(163, 163, 163, 0.432);
+            }
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0) rotate(-30deg);
+            }
+
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .popup-icon-wrap span {
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-bottom {
+            padding: 18px 24px 22px;
+            background: #fff;
+        }
+
+        .popup.correct .popup-bottom {
+            border-top: 2px solid #c8e6c9;
+        }
+
+        .popup.wrong .popup-bottom {
+            border-top: 2px solid #ffccbc;
+        }
+
+        .popup.final .popup-bottom {
+            border-top: 2px solid #ffe0b2;
+        }
+
+        .popup-msg {
+            font-size: 20px;
+            font-weight: 500;
+            color: #5a5270;
+            line-height: 1.4;
+        }
+
+        .popup-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2a4a;
+            margin-bottom: 8px;
+        }
+
+        .popup-stars {
+            font-size: 34px;
+            letter-spacing: 6px;
+            animation: starDance 0.8s ease;
+            margin-bottom: 12px;
+        }
+
+        @keyframes starDance {
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .play-again-popup {
+            background: linear-gradient(135deg, #ff922b, #f76707);
+            color: #fff;
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+        }
+
+        .play-again-popup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(247, 103, 7, 0.45);
+        }
+
+        .play-again-popup:active {
+            transform: translateY(0);
+        }
+
+        /* =================================
+           MEDIA QUERIES – EXACT MATCH from reference code
+        ================================= */
+        @media (max-width: 900px) {
+            body {
+                padding: 20px;
+                overflow: auto;
+                height: 100vh;
+                align-items: center;
+            }
+
+            .quiz {
+                width: 100%;
+                max-width: 700px;
+                padding: 16px;
+                margin-top: 20px;
+            }
+
+            .question-box {
+                font-size: 30px;
+                height: auto;
+                padding: 18px;
+                margin-top: 20px;
+                text-align: left;
+            }
+
+            .answers-container {
+                gap: 20px;
+            }
+
+            .words-grid {
+                max-width: 100%;
+            }
+
+            .grid-cell {
+                font-size: clamp(14px, 2.2vw, 20px);
+                padding: 12px 12px;
+            }
+
+            .cell-half {
+                font-size: clamp(16px, 2vw, 22px);
+            }
+
+            .row-word .cell-half {
+                font-size: clamp(16px, 2vw, 22px);
+                min-height: 65px;
+            }
+
+            .input-box {
+                font-size: clamp(18px, 2.4vw, 24px);
+                padding: 8px 6px;
+            }
+
+            .navigation-wrapper {
+                gap: 100px;
+                padding: 0 20px;
+                margin-top: 24px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .nav-btn {
+                width: 140px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .popup {
+                width: 320px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 30px 0px 10px;
+                align-items: flex-start;
+                overflow-y: auto;
+            }
+
+            .quiz {
+                width: 100%;
+                max-width: 700px;
+                padding: 14px;
+                margin-top: 20px;
+            }
+
+            .question-box {
+                font-size: 30px;
+                padding: 16px;
+                margin-top: 10px;
+                text-align: left;
+            }
+
+            .answers-container {
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+
+            .words-grid {
+                max-width: 100%;
+            }
+
+            .grid-cell {
+                font-size: clamp(13px, 2vw, 18px);
+                padding: 10px 10px;
+            }
+
+            .cell-half {
+                font-size: clamp(15px, 1.8vw, 20px);
+            }
+
+            .row-word .cell-half {
+                font-size: clamp(15px, 1.8vw, 20px);
+                min-height: 60px;
+            }
+
+            .input-box {
+                font-size: clamp(16px, 2.2vw, 22px);
+                padding: 8px 6px;
+            }
+
+            .navigation-wrapper {
+                gap: 50px;
+                margin-top: 16px;
+                padding: 0 10px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .nav-btn {
+                width: 130px;
+                height: 48px;
+                font-size: 18px;
+            }
+
+            .popup {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 50px 0px 10px;
+                align-items: flex-start;
+                overflow-y: auto;
+            }
+
+            .quiz {
+                padding: 10px;
+                margin-top: 10px;
+            }
+
+            .question-box {
+                font-size: 22px;
+                padding: 14px;
+                margin-top: 10px;
+            }
+
+            .answers-container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .words-grid {
+                max-width: 100%;
+            }
+
+            .grid-cell {
+                font-size: clamp(12px, 2.6vw, 16px);
+                padding: 8px 8px;
+            }
+
+            .cell-half {
+                font-size: clamp(14px, 2.4vw, 18px);
+                padding: 8px 4px;
+            }
+
+            .row-word .cell-half {
+                font-size: clamp(14px, 2.4vw, 18px);
+                min-height: 55px;
+                padding: 10px 4px;
+            }
+
+            .input-box {
+                font-size: clamp(16px, 3.2vw, 20px);
+                padding: 6px 4px;
+                width: 95%;
+            }
+
+            .navigation-wrapper {
+                gap: 30px;
+                padding: 0 5px;
+                margin-top: 12px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .nav-btn {
+                width: 120px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .popup {
+                width: 260px;
+            }
+
+            .popup-icon-wrap {
+                width: 75px;
+                height: 75px;
+                font-size: 40px;
+            }
+
+            .popup-title {
+                font-size: 22px;
+            }
+
+            .check-btn {
+                width: 90px;
+                height: 44px;
+                font-size: 18px;
+            }
+
+            .example-badge {
+                font-size: clamp(14px, 2.8vw, 18px);
+                padding: 6px 16px;
+            }
+        }
+
+        @media screen and (min-width: 1025px) and (max-width: 1440px) {
+            .quiz {
+                max-width: 1100px;
+                padding: 24px;
+            }
+
+            .question-box {
+                font-size: 30px;
+                height: auto;
+                padding: 18px;
+            }
+
+            .words-grid {
+                max-width: 650px;
+            }
+
+            .grid-cell {
+                font-size: 24px;
+            }
+
+            .answers-container {
+                max-width: 950px;
+                gap: 30px;
+            }
+
+            .cell-half {
+                font-size: 24px;
+            }
+
+            .input-box {
+                font-size: 24px;
+            }
+
+            .navigation-wrapper {
+                gap: 180px;
+                width: 80%;
+            }
+
+            .nav-btn {
+                width: 150px;
+                height: 55px;
+                font-size: 20px;
+            }
+        }
+
+        @media screen and (min-width: 1441px) and (max-width: 1920px) {
+            .quiz {
+                max-width: 1200px;
+                padding: 28px;
+            }
+
+            .question-box {
+                font-size: 40px;
+                height: auto;
+                padding: 20px;
+            }
+
+            .words-grid {
+                max-width: 700px;
+            }
+
+            .grid-cell {
+                font-size: 26px;
+                padding: 18px 12px;
+            }
+
+            .answers-container {
+                max-width: 1050px;
+                gap: 35px;
+            }
+
+            .cell-half {
+                font-size: 26px;
+            }
+
+            .input-box {
+                font-size: 26px;
+            }
+
+            .navigation-wrapper {
+                gap: 180px;
+                width: 70%;
+            }
+
+            .nav-btn {
+                width: 160px;
+                height: 58px;
+                font-size: 22px;
+            }
+
+            .popup {
+                width: 320px;
+            }
+        }
+
+        @media screen and (min-width: 1921px) {
+            .quiz {
+                max-width: 1400px;
+                padding: 32px;
+            }
+
+            .question-box {
+                font-size: 40px;
+                height: auto;
+                padding: 22px;
+            }
+
+            .words-grid {
+                max-width: 800px;
+            }
+
+            .grid-cell {
+                font-size: 26px;
+                padding: 20px 14px;
+            }
+
+            .answers-container {
+                max-width: 1200px;
+                gap: 40px;
+            }
+
+            .cell-half {
+                font-size: 26px;
+            }
+
+            .input-box {
+                font-size: 28px;
+            }
+
+            .navigation-wrapper {
+                gap: 200px;
+                width: 70%;
+            }
+
+            .nav-btn {
+                width: 170px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .popup {
+                width: 90%;
+                max-width: 320px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz">
+        <div class="question-box" id="question">
+            Each word below is assigned a number. Write the number of the coloured word and the number of its antonym.
+            One is done for you.
+        </div>
+
+        <div class="words-grid">
+            <div class="grid-cell bg-tint">1. rare</div>
+            <div class="grid-cell">2. huge</div>
+            <div class="grid-cell bg-tint">3. difficult</div>
+            <div class="grid-cell bg-tint">4. soft</div>
+            <div class="grid-cell bg-tint">5. brave</div>
+            <div class="grid-cell">6. sadness</div>
+            <div class="grid-cell">7. easy</div>
+            <div class="grid-cell">8. common</div>
+            <div class="grid-cell">9. timid</div>
+            <div class="grid-cell bg-tint">10. happiness</div>
+            <div class="grid-cell">11. hard</div>
+            <div class="grid-cell bg-tint">12. small</div>
+        </div>
+
+        <!-- PAGE 1 -->
+        <div class="quiz-page active-page" id="page-1">
+            <div class="answers-container">
+
+                <!-- Example -->
+                <!-- Example -->
+                <div class="pair-card">
+                    <div class="row-num">
+                        <div class="cell-half">
+                            <input type="text" class="input-box" value="1" disabled>
+                        </div>
+
+                        <div class="cell-half">
+                            <input type="text" class="input-box" value="8" disabled>
+                        </div>
+                    </div>
+
+                    <div class="row-word">
+                        <div class="cell-half fixed-text">Rare</div>
+                        <div class="cell-half fixed-text">Common</div>
+                    </div>
+
+                    <div class="check-btn-wrapper">
+                        <div class="example-badge">
+                            <i class="fa-regular fa-pen-to-square"></i> Example
+                        </div>
+                    </div>
+                </div>
+                <!-- Pair 1 -->
+                <div class="pair-card" data-pair="1">
+                    <div class="row-num">
+                        <div class="cell-half">
+                            <input type="text" class="input-box" id="input-1-L" placeholder="?"
+                                oninput="toggleCheckBtn(1)">
+                        </div>
+
+                        <div class="cell-half">
+                            <input type="text" class="input-box" id="input-1-R" placeholder="?"
+                                oninput="toggleCheckBtn(1)">
+                        </div>
+                    </div>
+
+                    <div class="row-word">
+                        <div class="cell-half fixed-text">huge</div>
+                        <div class="cell-half fixed-text">small</div>
+                    </div>
+
+                    <div class="check-btn-wrapper">
+                        <button class="check-btn" id="btn-1" onclick="verifyPair(1,'2','12')" disabled>Check</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGE 2 -->
+        <div class="quiz-page" id="page-2">
+            <div class="answers-container">
+
+                <div class="pair-card" data-pair="2">
+                    <div class="row-num">
+                        <div class="cell-half">
+                            <input type="text" class="input-box" id="input-2-L" placeholder="?"
+                                oninput="toggleCheckBtn(2)">
+                        </div>
+
+                        <div class="cell-half">
+                            <input type="text" class="input-box" id="input-2-R" placeholder="?"
+                                oninput="toggleCheckBtn(2)">
+                        </div>
+                    </div>
+
+                    <div class="row-word">
+                        <div class="cell-half fixed-text">difficult</div>
+                        <div class="cell-half fixed-text">easy</div>
+                    </div>
+
+                    <div class="check-btn-wrapper">
+                        <button class="check-btn" id="btn-2" onclick="verifyPair(2,'3','7')" disabled>Check</button>
+                    </div>
+                </div>
+
+                <div class="pair-card" data-pair="3">
+                    <div class="row-num">
+                        <div class="cell-half">
+                            <input type="text" class="input-box" id="input-3-L" placeholder="?"
+                                oninput="toggleCheckBtn(3)">
+                        </div>
+
+                        <div class="cell-half">
+                            <input type="text" class="input-box" id="input-3-R" placeholder="?"
+                                oninput="toggleCheckBtn(3)">
+                        </div>
+                    </div>
+
+                    <div class="row-word">
+                        <div class="cell-half fixed-text">soft</div>
+                        <div class="cell-half fixed-text">hard</div>
+                    </div>
+
+                    <div class="check-btn-wrapper">
+                        <button class="check-btn" id="btn-3" onclick="verifyPair(3,'4','11')" disabled>Check</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGE 3 -->
+        <div class="quiz-page" id="page-3">
+            <div class="answers-container">
+
+                <div class="pair-card" data-pair="4">
+                    <div class="row-num">
+                        <div class="cell-half">
+                            <input type="text" class="input-box" id="input-4-L" placeholder="?"
+                                oninput="toggleCheckBtn(4)">
+                        </div>
+
+                        <div class="cell-half">
+                            <input type="text" class="input-box" id="input-4-R" placeholder="?"
+                                oninput="toggleCheckBtn(4)">
+                        </div>
+                    </div>
+
+                    <div class="row-word">
+                        <div class="cell-half fixed-text">brave</div>
+                        <div class="cell-half fixed-text">timid</div>
+                    </div>
+
+                    <div class="check-btn-wrapper">
+                        <button class="check-btn" id="btn-4" onclick="verifyPair(4,'5','9')" disabled>Check</button>
+                    </div>
+                </div>
+
+                <div class="pair-card" data-pair="5">
+                    <div class="row-num">
+                        <div class="cell-half">
+                            <input type="text" class="input-box" id="input-5-L" placeholder="?"
+                                oninput="toggleCheckBtn(5)">
+                        </div>
+
+                        <div class="cell-half">
+                            <input type="text" class="input-box" id="input-5-R" placeholder="?"
+                                oninput="toggleCheckBtn(5)">
+                        </div>
+                    </div>
+
+                    <div class="row-word">
+                        <div class="cell-half fixed-text">sadness</div>
+                        <div class="cell-half fixed-text">happiness</div>
+                    </div>
+
+                    <div class="check-btn-wrapper">
+                        <button class="check-btn" id="btn-5" onclick="verifyPair(5,'6','10')" disabled>Check</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation-wrapper">
+            <button class="nav-btn" id="prevPageBtn" onclick="changePage(-1)" disabled>
+                <i class="fa-solid fa-angles-left"></i> Prev
+            </button>
+
+            <button class="nav-btn" id="nextPageBtn" onclick="changePage(1)" disabled>
+                Next <i class="fa-solid fa-angles-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="inputHint" class="input-hint">
+        Enter digits only (0–9).
+    </div>
+
+    <!-- Popups -->
+    <div class="popup-overlay" id="answerPopup">
+        <div class="popup" id="popupBox"></div>
+    </div>
+    <div class="popup-overlay" id="finalPopup">
+        <div class="popup final" id="finalPopupBox"></div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+    <script>
+        (function () {
+            // ----- PAGE STATE -----
+            let currentPageIndex = 1;
+            const totalPages = 3;
+            let pairsSolved = 0;
+            const totalToSolve = 5;
+
+            // track which pair IDs are fully solved (disabled inputs + btn disabled)
+            const solvedPairs = new Set(); // stores pair id (1..5)
+
+            // ----- DOM refs -----
+            const prevBtn = document.getElementById('prevPageBtn');
+            const nextBtn = document.getElementById('nextPageBtn');
+
+            // ----- HELPER: check if all pairs on current page are solved -----
+            function isCurrentPageFullySolved() {
+                const activePage = document.querySelector('.quiz-page.active-page');
+                if (!activePage) return false;
+                const pairCards = activePage.querySelectorAll('.pair-card[data-pair]');
+                if (pairCards.length === 0) return false;
+                for (let card of pairCards) {
+                    const pairId = parseInt(card.dataset.pair, 10);
+                    if (!solvedPairs.has(pairId)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            // ----- update next button state based on current page -----
+            function updateNextButtonState() {
+                if (currentPageIndex === totalPages) {
+                    nextBtn.disabled = true;
+                    return;
+                }
+                const allSolved = isCurrentPageFullySolved();
+                nextBtn.disabled = !allSolved;
+            }
+
+            // ----- update prev button (standard) -----
+            function updatePrevButtonState() {
+                prevBtn.disabled = (currentPageIndex === 1);
+            }
+
+            // ----- called after any pair is solved or page changes -----
+            function refreshNavButtons() {
+                updatePrevButtonState();
+                updateNextButtonState();
+            }
+
+            // ----- CHANGE PAGE (same logic as MCQ) -----
+            window.changePage = function (direction) {
+                const oldPage = document.getElementById(`page-${currentPageIndex}`);
+                oldPage.classList.remove('active-page');
+
+                currentPageIndex += direction;
+                const newPage = document.getElementById(`page-${currentPageIndex}`);
+                newPage.classList.add('active-page');
+
+                refreshNavButtons();
+            };
+
+            // ----- TOGGLE CHECK BUTTON (enables Check when both inputs filled) -----
+            window.toggleCheckBtn = function (id) {
+                const inputL = document.getElementById(`input-${id}-L`);
+                const inputR = document.getElementById(`input-${id}-R`);
+                const btnElement = document.getElementById(`btn-${id}`);
+
+                // if already solved, keep disabled
+                if (solvedPairs.has(id)) {
+                    btnElement.disabled = true;
+                    return;
+                }
+
+                const valL = inputL.value.trim();
+                const valR = inputR.value.trim();
+                let canCheck = true;
+                if (valL === "") canCheck = false;
+                if (valR === "") canCheck = false;
+                btnElement.disabled = !canCheck;
+            };
+
+            // ----- POPUP (same as before) -----
+            function showPopup(isCorrect) {
+                const overlay = document.getElementById("answerPopup");
+                const popupBox = document.getElementById("popupBox");
+                overlay.className = 'popup-overlay show';
+                popupBox.className = 'popup ' + (isCorrect ? 'correct' : 'wrong');
+
+                if (isCorrect) {
+                    speak('Correct');
+                    smallConfetti();
+                    popupBox.innerHTML = `
+                        <div class="popup-top"><div class="popup-icon-wrap"><span>👍</span></div><div class="popup-title">Awesome</div></div>
+                        <div class="popup-bottom"><div class="popup-msg">You got it right! 🎉</div></div>
+                    `;
+                } else {
+                    speak('Try again');
+                    popupBox.innerHTML = `
+                        <div class="popup-top"><div class="popup-icon-wrap"><span>😔</span></div><div class="popup-title">Keep Trying</div></div>
+                        <div class="popup-bottom"><div class="popup-msg">Don't give up! 💪</div></div>
+                    `;
+                }
+                setTimeout(() => {
+                    overlay.classList.remove('show');
+                }, 1500);
+            }
+
+            function showFinalPopup() {
+                let end = Date.now() + (1.5 * 1000);
+                (function frame() {
+                    confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                    confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+
+                const finalOverlay = document.getElementById("finalPopup");
+                const finalBox = document.getElementById("finalPopupBox");
+                finalOverlay.className = 'popup-overlay show';
+                finalBox.className = 'popup final';
+                finalBox.innerHTML = `
+                    <div class="popup-top"><div class="popup-icon-wrap"><span>🏆</span></div><div class="popup-title">You Won!</div></div>
+                    <div class="popup-bottom">
+                        <div class="popup-score">Score: 5/5</div>
+                        <div class="popup-stars">⭐⭐⭐⭐⭐</div>
+                        <button class="play-again-popup" id="playAgainBtn">Play Again</button>
+                    </div>
+                `;
+                document.getElementById('playAgainBtn').addEventListener('click', () => {
+                    location.reload();
+                });
+            }
+
+            // ----- VERIFY PAIR (marks pair solved, updates nav) -----
+            window.verifyPair = function (id, targetLeft, targetRight) {
+                // if already solved, ignore
+                if (solvedPairs.has(id)) return;
+
+                const inputL = document.getElementById(`input-${id}-L`);
+                const inputR = document.getElementById(`input-${id}-R`);
+                const btnElement = document.getElementById(`btn-${id}`);
+
+                const userAnsL = inputL.value.trim().toLowerCase();
+                const userAnsR = inputR.value.trim().toLowerCase();
+
+                const isCorrectL = (userAnsL === targetLeft.toLowerCase());
+                const isCorrectR = (userAnsR === targetRight.toLowerCase());
+
+                if (isCorrectL && isCorrectR) {
+                    // correct: disable inputs, btn, mark solved
+                    inputL.disabled = true;
+                    inputR.disabled = true;
+                    btnElement.disabled = true;
+                    solvedPairs.add(id);
+
+                    showPopup(true);
+                    pairsSolved++;
+
+                    // refresh nav (enables next if page complete)
+                    refreshNavButtons();
+
+                    if (pairsSolved === totalToSolve) {
+                        setTimeout(showFinalPopup, 1600);
+                    }
+                } else {
+                    // wrong: show popup, handle partial correct
+                    showPopup(false);
+
+                    // left side
+                    if (isCorrectL && !inputL.disabled) {
+                        inputL.disabled = true;
+                    } else if (!inputL.disabled) {
+                        inputL.value = "";
+                        inputL.classList.add("wrong");
+                        setTimeout(() => inputL.classList.remove("wrong"), 700);
+                    }
+
+                    // right side
+                    if (isCorrectR && !inputR.disabled) {
+                        inputR.disabled = true;
+                    } else if (!inputR.disabled) {
+                        inputR.value = "";
+                        inputR.classList.add("wrong");
+                        setTimeout(() => inputR.classList.remove("wrong"), 700);
+                    }
+
+                    // disable check button so user must refill both
+                    btnElement.disabled = true;
+                    // but we do NOT mark solved
+                }
+            };
+
+            // ----- SPEECH / CONFETTI -----
+            function speak(t) {
+                window.speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(t);
+                msg.lang = "en-US";
+                msg.volume = 0.25;
+                msg.rate = 1;
+                window.speechSynthesis.speak(msg);
+            }
+
+            function smallConfetti() {
+                confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+            }
+
+            document.querySelectorAll(".input-box").forEach(input => {
+                input.addEventListener("input", function () {
+
+                    const original = this.value;
+
+                    const filtered = original.replace(/\D/g, "");
+
+                    if (original !== filtered) {
+
+                        showInputHint(this);
+
+                    }
+
+                    this.value = filtered.slice(0, 2);
+
+                });
+            });
+
+            // ----- INIT: set initial nav states -----
+            function init() {
+                // prev disabled on page 1
+                prevBtn.disabled = true;
+                // next disabled until all pairs on page 1 solved
+                nextBtn.disabled = true;
+
+                // ensure all check buttons start disabled
+                for (let i = 1; i <= 5; i++) {
+                    const btn = document.getElementById(`btn-${i}`);
+                    if (btn) btn.disabled = true;
+                }
+
+                // attach input events to re-evaluate next button when input changes
+                document.querySelectorAll('.input-box').forEach(inp => {
+                    inp.addEventListener('input', function () {
+                        const card = this.closest('.pair-card');
+                        if (card) {
+                            const pairId = parseInt(card.dataset.pair, 10);
+                            if (!solvedPairs.has(pairId)) {
+                                refreshNavButtons();
+                            }
+                        }
+                    });
+                });
+
+                // override changePage to call refresh
+                const origChange = window.changePage;
+                window.changePage = function (direction) {
+                    const oldPage = document.getElementById(`page-${currentPageIndex}`);
+                    oldPage.classList.remove('active-page');
+                    currentPageIndex += direction;
+                    const newPage = document.getElementById(`page-${currentPageIndex}`);
+                    newPage.classList.add('active-page');
+                    refreshNavButtons();
+                };
+
+                // initial refresh
+                refreshNavButtons();
+            }
+
+            // run init when DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+            // Apply numeric restriction to all input boxes
+            document.querySelectorAll(".input-box").forEach(input => {
+
+                input.setAttribute("inputmode", "numeric");
+                input.setAttribute("maxlength", "2");
+                input.setAttribute("autocomplete", "off");
+
+                input.addEventListener("dragover", e => e.preventDefault());
+
+                input.addEventListener("drop", e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+
+                input.addEventListener("input", function () {
+                    // Allow only digits and limit to 2 characters
+                    this.value = this.value.replace(/\D/g, "").slice(0, 2);
+                });
+
+                input.addEventListener("keydown", function (e) {
+
+                    if (e.key !== "Enter") return;
+
+                    e.preventDefault();
+
+                    const card = this.closest(".pair-card");
+                    if (!card) return;
+
+                    const pairId = card.dataset.pair;
+                    if (!pairId) return;   // Ignore the example row
+
+                    const btn = document.getElementById(`btn-${pairId}`);
+
+                    // Only check if the button is enabled
+                    if (btn && !btn.disabled) {
+                        btn.click();
+                    }
+
+                });
+            });
+
+            window.refreshNavButtons = refreshNavButtons;
+
+            const inputHint = document.getElementById("inputHint");
+
+            function showInputHint(input) {
+
+                const rect = input.getBoundingClientRect();
+
+                inputHint.style.left = rect.left + window.scrollX + "px";
+
+                inputHint.style.top =
+                    rect.bottom + window.scrollY + 10 + "px";
+
+                inputHint.classList.add("show");
+
+                clearTimeout(inputHint.timer);
+
+                inputHint.timer = setTimeout(() => {
+
+                    inputHint.classList.remove("show");
+
+                }, 1500);
+
+            }
+        })();
+    </script>
+
+</body>
+
+</html>

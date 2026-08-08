@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Antonyms · Match</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @font-face {
+            font-family: 'CCSyntroman';
+            src: url('../assets/CCSYNTRO.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "CCSyntroman";
+            font-weight: 400;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 50px;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .stage {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            position: relative;
+        }
+
+        .main-heading {
+            width: fit-content;
+            padding: 0px 20px;
+            font-size: 22px;
+            font-weight: 400;
+            color: #2f4f4f;
+            line-height: 1.6;
+            letter-spacing: -0.2px;
+            text-align: left;
+            margin-inline: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60px;
+            background: #ffffff;
+            border: 1px solid #15a308;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.041);
+        }
+
+        .question-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 2px;
+        }
+
+        .question-text {
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            line-height: 1.4;
+            letter-spacing: -0.2px;
+        }
+
+        .question-text u {
+            text-decoration: underline;
+            text-underline-offset: 6px;
+            text-decoration-thickness: 2px;
+            text-decoration-color: #ffaf03;
+        }
+
+        .color-box {
+            flex-shrink: 0;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            display: none;
+        }
+
+        /* ============================================================ */
+        /* ⭐ PREMIUM WORD GRID – KIDS EDUCATIONAL GAME STYLE              */
+        /* ============================================================ */
+        .word-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            /* gap: 16px; */
+            width: 100%;
+            margin: 8px 0 4px;
+            padding: 28px 24px 24px;
+            position: relative;
+        }
+
+        /* subtle decorative dots pattern */
+        .word-grid::before {
+            content: '';
+            position: absolute;
+            inset: 12px;
+            border-radius: 36px;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(200, 220, 240, 0.15) 4px, transparent 4px),
+                radial-gradient(circle at 85% 70%, rgba(240, 220, 200, 0.12) 5px, transparent 5px),
+                radial-gradient(circle at 45% 85%, rgba(200, 240, 220, 0.10) 6px, transparent 6px),
+                radial-gradient(circle at 70% 15%, rgba(240, 210, 230, 0.10) 4px, transparent 4px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ---- GAME TOKEN / COLLECTIBLE CARD ---- */
+        .grid-cell {
+            position: relative;
+            padding: 16px 6px 14px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 400;
+            color: #2f4f4f;
+            text-transform: capitalize;
+            word-break: break-word;
+            line-height: 1.3;
+            letter-spacing: 0.2px;
+            cursor: pointer;
+            /* border-radius: 10px; */
+            background: #ffffff;
+            border: none;
+            transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1),
+                box-shadow 0.25s ease,
+                background 0.3s ease;
+            transform: translateY(0) scale(1);
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 70px;
+            border: 1.5px solid gray;
+        }
+
+        /* glossy highlight */
+        .grid-cell::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 12px;
+            width: 40%;
+            height: 22%;
+            background: radial-gradient(ellipse at center,
+                    rgba(255, 255, 255, 0.45) 0%,
+                    rgba(255, 255, 255, 0) 70%);
+            border-radius: 60%;
+            pointer-events: none;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        /* text inside the token */
+        .grid-cell .token-text {
+            position: relative;
+            z-index: 3;
+            display: block;
+            font-weight: 500;
+            color: #2f4f4f;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
+            pointer-events: none;
+            letter-spacing: 0.4px;
+        }
+
+        /* small decorative star on each token */
+        .grid-cell .token-star {
+            position: absolute;
+            top: 6px;
+            right: 10px;
+            font-size: 12px;
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: 2;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        /* ----- HOVER: lift & tilt ----- */
+        .grid-cell:hover:not(.disabled):not(.correct-cell) {
+            /* transform: translateY(-8px) scale(1.03) rotate(1.5deg); */
+            background: #fff6d3;
+            box-shadow:
+                0 10px 8px #f1ece6,
+                0 7px 10px rgba(141, 136, 132, 0.15),
+                inset 0 -4px 0 rgba(180, 160, 140, 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+                /* border-radius: 10px; */
+        }
+
+        .grid-cell:hover:not(.disabled):not(.correct-cell) .token-star {
+            opacity: 0.6;
+            transform: scale(1.3) rotate(20deg);
+        }
+
+        .grid-cell:hover:not(.disabled):not(.correct-cell)::after {
+            opacity: 0.9;
+        }
+
+        /* ----- CLICK: gentle press + bounce ----- */
+        .grid-cell:active:not(.disabled):not(.correct-cell) {
+            animation: tokenPress 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+        }
+
+        @keyframes tokenPress {
+            0% {
+                transform: translateY(0) scale(1);
+                box-shadow: 0 6px 0 #d5c8bc, 0 8px 24px rgba(90, 70, 50, 0.08);
+            }
+
+            30% {
+                transform: translateY(4px) scale(0.94);
+                box-shadow: 0 2px 0 #d5c8bc, 0 4px 12px rgba(90, 70, 50, 0.05);
+            }
+
+            60% {
+                transform: translateY(-4px) scale(1.04);
+                box-shadow: 0 10px 0 #d5c8bc, 0 16px 32px rgba(90, 70, 50, 0.12);
+            }
+
+            100% {
+                transform: translateY(0) scale(1);
+                box-shadow: 0 6px 0 #d5c8bc, 0 8px 24px rgba(90, 70, 50, 0.08);
+            }
+        }
+
+        /* ===== CORRECT: celebration animation ===== */
+        .grid-cell.correct-cell {
+            animation: tokenCelebrate 0.8s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+            pointer-events: none;
+            cursor: default;
+            box-shadow: 0 0 40px rgba(76, 175, 80, 0.25);
+            border: 2px solid rgba(76, 175, 80, 0.3);
+            /* border-radius: 10px; */
+        }
+
+        @keyframes tokenCelebrate {
+            0% {
+                transform: scale(1) rotate(0deg);
+                box-shadow: 0 6px 0 #d5c8bc, 0 8px 24px rgba(90, 70, 50, 0.08);
+            }
+
+            20% {
+                transform: scale(1.15) rotate(-4deg) translateY(-10px);
+                box-shadow: 0 14px 0 #d5c8bc, 0 28px 48px rgba(90, 70, 50, 0.15);
+            }
+
+            40% {
+                transform: scale(1.05) rotate(3deg) translateY(-5px);
+                box-shadow: 0 10px 0 #d5c8bc, 0 20px 36px rgba(90, 70, 50, 0.10);
+            }
+
+            60% {
+                transform: scale(1.10) rotate(-2deg) translateY(-7px);
+                box-shadow: 0 12px 0 #d5c8bc, 0 24px 40px rgba(90, 70, 50, 0.12);
+            }
+
+            80% {
+                transform: scale(1.02) rotate(1deg) translateY(-2px);
+                box-shadow: 0 8px 0 #d5c8bc, 0 12px 28px rgba(90, 70, 50, 0.08);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg) translateY(0);
+                box-shadow: 0 6px 0 #d5c8bc, 0 0 40px rgba(76, 175, 80, 0.25);
+            }
+        }
+
+        .grid-cell.correct-cell .token-text {
+            color: #2d5a2d;
+        }
+
+        .grid-cell.correct-cell .token-star {
+            opacity: 1 !important;
+            animation: starSpin 1s ease-in-out infinite;
+        }
+
+        @keyframes starSpin {
+
+            0%,
+            100% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(1.4);
+            }
+        }
+
+        /* sparkle particles for correct */
+        .grid-cell.correct-cell .sparkle-particle {
+            position: absolute;
+            font-size: 14px;
+            animation: sparkleFly 0.9s ease-out forwards;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes sparkleFly {
+            0% {
+                transform: translate(0, 0) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* ===== WRONG: cute wiggle ===== */
+        .grid-cell.wrong-temp {
+            animation: tokenWiggle 0.6s cubic-bezier(0.34, 1.6, 0.64, 1) forwards !important;
+            pointer-events: none;
+        }
+
+        @keyframes tokenWiggle {
+            0% {
+                transform: translateX(0) rotate(0deg);
+                box-shadow: 0 6px 0 #d5c8bc, 0 8px 24px rgba(90, 70, 50, 0.08);
+            }
+
+            15% {
+                transform: translateX(-10px) rotate(-5deg) scale(1.04);
+                box-shadow: 0 8px 0 #d5c8bc, 0 12px 28px rgba(90, 70, 50, 0.10);
+            }
+
+            30% {
+                transform: translateX(8px) rotate(4deg) scale(0.96);
+            }
+
+            45% {
+                transform: translateX(-6px) rotate(-3deg) scale(1.02);
+            }
+
+            60% {
+                transform: translateX(5px) rotate(2deg) scale(0.98);
+            }
+
+            80% {
+                transform: translateX(-3px) rotate(-1deg) scale(1.01);
+            }
+
+            100% {
+                transform: translateX(0) rotate(0deg) scale(1);
+                box-shadow: 0 4px 0 #d5c8bc, 0 6px 16px rgba(90, 70, 50, 0.06);
+            }
+        }
+
+        .grid-cell.wrong-temp .token-text {
+            color: #b04a4a;
+        }
+
+        .grid-cell.wrong-temp::after {
+            opacity: 0.3;
+        }
+
+        /* ===== DISABLED (answered other questions) ===== */
+        .grid-cell.disabled {
+            opacity: 0.30;
+            pointer-events: none;
+            cursor: default;
+            filter: grayscale(0.4) brightness(1.1);
+            transform: scale(0.92);
+        }
+
+        .grid-cell.disabled .token-star {
+            opacity: 0.1;
+        }
+
+        /* ===== PER-QUESTION CORRECT COLORS (keep for logic) ===== */
+        .grid-cell.correct-q1 {
+            background: linear-gradient(145deg, #fff3b8, #f5e488) !important;
+            box-shadow: 0 6px 0 #d4b840, 0 0 40px rgba(255, 215, 0, 0.2) !important;
+            border-color: #f0c040 !important;
+        }
+
+        .grid-cell.correct-q2 {
+            background: linear-gradient(145deg, #b8f5b8, #90d890) !important;
+            box-shadow: 0 6px 0 #60a860, 0 0 40px rgba(76, 175, 80, 0.2) !important;
+            border-color: #60b060 !important;
+        }
+
+        .grid-cell.correct-q3 {
+            background: linear-gradient(145deg, #f5b8c8, #d890a8) !important;
+            box-shadow: 0 6px 0 #b06078, 0 0 40px rgba(200, 80, 120, 0.2) !important;
+            border-color: #c06080 !important;
+        }
+
+        .grid-cell.correct-q4 {
+            background: linear-gradient(145deg, #b8c8f5, #90a8d8) !important;
+            box-shadow: 0 6px 0 #6080b0, 0 0 40px rgba(80, 130, 200, 0.2) !important;
+            border-color: #5080b0 !important;
+        }
+
+        .grid-cell.correct-q5 {
+            background: linear-gradient(145deg, #f5d8a8, #d8b880) !important;
+            box-shadow: 0 6px 0 #b89050, 0 0 40px rgba(200, 150, 60, 0.2) !important;
+            border-color: #c08040 !important;
+        }
+
+        .grid-cell.correct-cell .token-text {
+            color: #2d2a1a;
+        }
+
+        .grid-cell.correct-cell .token-star {
+            opacity: 1 !important;
+        }
+
+        /* ---- end of premium word grid ---- */
+
+        .nav-row {
+            display: flex;
+            gap: 50px;
+            justify-content: center;
+            align-items: center;
+            margin-top: 14px;
+        }
+
+        .btn {
+            width: 140px;
+            height: 50px;
+            font-size: 18px;
+            font-weight: 500;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            color: #fff;
+            transition: all 0.2s ease;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:not(:disabled)::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
+            transform: skewX(-25deg);
+            animation: glassShine 3.5s infinite ease-in-out;
+        }
+
+        @keyframes glassShine {
+            0% {
+                left: -150%;
+            }
+
+            30% {
+                left: 150%;
+            }
+
+            100% {
+                left: 150%;
+            }
+        }
+
+        .btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:not(:disabled):active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .prev-btn {
+            background: linear-gradient(135deg, #ffc371 0%, #ffb347 100%);
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #5ba3ff 0%, #4a90e2 100%);
+        }
+
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #ffffff;
+            width: 300px;
+            border-radius: 28px;
+            padding: 0;
+            text-align: center;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 4px 10px rgba(0, 0, 0, 0.03), 0 14px 28px rgba(26, 26, 46, 0.08), 0 30px 60px rgba(26, 26, 46, 0.12), 0 60px 100px rgba(26, 26, 46, 0.14);
+            animation: popupSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes popupSlide {
+            0% {
+                transform: scale(0.5) translateY(60px) rotate(-5deg);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.05) translateY(-8px) rotate(2deg);
+            }
+
+            100% {
+                transform: scale(1) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .popup-top {
+            padding: 35px 24px 20px;
+            position: relative;
+        }
+
+        .popup.correct .popup-top {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        }
+
+        .popup.wrong .popup-top {
+            background: linear-gradient(135deg, #fbe9e7, #ffccbc);
+        }
+
+        .popup.final .popup-top {
+            background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        }
+
+        .popup-icon-wrap {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .popup.correct .popup-icon-wrap {
+            background: #4caf50;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowGreen 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.wrong .popup-icon-wrap {
+            background: #ef5350;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowRed 1.2s ease-in-out infinite alternate;
+        }
+
+        .popup.final .popup-icon-wrap {
+            background: #ffffff;
+            animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowWarm 1.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glowGreen {
+            0% {
+                box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+            }
+        }
+
+        @keyframes glowRed {
+            0% {
+                box-shadow: 0 0 20px rgba(239, 83, 80, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 40px rgba(239, 83, 80, 0.6);
+            }
+        }
+
+        @keyframes glowWarm {
+            0% {
+                box-shadow: 0 0 5px rgba(172, 172, 172, 0.3);
+            }
+
+            100% {
+                box-shadow: 0 0 5px rgba(163, 163, 163, 0.432);
+            }
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0) rotate(-30deg);
+            }
+
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+        }
+
+        .popup-icon-wrap span {
+            color: #fff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a2e;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-bottom {
+            padding: 18px 24px 22px;
+            background: #fff;
+        }
+
+        .popup.correct .popup-bottom {
+            border-top: 2px solid #c8e6c9;
+        }
+
+        .popup.wrong .popup-bottom {
+            border-top: 2px solid #ffccbc;
+        }
+
+        .popup.final .popup-bottom {
+            border-top: 2px solid #ffe0b2;
+        }
+
+        .popup-msg {
+            font-size: 20px;
+            font-weight: 500;
+            color: #5a5270;
+            line-height: 1.4;
+        }
+
+        .popup-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2a4a;
+            margin-bottom: 8px;
+        }
+
+        .popup-stars {
+            font-size: 34px;
+            letter-spacing: 6px;
+            animation: starDance 0.8s ease;
+            margin-bottom: 12px;
+        }
+
+        @keyframes starDance {
+            0% {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.3) rotate(10deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .play-again-popup {
+            background: linear-gradient(135deg, #ff922b, #f76707);
+            color: #fff;
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 24px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+
+        }
+
+        .play-again-popup:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(247, 103, 7, 0.45);
+        }
+
+        .play-again-popup:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 900px) {
+            .stage {
+                padding: 10px 0;
+            }
+
+            .word-grid {
+                gap: 12px 10px;
+                padding: 20px 16px 16px;
+            }
+
+            .grid-cell {
+                padding: 14px 6px 12px;
+                font-size: 17px;
+                border-radius: 22px 8px 22px 8px;
+                min-height: 60px;
+            }
+
+            .grid-cell .token-star {
+                font-size: 10px;
+                top: 4px;
+                right: 8px;
+            }
+
+            .color-box {
+                width: 30px;
+                height: 30px;
+            }
+
+            .main-heading {
+                font-size: 20px;
+            }
+
+            .question-text {
+                font-size: 30px;
+            }
+
+            .btn {
+                width: 140px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 12px;
+            }
+
+            .stage {
+                gap: 14px;
+            }
+
+            .word-grid {
+                gap: 8px 6px;
+                padding: 16px 12px 12px;
+            }
+
+            .grid-cell {
+                padding: 12px 4px 10px;
+                font-size: 15px;
+                border-radius: 18px 6px 18px 6px;
+                min-height: 52px;
+            }
+
+            .grid-cell .token-star {
+                font-size: 9px;
+                top: 3px;
+                right: 6px;
+            }
+
+            .color-box {
+                width: 28px;
+                height: 28px;
+            }
+
+            .main-heading {
+                font-size: 20px;
+            }
+
+            .question-text {
+                font-size: 30px;
+            }
+
+            .btn {
+                width: 130px;
+                height: 48px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 30px 8px;
+            }
+
+            .stage {
+                gap: 12px;
+            }
+
+            .word-grid {
+                gap: 5px 4px;
+                padding: 12px 8px 8px;
+            }
+
+            .grid-cell {
+                padding: 8px 2px 6px;
+                font-size: 13px;
+                border-radius: 14px 4px 14px 4px;
+                box-shadow: 0 4px 0 #d5c8bc, 0 6px 16px rgba(90, 70, 50, 0.06);
+                min-height: 44px;
+            }
+
+            .grid-cell .token-star {
+                font-size: 8px;
+                top: 2px;
+                right: 4px;
+            }
+
+            .color-box {
+                width: 24px;
+                height: 24px;
+                border-radius: 4px;
+            }
+
+            .question-row {
+                gap: 10px;
+            }
+
+            .main-heading {
+                font-size: 18px;
+            }
+
+            .question-text {
+                font-size: 22px;
+            }
+
+            .btn {
+                width: 120px;
+                height: 45px;
+                font-size: 18px;
+            }
+
+            .nav-row {
+                gap: 20px;
+                margin-top: 10px;
+            }
+
+            .popup {
+                width: 260px;
+            }
+
+            .popup-icon-wrap {
+                width: 75px;
+                height: 75px;
+                font-size: 40px;
+            }
+
+            .popup-title {
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width: 1025px) and (max-width: 1440px) {
+            .stage {
+                max-width: 1100px;
+                gap: 15px;
+            }
+
+            .main-heading {
+                font-size: 22px;
+            }
+
+            .question-text {
+                font-size: 30px;
+            }
+
+            .grid-cell {
+                font-size: 22px;
+                padding: 16px 6px 14px;
+            }
+
+            .color-box {
+                width: 35px;
+                height: 35px;
+            }
+
+            .btn {
+                width: 150px;
+                height: 55px;
+                font-size: 20px;
+            }
+        }
+
+        @media screen and (min-width: 1441px) and (max-width: 1920px) {
+            .stage {
+                max-width: 1200px;
+                gap: 15px;
+            }
+
+            .main-heading {
+                font-size: 24px;
+            }
+
+            .question-text {
+                font-size: 40px;
+            }
+
+            .grid-cell {
+                font-size: 26px;
+                padding: 18px 8px 16px;
+                min-height: 90px;
+            }
+
+            .color-box {
+                width: 50px;
+                height: 50px;
+            }
+
+            .btn {
+                width: 160px;
+                height: 58px;
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width: 1921px) {
+            .stage {
+                max-width: 1300px;
+                gap: 15px;
+            }
+
+            .main-heading {
+                font-size: 26px;
+            }
+
+            .question-text {
+                font-size: 40px;
+            }
+
+            .grid-cell {
+                font-size: 26px;
+                padding: 20px 10px 18px;
+                min-height: 90px;
+            }
+
+            .color-box {
+                width: 50px;
+                height: 50px;
+            }
+
+            .btn {
+                width: 170px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="stage">
+        <h1 class="main-heading">Match each underlined word with its antonym in the word grid below.</h1>
+
+        <div class="question-row">
+            <span class="question-text" id="sentenceDisplay"></span>
+            <span class="color-box" id="colorBox"></span>
+        </div>
+
+        <div class="word-grid" id="optionsGrid"></div>
+        <div class="nav-row">
+            <button class="btn prev-btn" id="prevBtn" disabled><i class="fa-solid fa-angles-left"></i> Prev</button>
+            <button class="btn next-btn" id="nextBtn" disabled>Next <i class="fa-solid fa-angles-right"></i></button>
+        </div>
+    </main>
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup" id="popupBox"></div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <script>
+        const quizData = [
+            { sentence: 'Q1. The celestial bodies are <u>different</u> in size, colour and brightness.', options: ['unique', 'same', 'attractive', 'wise'], answer: 'same', color: '#ffe08a' },
+            { sentence: 'Q2. The people of the planet Fortuna were friendly and <u>kind</u>.', options: ['cruel', 'recapitulated', 'forward', 'unbelievable'], answer: 'cruel', color: '#92ff90' },
+            { sentence: 'Q3. Anvesh <u>remembered</u> something and ran back to the spaceship.', options: ['forgot', 'intelligent', 'travelled', 'progressive'], answer: 'forgot', color: '#ffa8a8' },
+            { sentence: 'Q4. The spaceship <u>landed</u> on the new planet Futura.', options: ['realised', 'recalled', 'took off', 'arrived'], answer: 'took off', color: '#aed8ff' },
+            { sentence: 'Q5. The planet Futura was much more <u>advanced</u> in all the fields.', options: ['backward', 'reached', 'strong', 'modern'], answer: 'backward', color: '#ffa726' }
+        ];
+
+        let current = 0;
+        let score = 0;
+        let answered = Array(quizData.length).fill(null);
+
+        const sentenceDisplay = document.getElementById('sentenceDisplay');
+        const gridEl = document.getElementById('optionsGrid');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const overlay = document.getElementById('popupOverlay');
+        const popupBox = document.getElementById('popupBox');
+        const colorBox = document.getElementById('colorBox');
+
+        function speakText(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = 'en-US';
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        function smallConfetti() {
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function showCorrectPopup() {
+            speakText('Correct');
+            smallConfetti();
+            popupBox.className = 'popup correct';
+            popupBox.innerHTML = `
+                <div class="popup-top"><div class="popup-icon-wrap"><span>👍</span></div><div class="popup-title">Awesome</div></div>
+                <div class="popup-bottom"><div class="popup-msg">You got it right! 🎉</div></div>
+            `;
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1500);
+        }
+
+        function showWrongPopup() {
+            speakText('Try again');
+            popupBox.className = 'popup wrong';
+            popupBox.innerHTML = `
+                <div class="popup-top"><div class="popup-icon-wrap"><span>😔</span></div><div class="popup-title">Keep Trying</div></div>
+                <div class="popup-bottom"><div class="popup-msg">Don't give up! 💪</div></div>
+            `;
+            overlay.classList.add('show');
+            setTimeout(() => overlay.classList.remove('show'), 1400);
+        }
+
+        function showFinalPopup() {
+            let end = Date.now() + (1.5 * 1000);
+            (function frame() {
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            })();
+            popupBox.className = 'popup final';
+            popupBox.innerHTML = `
+                <div class="popup-top"><div class="popup-icon-wrap"><span>🏆</span></div><div class="popup-title">You Won!</div></div>
+                <div class="popup-bottom">
+                    <div class="popup-score">Score: ${score}/${quizData.length}</div>
+                    <div class="popup-stars">${"⭐".repeat(score)}</div>
+                    <button class="play-again-popup" id="playAgainBtn">Play Again</button>
+                </div>
+            `;
+            overlay.classList.add('show');
+            document.getElementById('playAgainBtn').addEventListener('click', () => location.reload());
+        }
+
+        const gridWords = [
+            ['unique', 'cruel', 'took off', 'realised', 'backward'],
+            ['same', 'recapitulated', 'intelligent', 'recalled', 'reached'],
+            ['attractive', 'forward', 'travelled', 'forgot', 'strong'],
+            ['wise', 'unbelievable', 'progressive', 'arrived', 'modern']
+        ];
+        const flatGrid = gridWords.flat();
+        let selectedIndex = new Array(quizData.length).fill(-1);
+        function createSparkles(cell, count = 6) {
+            const emojis = ['✨', '⭐', '💫', '🌟', '🎉'];
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('span');
+                particle.className = 'sparkle-particle';
+                particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
+                const distance = 30 + Math.random() * 40;
+                particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--ty', Math.sin(angle) * distance - 20 + 'px');
+                particle.style.fontSize = (10 + Math.random() * 12) + 'px';
+                cell.appendChild(particle);
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+
+        function loadQuestion() {
+            const q = quizData[current];
+            sentenceDisplay.innerHTML = q.sentence;
+            colorBox.style.background = q.color;
+
+            gridEl.innerHTML = '';
+            flatGrid.forEach((word, idx) => {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.index = idx;
+
+                // Text label
+                const textSpan = document.createElement('span');
+                textSpan.className = 'token-text';
+                textSpan.textContent = word;
+                cell.appendChild(textSpan);
+
+                // Decorative star
+                const star = document.createElement('span');
+                star.className = 'token-star';
+                star.textContent = '✦';
+                cell.appendChild(star);
+                // Show only this question's saved answer
+                if (answered[current] && selectedIndex[current] === idx) {
+
+                    cell.classList.add("correct-cell");
+                    cell.classList.add(`correct-q${current + 1}`);
+
+                    cell.style.pointerEvents = "none";
+                    cell.style.cursor = "default";
+
+                    setTimeout(() => createSparkles(cell, 8), 150);
+                }
+
+                if (answered[current]) {
+
+                    if (selectedIndex[current] !== idx) {
+
+                        cell.classList.add("disabled");
+
+                    }
+
+                }
+
+                cell.addEventListener('click', () => {
+                    if (answered[current] === true) return;
+                    if (word === q.answer) {
+                        selectedIndex[current] = idx;
+                        answered[current] = true;
+                        score++;
+                        loadQuestion();
+                        showCorrectPopup();
+                        nextBtn.disabled = false;
+                        if (answered.every(a => a === true)) setTimeout(showFinalPopup, 1600);
+                    } else {
+                        cell.classList.add('wrong-temp');
+                        setTimeout(() => cell.classList.remove('wrong-temp'), 700);
+                        showWrongPopup();
+                    }
+                });
+
+                gridEl.appendChild(cell);
+            });
+
+            prevBtn.disabled = current === 0;
+            nextBtn.disabled = answered[current] !== true;
+        }
+
+        prevBtn.onclick = () => {
+            if (current > 0) {
+                current--;
+                loadQuestion();
+            }
+        };
+        nextBtn.onclick = () => {
+            if (current < quizData.length - 1 && answered[current] === true) {
+                current++;
+                loadQuestion();
+            }
+        };
+
+        loadQuestion();
+    </script>
+</body>
+
+</html>

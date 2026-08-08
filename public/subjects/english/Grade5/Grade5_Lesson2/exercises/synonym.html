@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synonym · Drag & Drop</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'CCSyntroman';
+      src: url('../assets/CCSYNTRO.TTF') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "CCSyntroman", system-ui, -apple-system, sans-serif;
+      font-weight: 400;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .main {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      transition: max-width 0.3s ease;
+    }
+
+    /* ===== HEADER / CLUE BOX ===== */
+    .header-bar {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 16px;
+    }
+
+    .clue-box-container {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1.5px solid #3fbd99;
+      border-radius: 20px;
+      padding: 0px;
+      gap: 20px;
+      box-shadow: 0 4px 12px rgba(147, 51, 234, 0.08);
+      height: 85px;
+      width: fit-content;
+    }
+
+    .clue-box-label {
+      background: #3fbd99;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 20px;
+      padding: 8px 20px;
+      border-top-left-radius: 18px;
+      border-bottom-left-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      height: 100%;
+      letter-spacing: 0.5px;
+    }
+
+    .drag-pills {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 100%;
+      padding-inline: 10px;
+    }
+
+    .drag-pill {
+      background: linear-gradient(135deg, #86bebe 0%, #6dc0c0 100%);
+      border: 2px solid #ffffff;
+      border-radius: 14px;
+      padding: 12px 28px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      cursor: grab;
+      transition: all 0.25s ease;
+      user-select: none;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 10px #0000002f, inset 0 2px 3px #ffffffb3, inset 0 -2px 3px #66656554;
+    }
+
+    .drag-pill:hover {
+      filter: brightness(1.05);
+      transform: translateY(-3px);
+    }
+
+    .drag-pill.dragging {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
+
+    /* Selected pill style for click-to-select */
+    .drag-pill.selected-pill {
+      background: #ffffff;
+      color: #53a1a1;
+      border: 2px solid #6dc0c0;
+      box-shadow: 0 4px 12px rgba(109, 192, 192, 0.4), inset 0 2px 3px rgba(255, 255, 255, 0.8);
+      text-shadow: none;
+    }
+
+    .drag-pill.disabled-pill {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+      background: #f1f5f9;
+      border-color: #e2e8f0;
+      color: #94a3b8;
+      text-shadow: none;
+      box-shadow: none;
+    }
+
+    /* ===== HINT BUTTON ===== */
+    .hint-btn {
+      background: #fff;
+      color: #424141;
+      border: 2px solid #ffa500;
+      border-radius: 14px;
+      padding: 12px 22px;
+      font-size: 18px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.25s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hint-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
+    }
+
+    /* ===== HINT OVERLAY ===== */
+    .hint-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .hint-overlay.show {
+      display: flex;
+    }
+
+    .hint-popup {
+      width: 700px;
+      max-width: 94%;
+      background: #fff;
+      border-radius: 32px;
+      overflow: hidden;
+      animation: popupSlide .4s ease;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+
+    .hint-header {
+      background: linear-gradient(135deg, #88ccaa, #59c58f);
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    .hint-content {
+      padding: 28px 30px;
+    }
+
+    .hint-content p {
+      font-size: 20px;
+      color: #2d2a3e;
+      margin: 12px 0 18px;
+      line-height: 1.6;
+    }
+
+    .hint-content b {
+      color: #e25d2c;
+      font-weight: 600;
+    }
+
+    .hint-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      background: #fff;
+      color: #ff6f3c;
+      font-size: 26px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      transition: 0.5s;
+    }
+
+    .hint-close:hover {
+      transform: scale(1.06);
+      background: #ff6f3c;
+      box-shadow: none;
+      color: #fff;
+    }
+
+    /* ===== MAIN SECTIONS ===== */
+    .section-container {
+      width: 100%;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    .section-container.bottom-section {
+      background: #f0f7ff;
+      border-color: #dbeafe;
+    }
+
+    .cards-row {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: 16px;
+      width: 100%;
+    }
+
+    /* TOP CARDS */
+    .top-card {
+      flex: 1;
+      min-width: 0;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .top-card.completed {
+      border-color: #a7f3d0;
+      background: #f0fdf4;
+    }
+
+    .top-card .badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #10b981;
+      color: #fff;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #ffffff;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+    }
+
+    .top-card-label {
+      font-size: 18px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .card-image {
+      width: 100%;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-image img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    /* SEPARATOR ARROW */
+    .row-separator {
+      margin: 10px 0;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* BOTTOM CARDS */
+    .bottom-card {
+      flex: 1;
+      min-width: 0;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .card-drop {
+      width: 100%;
+      height: 48px;
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #94a3b8;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      margin-bottom: 16px;
+      cursor: pointer;
+    }
+
+    @keyframes wrongBlink {
+
+      0%,
+      100% {
+        border-color: #cbd5e1;
+        background: #ffffff;
+        color: #94a3b8;
+      }
+
+      50% {
+        border-color: #ef5350;
+        background: #ffebee;
+        color: #ef5350;
+      }
+    }
+
+    .card-drop.wrong-drop {
+      animation: wrongBlink 0.6s ease;
+    }
+
+    /* Media query for screens >= 1440px with increased height & width scaling */
+    @media (min-width: 1440px) {
+      .main {
+        max-width: 1350px;
+      }
+
+      .section-container {
+        padding: 28px;
+      }
+
+      .card-drop {
+        height: 56px;
+        font-size: 22px;
+      }
+
+      .card-image {
+        height: 100px;
+      }
+
+      .clue-box-container {
+        height: 96px;
+      }
+
+      .drag-pill {
+        height: 62px;
+        font-size: 22px;
+        padding: 14px 34px;
+      }
+
+      .top-card-label {
+        font-size: 20px;
+        margin-bottom: 20px;
+      }
+    }
+
+    .card-drop.drag-over {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      transform: scale(1.02);
+    }
+
+    .card-drop.filled {
+      border-color: #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .card-drop.correct-drop {
+      border-color: #029651;
+      background: #ffffff;
+      color: #2f4f4f;
+      font-weight: 500;
+    }
+
+    .card-drop .check-mark {
+      color: #029c69;
+      font-weight: bold;
+      font-size: 20px;
+      margin-left: 7px;
+    }
+
+    /* ===== POPUPS ===== */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .popup-overlay.show {
+      display: flex;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .popup {
+      background: #ffffff;
+      width: 300px;
+      border-radius: 28px;
+      padding: 0;
+      text-align: center;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 4px 10px rgba(0, 0, 0, 0.03), 0 14px 28px rgba(26, 26, 46, 0.08), 0 30px 60px rgba(26, 26, 46, 0.12), 0 60px 100px rgba(26, 26, 46, 0.14);
+      animation: popupSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    @keyframes popupSlide {
+      0% {
+        transform: scale(0.5) translateY(60px) rotate(-5deg);
+        opacity: 0;
+      }
+
+      60% {
+        transform: scale(1.05) translateY(-8px) rotate(2deg);
+      }
+
+      100% {
+        transform: scale(1) translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    .popup-top {
+      padding: 35px 24px 20px;
+      position: relative;
+    }
+
+    .popup.correct .popup-top {
+      background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    }
+
+    .popup.wrong .popup-top {
+      background: linear-gradient(135deg, #fbe9e7, #ffccbc);
+    }
+
+    .popup.final .popup-top {
+      background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    }
+
+    .popup-icon-wrap {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .popup.correct .popup-icon-wrap {
+      background: #4caf50;
+      animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowGreen 1.2s ease-in-out infinite alternate;
+    }
+
+    .popup.wrong .popup-icon-wrap {
+      background: #ef5350;
+      animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowRed 1.2s ease-in-out infinite alternate;
+    }
+
+    .popup.final .popup-icon-wrap {
+      background: #ffffff;
+      animation: iconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), glowWarm 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glowGreen {
+      0% {
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+      }
+
+      100% {
+        box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+      }
+    }
+
+    @keyframes glowRed {
+      0% {
+        box-shadow: 0 0 20px rgba(239, 83, 80, 0.3);
+      }
+
+      100% {
+        box-shadow: 0 0 40px rgba(239, 83, 80, 0.6);
+      }
+    }
+
+    @keyframes glowWarm {
+      0% {
+        box-shadow: 0 0 5px rgba(172, 172, 172, 0.3);
+      }
+
+      100% {
+        box-shadow: 0 0 5px rgba(163, 163, 163, 0.432);
+      }
+    }
+
+    @keyframes iconPop {
+      0% {
+        transform: scale(0) rotate(-30deg);
+      }
+
+      60% {
+        transform: scale(1.2) rotate(10deg);
+      }
+
+      100% {
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    .popup-icon-wrap span {
+      color: #fff;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    }
+
+    .popup-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a1a2e;
+      letter-spacing: -0.5px;
+    }
+
+    .popup-bottom {
+      padding: 18px 24px 22px;
+      background: #fff;
+    }
+
+    .popup.correct .popup-bottom {
+      border-top: 2px solid #c8e6c9;
+    }
+
+    .popup.wrong .popup-bottom {
+      border-top: 2px solid #ffccbc;
+    }
+
+    .popup.final .popup-bottom {
+      border-top: 2px solid #ffe0b2;
+    }
+
+    .popup-msg {
+      font-size: 20px;
+      font-weight: 500;
+      color: #5a5270;
+      line-height: 1.4;
+    }
+
+    .popup-score {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d2a4a;
+      margin-bottom: 8px;
+    }
+
+    .popup-stars {
+      font-size: 34px;
+      letter-spacing: 6px;
+      animation: starDance 0.8s ease;
+      margin-bottom: 12px;
+    }
+
+    @keyframes starDance {
+      0% {
+        transform: scale(0) rotate(-20deg);
+        opacity: 0;
+      }
+
+      50% {
+        transform: scale(1.3) rotate(10deg);
+      }
+
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    .play-again-popup {
+      background: linear-gradient(135deg, #ff922b, #f76707);
+      color: #fff;
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 24px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(247, 103, 7, 0.3);
+    }
+
+    .play-again-popup:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(247, 103, 7, 0.45);
+    }
+
+    .play-again-popup:active {
+      transform: translateY(0);
+    }
+
+    /* =================================
+        MEDIA QUERIES – exactly as reference
+    ================================= */
+    @media (max-width:900px) {
+      .main {
+        padding: 0 10px;
+      }
+
+      .header-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .clue-box-container {
+        overflow-x: auto;
+        height: auto;
+        min-height: 84px;
+      }
+
+      .cards-row {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .top-card,
+      .bottom-card {
+        flex: 1 1 calc(50% - 12px);
+        min-width: 130px;
+      }
+
+      .popup {
+        width: 320px;
+      }
+    }
+
+    @media (max-width:768px) {
+      body {
+        padding: 20px 10px;
+      }
+
+      .main {
+        padding: 0;
+      }
+
+      .cards-row {
+        gap: 10px;
+      }
+
+      .top-card,
+      .bottom-card {
+        flex: 1 1 calc(50% - 10px);
+        min-width: 120px;
+        padding: 12px 6px;
+      }
+
+      .card-drop {
+        height: 40px;
+        font-size: 16px;
+      }
+
+      .drag-pill {
+        padding: 8px 16px;
+        font-size: 16px;
+        height: 44px;
+      }
+
+      .clue-box-label {
+        font-size: 16px;
+        padding: 4px 14px;
+      }
+
+      .popup {
+        width: 300px;
+      }
+    }
+
+    @media (max-width:480px) {
+      body {
+        padding: 15px 6px;
+      }
+
+      .cards-row {
+        gap: 8px;
+      }
+
+      .top-card,
+      .bottom-card {
+        flex: 1 1 100%;
+        min-width: 0;
+      }
+
+      .top-card-label {
+        font-size: 15px;
+        margin-bottom: 8px;
+      }
+
+      .card-image {
+        height: 60px;
+      }
+
+      .card-drop {
+        height: 36px;
+        font-size: 14px;
+      }
+
+      .drag-pill {
+        padding: 6px 12px;
+        font-size: 14px;
+        height: 36px;
+      }
+
+      .clue-box-container {
+        min-height: 60px;
+        gap: 8px;
+      }
+
+      .clue-box-label {
+        font-size: 14px;
+        padding: 4px 10px;
+      }
+
+      .hint-btn {
+        font-size: 14px;
+        padding: 6px 14px;
+      }
+
+      .popup {
+        width: 260px;
+      }
+
+      .popup-icon-wrap {
+        width: 75px;
+        height: 75px;
+        font-size: 40px;
+      }
+
+      .popup-title {
+        font-size: 22px;
+      }
+    }
+
+    @media screen and (min-width: 1025px) and (max-width: 1440px) {
+      .main {
+        max-width: 1200px;
+      }
+
+      .card-image {
+        height: 90px;
+      }
+
+      .drag-pills {
+        padding-inline: 15px;
+        gap: 15px;
+      }
+
+      .drag-pill {
+        padding: 12px 28px;
+        font-size: 20px;
+        height: 56px;
+      }
+    }
+
+    @media screen and (min-width: 1441px) and (max-width: 1920px) {
+      .main {
+        max-width: 1350px;
+        gap: 20px;
+      }
+
+      .section-container {
+        padding: 28px;
+      }
+
+      .hint-btn {
+        padding: 14px 28px;
+        font-size: 24px;
+      }
+
+      .clue-box-label {
+        padding: 8px 35px;
+      }
+
+      .card-drop {
+        height: 60px;
+        font-size: 24px;
+      }
+
+      .card-image {
+        height: 110px;
+      }
+
+      .drag-pills {
+        padding-inline: 20px;
+        gap: 20px;
+      }
+
+      .drag-pill {
+        height: 66px;
+        font-size: 24px;
+        padding: 14px 38px;
+      }
+
+      .top-card-label {
+        font-size: 22px;
+      }
+
+      .top-card .badge {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+    }
+
+    @media screen and (min-width: 1921px) {
+      .main {
+        max-width: 1500px;
+      }
+
+      .section-container {
+        padding: 34px;
+      }
+
+      .hint-btn {
+        padding: 15px 30px;
+        font-size: 24px;
+      }
+
+      .clue-box-label {
+        padding: 10px 40px;
+      }
+
+      .card-drop {
+        height: 68px;
+        font-size: 26px;
+      }
+
+      .card-image {
+        height: 130px;
+      }
+
+      .drag-pills {
+        padding-inline: 25px;
+        gap: 25px;
+      }
+
+      .drag-pill {
+        height: 72px;
+        font-size: 26px;
+        padding: 16px 44px;
+      }
+
+      .top-card-label {
+        font-size: 24px;
+      }
+
+      .top-card .badge {
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+      }
+
+      .clue-box-container {
+        height: 110px;
+      }
+
+      .popup {
+        width: 360px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main">
+
+    <!-- HEADER BAR WITH DRAG BOX AND HINT BUTTON -->
+    <div class="header-bar">
+      <div class="clue-box-container">
+        <div class="clue-box-label">Drag box</div>
+        <div class="drag-pills" id="dragPillsContainer"></div>
+      </div>
+      <button class="hint-btn" id="hintBtn">💡 Hint</button>
+    </div>
+
+    <!-- HINT OVERLAY -->
+    <div class="hint-overlay" id="hintOverlay">
+      <div class="hint-popup" id="hintPopup">
+        <button class="hint-close" id="closeHint">&times;</button>
+        <div class="hint-header">💡 How to Play</div>
+        <div class="hint-content">
+          <p>1. Read the word given above each picture in the top row.</p>
+          <p>2. Find its synonym from the <b>Drag Box</b>.</p>
+          <p>3. Drag the correct synonym into the matching box.</p>
+          <p>4. Or, click the correct synonym and then click the matching box.</p>
+          <p>5. One answer is already completed for you as an example.</p>
+          <p>6. Complete all the remaining words correctly to finish the game.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP ROW CONTAINER -->
+    <div class="section-container top-section">
+      <div class="cards-row" id="topCardsRow"></div>
+    </div>
+
+    <!-- SEPARATOR ARROW -->
+    <div class="row-separator">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+    </div>
+
+    <!-- BOTTOM ROW CONTAINER -->
+    <div class="section-container bottom-section">
+      <div class="cards-row" id="bottomCardsRow"></div>
+    </div>
+
+  </div>
+
+  <!-- POPUPS -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup" id="popupBox"></div>
+  </div>
+
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound"
+    src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+  <script>
+    // ========== DATA ==========
+    const leftData = [
+      { id: "1", text: "Important", imgSrc: "../assets/images/ml1.png", match: "essential", pair: 1 },
+      { id: "2", text: "Frail", imgSrc: "../assets/images/ml2.png", match: "weak", pair: 2 },
+      { id: "3", text: "Woods", imgSrc: "../assets/images/ml3.png", match: "forest", pair: 3 },
+      { id: "4", text: "People", imgSrc: "../assets/images/ml4.png", match: "crowd", pair: 4 },
+      { id: "5", text: "Wounded", imgSrc: "../assets/images/ml5.png", match: "hurt", pair: 5 },
+    ];
+
+    const bottomData = [
+      { id: "b1", imgSrc: "../assets/images/mr1.png", match: "weak", pair: 2 },
+      { id: "b2", imgSrc: "../assets/images/mr2.png", match: "essential", pair: 1 },
+      { id: "b3", imgSrc: "../assets/images/mr3.png", match: "hurt", pair: 5 },
+      { id: "b4", imgSrc: "../assets/images/mr4.png", match: "forest", pair: 3 },
+      { id: "b5", imgSrc: "../assets/images/mr5.png", match: "crowd", pair: 4 },
+    ];
+
+    const pairNumber = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
+    let completedPairs = new Set();
+    const totalPairs = 5;
+    let score = 1;
+
+    const topCardsRow = document.getElementById('topCardsRow');
+    const bottomCardsRow = document.getElementById('bottomCardsRow');
+    const dragPillsContainer = document.getElementById('dragPillsContainer');
+    const overlay = document.getElementById('popupOverlay');
+    const popupBox = document.getElementById('popupBox');
+
+    let selectedPill = null; // Track selected pill for click-to-select
+
+    // Update placeholders based on whether a pill is selected
+    function updatePlaceholders() {
+      document.querySelectorAll('.card-drop').forEach(drop => {
+        if (!drop.classList.contains('filled') && !drop.classList.contains('correct-drop')) {
+          drop.textContent = selectedPill ? 'Click Here' : 'Drag Here';
+        }
+      });
+    }
+
+    // ========== SPEAK ==========
+    function speak(t) {
+      speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance(t);
+      msg.lang = "en-US";
+      msg.volume = 0.25;
+      msg.rate = 1;
+      msg.pitch = 1;
+      speechSynthesis.speak(msg);
+    }
+
+    // ========== CONFETTI ==========
+    function smallConfetti() {
+      confetti({ particleCount: 40, spread: 70, origin: { y: 0.6 } });
+    }
+
+    // ========== POPUP FUNCTIONS (identical to reference) ==========
+    function showCorrectPopup() {
+      speak('Correct');
+      smallConfetti();
+      popupBox.className = 'popup correct';
+      popupBox.innerHTML = `
+        <div class="popup-top"><div class="popup-icon-wrap"><span>👍</span></div><div class="popup-title">Awesome</div></div>
+        <div class="popup-bottom"><div class="popup-msg">You got it right! 🎉</div></div>
+      `;
+      overlay.classList.add('show');
+      setTimeout(() => overlay.classList.remove('show'), 1500);
+    }
+
+    function showWrongPopup(dropElement) {
+      speak('Try again');
+
+      if (dropElement) {
+        dropElement.classList.add('wrong-drop');
+        setTimeout(() => dropElement.classList.remove('wrong-drop'), 600);
+      }
+
+      popupBox.className = 'popup wrong';
+      popupBox.innerHTML = `
+        <div class="popup-top"><div class="popup-icon-wrap"><span>😔</span></div><div class="popup-title">Keep Trying</div></div>
+        <div class="popup-bottom"><div class="popup-msg">Don't give up! 💪</div></div>
+      `;
+      overlay.classList.add('show');
+      setTimeout(() => overlay.classList.remove('show'), 1400);
+    }
+
+    function showFinalPopup() {
+      let end = Date.now() + 1500;
+      (function frame() {
+        confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+        confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+      popupBox.className = 'popup final';
+      popupBox.innerHTML = `
+        <div class="popup-top"><div class="popup-icon-wrap"><span>🏆</span></div><div class="popup-title">You Won!</div></div>
+        <div class="popup-bottom">
+          <div class="popup-score">Score: ${score - 1}/${totalPairs - 1}</div>
+          <div class="popup-stars">⭐⭐⭐⭐⭐</div>
+          <button class="play-again-popup" id="playAgainBtn">Play Again</button>
+        </div>
+      `;
+      overlay.classList.add('show');
+      document.getElementById('playAgainBtn').addEventListener('click', () => location.reload());
+    }
+
+    // ========== BUILD DRAG PILLS ==========
+    function buildDragPills() {
+      dragPillsContainer.innerHTML = '';
+      const matchMap = {
+        'Hurt': 'hurt',
+        'Weak': 'weak',
+        'Essential': 'essential',
+        'Crowd': 'crowd',
+        'Forest': 'forest'
+      };
+
+      const words = ['Hurt', 'Weak', 'Essential', 'Crowd', 'Forest'];
+      words.forEach(w => {
+        const pill = document.createElement('div');
+        pill.className = 'drag-pill';
+        pill.draggable = true;
+        pill.dataset.word = w;
+        pill.dataset.match = matchMap[w];
+
+        if (w === 'Essential') {
+          pill.classList.add('disabled-pill');
+          pill.draggable = false;
+        }
+
+        pill.textContent = w;
+
+        pill.addEventListener('dragstart', onDragStart);
+        pill.addEventListener('dragend', onDragEnd);
+
+        // Click to select logic
+        pill.addEventListener('click', () => {
+          if (pill.classList.contains('disabled-pill')) return;
+          document.querySelectorAll('.drag-pill').forEach(p => p.classList.remove('selected-pill'));
+          if (selectedPill === pill) {
+            selectedPill = null;
+          } else {
+            selectedPill = pill;
+            pill.classList.add('selected-pill');
+          }
+          updatePlaceholders();
+        });
+
+        dragPillsContainer.appendChild(pill);
+      });
+    }
+
+    // ========== DRAG EVENTS ==========
+    let draggedPill = null;
+
+    function onDragStart(e) {
+      if (this.classList.contains('disabled-pill')) {
+        e.preventDefault();
+        return false;
+      }
+      draggedPill = this;
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', this.dataset.match);
+    }
+
+    function onDragEnd() {
+      this.classList.remove('dragging');
+      document.querySelectorAll('.card-drop').forEach(d => d.classList.remove('drag-over'));
+      draggedPill = null;
+    }
+
+    // ========== HANDLE DROP / CLICK PLACEMENT ==========
+    function processPlacement(drop, matchVal, pill) {
+      const targetMatch = drop.dataset.match;
+
+      if (matchVal === targetMatch && pill && !pill.classList.contains('disabled-pill')) {
+        const word = pill.dataset.word;
+        drop.innerHTML = word + ' <span class="check-mark">✓</span>';
+        drop.classList.add('filled', 'correct-drop');
+        pill.classList.add('disabled-pill');
+        pill.classList.remove('selected-pill');
+        pill.draggable = false;
+        if (selectedPill === pill) selectedPill = null;
+        updatePlaceholders();
+
+        const topCardEl = Array.from(topCardsRow.children).find(c => parseInt(c.dataset.pair) === parseInt(drop.dataset.pair));
+        if (topCardEl && !topCardEl.classList.contains('completed')) {
+          topCardEl.classList.add('completed');
+          const badge = document.createElement('div');
+          badge.className = 'badge';
+          badge.textContent = pairNumber[topCardEl.dataset.pair];
+          topCardEl.appendChild(badge);
+        }
+
+        completedPairs.add(parseInt(drop.dataset.pair));
+        score++;
+        showCorrectPopup();
+        if (completedPairs.size === totalPairs) {
+          setTimeout(showFinalPopup, 1600);
+        }
+      } else {
+        showWrongPopup(drop);
+        if (pill) {
+          pill.style.transform = 'scale(0.8)';
+          setTimeout(() => pill.style.transform = '', 300);
+        }
+      }
+    }
+
+    // ========== BUILD CARDS ==========
+    function buildCards() {
+      topCardsRow.innerHTML = '';
+      bottomCardsRow.innerHTML = '';
+
+      // Build Top Cards
+      leftData.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'top-card';
+        card.dataset.pair = item.pair;
+
+        if (item.pair === 1) {
+          card.classList.add('completed');
+          const badge = document.createElement('div');
+          badge.className = 'badge';
+          badge.textContent = '1';
+          card.appendChild(badge);
+        }
+
+        const label = document.createElement('div');
+        label.className = 'top-card-label';
+        label.textContent = item.text;
+
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'card-image';
+        const img = document.createElement('img');
+        img.src = item.imgSrc;
+        img.alt = item.text;
+        imgWrap.appendChild(img);
+
+        card.appendChild(label);
+        card.appendChild(imgWrap);
+        topCardsRow.appendChild(card);
+      });
+
+      // Build Bottom Cards
+      bottomData.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'bottom-card';
+        card.dataset.pair = item.pair;
+
+        const drop = document.createElement('div');
+        drop.className = 'card-drop';
+        drop.dataset.match = item.match;
+        drop.dataset.pair = item.pair;
+
+        if (item.pair === 1) {
+          drop.classList.add('filled', 'correct-drop');
+          drop.innerHTML = 'Essential <span class="check-mark">✓</span>';
+        } else {
+          drop.textContent = 'Drag Here';
+        }
+
+        drop.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          if (drop.classList.contains('filled') || drop.classList.contains('correct-drop')) return;
+          drop.classList.add('drag-over');
+        });
+
+        drop.addEventListener('dragleave', () => {
+          drop.classList.remove('drag-over');
+        });
+
+        drop.addEventListener('drop', (e) => {
+          e.preventDefault();
+          drop.classList.remove('drag-over');
+
+          // Only allow drops from this page's drag pills
+          if (!draggedPill) return;
+
+          if (drop.classList.contains('filled') || drop.classList.contains('correct-drop')) return;
+
+          processPlacement(drop, draggedPill.dataset.match, draggedPill);
+
+          draggedPill = null;
+        });
+
+        // Click to place logic
+        drop.addEventListener('click', () => {
+          if (drop.classList.contains('filled') || drop.classList.contains('correct-drop')) return;
+          if (selectedPill) {
+            const matchVal = selectedPill.dataset.match;
+            processPlacement(drop, matchVal, selectedPill);
+          }
+        });
+
+        const imgWrap = document.createElement('div');
+        imgWrap.className = 'card-image';
+        const img = document.createElement('img');
+        img.src = item.imgSrc;
+        img.alt = item.match;
+        imgWrap.appendChild(img);
+
+        card.appendChild(drop);
+        card.appendChild(imgWrap);
+        bottomCardsRow.appendChild(card);
+      });
+    }
+
+    // ========== HINT ==========
+    const hintBtn = document.getElementById("hintBtn");
+    const hintOverlay = document.getElementById("hintOverlay");
+    const closeHint = document.getElementById("closeHint");
+    const hintPopup = document.getElementById("hintPopup");
+
+    hintBtn.addEventListener("click", () => { hintOverlay.classList.add("show"); });
+    closeHint.addEventListener("click", () => { hintOverlay.classList.remove("show"); });
+    hintOverlay.addEventListener("click", (e) => { if (e.target === hintOverlay) hintOverlay.classList.remove("show"); });
+    hintPopup.addEventListener("click", (e) => e.stopPropagation());
+
+    // ========== INIT ==========
+    buildDragPills();
+    buildCards();
+    completedPairs.add(1);
+    score = 1;
+  </script>
+</body>
+
+</html>

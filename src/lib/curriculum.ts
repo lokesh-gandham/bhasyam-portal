@@ -136,6 +136,99 @@ const socialHtmlPath = (grade: number, lesson: number): string | undefined => {
   return paths[grade]?.[lesson];
 };
 
+const englishHtmlPath = (grade: number, lesson: number): string | undefined => {
+  const paths: Record<number, Record<number, string>> = {
+    1: {
+      1: "/subjects/english/Grade1/grade1_lesson1/Grade1_Lesson1.html",
+      2: "/subjects/english/Grade1/grade1_lesson2/Grade1_Lesson2.html",
+      3: "/subjects/english/Grade1/grade1_lesson3/grade1_lesson3.html",
+      4: "/subjects/english/Grade1/grade1_lesson4/grade1_lesson4.html",
+    },
+    // Grade 2 order: Chapter 1 → Poem → Chapter 2 → Chapter 3 → Chapter 4
+    2: {
+      1: "/subjects/english/Grade2/Grade2_chapter1/Grade2_chapter1.html",
+      2: "/subjects/english/Grade2/Grade2_Poem/grade2_lesson22.html",
+      3: "/subjects/english/Grade2/Grade2_chapter2/grade2_lesson2.html",
+      4: "/subjects/english/Grade2/Grade2_chapter3/Grade2_chapter3.html",
+      5: "/subjects/english/Grade2/Grade2_chapter4/Grade2_Lesson4.html",
+    },
+    3: {
+      1: "/subjects/english/Grade3/Grade3_chapter1/Grade3_Lesson1.html",
+      2: "/subjects/english/Grade3/Grade3_chapter2/Grade3_lesson2.html",
+      3: "/subjects/english/Grade3/Grade3_chapter3/Grade3_lesson3.html",
+      4: "/subjects/english/Grade3/Grade3_chapter4/Grade3_Lesson4.html",
+    },
+    4: {
+      1: "/subjects/english/Bhashyam_English_Grade4/grade4_lesson1/grade4_lesson1.html",
+      2: "/subjects/english/Bhashyam_English_Grade4/grade4_lesson2/grade4_lesson2.html",
+      3: "/subjects/english/Bhashyam_English_Grade4/grade4_lesson3/grade4_lesson3.html",
+      4: "/subjects/english/Bhashyam_English_Grade4/grade4_lesson4/grade4_lesson4.html",
+    },
+    5: {
+      1: "/subjects/english/Grade5/Grade5_Lesson1/Grade5_chapter1.html",
+      2: "/subjects/english/Grade5/Grade5_Lesson2/Grade5_chapter2.html",
+      3: "/subjects/english/Grade5/Grade5_Lesson3/Grade5_chapter3.html",
+      4: "/subjects/english/Grade5/Grade5_Lesson4/Grade5_chapter4.html",
+    },
+  };
+  return paths[grade]?.[lesson];
+};
+
+const englishLessonsFor = (grade: number): Lesson[] => {
+  if (grade === 2) {
+    return [
+      mkLesson(`g${grade}-eng-1`, "Chapter 1", "Interactive English assessments for Chapter 1.", [
+        "Reading and vocabulary",
+        "Grammar practice",
+        "Word skills",
+      ], englishHtmlPath(grade, 1)),
+      mkLesson(`g${grade}-eng-poem`, "Poem", "Interactive English assessments for the poem.", [
+        "Choose the correct options",
+        "Word meanings",
+        "Rhyming words",
+      ], englishHtmlPath(grade, 2)),
+      mkLesson(`g${grade}-eng-2`, "Chapter 2", "Interactive English assessments for Chapter 2.", [
+        "Reading and vocabulary",
+        "Grammar practice",
+        "Word skills",
+      ], englishHtmlPath(grade, 3)),
+      mkLesson(`g${grade}-eng-3`, "Chapter 3", "Interactive English assessments for Chapter 3.", [
+        "Reading and vocabulary",
+        "Grammar practice",
+        "Word skills",
+      ], englishHtmlPath(grade, 4)),
+      mkLesson(`g${grade}-eng-4`, "Chapter 4", "Interactive English assessments for Chapter 4.", [
+        "Reading and vocabulary",
+        "Grammar practice",
+        "Word skills",
+      ], englishHtmlPath(grade, 5)),
+    ].filter((l) => l.htmlPath);
+  }
+
+  return [
+    mkLesson(`g${grade}-eng-1`, "Chapter 1", "Interactive English assessments for Chapter 1.", [
+      "Reading and vocabulary",
+      "Grammar practice",
+      "Word skills",
+    ], englishHtmlPath(grade, 1)),
+    mkLesson(`g${grade}-eng-2`, "Chapter 2", "Interactive English assessments for Chapter 2.", [
+      "Reading and vocabulary",
+      "Grammar practice",
+      "Word skills",
+    ], englishHtmlPath(grade, 2)),
+    mkLesson(`g${grade}-eng-3`, "Chapter 3", "Interactive English assessments for Chapter 3.", [
+      "Reading and vocabulary",
+      "Grammar practice",
+      "Word skills",
+    ], englishHtmlPath(grade, 3)),
+    mkLesson(`g${grade}-eng-4`, "Chapter 4", "Interactive English assessments for Chapter 4.", [
+      "Reading and vocabulary",
+      "Grammar practice",
+      "Word skills",
+    ], englishHtmlPath(grade, 4)),
+  ].filter((l) => l.htmlPath);
+};
+
 const subjectsFor = (grade: number): Subject[] => [
   {
     id: "science",
@@ -234,28 +327,7 @@ const subjectsFor = (grade: number): Subject[] => [
     icon: "📖",
     iconImage: "/images/englishicon1.png",
     color: "bg-rose-500/10 text-rose-700",
-    lessons: [
-      mkLesson(`g${grade}-eng-1`, "Nouns and Pronouns", "Naming people, places and things.", [
-        "Common vs proper nouns",
-        "He, she, it, they",
-        "Using pronouns in sentences",
-      ]),
-      mkLesson(`g${grade}-eng-2`, "Reading Comprehension", "Read a short story and answer questions.", [
-        "Skim for the main idea",
-        "Find details in the passage",
-        "Guess word meanings",
-      ]),
-      mkLesson(`g${grade}-eng-3`, "Verbs and Sentences", "Action words and building sentences.", [
-        "Action verbs",
-        "Simple vs compound sentences",
-        "Punctuation basics",
-      ]),
-      mkLesson(`g${grade}-eng-4`, "Writing Practice", "Basic writing skills and creativity.", [
-        "Writing a paragraph",
-        "Describing a picture",
-        "Letter writing basics",
-      ]),
-    ],
+    lessons: englishLessonsFor(grade),
   },
 ];
 
