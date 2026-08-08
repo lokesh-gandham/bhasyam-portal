@@ -21,7 +21,7 @@ options:[
 {text:"Strange",img:"../assets/images/strange.png"}
 ],
 answer:3,
-img:"../assets/images/Window.png"
+img:"../assets/images/window.png"
 },
 
 {
@@ -33,7 +33,7 @@ options:[
 {text:"Elephant",img:"../assets/images/elephant.png"}
 ],
 answer:1,
-img:"../assets/images/Sandwich.png"
+img:"../assets/images/sandwich.png"
 },
 
 {
