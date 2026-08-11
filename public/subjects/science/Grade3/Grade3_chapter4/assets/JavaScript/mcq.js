@@ -16,7 +16,7 @@ const quizData = [
     img: "../assets/images/fire.png",
     options: [
       "../assets/images/oxygen.png|oxygen",
-      "../assets/images/nitrogen.png|Nitrogen",
+      "../assets/images/Nitrogen.png|Nitrogen",
       "../assets/images/CO2.png|carbon dioxide",
       "../assets/images/vapour.png|vapour",
     ],
