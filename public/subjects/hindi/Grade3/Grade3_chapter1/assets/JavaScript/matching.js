@@ -257,7 +257,7 @@ function showFinal() {
   document.getElementById("finalScore").textContent =
     `आपका परिणाम: ${score} / ${leftData.length}`;
 
-  document.getElementById("stars").textContent = "⭐⭐⭐⭐";
+  document.getElementById("stars").textContent = "⭐⭐⭐";
 
   popup.style.display = "flex";
    const duration = 2000;

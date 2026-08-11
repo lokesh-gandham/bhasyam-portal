@@ -215,7 +215,7 @@ function showFinal() {
   const finalPopup = document.getElementById("finalPopup");
   finalPopup.style.display = "flex";
   document.getElementById("finalScore").textContent = `Score: ${score}/4`;
-  document.getElementById("stars").textContent = "⭐".repeat(score);
+  document.getElementById("stars").textContent = "⭐".repeat(3);
 
   if (window.innerWidth >= 769) {
     const duration = 2000;

@@ -16,7 +16,7 @@ const quizData = [
     q: "Match the words with their opposites.",
     img: "",
     pairs: [
-      { left: "ask", right: "reply", leftImg: "../assets/images/ask-removebg-preview.png", rightImg: "../assets/images/Reply.png" },
+      { left: "ask", right: "reply", leftImg: "../assets/images/ask-removebg-preview.png", rightImg: "../assets/images/reply1.png" },
       { left: "many", right: "few", leftImg: "../assets/images/many-removebg-preview.png", rightImg: "../assets/images/few-removebg-preview.png" },
       { left: "give", right: "take", leftImg: "../assets/images/give-removebg-preview.png", rightImg: "../assets/images/take-removebg-preview.png" },
       { left: "happy", right: "sad", leftImg: "../assets/images/happy1-removebg-preview.png", rightImg: "../assets/images/sad-removebg-preview.png" },

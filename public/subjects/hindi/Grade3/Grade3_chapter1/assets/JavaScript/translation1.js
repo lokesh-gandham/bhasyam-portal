@@ -823,7 +823,7 @@ function showFinal(){
   document.getElementById(
     "finalScore"
   ).textContent =
-  `Score : ${score} / ${totalQuestions}`;
+  `आपका परिणाम : ${score} / ${totalQuestions}`;
 
   document.getElementById(
     "stars"

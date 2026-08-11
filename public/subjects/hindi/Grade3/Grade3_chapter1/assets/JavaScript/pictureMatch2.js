@@ -24,123 +24,123 @@ const questions = [
     img: "../assets/images/anar.png",
   },
   {
-    q: "ऋषि",
+   q: "ऋषि",
     a: "ऋ",
-    options: ["ऋ", "ए", "ऐ", "उ"],
+    options: ["ए", "ऋ", "उ", "ऐ"],
     img: "../assets/images/rishi.png",
   },
   {
     q: "ऐनक",
     a: "ऐ",
-    options: ["ऐ", "ए", "ओ", "औ"],
+    options: ["ओ", "ऐ", "औ", "ए"],
     img: "../assets/images/ainak.png",
   },
   {
     q: "अंगूर",
     a: "अं",
-    options: ["अं", "अ", "आ", "ओ"],
+    options: ["आ", "ओ", "अं", "अ"],
     img: "../assets/images/angoor.png",
   },
   {
     q: "ओखली",
     a: "ओ",
-    options: ["ओ", "औ", "अं", "ऐ"],
+    options: ["अं", "औ", "ओ", "ऐ"],
     img: "../assets/images/okhli.png",
   },
   {
     q: "कमल",
     a: "क",
-    options: ["क", "ख", "ग", "घ"],
+    options: ["ख", "ग", "क", "घ"],
     img: "../assets/images/kamal.png",
   },
   {
     q: "जहाज",
     a: "ज",
-    options: ["ज", "झ", "ट", "ठ"],
+    options: ["ट", "ज", "ठ", "झ"],
     img: "../assets/images/jahaj.png",
   },
   {
     q: "टमाटर",
     a: "ट",
-    options: ["ट", "ठ", "ड", "ढ"],
+    options: ["ढ", "ड", "ठ", "ट"],
     img: "../assets/images/tamatar.png",
   },
   {
     q: "तकिया",
     a: "त",
-    options: ["त", "थ", "द", "ध"],
+    options: ["थ", "ध", "त", "द"],
     img: "../assets/images/takiya.png",
   },
   {
     q: "धनुष",
     a: "ध",
-    options: ["ध", "द", "थ", "न"],
+    options: ["न", "ध", "द", "थ"],
     img: "../assets/images/dhanush.png",
   },
   {
     q: "भवन",
     a: "भ",
-    options: ["भ", "ब", "म", "प"],
+    options: ["ब", "म", "भ", "प"],
     img: "../assets/images/building.png",
   },
   {
     q: "नल",
     a: "न",
-    options: ["न", "प", "फ", "ब"],
+    options: ["फ", "ब", "न", "प"],
     img: "../assets/images/nal.png",
   },
   {
     q: "पतंग",
     a: "प",
-    options: ["प", "फ", "ब", "भ"],
+    options: ["भ", "प", "फ", "ब"],
     img: "../assets/images/patang.png",
   },
   {
     q: "बतख",
     a: "ब",
-    options: ["ब", "भ", "म", "य"],
+    options: ["य", "म", "भ", "ब"],
     img: "../assets/images/batakh.png",
   },
   {
     q: "मटर",
     a: "म",
-    options: ["म", "भ", "ब", "य"],
+    options: ["भ", "म", "य", "ब"],
     img: "../assets/images/matar.png",
   },
   {
     q: "यज्ञ",
     a: "य",
-    options: ["य", "र", "ल", "व"],
+    options: ["र", "य", "व", "ल"],
     img: "../assets/images/yagya.png",
   },
   {
     q: "लट्टू",
     a: "ल",
-    options: ["ल", "व", "श", "ष"],
+    options: ["श", "व", "ल", "ष"],
     img: "../assets/images/spinningToy.png",
   },
   {
     q: "शलगम",
     a: "श",
-    options: ["श", "ष", "स", "ह"],
+    options: ["ष", "श", "ह", "स"],
     img: "../assets/images/shalgam.png",
   },
   {
     q: "हल",
     a: "ह",
-    options: ["ह", "स", "ष", "श"],
+    options: ["स", "ष", "श", "ह"],
     img: "../assets/images/hal.png",
   },
   {
     q: "क्षत्रिय",
     a: "क्ष",
-    options: ["क्ष", "त्र", "ज्ञ", "श्र"],
+    options: ["त्र", "ज्ञ", "क्ष", "श्र"],
     img: "../assets/images/kshatriya.png",
   },
   {
     q: "श्रमिक",
     a: "श्र",
-    options: ["श्र", "त्र", "ज्ञ", "क्ष"],
+    options: ["ज्ञ", "श्र", "क्ष", "त्र"],
     img: "../assets/images/shramik.png",
   },
 ];
@@ -613,7 +613,7 @@ function showFinal() {
   document.getElementById(
     "stars"
   ).textContent =
-    "⭐".repeat(earnedStars);
+    "⭐".repeat(3);
 
 
   /* ===== CONFETTI ===== */

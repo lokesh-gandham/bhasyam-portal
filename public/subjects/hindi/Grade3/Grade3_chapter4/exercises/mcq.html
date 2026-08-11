@@ -642,33 +642,45 @@
 
         /* EMOJI POPUP */
         .emoji-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            z-index: 1500;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
-            background: #fff6e8;
-            padding: 0.8rem 2rem;
-            border-radius: 80px;
-            border: 5px solid #ffcd7e;
-            box-shadow: 0 15px 0 #c4833a;
-        }
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    z-index: 99999;
 
-        .emoji-popup.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translate(-50%, -50%) scale(1);
-        }
+    background: #fff6e8;
+    padding: 18px 35px;
+    border-radius: 80px;
+    border: 5px solid #ff6b6b;
+    box-shadow: 0 15px 0 #c4833a;
 
-        .popup-emoji {
-            font-size: 3.5rem;
-            line-height: 1;
-            animation: popEmoji 0.4s ease;
-            text-align: center;
-        }
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        visibility 0s linear 0.2s;
+}
+
+.emoji-popup.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: none;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        visibility 0s;
+}
+
+.popup-emoji {
+    font-size: 4rem;
+    line-height: 1;
+    text-align: center;
+}
 
         @keyframes popEmoji {
             0% {
@@ -967,26 +979,49 @@
         const finalOverlay = document.getElementById("finalPopup");
         const finalReplayBtn = document.getElementById("playAgainFinalBtn");
 
-        let popupTimer = null;
-        function showPopup(isCorrect) {
-            if (popupTimer) clearTimeout(popupTimer);
-            if (isCorrect) {
-                popupEmojiSpan.textContent = "🥳";
-                playCorrectSound();
+      let popupTimer = null;
 
-                if (typeof confetti === 'function') {
-                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#ffb347', '#2ecc71', '#f1c40f'] });
-                }
-            } else {
-                popupEmojiSpan.textContent = "😢";
-                playWrongSound();
-                speakWrong();
-            }
-            popupDiv.classList.add("active");
-            popupTimer = setTimeout(() => {
-                popupDiv.classList.remove("active");
-            }, 900);
+function showPopup(isCorrect) {
+
+    // Clear previous timer
+    if (popupTimer) {
+        clearTimeout(popupTimer);
+        popupTimer = null;
+    }
+
+    // Set emoji
+    if (isCorrect) {
+        popupEmojiSpan.textContent = "🥳";
+        playCorrectSound();
+
+        if (typeof confetti === "function") {
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
         }
+
+    } else {
+        popupEmojiSpan.textContent = "😢";
+        playWrongSound();
+    }
+
+    // Force popup to show
+    popupDiv.classList.remove("active");
+
+    // Force browser reflow
+    void popupDiv.offsetWidth;
+
+    // Show popup
+    popupDiv.classList.add("active");
+
+    // Hide after 1 second
+    popupTimer = setTimeout(() => {
+        popupDiv.classList.remove("active");
+        popupTimer = null;
+    }, 1000);
+}
 
         function speakHindi(text) {
             try {
@@ -1047,13 +1082,17 @@
                 showPopup(true);
                 updateNavButtons();
                 checkAllComplete();
-            } else {
-                showPopup(false);
-                btnElement.classList.add("wrong-selected");
-                setTimeout(() => {
-                    btnElement.classList.remove("wrong-selected");
-                }, 500);
-            }
+            }  else {
+
+    // WRONG ANSWER
+    showPopup(false);
+
+    btnElement.classList.add("wrong-selected");
+
+    setTimeout(() => {
+        btnElement.classList.remove("wrong-selected");
+    }, 500);
+}
         }
 
         function loadQuestion() {

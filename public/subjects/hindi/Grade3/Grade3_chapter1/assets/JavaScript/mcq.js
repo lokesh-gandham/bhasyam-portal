@@ -215,7 +215,7 @@ function showFinal() {
     .textContent = `Score : ${score}/${quizData.length}`;
 
   document.getElementById("stars")
-    .textContent = "⭐".repeat(score);
+    .textContent = "⭐".repeat(3);
 
   /* CONFETTI */
 

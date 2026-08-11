@@ -393,7 +393,7 @@ function showFinal() {
     `आपका परिणाम: ${score}/${questions.length}`;
 
   document.getElementById("stars")
-  .textContent = "⭐⭐⭐⭐";
+  .textContent = "⭐⭐⭐";
 
   fireBigConfetti();
 }
