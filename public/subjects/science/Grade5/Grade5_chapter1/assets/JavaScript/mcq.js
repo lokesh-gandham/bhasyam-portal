@@ -25,8 +25,8 @@ const quizData = [
     image: "../assets/images/floatingbone.webp",
     q: "Q3. The first bone of the spine is the ______.",
     options: [
-      // { text: "Ribcage", img: "../assets/images/ribcage.webp" },
-      { text: "Globe", img: "../assets/images/globe.png" },
+      { text: "Ribcage", img: "../assets/images/ribcage.webp" },
+      //{ text: "Globe", img: "../assets/images/globe.png" },
       { text: "Atlas", img: "../assets/images/atlas.webp" },
       { text: "Sternum", img: "../assets/images/sternum.webp" },
       { text: "Cranium", img: "../assets/images/cranium.webp" }

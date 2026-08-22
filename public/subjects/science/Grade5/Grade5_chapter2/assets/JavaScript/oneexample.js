@@ -2,17 +2,17 @@ const questions = [
   {
     q: "Q1. Type of nerve ",
     a: "sensory nerve",
-    img: "../assets/images/nerves.png",
+    img: "../assets/images/sensorynerve.png",
   },
   {
     q: "Q2. Voluntary action ",
     a: "walking",
-    img: "../assets/images/voluntary-action.png",
+    img: "../assets/images/voluntaryactionss.png",
   },
   {
     q: "Q3. Involuntary action ",
     a: "heartbeat",
-    img: "../assets/images/voluntaryactions.png",
+    img: "../assets/images/heartbeat2.png",
   },
   {
     q: "Q4. Sense organ ",

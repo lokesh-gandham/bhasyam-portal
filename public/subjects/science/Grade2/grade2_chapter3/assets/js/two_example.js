@@ -17,7 +17,7 @@ const quizData = [
   {
     q: "Q2. A body-building food.",
     correct: "Eggs",
-    options: ["Eggs", "Milk"],
+    options: ["Eggs", "Roti"],
   },
   {
     q: "Q3. A Protective food.",
@@ -30,7 +30,7 @@ const optionImages = {
   Vegetables: "../assets/images/vegetables.png",
   Meat: "../assets/images/meat.png",
   Eggs: "../assets/images/E.png",
-  Milk: "../assets/images/milk.png",
+  Roti: "../assets/images/roti.png",
   Fruits: "../assets/images/fruits.png",
   Junkfood: "../assets/images/junkfood.png",
   

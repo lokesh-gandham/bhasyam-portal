@@ -12,7 +12,7 @@ const questions = [
   {
     q: "Q3. Many organisms including animals and plants live in ______.",
     a: ["water"],
-    img: "../assets/images/water.png",
+    img: "../assets/images/wateranimals.png",
   },
   {
     q: "Q4. Vehicles also give out ______.",

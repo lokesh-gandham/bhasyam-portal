@@ -60,7 +60,7 @@ img: "../assets/images/boyveltilater.png"
 {
 q: "Q2. The disease causing germs do not harm the __________ in which they stay dormant.",
 a: "vector",
-img: "../assets/images/vector.png"
+img: "../assets/images/housefly2.png"
 },
 
 {

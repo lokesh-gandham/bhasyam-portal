@@ -51,7 +51,7 @@ const quizData = [
     { text: "Kitchen", img: "../assets/images/kitchen.png" },
     { text: "Bathroom", img: "../assets/images/bathroom.png" },
     { text: "Study room", img: "../assets/images/study-room.png" },
-    { text: "Dinnig room", img: "../assets/images/dinnig.png" }
+    { text: "Dining room", img: "../assets/images/dinnig.png" }
   ],
   answer: "Study room"
 }
