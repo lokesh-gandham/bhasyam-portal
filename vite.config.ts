@@ -10,9 +10,21 @@ export default defineConfig({
     tanstackStart(),
     nitro({
       preset: "node-server",
+      inlineDynamicImports: true,
     }),
     react(),
     tailwindcss(),
     tsConfigPaths(),
   ],
+  environments: {
+    ssr: {
+      build: {
+        rollupOptions: {
+          output: {
+            codeSplitting: false,
+          },
+        },
+      },
+    },
+  },
 });
