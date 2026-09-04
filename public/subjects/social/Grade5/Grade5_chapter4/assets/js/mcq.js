@@ -35,8 +35,8 @@ const quizData = [
   image: "../assets/images/velds.png",
   options: [
     { text: "South Africa", img: "../assets/images/south-africa.png" },
-    { text: "Australia", img: "../assets/images/aus.png" },
-    { text: "America", img: "../assets/images/america.png" }
+    { text: "Australia", img: "../assets/images/america.png" },
+    { text: "America", img: "../assets/images/aus.png" }
   ],
   answer: "South Africa"
 },

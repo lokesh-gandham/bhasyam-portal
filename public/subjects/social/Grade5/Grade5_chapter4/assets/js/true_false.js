@@ -76,7 +76,7 @@ const quizData = [
 {
   q: "Q5. As towns and cities are growing in size, new houses are being built on the grasslands.",
   a: true,
-  img: "./../assets/images/MCQ-1.png",
+  img: "./../assets/images/househills.png",
   answered: false
 }
 ];

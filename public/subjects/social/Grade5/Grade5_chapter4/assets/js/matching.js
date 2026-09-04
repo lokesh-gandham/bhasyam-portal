@@ -81,7 +81,7 @@ function init() {
     div.className = "item";
     div.dataset.id = item.match;
 
-    div.innerHTML = `<span>${item.text}</span>`;
+    div.innerHTML = `<span class="opt-text">${item.match.toUpperCase()}. ${item.text}</span>`;
 
     div.onclick = () => {
       if (!selectedLeft || div.classList.contains("matched")) return;

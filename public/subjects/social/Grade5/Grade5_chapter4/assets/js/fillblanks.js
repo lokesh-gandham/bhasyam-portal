@@ -66,7 +66,7 @@ const questions = [
 {
   q: "Q3. The grasslands are home to many ____.",
   a: "Animals",
-  img: "./../assets/images/mcq-2.png"
+  img: "./../assets/images/animals-removebg-preview.png"
 },
 
 {
@@ -78,7 +78,7 @@ const questions = [
 {
   q: "Q5. ____ is one of the most important occupations for the people of Velds.",
   a: "Sheep rearing",
-  img: "./../assets/images/velds.png"
+  img: "./../assets/images/sheeprearing.png"
 }
 
 ];
