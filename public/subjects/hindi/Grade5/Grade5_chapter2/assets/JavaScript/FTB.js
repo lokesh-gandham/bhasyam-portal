@@ -2,15 +2,15 @@ const questions = [
 
 {
   q: "Q1. ख",
-  a: ["ख्"],
-  options: ["ट्","ख्","ठ्","ड्"],
+  a: ["ख्‍"],
+  options: ["ट्","ख्‍","ठ्","ड्"],
   img: "../assets/images/tomato.png",
 },
 
 {
   q: "Q2. च",
-  a: ["च्"],
-  options: ["त्","थ्","च्","द्"],
+  a: ["च्‍"],
+  options: ["त्‍ ","थ्‍ ","च्‍","द्"],
   img: "../assets/images/thathera.png",
 },
 
@@ -23,64 +23,64 @@ const questions = [
 
 {
   q: "Q4. य",
-  a: ["य्"],
-  options: ["र्","ल्","व्","य्"],
+  a: ["य्‍"],
+  options: ["र्","ल्‍","व्‍ ","य्‍"],
   img: "../assets/images/bhalu.png",
 },
 
 {
   q: "Q5. घ",
-  a: ["घ्"],
-  options: ["ध्","भ्","घ्","म्"],
+  a: ["घ्‍"],
+  options: ["ध्‍","भ्‍","घ्‍","म्‍"],
   img: "../assets/images/patang.png",
 },
 
 {
   q: "Q6. ज",
-  a: ["ज्"],
-  options: ["झ्","ञ्","ट्","ज्"],
+  a: ["ज्‍"],
+  options: ["झ्‍","ञ्‍","ट्","ज्‍"],
   img: "../assets/images/potcap.png",
 },
 
 {
   q: "Q7. न",
-  a: ["न्"],
-  options: ["ण्","त्","न्","थ्"],
+  a: ["न्‍"],
+  options: ["ण्‍","त्‍","न्‍","थ्‍"],
   img: "../assets/images/goat.png",
 },
 
 {
   q: "Q8. ल",
-  a: ["ल्"],
-  options: ["व्","श्","ष्","ल्"],
+  a: ["ल्‍"],
+  options: ["व्‍","श्‍","ष्‍","ल्‍"],
   img: "../assets/images/dhanush.png",
 },
 
 {
   q: "Q9. भ",
-  a: ["भ्"],
-  options: ["म्","ध्","भ्","ब्"],
+  a: ["भ्‍"],
+  options: ["म्‍","ध्‍","भ्‍","ब्‍"],
   img: "../assets/images/tomato.png",
 },
 
 {
   q: "Q10. ष",
-  a: ["ष्"],
-  options: ["फ्","ब्","भ्","ष्"],
+  a: ["ष्‍"],
+  options: ["फ्‍","ब्‍","भ्‍","ष्‍"],
   img: "../assets/images/thathera.png",
 },
 
 {
   q: "Q11. म",
-  a: ["म्"],
-  options: ["भ्","ब्","ध्","म्"],
+  a: ["म्‍"],
+  options: ["भ्‍","ब्‍","ध्‍","म्‍"],
   img: "../assets/images/tarbuj.png",
 },
 
 {
   q: "Q12 ध",
-  a: ["ध्"],
-  options: ["द्","थ्","न्","ध्"],
+  a: ["ध्‍"],
+  options: ["द्","थ्‍","न्‍","ध्‍"],
   img: "../assets/images/bhalu.png",
 },
 
