@@ -212,7 +212,7 @@
                     origin: { y: 0.6 }
                 });
             } else {
-                emoji.innerHTML = "😢";
+                emoji.innerHTML = "😔";
                 playWrongSound();
             }
 

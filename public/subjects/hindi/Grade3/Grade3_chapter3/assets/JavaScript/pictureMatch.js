@@ -199,40 +199,35 @@ const allQuestions = [
 
   // PAGE 1
 
-  {
-    image:"../assets/images/corn.png",
-    answer:"मक्का",
-    options:["पत्ता","लट्टू","मक्का","अम्मा","बिल्ली","गुब्बारा",]
+   {
+    image: "../assets/images/corn.png",
+    answer: "मक्का",
+    options: ["बिल्ली", "मक्का", "पत्ता", "गुब्बारा", "लट्टू", "अम्मा"]
   },
-
   {
-    image:"../assets/images/mom.png",
-    answer:"अम्मा",
-    options:["पत्ता","लट्टू","मक्का","अम्मा","बिल्ली","गुब्बारा",]
+    image: "../assets/images/mom.png",
+    answer: "अम्मा",
+    options: ["लट्टू", "पत्ता", "अम्मा", "बिल्ली", "मक्का", "गुब्बारा"]
   },
-
   {
-    image:"../assets/images/cat.png",
-    answer:"बिल्ली",
-    options:["पत्ता","लट्टू","मक्का","अम्मा","बिल्ली","गुब्बारा",]
+    image: "../assets/images/cat.png",
+    answer: "बिल्ली",
+    options: ["मक्का", "गुब्बारा", "बिल्ली", "अम्मा", "पत्ता", "लट्टू"]
   },
-
   {
-    image:"../assets/images/balloon.png",
-    answer:"गुब्बारा",
-    options:["पत्ता","लट्टू","मक्का","अम्मा","बिल्ली","गुब्बारा",]
+    image: "../assets/images/balloon.png",
+    answer: "गुब्बारा",
+    options: ["पत्ता", "गुब्बारा", "अम्मा", "लट्टू", "बिल्ली", "मक्का"]
   },
-
   {
-    image:"../assets/images/leaf.png",
-    answer:"पत्ता",
-    options:["पत्ता","लट्टू","मक्का","अम्मा","बिल्ली","गुब्बारा",]
+    image: "../assets/images/leaf.png",
+    answer: "पत्ता",
+    options: ["अम्मा", "बिल्ली", "लट्टू", "मक्का", "पत्ता", "गुब्बारा"]
   },
-
   {
-    image:"../assets/images/spinningToy.png",
-    answer:"लट्टू",
-    options:["पत्ता","लट्टू","मक्का","अम्मा","बिल्ली","गुब्बारा",]
+    image: "../assets/images/spinningToy.png",
+    answer: "लट्टू",
+    options: ["गुब्बारा", "लट्टू", "मक्का", "पत्ता", "अम्मा", "बिल्ली"]
   },
 
   // PAGE 2
