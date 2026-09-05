@@ -1113,7 +1113,48 @@
         border: 1px solid #ccc;
     }
 }
-    </style>
+    
+/* DRAG & DROP UPDATE */
+.blank-input{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:150px;
+    min-height:52px;
+    padding:7px 16px;
+    background:#f0f0f0;
+    border:3px dashed #9aa9c2;
+    border-radius:40px;
+    color:#1f7a48;
+    font-weight:700;
+    font-size:1.3rem;
+    text-align:center;
+    margin:0 5px;
+    vertical-align:middle;
+    transition:.2s ease;
+}
+.blank-input.drag-over{
+    background:#fff4c2;
+    border-color:#ffaa55;
+    transform:scale(1.04);
+}
+.blank-input.filled{
+    background:#c7ffdb;
+    border:2px solid #2ecc71;
+}
+.part-btn{
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:none;
+    cursor:grab;
+}
+.part-btn:active{cursor:grabbing}
+.part-btn.dragging{
+    opacity:.45;
+    transform:scale(.96);
+}
+
+</style>
             <link rel="stylesheet" href="../assets/CSS/walkman-font.css">
 </head>
 
@@ -1122,7 +1163,7 @@
     <div class="quiz">
 
         <div class="question-box">
-            🖼️ चित्र देखकर सही अक्षरों को क्रम से चुनकर शब्द बनाइए 🖼️
+            🖼️  सही शब्द को खींचकर रिक्त स्थान की पूर्ति कीजिए। 🖼️
         </div>
 
         <div class="quiz-layout">
@@ -1396,124 +1437,210 @@
         function updateBlankDisplay() {
             const q = QUESTIONS[currentIndex];
             const state = userStates[currentIndex];
-            
-            let blankContent = "";
-            if (state.isCorrect) {
-                blankContent = q.fullWord;
-            } else if (state.selectedParts.length > 0) {
-                blankContent = state.selectedParts.join('');
-            } else {
-                blankContent = "_____";
-            }
-            
-            poemLine.innerHTML = `Q${q.id}. ${q.sentence.replace("____", `<span class="blank-input ${state.selectedParts.length === q.correctOrder.length ? 'filled' : ''}">${blankContent}</span>`)}`;
+
+            let blankContent = state.selectedParts.length
+                ? state.selectedParts.join('')
+                : "_____";
+
+            if (state.isCorrect) blankContent = q.fullWord;
+
+            poemLine.innerHTML =
+                `Q${q.id}. ${q.sentence.replace(
+                    "____",
+                    `<span class="blank-input ${state.isCorrect ? 'filled' : ''}" id="dropBlank" data-drop-target="true">${blankContent}</span>`
+                )}`;
+
+            setupDropTarget();
         }
 
-        function selectPart(partValue, btnElement, allButtons) {
+        function handleDroppedPart(partValue, sourceElement) {
             const q = QUESTIONS[currentIndex];
             const state = userStates[currentIndex];
-            
+
             if (state.isCorrect) return;
-            
+
             const nextExpectedIndex = state.selectedParts.length;
             const expectedPart = q.correctOrder[nextExpectedIndex];
-            
+
             if (partValue === expectedPart) {
-                // Correct selection
                 state.selectedParts.push(partValue);
-                
-                // Update blank display
-                updateBlankDisplay();
-                
-                // Disable the clicked button
-                btnElement.style.pointerEvents = 'none';
-                btnElement.classList.add('disabled-part');
-                
-                // Play sound for correct selection
+
+                if (sourceElement) {
+                    sourceElement.classList.add("disabled-part");
+                    sourceElement.draggable = false;
+                    sourceElement.style.pointerEvents = "none";
+                }
+
                 playCorrectSound();
-                
-                // Check if word is complete
+                updateBlankDisplay();
+
                 if (state.selectedParts.length === q.correctOrder.length) {
                     state.isCorrect = true;
                     updateBlankDisplay();
-                    
-                    // Disable all remaining buttons
-                    allButtons.forEach(btn => {
-                        btn.style.pointerEvents = 'none';
-                        btn.classList.add('disabled-part');
+
+                    document.querySelectorAll(".part-btn").forEach(btn => {
+                        btn.classList.add("disabled-part");
+                        btn.draggable = false;
+                        btn.style.pointerEvents = "none";
                     });
-                    
+
                     if (!popupShownForCurrentQuestion) {
                         popupShownForCurrentQuestion = true;
                         showPopup(true);
-                        // speak("शब्द पूरा हुआ! बहुत अच्छा!");
                     }
-                    
+
                     nextBtn.disabled = false;
                     checkQuizComplete();
                 }
             } else {
-                // Wrong selection
                 showPopup(false);
-                // speak("गलत अक्षर");
-                btnElement.classList.add('selected-wrong');
-                setTimeout(() => {
-                    btnElement.classList.remove('selected-wrong');
-                }, 500);
+
+                if (sourceElement) {
+                    sourceElement.classList.add("selected-wrong");
+                    setTimeout(() => {
+                        sourceElement.classList.remove("selected-wrong");
+                    }, 500);
+                }
             }
+        }
+
+        function setupDropTarget() {
+            const dropBlank = document.getElementById("dropBlank");
+            if (!dropBlank) return;
+
+            dropBlank.addEventListener("dragover", e => {
+                e.preventDefault();
+                if (!userStates[currentIndex].isCorrect) {
+                    dropBlank.classList.add("drag-over");
+                }
+            });
+
+            dropBlank.addEventListener("dragleave", () => {
+                dropBlank.classList.remove("drag-over");
+            });
+
+            dropBlank.addEventListener("drop", e => {
+                e.preventDefault();
+                dropBlank.classList.remove("drag-over");
+
+                const partValue = e.dataTransfer.getData("text/plain");
+                const sourceId = e.dataTransfer.getData("sourceId");
+                const source = sourceId ? document.getElementById(sourceId) : null;
+
+                if (partValue) {
+                    handleDroppedPart(partValue, source);
+                }
+            });
         }
 
         function loadQuestion() {
             const q = QUESTIONS[currentIndex];
             const state = userStates[currentIndex];
-            
-            // Reset popup flag for this question
+
             popupShownForCurrentQuestion = false;
-            
-            // Update image with error handling
+
             meaningImage.src = q.image;
             meaningImage.alt = q.fullWord + " का चित्र";
             meaningImage.onerror = function() {
                 this.src = "https://cdn-icons-png.flaticon.com/512/1380/1380338.png";
             };
-            
-            // Update poem line with blank
-            let blankContent = "";
-            if (state.isCorrect) {
-                blankContent = q.fullWord;
-            } else if (state.selectedParts.length > 0) {
-                blankContent = state.selectedParts.join('');
-            } else {
-                blankContent = "_____";
-            }
-            
-            poemLine.innerHTML = `Q${q.id}. ${q.sentence.replace("____", `<span class="blank-input ${state.selectedParts.length === q.correctOrder.length ? 'filled' : ''}">${blankContent}</span>`)}`;
-            
-            // Create parts buttons (shuffled)
+
+            let blankContent = state.isCorrect
+                ? q.fullWord
+                : (state.selectedParts.length ? state.selectedParts.join('') : "_____");
+
+            poemLine.innerHTML =
+                `Q${q.id}. ${q.sentence.replace(
+                    "____",
+                    `<span class="blank-input ${state.isCorrect ? 'filled' : ''}" id="dropBlank" data-drop-target="true">${blankContent}</span>`
+                )}`;
+
             partsList.innerHTML = "";
+
             const shuffledParts = [...q.parts].sort(() => Math.random() - 0.5);
-            
-            shuffledParts.forEach(part => {
+
+            shuffledParts.forEach((part, index) => {
                 const btn = document.createElement("div");
                 btn.className = "part-btn";
                 btn.textContent = part;
-                
+                btn.draggable = !state.isCorrect && !state.selectedParts.includes(part);
+
+                // Unique id is needed to identify the dragged option.
+                btn.id = `dragPart_${currentIndex}_${index}`;
+
                 const isUsed = state.selectedParts.includes(part);
-                
-                if (!state.isCorrect && !isUsed) {
-                    btn.addEventListener("click", (e) => {
-                        if (state.isCorrect) return;
-                        const allBtns = document.querySelectorAll('.part-btn');
-                        selectPart(part, btn, allBtns);
-                    });
+
+                if (state.isCorrect || isUsed) {
+                    btn.classList.add("disabled-part");
+                    btn.draggable = false;
                 } else {
-                    btn.style.pointerEvents = 'none';
-                    btn.classList.add('disabled-part');
+                    btn.addEventListener("dragstart", e => {
+                        e.dataTransfer.setData("text/plain", part);
+                        e.dataTransfer.setData("sourceId", btn.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        btn.classList.add("dragging");
+                    });
+
+                    btn.addEventListener("dragend", () => {
+                        btn.classList.remove("dragging");
+                    });
+
+                    // Pointer/touch drag: no click-to-answer behavior.
+                    let pointerDragging = false;
+                    let ghost = null;
+
+                    btn.addEventListener("pointerdown", e => {
+                        if (e.pointerType === "mouse") return;
+                        pointerDragging = true;
+                        btn.setPointerCapture(e.pointerId);
+                        btn.classList.add("dragging");
+                    });
+
+                    btn.addEventListener("pointermove", e => {
+                        if (!pointerDragging) return;
+                        const drop = document.getElementById("dropBlank");
+                        if (!drop) return;
+
+                        const r = drop.getBoundingClientRect();
+                        const inside =
+                            e.clientX >= r.left && e.clientX <= r.right &&
+                            e.clientY >= r.top && e.clientY <= r.bottom;
+
+                        drop.classList.toggle("drag-over", inside);
+                    });
+
+                    btn.addEventListener("pointerup", e => {
+                        if (!pointerDragging) return;
+                        pointerDragging = false;
+                        btn.classList.remove("dragging");
+
+                        const drop = document.getElementById("dropBlank");
+                        if (!drop) return;
+
+                        const r = drop.getBoundingClientRect();
+                        const inside =
+                            e.clientX >= r.left && e.clientX <= r.right &&
+                            e.clientY >= r.top && e.clientY <= r.bottom;
+
+                        drop.classList.remove("drag-over");
+
+                        if (inside) {
+                            handleDroppedPart(part, btn);
+                        }
+                    });
+
+                    btn.addEventListener("pointercancel", () => {
+                        pointerDragging = false;
+                        btn.classList.remove("dragging");
+                        document.getElementById("dropBlank")?.classList.remove("drag-over");
+                    });
                 }
-                
+
                 partsList.appendChild(btn);
             });
-            
+
+            setupDropTarget();
+
             nextBtn.disabled = !state.isCorrect;
             prevBtn.disabled = (currentIndex === 0);
         }
