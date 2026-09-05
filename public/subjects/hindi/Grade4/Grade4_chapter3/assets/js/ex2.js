@@ -227,7 +227,7 @@ function showPopup(correct=true){
     }else{
 
         emoji.innerHTML =
-        "😢";
+        "😔";
 
         playWrongSound();
 

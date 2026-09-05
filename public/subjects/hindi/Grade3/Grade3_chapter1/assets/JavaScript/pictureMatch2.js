@@ -145,7 +145,7 @@ const questions = [
   },
 ];
 
-const QUESTIONS_PER_PAGE = 4;
+const QUESTIONS_PER_PAGE = 1;
 
 let currentPage = 0;
 

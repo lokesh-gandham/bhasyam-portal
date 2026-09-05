@@ -111,7 +111,7 @@
                 confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#ffb347', '#2ecc71', '#f1c40f'] });
             }
         } else {
-            popupEmoji.textContent = "😢";
+            popupEmoji.textContent = "😔";
             playWrongSound();
         }
         
