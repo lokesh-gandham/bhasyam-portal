@@ -53,7 +53,7 @@
             },
             {
                 id: 2,
-                image: "../assets/images/red1.png",
+                image: "../assets/images/rat.png",
                 imageQuestion: "चित्र में कौन सा रंग दिख रहा है?",
                 sentence: "____ रंग बिखराता है, ऐसे सूरज आता है।",
                 options: [ "हरा", "नीला","लाल"],
