@@ -10,7 +10,6 @@ export default defineConfig({
     tanstackStart(),
     nitro({
       preset: "node-server",
-      inlineDynamicImports: true,
     }),
     react(),
     tailwindcss(),
