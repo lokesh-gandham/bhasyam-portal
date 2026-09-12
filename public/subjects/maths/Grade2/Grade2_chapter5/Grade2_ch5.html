@@ -1,0 +1,1249 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Multiply &amp; Conquer · kids arcade</title>
+   <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* RESET + BASE — no overflow, full viewport */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Livvic", sans-serif;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Livvic", sans-serif;
+      background: #f9f3eb;
+      color: #2d3a4b;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* smooth, rounded, playful */
+    .page {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      max-height: 100vh;
+      padding: 12px 16px 10px;
+      background: #f9f3eb;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* soft blobs – child-friendly */
+    .page::before {
+      content: '';
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      border-radius: 60% 40% 50% 50% / 45% 50% 50% 55%;
+      background: #fce4d6;
+      right: -60px;
+      bottom: -50px;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page::after {
+      content: '';
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 70% 30% 60% 40% / 40% 60% 30% 70%;
+      background: #daeaf5;
+      left: -40px;
+      top: -20px;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* all content above blobs */
+    .topbar,
+    .hero,
+    .arcade,
+    .footer {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* home button */
+    .home-btn {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 14px;
+      background: #ffcfb6;
+      color: #5e3d2e;
+      font-size: 22px;
+      font-weight: 900;
+      box-shadow: 0 4px 0 #dbaa92;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+
+    /* topbar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex: 0 0 auto;
+      margin-bottom: 6px;
+      padding: 0 4px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      background: #ffcfb6;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      box-shadow: 0 4px 0 #dbaa92;
+      color: #5e3d2e;
+    }
+
+    .brand-text {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #5d6d82;
+      background: #fff8f0;
+      padding: 5px 14px 5px 12px;
+      border-radius: 40px;
+      border: 2px solid #eee0d2;
+    }
+
+    .score {
+      background: #fffbf5;
+      border-radius: 40px;
+      padding: 6px 16px 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 2px solid #e8dccc;
+      color: #5d6d7a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 0 #d6cbbc;
+    }
+
+    /* hero */
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex: 0 0 auto;
+      margin: 4px 0 8px;
+      padding: 0 4px;
+    }
+
+    .hero-copy {
+      max-width: 75%;
+    }
+
+    .kicker {
+      font-size: 12px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #b48a7a;
+      font-weight: 700;
+      margin-bottom: 0px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 7vw, 52px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -1.5px;
+      color: #38455e;
+    }
+
+    h1 span {
+      color: #d4836e;
+      background: #ffede7;
+      padding: 0 6px 0 4px;
+      border-radius: 20px 8px 8px 20px;
+      display: inline-block;
+    }
+
+    .subtitle {
+      font-size: clamp(13px, 2vw, 18px);
+      color: #6d7b8a;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .hero-badge {
+      width: 100px;
+      height: 80px;
+      background: #ffe5d4;
+      border-radius: 30px 30px 40px 40px;
+      border: 4px solid white;
+      box-shadow: 0 6px 0 #dbb8a8;
+      display: grid;
+      place-items: center;
+      font-size: 48px;
+      font-weight: 900;
+      color: #b57b68;
+      flex: none;
+      position: relative;
+    }
+
+    .hero-badge::after {
+      content: 'MATH';
+      position: absolute;
+      bottom: 6px;
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      color: #a07361;
+      font-weight: 800;
+    }
+
+    /* ARCADE GRID — no scroll, flexible */
+    .arcade {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 100%;
+      padding: 2px 0 4px;
+      align-content: start;
+    }
+
+    /* game cards – playful, colorful, no overflow */
+    .game-card {
+      background: #ffffffd9;
+      backdrop-filter: blur(2px);
+      border-radius: 28px;
+      padding: 12px 12px 10px;
+      border: 3px solid white;
+      box-shadow: 0 6px 0 var(--shadow), 0 8px 18px rgba(70, 60, 70, 0.08);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.1s ease;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+      height: 100%;
+    }
+
+    /* soft card colors + shadows */
+    .card1 {
+      background: #e2f0e8;
+      --shadow: #b8d3c4;
+    }
+
+    .card2 {
+      background: #dde8f5;
+      --shadow: #bccbdf;
+    }
+
+    .card3 {
+      background: #fbebd3;
+      --shadow: #e0caad;
+    }
+
+    .card4 {
+      background: #f8dcd9;
+      --shadow: #ddbdb9;
+    }
+
+    .card5 {
+      background: #eadef5;
+      --shadow: #cebcdb;
+    }
+
+    .card6 {
+      background: #d7e9ef;
+      --shadow: #b5cdd4;
+    }
+
+    .game-card::before {
+      content: '';
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+      right: -20px;
+      top: -25px;
+      pointer-events: none;
+    }
+
+    .game-card::after {
+      content: attr(data-no);
+      position: absolute;
+      right: 14px;
+      top: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: rgba(60, 60, 80, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.65);
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      border: 2px solid rgba(255, 255, 255, 0.7);
+      flex: none;
+    }
+
+    .card-title {
+      font-size: clamp(15px, 2.2vw, 22px);
+      font-weight: 800;
+      line-height: 1.1;
+      color: #344153;
+    }
+
+    .card-title small {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: #6b7a8a;
+      font-weight: 700;
+      margin-bottom: 1px;
+    }
+
+    /* visual area — dynamic content */
+    .visual {
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 4px 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .number-track {
+      width: 80%;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 20px;
+      position: relative;
+      margin: 4px 0;
+    }
+
+    .number-track i {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #f7b38d;
+      top: -5px;
+      box-shadow: 0 2px 0 #ca8f71;
+    }
+
+    .abacus {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      transform: scale(0.85);
+    }
+
+    .rod {
+      height: 55px;
+      width: 5px;
+      background: #c0907b;
+      border-radius: 6px;
+      position: relative;
+    }
+
+    .rod b {
+      position: absolute;
+      width: 22px;
+      height: 13px;
+      border-radius: 10px;
+      left: -8px;
+      background: #f5b8a5;
+      top: 6px;
+      box-shadow: 0 17px 0 #bedad6, 0 34px 0 #f0cf94;
+    }
+
+    /* for multiplication card (game5) rod beads */
+    .rod i {
+      position: absolute;
+      width: 18px;
+      height: 12px;
+      border-radius: 10px;
+      background: #b5a7d1;
+      left: -7px;
+      box-shadow: 0 14px 0 #b5a7d1, 0 28px 0 #b5a7d1;
+      display: block;
+    }
+
+    .sum {
+      font-size: 34px;
+      font-weight: 900;
+      color: #c47b70;
+      letter-spacing: 2px;
+      background: rgba(255, 255, 255, 0.4);
+      padding: 0 12px;
+      border-radius: 30px;
+    }
+
+    .minus-stack {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .minus-stack .box {
+      width: 38px;
+      height: 38px;
+      background: #fff5e6;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      font-weight: 800;
+      color: #b57d5a;
+    }
+
+    .minus-stack .line {
+      font-size: 28px;
+      color: #b8695e;
+      font-weight: 900;
+    }
+
+    .dots {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .dots i {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #dbaac2;
+      box-shadow: 0 2px 0 #b8839b;
+    }
+
+    .groups {
+      display: flex;
+      gap: 6px;
+    }
+
+    .groups span {
+      width: 28px;
+      height: 28px;
+      background: #d1e0ed;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: #3b5b77;
+      font-size: 14px;
+    }
+
+    /* division visual: objects + minus */
+    .object-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 22px;
+      background: rgba(255, 255, 255, 0.4);
+      padding: 4px 12px;
+      border-radius: 60px;
+    }
+
+    .object-row .object {
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .object-row .minus {
+      font-size: 28px;
+      font-weight: 900;
+      color: #b8695e;
+      padding: 0 2px;
+    }
+
+    /* card footer */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: 2px;
+      flex: 0 0 auto;
+      padding-top: 4px;
+      border-top: 2px dashed rgba(255, 255, 255, 0.5);
+    }
+
+    .level {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #5b6b7a;
+      background: rgba(255, 255, 255, 0.5);
+      padding: 3px 10px;
+      border-radius: 30px;
+      white-space: nowrap;
+    }
+
+    .play {
+      border: none;
+      background: #6f829f;
+      color: white;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 6px 16px;
+      border-radius: 30px;
+      box-shadow: 0 4px 0 #4e5f78;
+      cursor: pointer;
+      transition: all 0.08s ease;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex: none;
+    }
+
+    .play:hover {
+      background: #627493;
+    }
+
+    .play:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #4e5f78;
+    }
+
+    /* footer */
+    .footer {
+      flex: 0 0 auto;
+      text-align: center;
+      padding: 6px 0 0;
+      margin-top: 2px;
+    }
+
+    .tip {
+      background: #fffbf5;
+      border: 2px solid #e8dbcd;
+      border-radius: 60px;
+      padding: 5px 18px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #576a78;
+      display: inline-block;
+      letter-spacing: 0.3px;
+      box-shadow: 0 2px 0 #d5c8ba;
+    }
+
+
+    /* multiplication activity visuals */
+    .equation {
+      font-size: clamp(22px, 2.8vw, 34px);
+      font-weight: 900;
+      color: #5f7190;
+      background: rgba(255, 255, 255, .48);
+      padding: 5px 14px;
+      border-radius: 22px;
+      white-space: nowrap
+    }
+
+    .array {
+      display: grid;
+      gap: 4px;
+      justify-content: center;
+      align-content: center
+    }
+
+    .array span {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #dbaac2;
+      box-shadow: 0 2px 0 #b8839b
+    }
+
+    .boxes {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-size: 24px;
+      font-weight: 900;
+      color: #60728f
+    }
+
+    .answer-box {
+      width: 43px;
+      height: 38px;
+      border: 3px dashed #a9b9c9;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .7)
+    }
+
+    .number-line-mult {
+      width: 86%;
+      position: relative;
+      height: 44px;
+      display: flex;
+      align-items: center
+    }
+
+    .number-line-mult .line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: #fff;
+      border-radius: 10px
+    }
+
+    .number-line-mult .ticks {
+      position: absolute;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between
+    }
+
+    .number-line-mult .ticks span {
+      width: 4px;
+      height: 18px;
+      border-radius: 5px;
+      background: #9babbc
+    }
+
+    .number-line-mult .jump {
+      position: absolute;
+      top: 0;
+      left: 18%;
+      font-size: 20px;
+      color: #c47b70;
+      font-weight: 900;
+      letter-spacing: 2px
+    }
+
+    .commutative {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 22px;
+      font-weight: 900;
+      color: #657794;
+      white-space: nowrap
+    }
+
+    .times {
+      color: #c47b70
+    }
+
+    .table-grid {
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+      gap: 3px 7px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #5f7188;
+      background: rgba(255, 255, 255, .45);
+      padding: 6px 9px;
+      border-radius: 15px
+    }
+
+    .match-grid {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      gap: 6px 10px;
+      font-weight: 900;
+      color: #60728f
+    }
+
+    .match-grid span {
+      background: rgba(255, 255, 255, .7);
+      padding: 4px 8px;
+      border-radius: 11px;
+      border: 2px solid rgba(255, 255, 255, .8)
+    }
+
+    .product-box {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 23px;
+      font-weight: 900;
+      color: #60728f
+    }
+
+    .product-box .target {
+      min-width: 44px;
+      padding: 4px 8px;
+      background: rgba(255, 255, 255, .65);
+      border-radius: 12px;
+      text-align: center
+    }
+
+    /* iframe activity overlay */
+    #activityOverlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      z-index: 50;
+      background: #f9f3eb
+    }
+
+    #activityFrame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block
+    }
+
+    #closeActivity {
+      position: fixed;
+      top: 14px;
+      right: 16px;
+      z-index: 60;
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 50%;
+      background: #6f829f;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 900;
+      box-shadow: 0 4px 0 #4e5f78;
+      cursor: pointer
+    }
+
+    @media (min-width:1101px) {
+      .page {
+        padding: 10px 18px 8px
+      }
+
+      .hero {
+        margin: 2px 0 6px
+      }
+
+      .game-card {
+        padding: 9px 10px 7px
+      }
+
+      .icon {
+        width: 42px;
+        height: 42px;
+        font-size: 22px
+      }
+
+      .visual {
+        min-height: 32px
+      }
+
+      .footer {
+        padding-top: 3px
+      }
+    }
+
+    @media (min-width:1101px) and (max-height:800px) {
+      .hero {
+        margin: 0 0 3px
+      }
+
+      h1 {
+        font-size: 34px
+      }
+
+      .subtitle {
+        font-size: 12px;
+        margin-top: 2px
+      }
+
+      .hero-badge {
+        width: 82px;
+        height: 62px;
+        font-size: 38px
+      }
+
+      .arcade {
+        gap: 7px
+      }
+
+      .game-card {
+        padding: 6px 8px 5px;
+        border-radius: 22px
+      }
+
+      .card-head {
+        margin-bottom: 1px
+      }
+
+      .icon {
+        width: 36px;
+        height: 36px;
+        font-size: 19px;
+        border-radius: 13px
+      }
+
+      .card-title {
+        font-size: 15px
+      }
+
+      .visual {
+        min-height: 25px;
+        padding: 1px 0
+      }
+
+      .card-footer {
+        padding-top: 1px
+      }
+
+      .play {
+        padding: 4px 12px;
+        font-size: 10px
+      }
+
+      .level {
+        font-size: 7px;
+        padding: 2px 7px
+      }
+
+      .footer {
+        display: none
+      }
+    }
+
+    /* responsive */
+    @media (max-width: 1100px) {
+      .arcade {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .hero-badge {
+        display: none;
+      }
+
+      h1 {
+        font-size: clamp(24px, 5vw, 36px);
+      }
+
+      .card-title {
+        font-size: 15px;
+      }
+
+      .icon {
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .page {
+        padding: 8px 8px 6px;
+      }
+
+      .arcade {
+        gap: 7px;
+      }
+
+      .game-card {
+        padding: 8px 8px 6px;
+        border-radius: 20px;
+      }
+
+      .card-head {
+        gap: 4px;
+      }
+
+      .icon {
+        width: 34px;
+        height: 34px;
+        font-size: 18px;
+        border-radius: 12px;
+      }
+
+      .card-title {
+        font-size: 12px;
+      }
+
+      .card-title small {
+        font-size: 7px;
+        letter-spacing: 1px;
+      }
+
+      .play {
+        font-size: 10px;
+        padding: 4px 12px;
+        box-shadow: 0 3px 0 #4e5f78;
+      }
+
+      .level {
+        font-size: 7px;
+        padding: 2px 8px;
+      }
+
+      .visual {
+        min-height: 30px;
+      }
+
+      .sum {
+        font-size: 24px;
+      }
+
+      .minus-stack .box {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+      }
+
+      .minus-stack .line {
+        font-size: 20px;
+      }
+
+      .number-track i {
+        width: 12px;
+        height: 12px;
+      }
+
+      .abacus {
+        transform: scale(0.6);
+      }
+
+      .rod {
+        height: 40px;
+      }
+
+      .dots i {
+        width: 12px;
+        height: 12px;
+      }
+
+      .groups span {
+        width: 22px;
+        height: 22px;
+        font-size: 11px;
+      }
+
+      .object-row {
+        font-size: 16px;
+        gap: 4px;
+      }
+
+      .object-row .object {
+        font-size: 20px;
+      }
+
+      .tip {
+        font-size: 10px;
+        padding: 3px 12px;
+      }
+
+      .brand-mark {
+        width: 32px;
+        height: 32px;
+        font-size: 18px;
+      }
+
+      .brand-text {
+        font-size: 11px;
+        padding: 3px 10px;
+      }
+
+      .score {
+        font-size: 10px;
+        padding: 4px 10px;
+      }
+
+      .kicker {
+        font-size: 10px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .arcade {
+        gap: 5px;
+      }
+
+      .game-card {
+        padding: 6px;
+        border-radius: 16px;
+      }
+
+      .card-title {
+        font-size: 10px;
+      }
+
+      .play {
+        font-size: 9px;
+        padding: 3px 8px;
+      }
+    }
+
+    /* no scroll, no overflow */
+    .page,
+    .arcade,
+    .game-card,
+    .visual {
+      overflow: hidden;
+    }
+
+    /* fix for extremely small height */
+    @media (max-height: 600px) {
+      .hero {
+        margin: 0 0 4px;
+      }
+
+      .topbar {
+        margin-bottom: 2px;
+      }
+
+      .brand-mark {
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+      }
+
+      .brand-text {
+        font-size: 10px;
+        padding: 2px 8px;
+      }
+
+      .score {
+        font-size: 9px;
+        padding: 2px 10px;
+      }
+
+      .kicker {
+        font-size: 9px;
+      }
+
+      h1 {
+        font-size: clamp(18px, 4vw, 28px);
+      }
+
+      .subtitle {
+        font-size: 11px;
+      }
+
+      .icon {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+      }
+
+      .card-title {
+        font-size: 11px;
+      }
+
+      .level {
+        font-size: 7px;
+      }
+
+      .play {
+        font-size: 9px;
+        padding: 3px 10px;
+      }
+
+      .visual {
+        min-height: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <!-- top -->
+    <div class="topbar">
+      <button id="homeBtn" class="home-btn" aria-label="Home">⌂</button>
+      <div class="brand"><span class="brand-mark">✦</span><span class="brand-text">KID MATH</span></div>
+      <div class="score">⭐ 9 games</div>
+    </div>
+    <!-- hero -->
+    <header class="hero">
+      <div class="hero-copy">
+        <div class="kicker">play & learn</div>
+        <h1>Multiply <span>&amp; Conquer</span></h1>
+        <p class="subtitle">pick a game, press play!</p>
+      </div>
+      <div class="hero-badge" aria-hidden="true">×</div>
+    </header>
+
+    <main class="arcade">
+      <article class="game-card card1" data-no="01">
+        <div class="card-head"><span class="icon">📦</span>
+          <h2 class="card-title"><small>section 1</small>Fill the Box</h2>
+        </div>
+        <div class="visual">
+          <div class="boxes"><span>4 × 3 =</span><span class="answer-box"></span></div>
+        </div>
+        <div class="card-footer"><span class="level">missing product</span><button class="play"
+            data-url="./exercises/1.html">▶ Play</button></div>
+      </article>
+
+      <article class="game-card card2" data-no="02">
+        <div class="card-head"><span class="icon">➕</span>
+          <h2 class="card-title"><small>section 2</small>Addition Facts</h2>
+        </div>
+        <div class="visual">
+          <div class="equation">3 + 3 + 3 + 3</div>
+        </div>
+        <div class="card-footer"><span class="level">write as ×</span><button class="play"
+            data-url="./exercises/2.html">▶ Play</button></div>
+      </article>
+
+      <article class="game-card card3" data-no="03">
+        <div class="card-head"><span class="icon">🔵</span>
+          <h2 class="card-title"><small>section 3</small>Rows &amp; Columns</h2>
+        </div>
+        <div class="visual">
+          <div class="array" style="grid-template-columns:repeat(5,13px)">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="card-footer"><span class="level">count the array</span><button class="play"
+            data-url="./exercises/4.html">▶ Play</button></div>
+      </article>
+
+      <article class="game-card card4" data-no="04">
+        <div class="card-head"><span class="icon">🐸</span>
+          <h2 class="card-title"><small>section 4</small>Number Line</h2>
+        </div>
+        <div class="visual">
+          <div class="number-line-mult">
+            <div class="line"></div>
+            <div class="ticks">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="jump">↷ ↷ ↷</div>
+          </div>
+        </div>
+        <div class="card-footer"><span class="level">find product</span><button class="play"
+            data-url="./exercises/numberLine.html">▶ Play</button></div>
+      </article>
+
+      <article class="game-card card5" data-no="05">
+        <div class="card-head"><span class="icon">✏️</span>
+          <h2 class="card-title"><small>section 5</small>Fill the Product</h2>
+        </div>
+        <div class="visual">
+          <div class="boxes"><span>6 × 4 =</span><span class="answer-box"></span></div>
+        </div>
+        <div class="card-footer"><span class="level">complete it</span><button class="play"
+            data-url="./exercises/mul.html">▶ Play</button></div>
+      </article>
+
+      <article class="game-card card6" data-no="06">
+        <div class="card-head"><span class="icon">🔄</span>
+          <h2 class="card-title"><small>section 6</small>Commutative</h2>
+        </div>
+        <div class="visual">
+          <div class="commutative">
+            <span>2</span><span class="times">×</span><span>5</span><span>=</span><span>5</span><span
+              class="times">×</span><span>2</span>
+          </div>
+        </div>
+        <div class="card-footer"><span class="level">same product</span><button class="play"
+            data-url="./exercises/cumlative.html">▶ Play</button></div>
+      </article>
+
+      <article class="game-card card1" data-no="07">
+        <div class="card-head"><span class="icon">📋</span>
+          <h2 class="card-title"><small>section 7</small>Multiplication Table</h2>
+        </div>
+        <div class="visual">
+          <div class="table-grid">
+            <span>2×1=2</span><span>2×2=4</span><span>2×3=6</span><span>2×4=8</span>
+            <span>3×1=3</span><span>3×2=6</span><span>3×3=9</span><span>3×4=12</span>
+          </div>
+        </div>
+        <div class="card-footer"><span class="level">build table</span><button class="play"
+            data-url="./exercises/tables.html">▶ Play</button></div>
+      </article>
+
+      <article class="game-card card2" data-no="08">
+        <div class="card-head"><span class="icon">🧩</span>
+          <h2 class="card-title"><small>section 8</small>Matching</h2>
+        </div>
+        <div class="visual">
+          <div class="match-grid">
+            <span>3 × 4</span><span>12</span><span>2 × 5</span><span>10</span>
+          </div>
+        </div>
+        <div class="card-footer"><span class="level">match pairs</span><button class="play"
+            data-url="./exercises/matching.html">▶ Play</button></div>
+      </article>
+
+      <article class="game-card card3" data-no="09">
+        <div class="card-head"><span class="icon">🎯</span>
+          <h2 class="card-title"><small>section 9</small>Given Product</h2>
+        </div>
+        <div class="visual">
+          <div class="product-box">
+            <span class="target">18</span><span>=</span><span class="answer-box"></span><span>×</span><span
+              class="answer-box"></span>
+          </div>
+        </div>
+        <div class="card-footer"><span class="level">find factors</span><button class="play"
+            data-url="./exercises/9.html">▶ Play</button></div>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <div class="tip">🎈 nine multiplication games · no scroll · kid friendly</div>
+    </footer>
+    <div id="activityOverlay" aria-hidden="true"><button id="closeActivity"
+        aria-label="Close activity">×</button><iframe id="activityFrame" title="Math activity"></iframe></div>
+  </div>
+  <script>
+    document.getElementById("homeBtn").addEventListener("click", function () {
+      window.top.location.href = "./Grade2_chapter5.html";
+    });
+
+    (function () {
+      const buttons = document.querySelectorAll('.play');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          const url = btn.getAttribute('data-url');
+          if (url) window.location.href = url;
+        });
+      });
+    })();
+  </script>
+</body>
+
+</html>

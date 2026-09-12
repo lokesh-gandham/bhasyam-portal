@@ -1,925 +1,1152 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Subtract & Conquer · kids arcade</title>
-  <style>
-    /* RESET + BASE — no overflow, full viewport */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      font-family: 'Quicksand', 'Segoe UI', 'Arial Rounded MT Bold', system-ui, sans-serif;
-      background: #f9f3eb;
-      color: #2d3a4b;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* smooth, rounded, playful */
-    .page {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      width: 100vw;
-      max-height: 100vh;
-      padding: 12px 16px 10px;
-      background: #f9f3eb;
-      overflow: hidden;
-      position: relative;
-    }
-
-    /* soft blobs – child-friendly */
-    .page::before {
-      content: '';
-      position: absolute;
-      width: 280px;
-      height: 280px;
-      border-radius: 60% 40% 50% 50% / 45% 50% 50% 55%;
-      background: #fce4d6;
-      right: -60px;
-      bottom: -50px;
-      opacity: 0.5;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .page::after {
-      content: '';
-      position: absolute;
-      width: 200px;
-      height: 200px;
-      border-radius: 70% 30% 60% 40% / 40% 60% 30% 70%;
-      background: #daeaf5;
-      left: -40px;
-      top: -20px;
-      opacity: 0.5;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* all content above blobs */
-    .topbar,
-    .hero,
-    .arcade,
-    .footer {
-      position: relative;
-      z-index: 2;
-    }
-
-    /* topbar */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex: 0 0 auto;
-      margin-bottom: 6px;
-      padding: 0 4px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .brand-mark {
-      width: 40px;
-      height: 40px;
-      background: #ffcfb6;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      font-size: 22px;
-      box-shadow: 0 4px 0 #dbaa92;
-      color: #5e3d2e;
-    }
-
-    .brand-text {
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      color: #5d6d82;
-      background: #fff8f0;
-      padding: 5px 14px 5px 12px;
-      border-radius: 40px;
-      border: 2px solid #eee0d2;
-    }
-
-    .score {
-      background: #fffbf5;
-      border-radius: 40px;
-      padding: 6px 16px 6px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      border: 2px solid #e8dccc;
-      color: #5d6d7a;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 2px 0 #d6cbbc;
-    }
-
-    /* hero */
-    .hero {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex: 0 0 auto;
-      margin: 4px 0 8px;
-      padding: 0 4px;
-    }
-
-    .hero-copy {
-      max-width: 75%;
-    }
-
-    .kicker {
-      font-size: 12px;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: #b48a7a;
-      font-weight: 700;
-      margin-bottom: 0px;
-    }
-
-    h1 {
-      font-size: clamp(28px, 7vw, 52px);
-      font-weight: 900;
-      line-height: 1;
-      letter-spacing: -1.5px;
-      color: #38455e;
-    }
-
-    h1 span {
-      color: #d4836e;
-      background: #ffede7;
-      padding: 0 6px 0 4px;
-      border-radius: 20px 8px 8px 20px;
-      display: inline-block;
-    }
-
-    .subtitle {
-      font-size: clamp(13px, 2vw, 18px);
-      color: #6d7b8a;
-      margin-top: 4px;
-      font-weight: 500;
-    }
-
-    .hero-badge {
-      width: 100px;
-      height: 80px;
-      background: #ffe5d4;
-      border-radius: 30px 30px 40px 40px;
-      border: 4px solid white;
-      box-shadow: 0 6px 0 #dbb8a8;
-      display: grid;
-      place-items: center;
-      font-size: 48px;
-      font-weight: 900;
-      color: #b57b68;
-      flex: none;
-      position: relative;
-    }
-
-    .hero-badge::after {
-      content: 'MATH';
-      position: absolute;
-      bottom: 6px;
-      font-size: 10px;
-      letter-spacing: 2.5px;
-      color: #a07361;
-      font-weight: 800;
-    }
-
-    /* ARCADE GRID — no scroll, flexible */
-    .arcade {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      flex: 1 1 auto;
-      min-height: 0;
-      max-height: 100%;
-      padding: 2px 0 4px;
-      align-content: start;
-    }
-
-    /* game cards – playful, colorful, no overflow */
-    .game-card {
-      background: #ffffffd9;
-      backdrop-filter: blur(2px);
-      border-radius: 28px;
-      padding: 12px 12px 10px;
-      border: 3px solid white;
-      box-shadow: 0 6px 0 var(--shadow), 0 8px 18px rgba(70, 60, 70, 0.08);
-      display: flex;
-      flex-direction: column;
-      transition: all 0.1s ease;
-      position: relative;
-      overflow: hidden;
-      min-height: 0;
-      height: 100%;
-    }
-
-    /* soft card colors + shadows */
-    .card1 {
-      background: #e2f0e8;
-      --shadow: #b8d3c4;
-    }
-
-    .card2 {
-      background: #dde8f5;
-      --shadow: #bccbdf;
-    }
-
-    .card3 {
-      background: #fbebd3;
-      --shadow: #e0caad;
-    }
-
-    .card4 {
-      background: #f8dcd9;
-      --shadow: #ddbdb9;
-    }
-
-    .card5 {
-      background: #eadef5;
-      --shadow: #cebcdb;
-    }
-
-    .card6 {
-      background: #d7e9ef;
-      --shadow: #b5cdd4;
-    }
-
-    .game-card::before {
-      content: '';
-      position: absolute;
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.35);
-      right: -20px;
-      top: -25px;
-      pointer-events: none;
-    }
-
-    .game-card::after {
-      content: attr(data-no);
-      position: absolute;
-      right: 14px;
-      top: 10px;
-      font-size: 12px;
-      font-weight: 800;
-      color: rgba(60, 60, 80, 0.3);
-      letter-spacing: 0.5px;
-    }
-
-    .card-head {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-
-    .icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.65);
-      display: grid;
-      place-items: center;
-      font-size: 26px;
-      border: 2px solid rgba(255, 255, 255, 0.7);
-      flex: none;
-    }
-
-    .card-title {
-      font-size: clamp(15px, 2.2vw, 22px);
-      font-weight: 800;
-      line-height: 1.1;
-      color: #344153;
-    }
-
-    .card-title small {
-      display: block;
-      font-size: 9px;
-      letter-spacing: 1.8px;
-      text-transform: uppercase;
-      color: #6b7a8a;
-      font-weight: 700;
-      margin-bottom: 1px;
-    }
-
-    /* visual area — dynamic content */
-    .visual {
-      flex: 1 1 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 40px;
-      padding: 4px 0;
-      position: relative;
-      z-index: 1;
-    }
-
-    .number-track {
-      width: 80%;
-      height: 7px;
-      background: rgba(255, 255, 255, 0.8);
-      border-radius: 20px;
-      position: relative;
-      margin: 4px 0;
-    }
-
-    .number-track i {
-      position: absolute;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #f7b38d;
-      top: -5px;
-      box-shadow: 0 2px 0 #ca8f71;
-    }
-
-    .abacus {
-      display: flex;
-      gap: 5px;
-      align-items: center;
-      transform: scale(0.85);
-    }
-
-    .rod {
-      height: 55px;
-      width: 5px;
-      background: #c0907b;
-      border-radius: 6px;
-      position: relative;
-    }
-
-    .rod b {
-      position: absolute;
-      width: 22px;
-      height: 13px;
-      border-radius: 10px;
-      left: -8px;
-      background: #f5b8a5;
-      top: 6px;
-      box-shadow: 0 17px 0 #bedad6, 0 34px 0 #f0cf94;
-    }
-
-    /* for multiplication card (game5) rod beads */
-    .rod i {
-      position: absolute;
-      width: 18px;
-      height: 12px;
-      border-radius: 10px;
-      background: #b5a7d1;
-      left: -7px;
-      box-shadow: 0 14px 0 #b5a7d1, 0 28px 0 #b5a7d1;
-      display: block;
-    }
-
-    .sum {
-      font-size: 34px;
-      font-weight: 900;
-      color: #c47b70;
-      letter-spacing: 2px;
-      background: rgba(255, 255, 255, 0.4);
-      padding: 0 12px;
-      border-radius: 30px;
-    }
-
-    .minus-stack {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .minus-stack .box {
-      width: 38px;
-      height: 38px;
-      background: #fff5e6;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      font-size: 22px;
-      font-weight: 800;
-      color: #b57d5a;
-    }
-
-    .minus-stack .line {
-      font-size: 28px;
-      color: #b8695e;
-      font-weight: 900;
-    }
-
-    .dots {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .dots i {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #dbaac2;
-      box-shadow: 0 2px 0 #b8839b;
-    }
-
-    .groups {
-      display: flex;
-      gap: 6px;
-    }
-
-    .groups span {
-      width: 28px;
-      height: 28px;
-      background: #d1e0ed;
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      font-weight: 800;
-      color: #3b5b77;
-      font-size: 14px;
-    }
-
-    /* division visual: objects + minus */
-    .object-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 22px;
-      background: rgba(255, 255, 255, 0.4);
-      padding: 4px 12px;
-      border-radius: 60px;
-    }
-
-    .object-row .object {
-      font-size: 26px;
-      line-height: 1;
-    }
-
-    .object-row .minus {
-      font-size: 28px;
-      font-weight: 900;
-      color: #b8695e;
-      padding: 0 2px;
-    }
-
-    /* card footer */
-    .card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      margin-top: 2px;
-      flex: 0 0 auto;
-      padding-top: 4px;
-      border-top: 2px dashed rgba(255, 255, 255, 0.5);
-    }
-
-    .level {
-      font-size: 9px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #5b6b7a;
-      background: rgba(255, 255, 255, 0.5);
-      padding: 3px 10px;
-      border-radius: 30px;
-      white-space: nowrap;
-    }
-
-    .play {
-      border: none;
-      background: #6f829f;
-      color: white;
-      font-weight: 800;
-      font-size: 13px;
-      padding: 6px 16px;
-      border-radius: 30px;
-      box-shadow: 0 4px 0 #4e5f78;
-      cursor: pointer;
-      transition: all 0.08s ease;
-      font-family: inherit;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex: none;
-    }
-
-    .play:hover {
-      background: #627493;
-    }
-
-    .play:active {
-      transform: translateY(3px);
-      box-shadow: 0 1px 0 #4e5f78;
-    }
-
-    /* footer */
-    .footer {
-      flex: 0 0 auto;
-      text-align: center;
-      padding: 6px 0 0;
-      margin-top: 2px;
-    }
-
-    .tip {
-      background: #fffbf5;
-      border: 2px solid #e8dbcd;
-      border-radius: 60px;
-      padding: 5px 18px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #576a78;
-      display: inline-block;
-      letter-spacing: 0.3px;
-      box-shadow: 0 2px 0 #d5c8ba;
-    }
-
-    /* responsive — keep 3 columns until small, then 2 */
-    @media (max-width: 780px) {
-      .arcade {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-
-      .hero-badge {
-        display: none;
-      }
-
-      h1 {
-        font-size: clamp(24px, 5vw, 36px);
-      }
-
-      .card-title {
-        font-size: 15px;
-      }
-
-      .icon {
-        width: 40px;
-        height: 40px;
-        font-size: 22px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .page {
-        padding: 8px 8px 6px;
-      }
-
-      .arcade {
-        gap: 7px;
-      }
-
-      .game-card {
-        padding: 8px 8px 6px;
-        border-radius: 20px;
-      }
-
-      .card-head {
-        gap: 4px;
-      }
-
-      .icon {
-        width: 34px;
-        height: 34px;
-        font-size: 18px;
-        border-radius: 12px;
-      }
-
-      .card-title {
-        font-size: 12px;
-      }
-
-      .card-title small {
-        font-size: 7px;
-        letter-spacing: 1px;
-      }
-
-      .play {
-        font-size: 10px;
-        padding: 4px 12px;
-        box-shadow: 0 3px 0 #4e5f78;
-      }
-
-      .level {
-        font-size: 7px;
-        padding: 2px 8px;
-      }
-
-      .visual {
-        min-height: 30px;
-      }
-
-      .sum {
-        font-size: 24px;
-      }
-
-      .minus-stack .box {
-        width: 28px;
-        height: 28px;
-        font-size: 16px;
-      }
-
-      .minus-stack .line {
-        font-size: 20px;
-      }
-
-      .number-track i {
-        width: 12px;
-        height: 12px;
-      }
-
-      .abacus {
-        transform: scale(0.6);
-      }
-
-      .rod {
-        height: 40px;
-      }
-
-      .dots i {
-        width: 12px;
-        height: 12px;
-      }
-
-      .groups span {
-        width: 22px;
-        height: 22px;
-        font-size: 11px;
-      }
-
-      .object-row {
-        font-size: 16px;
-        gap: 4px;
-      }
-
-      .object-row .object {
-        font-size: 20px;
-      }
-
-      .tip {
-        font-size: 10px;
-        padding: 3px 12px;
-      }
-
-      .brand-mark {
-        width: 32px;
-        height: 32px;
-        font-size: 18px;
-      }
-
-      .brand-text {
-        font-size: 11px;
-        padding: 3px 10px;
-      }
-
-      .score {
-        font-size: 10px;
-        padding: 4px 10px;
-      }
-
-      .kicker {
-        font-size: 10px;
-      }
-    }
-
-    @media (max-width: 380px) {
-      .arcade {
-        gap: 5px;
-      }
-
-      .game-card {
-        padding: 6px;
-        border-radius: 16px;
-      }
-
-      .card-title {
-        font-size: 10px;
-      }
-
-      .play {
-        font-size: 9px;
-        padding: 3px 8px;
-      }
-    }
-
-    /* no scroll, no overflow */
-    .page,
-    .arcade,
-    .game-card,
-    .visual {
-      overflow: hidden;
-    }
-
-    /* fix for extremely small height */
-    @media (max-height: 600px) {
-      .hero {
-        margin: 0 0 4px;
-      }
-
-      .topbar {
-        margin-bottom: 2px;
-      }
-
-      .brand-mark {
-        width: 30px;
-        height: 30px;
-        font-size: 16px;
-      }
-
-      .brand-text {
-        font-size: 10px;
-        padding: 2px 8px;
-      }
-
-      .score {
-        font-size: 9px;
-        padding: 2px 10px;
-      }
-
-      .kicker {
-        font-size: 9px;
-      }
-
-      h1 {
-        font-size: clamp(18px, 4vw, 28px);
-      }
-
-      .subtitle {
-        font-size: 11px;
-      }
-
-      .icon {
-        width: 28px;
-        height: 28px;
-        font-size: 16px;
-      }
-
-      .card-title {
-        font-size: 11px;
-      }
-
-      .level {
-        font-size: 7px;
-      }
-
-      .play {
-        font-size: 9px;
-        padding: 3px 10px;
-      }
-
-      .visual {
-        min-height: 20px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subtraction Games — Learning Hub</title>
+
+<style>
+      @import url('https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap');
+
+*{box-sizing:border-box; font-family: "Livvic";}
+
+:root{
+  --ink:#31415a;
+  --muted:#68778b;
+  --cream:#fffaf2;
+  --white:#fff;
+  --shadow:0 12px 0 rgba(75,89,111,.18),0 18px 28px rgba(70,78,95,.12);
+}
+
+html,body{
+  margin:0;
+  width:100%;
+  min-height:100%;
+  font-family:"Trebuchet MS","Segoe UI",Arial,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 5% 4%,rgba(255,255,255,.9) 0 100px,transparent 102px),
+    radial-gradient(circle at 95% 8%,rgba(255,255,255,.85) 0 105px,transparent 107px),
+    linear-gradient(135deg,#eef5f5 0%,#fffaf2 50%,#fff1e9 100%);
+}
+
+body{overflow-x:hidden}
+
+button,a{font:inherit}
+
+/* =========================================================
+   HOME
+========================================================= */
+.page{
+  width:100%;
+  min-height:100vh;
+  padding:28px clamp(16px,2.5vw,44px) 48px;
+}
+
+.home-shell{
+  width:min(1540px,100%);
+  margin:auto;
+}
+
+.hero{
+  text-align:center;
+  margin:0 auto 28px;
+}
+
+.hero .small-title{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 15px;
+  border-radius:999px;
+  background:rgba(255,255,255,.78);
+  color:#68758a;
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:2px;
+  box-shadow:0 5px 18px rgba(50,60,80,.08);
+}
+
+.hero h1{
+  margin:12px 0 6px;
+  font-size:clamp(34px,4vw,58px);
+  line-height:1;
+  font-weight:600;
+  letter-spacing:-1.5px;
+}
+
+.hero h1 span{color:#c87564}
+
+.hero p{
+  margin:0;
+  color:#718096;
+  font-size:clamp(14px,1.3vw,18px);
+  font-weight:500;
+}
+
+/* Main two category boxes */
+.category-grid{
+  width:min(1160px,100%);
+  margin:32px auto 0;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:28px;
+}
+
+.category{
+  position:relative;
+  min-height:330px;
+  border:3px solid rgba(255,255,255,.9);
+  padding:32px;
+  cursor:pointer;
+  text-align:left;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  transition:transform .25s ease,box-shadow .25s ease;
+}
+
+.category:nth-child(1){
+  background:linear-gradient(145deg,#dceee5,#cfe5dc);
+  border-radius:48px 22px 48px 22px;
+  --accent:#34876e;
+}
+
+.category:nth-child(2){
+  background:linear-gradient(145deg,#e8def4,#ded0ed);
+  border-radius:22px 48px 22px 48px;
+  --accent:#7554a6;
+}
+
+.category:hover{
+  transform:translateY(-9px) scale(1.025);
+  box-shadow:0 18px 0 rgba(75,89,111,.18),0 28px 40px rgba(70,78,95,.17);
+}
+
+.category:focus-visible{
+  outline:4px solid var(--accent);
+  outline-offset:5px;
+}
+
+.category .number{
+  position:absolute;
+  right:25px;
+  top:17px;
+  font-size:78px;
+  line-height:1;
+  color:rgba(49,65,90,.10);
+  font-weight:900;
+}
+
+.category .circle{
+  position:absolute;
+  width:230px;
+  height:230px;
+  right:-90px;
+  top:-95px;
+  border-radius:50%;
+  background:rgba(255,255,255,.30);
+}
+
+.category .icon{
+  position:relative;
+  z-index:2;
+  width:74px;
+  height:74px;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  border-radius:23px;
+  font-size:34px;
+  box-shadow:0 8px 18px rgba(49,65,90,.13);
+}
+
+.category h2{
+  position:relative;
+  z-index:2;
+  color: #1a3152;
+  margin:21px 0 8px;
+  font-size:clamp(22px,2.2vw,35px);
+  font-weight: 500;
+}
+
+.category p{
+  position:relative;
+  z-index:2;
+  max-width:520px;
+  margin:0 0 24px;
+  color:#2e4669;
+  line-height:1.55;
+  font-weight:500;
+  font-size:clamp(18px,2.2vw,20px);
+}
+
+.category .count{
+  position:relative;
+  z-index:2;
+  display:inline-flex;
+  padding:8px 13px;
+  border-radius:999px;
+  background:rgba(255,255,255,.72);
+  color:var(--accent);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+.category .open-text{
+  position:relative;
+  z-index:2;
+  margin-left:9px;
+  color:var(--accent);
+  margin-left: 23%;
+  font-size:18px;
+  font-weight:500;
+}
+
+/* =========================================================
+   ACTIVITY PAGE
+========================================================= */
+.activity-page{
+  display:none;
+}
+
+.activity-page.active{
+  display:block;
+  animation:pageIn .3s ease;
+}
+
+@keyframes pageIn{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.back-home{
+  border:0;
+  background:#fff;
+  color:var(--ink);
+  border-radius:999px;
+  padding:11px 17px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:900;
+  box-shadow:0 6px 17px rgba(49,65,90,.12);
+  transition:.2s;
+}
+
+.back-home:hover{
+  transform:translateX(-4px);
+  background:#f1f5ff;
+}
+
+.activity-heading{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin:22px 0 22px;
+  padding:18px 4px 20px;
+  border-bottom:2px dashed rgba(90,105,125,.2);
+}
+
+.activity-heading .heading-icon{
+  width:64px;
+  height:64px;
+  flex:0 0 64px;
+  display:grid;
+  place-items:center;
+  border-radius:20px;
+  background:#fff;
+  font-size:30px;
+  box-shadow:0 8px 18px rgba(49,65,90,.11);
+}
+
+.activity-heading h2{
+  margin:0 0 4px;
+  font-size:clamp(24px,3vw,36px);
+  font-weight: 500;
+}
+
+.activity-heading p{
+  margin:0;
+  color:#718096;
+  font-size:17px;
+  font-weight:500;
+}
+
+/* =========================================================
+   SIX CARDS — VISUAL STYLE MATCHING PROVIDED IMAGE
+========================================================= */
+.quiz-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:18px;
+}
+
+.quiz-card{
+  position:relative;
+  min-height:250px;
+  padding:22px 19px 16px;
+  overflow:hidden;
+  border:3px solid rgba(255,255,255,.96);
+  box-shadow:0 9px 0 rgba(75,89,111,.16),0 14px 25px rgba(70,78,95,.10);
+  transition:transform .23s ease,box-shadow .23s ease;
+}
+
+.quiz-card:hover{
+  transform:translateY(-7px) scale(1.02);
+  box-shadow:0 12px 0 rgba(75,89,111,.17),0 22px 30px rgba(70,78,95,.16);
+}
+
+/* Each card has its own color and shape */
+.quiz-card.c1{background:#dceee6;border-radius:38px 25px 38px 25px;--accent:#4b8d77}
+.quiz-card.c2{background:#dbe7f6;border-radius:25px 38px 25px 38px;--accent:#607a9d}
+.quiz-card.c3{background:#faead1;border-radius:38px 25px 25px 38px;--accent:#b87868}
+.quiz-card.c4{background:#f6dcdc;border-radius:38px 25px 38px 25px;--accent:#b96e62}
+.quiz-card.c5{background:#e7dcf3;border-radius:25px 38px 25px 38px;--accent:#846da9}
+.quiz-card.c6{background:#d9edf1;border-radius:38px 25px 38px 25px;--accent:#4d8991}
+
+.quiz-card::before{
+  content:"";
+  position:absolute;
+  width:150px;
+  height:150px;
+  right:-47px;
+  top:-70px;
+  border-radius:50%;
+  background:rgba(255,255,255,.31);
+}
+
+.quiz-card .quiz-no{
+  position:absolute;
+  top:13px;
+  right:18px;
+  z-index:2;
+  color:rgba(49,65,90,.30);
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:1px;
+}
+
+.quiz-top{
+  position:relative;
+  z-index:3;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.quiz-icon{
+  width:43px;
+  height:43px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#fff;
+  font-size:23px;
+  box-shadow:0 4px 10px rgba(49,65,90,.11);
+}
+
+.quiz-label{
+  color:#637389;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:2px;
+  display: none;
+}
+
+.quiz-title{
+  margin:2px 0 0;
+  font-size:clamp(24px,2vw,30px);
+  line-height:1.05;
+  font-weight:500;
+}
+
+.quiz-preview{
+  position:relative;
+  z-index:2;
+  height:92px;
+  margin:16px auto 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  max-width:290px;
+  border-radius:30px;
+  background:rgba(255,255,255,.53);
+}
+
+/* Previews */
+.number-equation{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  font-size:30px;
+  font-weight:900;
+  color:var(--accent);
+}
+
+.number-equation .num{
+  min-width:57px;
+  height:57px;
+  display:grid;
+  place-items:center;
+  border-radius:17px;
+  background:#fff8ed;
+}
+
+.number-equation .operator{
+  font-size:28px;
+}
+
+.abacus{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.abacus-row{
+  width:66px;
+  height:12px;
+  border-radius:20px;
+  position:relative;
+}
+
+.abacus-row::before{
+  content:"••••••••";
+  position:absolute;
+  left:3px;
+  top:-18px;
+  color:#b67f67;
+  font-size:17px;
+  letter-spacing:2px;
+}
+
+.abacus-row.r1{background:#efb7a4}
+.abacus-row.r2{background:#9dcfc1}
+.abacus-row.r3{background:#f0c77d}
+
+.match-equation{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:10px 18px;
+  border-radius:30px;
+  background:rgba(255,255,255,.42);
+  color:var(--accent);
+  font-size:34px;
+  font-weight:900;
+}
+
+.match-equation .dash{font-size:30px}
+
+.jump-preview{
+  text-align:center;
+  font-weight:900;
+  color:var(--accent);
+}
+
+.jump-preview .big{
+  font-size:29px;
+}
+
+.jump-preview .arrows{
+  display:block;
+  margin:2px 0;
+  letter-spacing:6px;
+  font-size:18px;
+}
+
+.bead-preview{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+}
+
+.bead-row{
+  display:flex;
+  gap:3px;
+}
+
+.bead{
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  background:#9d88bf;
+}
+
+.bead-stem{
+  width:7px;
+  height:18px;
+  border-radius:5px;
+  background:#b98a69;
+}
+
+.draw-preview{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:#324257;
+  font-size:22px;
+}
+
+.draw-dot{
+  width:17px;
+  height:17px;
+  border-radius:50%;
+  background:#34445b;
+}
+
+.draw-minus{
+  color:#bd6e62;
+  font-size:24px;
+  font-weight:900;
+}
+
+.play-row{
+  position:relative;
+  z-index:4;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding-top:9px;
+  border-top:2px dashed rgba(255,255,255,.72);
+}
+
+.type-pill{
+  display:inline-flex;
+  align-items:center;
+  min-height:27px;
+  padding:5px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.70);
+  color:#627187;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.7px;
+  white-space:nowrap;
+}
+
+.play-btn{
+  border:0;
+  min-width:79px;
+  height:35px;
+  padding:0 13px;
+  border-radius:12px;
+  background:#647b9e;
+  color:#fff;
+  font-size:18px;
+  font-weight:500;
+  cursor:pointer;
+  box-shadow:0 5px 0 rgba(48,63,84,.23);
+  transition:.17s;
+}
+
+.play-btn:hover{
+  transform:translateY(-2px);
+  filter:brightness(1.07);
+}
+
+.play-btn:active{
+  transform:translateY(3px);
+  box-shadow:0 2px 0 rgba(48,63,84,.23);
+}
+
+/* =========================================================
+   QUIZ IFRAME OVERLAY
+========================================================= */
+#quizOverlay{
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  display:none;
+  background:#fff;
+}
+
+#quizOverlay.open{display:block}
+
+#quizFrame{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:0;
+  background:#fff;
+}
+
+#quizHome{
+  position:fixed;
+  left:15px;
+  top:15px;
+  z-index:1000001;
+  width:53px;
+  height:53px;
+  border:0;
+  border-radius:16px;
+  background:#fff;
+  color:#33445b;
+  cursor:pointer;
+  font-size:25px;
+  display:grid;
+  place-items:center;
+  box-shadow:0 5px 0 rgba(49,65,90,.17),0 10px 25px rgba(49,65,90,.17);
+  transition:.18s;
+}
+
+#quizHome:hover{
+  transform:translateY(-2px) scale(1.03);
+}
+
+#quizHome:active{
+  transform:translateY(3px);
+  box-shadow:0 2px 0 rgba(49,65,90,.17);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+@media(max-width:1050px){
+  .quiz-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .category-grid{
+    max-width:900px;
+  }
+}
+
+@media(max-width:720px){
+  .page{
+    padding:20px 12px 35px;
+  }
+
+  .category-grid{
+    grid-template-columns:1fr;
+    gap:18px;
+    margin-top:22px;
+  }
+
+  .category{
+    min-height:275px;
+    padding:25px;
+  }
+
+  .quiz-grid{
+    grid-template-columns:1fr;
+    gap:15px;
+  }
+
+  .quiz-card{
+    min-height:245px;
+  }
+
+  .activity-heading{
+    align-items:flex-start;
+  }
+
+  .activity-heading .heading-icon{
+    width:54px;
+    height:54px;
+    flex-basis:54px;
+  }
+
+  #quizHome{
+    left:9px;
+    top:9px;
+    width:48px;
+    height:48px;
+    border-radius:14px;
+  }
+}
+
+@media(max-width:400px){
+  .hero h1{
+    font-size:31px;
+  }
+
+  .category{
+    padding:21px;
+  }
+
+  .category h2{
+    font-size:21px;
+  }
+
+  .quiz-card{
+    padding:20px 15px 14px;
+  }
+
+  .quiz-title{
+    font-size:16px;
+  }
+
+  .quiz-preview{
+    height:88px;
+  }
+}
+
+/* Large desktop / 1600–1920 */
+@media(min-width:1400px){
+  .page{
+    padding-top:38px;
+  }
+
+  .home-shell{
+    width:min(1760px,100%);
+  }
+
+  .hero{
+    margin-bottom:35px;
+  }
+
+  .category-grid{
+    width:min(1280px,100%);
+    gap:34px;
+  }
+
+  .category{
+    min-height:360px;
+    padding:38px;
+  }
+
+  .quiz-grid{
+    gap:20px;
+  }
+
+  .quiz-card{
+    min-height:270px;
+  }
+}
+
+@media(min-width:1800px){
+  .home-shell{
+    width:min(1840px,100%);
+  }
+
+  .category-grid{
+    width:min(1370px,100%);
+  }
+
+  .quiz-card{
+    min-height:285px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+</style>
 </head>
 
 <body>
-  <div class="page">
-    <!-- top -->
-    <div class="topbar">
-      <div class="brand"><span class="brand-mark">✦</span><span class="brand-text">KID MATH</span></div>
-      <div class="score">⭐ 6 games</div>
-    </div>
-    <!-- hero -->
-    <header class="hero">
-      <div class="hero-copy">
-        <div class="kicker">play & learn</div>
-        <h1>Subtract <span>&amp; Conquer</span></h1>
-        <p class="subtitle">pick a game, press play!</p>
+
+<div class="page">
+  <div class="home-shell">
+
+    <!-- =====================================================
+         HOME PAGE
+    ====================================================== -->
+    <section id="homePage" class="home-page">
+
+      <div class="hero">
+        
+        <h1>Subtraction <span>Adventure</span> Zone</h1>
+        <p>Learn • Play • Practice • Become a Maths Champion!</p>
       </div>
-      <div class="hero-badge" aria-hidden="true">−</div>
-    </header>
 
-    <!-- arcade grid -->
-    <main class="arcade">
+      <div class="category-grid">
+
+        <button class="category" type="button" data-open="understandPage">
+          <span class="circle"></span>
+          <span class="number">01</span>
+
+          <div class="icon">💡</div>
+
+          <h2>1. Understand Subtraction</h2>
+
+          <p>
+            Build a strong subtraction foundation with number lines,
+            missing numbers, and matching activities.
+          </p>
+
+          <span class="count">3 GAMES</span>
+          <span class="open-text">EXPLORE ACTIVITIES →</span>
+        </button>
+
+        <button class="category" type="button" data-open="practicePage">
+          <span class="circle"></span>
+          <span class="number">02</span>
+
+          <div class="icon">🎯</div>
+
+          <h2>2. Practice Subtraction</h2>
+
+          <p>
+            Strengthen subtraction skills with jump-back,
+            counting beads, and draw-and-subtract games.
+          </p>
+
+          <span class="count">3 GAMES</span>
+          <span class="open-text">EXPLORE ACTIVITIES →</span>
+        </button>
+
+      </div>
+    </section>
 
 
-      <!-- 1 — How Many Are Left -->
-      <article class="game-card card1" data-no="01">
-        <div class="card-head"><span class="icon">🐸</span>
-          <h2 class="card-title"><small>subtraction</small>Number Line</h2>
+    <!-- =====================================================
+         UNDERSTAND PAGE
+    ====================================================== -->
+    <section id="understandPage" class="activity-page">
+
+      <button class="back-home" type="button">🏠 Home</button>
+
+      <div class="activity-heading">
+        <div class="heading-icon">💡</div>
+        <div>
+          <h2>1. Understand Subtraction</h2>
+          <p>Learn subtraction step by step using simple visual activities.</p>
         </div>
-        <div class="visual">
-          <div class="minus-stack">
-            <div class="box">7</div>
-            <div class="line">−</div>
-            <div class="box">3</div>
-            <div class="line">=</div>
-            <div class="box">?</div>
+      </div>
+
+      <div class="quiz-grid">
+
+        <!-- 1 -->
+        <article class="quiz-card c1">
+          <span class="quiz-no">01</span>
+
+          <div class="quiz-top">
+            <div class="quiz-icon">🔢</div>
+            <div>
+              <div class="quiz-label">SUBTRACTION</div>
+              <div class="quiz-title">Build & Take Away</div>
+            </div>
           </div>
-        </div>
-        <div class="card-footer"><span class="level">how many left</span><button class="play"
-            data-url="./exercises/1.html">▶ Play</button></div>
-      </article>
 
-      <!-- 2 — Fill the Boxes -->
-      <article class="game-card card2" data-no="02">
-        <div class="card-head"><span class="icon">🧮</span>
-          <h2 class="card-title"><small>subtraction</small>Fill the Boxes</h2>
-        </div>
-        <div class="visual">
-          <div class="abacus">
-            <div class="rod"><b></b></div>
-            <div class="rod"><b></b></div>
-            <div class="rod"><b></b></div>
-            <div class="rod"><b></b></div>
+          <div class="quiz-preview">
+            <div class="number-equation">
+              <span class="num">7</span>
+              <span class="operator">−</span>
+              <span class="num">3</span>
+              <span class="operator">=</span>
+              <span class="num">?</span>
+            </div>
           </div>
-        </div>
-        <div class="card-footer"><span class="level">missing number</span><button class="play"
-            data-url="./exercises/2.html">▶ Play</button></div>
-      </article>
 
-      <!-- 3 — Matching -->
-      <article class="game-card card3" data-no="03">
-        <div class="card-head"><span class="icon">➕</span>
-          <h2 class="card-title"><small>subtraction</small>Matching</h2>
-        </div>
-        <div class="visual">
-          <div class="sum">8 − 3</div>
-        </div>
-        <div class="card-footer"><span class="level">match pair</span><button class="play"
-            data-url="./exercises/matching.html">▶ Play</button></div>
-      </article>
-
-      <!-- 4 — Number Line -->
-      <article class="game-card card4" data-no="04">
-        <div class="card-head"><span class="icon">➖</span>
-          <h2 class="card-title"><small>subtraction</small>Number Line</h2>
-        </div>
-        <div class="visual">
-          <div class="minus-stack">
-            <div class="box">8</div>
-            <div class="line">−</div>
-            <div class="box">3</div>
+          <div class="play-row">
+            <span class="type-pill">HOW MANY LEFT</span>
+            <button class="play-btn" type="button" data-quiz="exercises/1.html"> Play ▶ </button>
           </div>
-        </div>
-        <div class="card-footer"><span class="level">jump back</span><button class="play"
-            data-url="./exercises/3.html">▶ Play</button></div>
-      </article>
+        </article>
 
-      <!-- 5 — Count and Subtract -->
-      <article class="game-card card5" data-no="05">
-        <div class="card-head"><span class="icon">🧮</span>
-          <h2 class="card-title"><small>count &amp; subtract</small>Beads</h2>
-        </div>
-        <div class="visual">
-          <div class="abacus">
-            <div class="rod"><i></i><i></i><i></i></div>
-            <div class="rod"><i></i><i></i></div>
-            <div class="rod"><i></i><i></i><i></i></div>
+
+        <!-- 2 -->
+        <article class="quiz-card c2">
+          <span class="quiz-no">02</span>
+
+          <div class="quiz-top">
+            <div class="quiz-icon">🧮</div>
+            <div>
+              <div class="quiz-label">SUBTRACTION</div>
+              <div class="quiz-title">Fill the Boxes</div>
+            </div>
           </div>
-        </div>
-        <div class="card-footer"><span class="level">count &amp; subtract</span><button class="play"
-            data-url="./exercises/4.html">▶ Play</button></div>
-      </article>
 
-      <!-- 6 — Draw Beads and Subtract -->
-      <article class="game-card card6" data-no="06">
-        <div class="card-head"><span class="icon">✏️</span>
-          <h2 class="card-title"><small>draw &amp; subtract</small>Beads</h2>
-        </div>
-        <div class="visual">
-          <div class="object-row"><span class="object">●</span><span class="object">●</span><span
-              class="object">●</span><span class="minus">−</span><span class="object">●</span></div>
-        </div>
-        <div class="card-footer"><span class="level">draw & subtract</span><button class="play"
-            data-url="./exercises/5.html">▶ Play</button></div>
-      </article>
-    </main>
+          <div class="quiz-preview">
+            <div class="abacus">
+              <div class="abacus-row r1"></div>
+              <div class="abacus-row r2"></div>
+              <div class="abacus-row r3"></div>
+            </div>
+          </div>
 
-    <footer class="footer">
-      <div class="tip">🎈 six subtraction games · no scroll · kid friendly</div>
-    </footer>
+          <div class="play-row">
+            <span class="type-pill">MISSING NUMBER</span>
+            <button class="play-btn" type="button" data-quiz="exercises/2.html"> Play ▶ </button>
+          </div>
+        </article>
+
+
+        <!-- 3 -->
+        <article class="quiz-card c3">
+          <span class="quiz-no">03</span>
+
+          <div class="quiz-top">
+            <div class="quiz-icon">➕</div>
+            <div>
+              <div class="quiz-label">SUBTRACTION</div>
+              <div class="quiz-title">Matching</div>
+            </div>
+          </div>
+
+          <div class="quiz-preview">
+            <div class="match-equation">
+              <span>8</span>
+              <span class="dash">−</span>
+              <span>3</span>
+            </div>
+          </div>
+
+          <div class="play-row">
+            <span class="type-pill">MATCH PAIR</span>
+            <button class="play-btn" type="button" data-quiz="exercises/matching.html"> Play ▶ </button>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+
+    <!-- =====================================================
+         PRACTICE PAGE
+    ====================================================== -->
+    <section id="practicePage" class="activity-page">
+
+      <button class="back-home" type="button">🏠 Home</button>
+
+      <div class="activity-heading">
+        <div class="heading-icon">🎯</div>
+        <div>
+          <h2>2. Practice Subtraction</h2>
+          <p>Practice subtraction in fun ways and become more confident.</p>
+        </div>
+      </div>
+
+      <div class="quiz-grid">
+
+        <!-- 1 -->
+        <article class="quiz-card c4">
+          <span class="quiz-no">01</span>
+
+          <div class="quiz-top">
+            <div class="quiz-icon">➖</div>
+            <div>
+              <div class="quiz-label">SUBTRACTION</div>
+              <div class="quiz-title">Jump Back</div>
+            </div>
+          </div>
+
+          <div class="quiz-preview">
+            <div class="jump-preview">
+              <span class="big">8 − 3</span>
+              <span class="arrows">← ← ←</span>
+              <span class="big">5</span>
+            </div>
+          </div>
+
+          <div class="play-row">
+            <span class="type-pill">JUMP BACK</span>
+            <button class="play-btn" type="button" data-quiz="exercises/3.html"> Play ▶ </button>
+          </div>
+        </article>
+
+
+        <!-- 2 -->
+        <article class="quiz-card c5">
+          <span class="quiz-no">02</span>
+
+          <div class="quiz-top">
+            <div class="quiz-icon">🧮</div>
+            <div>
+              <div class="quiz-label">COUNT &amp; SUBTRACT</div>
+              <div class="quiz-title">Beads</div>
+            </div>
+          </div>
+
+          <div class="quiz-preview">
+            <div class="bead-preview">
+              <div class="bead-row">
+                <span class="bead"></span>
+                <span class="bead"></span>
+                <span class="bead"></span>
+                <span class="bead"></span>
+                <span class="bead"></span>
+              </div>
+              <div class="bead-row">
+                <span class="bead"></span>
+                <span class="bead"></span>
+                <span class="bead"></span>
+              </div>
+              <div class="bead-stem"></div>
+            </div>
+          </div>
+
+          <div class="play-row">
+            <span class="type-pill">COUNT &amp; SUBTRACT</span>
+            <button class="play-btn" type="button" data-quiz="exercises/4.html"> Play ▶ </button>
+          </div>
+        </article>
+
+
+        <!-- 3 -->
+        <article class="quiz-card c6">
+          <span class="quiz-no">03</span>
+
+          <div class="quiz-top">
+            <div class="quiz-icon">✏️</div>
+            <div>
+              <div class="quiz-label">DRAW &amp; SUBTRACT</div>
+              <div class="quiz-title">Beads</div>
+            </div>
+          </div>
+
+          <div class="quiz-preview">
+            <div class="draw-preview">
+              <span class="draw-dot"></span>
+              <span class="draw-dot"></span>
+              <span class="draw-dot"></span>
+              <span class="draw-minus">−</span>
+              <span class="draw-dot"></span>
+            </div>
+          </div>
+
+          <div class="play-row">
+            <span class="type-pill">DRAW &amp; SUBTRACT</span>
+            <button class="play-btn" type="button" data-quiz="exercises/5.html"> Play ▶ </button>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
   </div>
-  <script>
-    (function () {
-      const buttons = document.querySelectorAll('.play');
-      buttons.forEach(btn => {
-        btn.addEventListener('click', function (e) {
-          e.stopPropagation();
-          const url = btn.getAttribute('data-url');
-          if (url) window.location.href = url;
-        });
-      });
-    })();
-  </script>
-</body>
+</div>
 
+
+<!-- =========================================================
+     FULL SCREEN QUIZ IFRAME
+========================================================== -->
+<div id="quizOverlay" aria-hidden="true">
+
+  <iframe id="quizFrame" title="Subtraction Quiz"></iframe>
+
+  <!-- Always visible over the quiz -->
+  <!-- <button id="quizHome" type="button" title="Home" aria-label="Return Home">
+    🏠
+  </button> -->
+
+</div>
+
+
+<script>
+(function(){
+
+  const homePage = document.getElementById("homePage");
+  const activityPages = document.querySelectorAll(".activity-page");
+
+  const overlay = document.getElementById("quizOverlay");
+  const frame = document.getElementById("quizFrame");
+  const quizHome = document.getElementById("quizHome");
+
+  let currentPage = "homePage";
+
+  /* -----------------------------------------------
+     Show Home / category page
+  ------------------------------------------------ */
+  function showPage(pageId){
+    homePage.style.display = pageId === "homePage" ? "block" : "none";
+
+    activityPages.forEach(function(page){
+      page.classList.toggle("active", page.id === pageId);
+    });
+
+    currentPage = pageId;
+
+    window.scrollTo({
+      top:0,
+      behavior:"smooth"
+    });
+  }
+
+
+  /* -----------------------------------------------
+     Category buttons
+  ------------------------------------------------ */
+  document.querySelectorAll("[data-open]").forEach(function(button){
+
+    button.addEventListener("click",function(){
+      showPage(button.dataset.open);
+    });
+
+  });
+
+
+  /* -----------------------------------------------
+     Back buttons
+  ------------------------------------------------ */
+  document.querySelectorAll(".back-home").forEach(function(button){
+
+    button.addEventListener("click",function(){
+      showPage("homePage");
+    });
+
+  });
+
+
+  /* -----------------------------------------------
+     Open quiz in iframe
+  ------------------------------------------------ */
+  document.querySelectorAll("[data-quiz]").forEach(function(button){
+
+    button.addEventListener("click",function(){
+
+      const quizFile = button.dataset.quiz;
+
+      if(!quizFile) return;
+
+      frame.src = quizFile;
+
+      overlay.classList.add("open");
+      overlay.setAttribute("aria-hidden","false");
+
+      document.body.style.overflow = "hidden";
+
+    });
+
+  });
+
+
+  /* -----------------------------------------------
+     Home button inside iframe screen
+     Returns to the SAME category page
+  ------------------------------------------------ */
+  quizHome.addEventListener("click",function(){
+
+    frame.src = "";
+
+    overlay.classList.remove("open");
+    overlay.setAttribute("aria-hidden","true");
+
+    document.body.style.overflow = "";
+
+    showPage(currentPage);
+
+  });
+
+
+  /* -----------------------------------------------
+     Escape closes quiz
+  ------------------------------------------------ */
+  document.addEventListener("keydown",function(event){
+
+    if(
+      event.key === "Escape" &&
+      overlay.classList.contains("open")
+    ){
+      quizHome.click();
+    }
+
+  });
+
+
+  /* -----------------------------------------------
+     Browser back button support
+  ------------------------------------------------ */
+  window.addEventListener("popstate",function(){
+    showPage("homePage");
+  });
+
+})();
+</script>
+
+</body>
 </html>
