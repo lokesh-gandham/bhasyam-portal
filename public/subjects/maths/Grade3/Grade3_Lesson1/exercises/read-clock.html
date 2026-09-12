@@ -121,6 +121,31 @@
       justify-content: center;
     }
 
+    /* ===== SHAKE (wrong) / BOUNCE (correct) FEEDBACK ON THE CLOCK ===== */
+    @keyframes clockShakeWrong {
+      0%, 100% { transform: translateX(0) rotate(0deg); }
+      20% { transform: translateX(-8px) rotate(-4deg); }
+      40% { transform: translateX(8px) rotate(4deg); }
+      60% { transform: translateX(-6px) rotate(-3deg); }
+      80% { transform: translateX(6px) rotate(3deg); }
+    }
+
+    .clock-area.shake-wrong {
+      animation: clockShakeWrong .5s ease;
+    }
+
+    @keyframes clockBounceCorrect {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.15); }
+      50% { transform: scale(.95); }
+      70% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .clock-area.bounce-correct {
+      animation: clockBounceCorrect .5s ease;
+    }
+
     /* ===== CARTOON ALARM CLOCK ===== */
     .alarm-clock {
       width: 220px;
@@ -902,6 +927,11 @@
       .heading-icon {
         animation: none !important
       }
+
+      .clock-area.shake-wrong,
+      .clock-area.bounce-correct {
+        animation: none !important
+      }
     }
   </style>
 
@@ -980,6 +1010,16 @@
         finish() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 150), i * 130)) }
       };
 
+      function playClockFeedback(kind) {
+        const clockArea = document.querySelector(".clock-area");
+        if (!clockArea) return;
+        const cls = kind === "correct" ? "bounce-correct" : "shake-wrong";
+        clockArea.classList.remove("bounce-correct", "shake-wrong");
+        void clockArea.offsetWidth;
+        clockArea.classList.add(cls);
+        setTimeout(() => clockArea.classList.remove(cls), 500);
+      }
+
       function burstConfetti(el) {
         const r = el.getBoundingClientRect();
         if (typeof confetti === "function") {
@@ -1032,11 +1072,13 @@
           setter.classList.add("correct");
           hour.disabled = true; minute.disabled = true; check.disabled = true;
           sound.correct(); burstConfetti(check); showEmoji("🥳"); updateNav();
+          playClockFeedback("correct");
           if (QUESTIONS.every(x => x.solved)) setTimeout(showFinalPopup, 900);
         } else {
           q.selected = value;
           setter.classList.add("wrong");
           sound.wrong(); showEmoji("😔");
+          playClockFeedback("wrong");
 
           setTimeout(() => {
             setter.classList.remove("wrong");
