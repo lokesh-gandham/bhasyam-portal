@@ -1643,153 +1643,125 @@
            SELECT ANSWER
         ===================================== */
 
+       mathCards.forEach(card => {
+    card.addEventListener("click", () => {
+
+        if (card.classList.contains("matched")) return;
+
+        // Remove active from other left cards
+        mathCards.forEach(item => {
+            item.classList.remove("active");
+            item.style.border = "";
+            item.style.boxShadow = "";
+        });
+
+        // Keep clicked left card active
+        selectedCard = card;
+        selectedCard.classList.add("active");
+
+        // Green highlight
+        selectedCard.style.border = "4px solid #00b894";
+        selectedCard.style.boxShadow =
+            "0 0 0 5px rgba(0,184,148,.25), " +
+            "0 10px 0 rgba(48,88,102,.15), " +
+            "0 20px 30px rgba(40,75,90,.20)";
+
+        // Activate all available answers
         answerCards.forEach(answer => {
-
-            answer.addEventListener("click", () => {
-
-                if (!selectedCard) {
-                    return;
-                }
-
-
-                if (
-                    answer.classList.contains("matched")
-                ) {
-                    return;
-                }
+            if (!answer.classList.contains("matched")) {
+                answer.classList.add("target");
+            }
+        });
+    });
+});
 
 
-                const selectedAnswer =
-                    selectedCard.dataset.answer;
+answerCards.forEach(answer => {
+    answer.addEventListener("click", () => {
 
-                const targetAnswer =
-                    answer.dataset.answer;
+        if (!selectedCard) return;
+        if (answer.classList.contains("matched")) return;
 
+        const selectedAnswer = selectedCard.dataset.answer;
+        const targetAnswer = answer.dataset.answer;
 
-                /* =============================
-                   CORRECT
-                ============================= */
+        if (selectedAnswer === targetAnswer) {
 
-                if (
-                    selectedAnswer === targetAnswer
-                ) {
+            speak("Correct!");
+            showSmallConfetti(false);
 
-                    /* SAME CORRECT SOUND */
+            selectedCard.classList.remove("active");
+            selectedCard.style.border = "";
+            selectedCard.style.boxShadow = "";
 
-                    speak("Correct!");
-                    showSmallConfetti(false);
+            selectedCard.classList.add("matched");
 
+            answer.classList.remove("target");
+            answer.classList.add("matched");
 
-                    selectedCard
-                        .classList
-                        .remove("active");
-
-                    selectedCard
-                        .classList
-                        .add("matched");
-
-
-                    answer
-                        .classList
-                        .remove("target");
-
-                    answer
-                        .classList
-                        .add("matched");
-
-
-                    answerCards.forEach(item => {
-
-                        item.classList.remove("target");
-
-                    });
-
-
-                    drawConnection(
-                        selectedCard,
-                        answer
-                    );
-
-
-                    selectedCard = null;
-
-                    completedMatches++;
-
-
-                    /* ALL COMPLETE */
-
-                    if (completedMatches === 3) {
-
-                        setTimeout(() => {
-
-                            showSmallConfetti(true);
-                            showFinalPopup();
-
-                        }, 600);
-
-                    }
-
-                }
-
-
-                /* =============================
-                   WRONG
-                ============================= */
-
-                else {
-
-                    /* SAME WRONG SOUND */
-
-                    speak("Try again!");
-
-
-                    selectedCard
-                        .classList
-                        .add("shake");
-
-                    answer
-                        .classList
-                        .add("shake");
-
-
-                    setTimeout(() => {
-
-                        if (selectedCard) {
-
-                            selectedCard
-                                .classList
-                                .remove("shake");
-
-                            selectedCard
-                                .classList
-                                .remove("active");
-
-                        }
-
-
-                        answer
-                            .classList
-                            .remove("shake");
-
-
-                        answerCards.forEach(item => {
-
-                            item
-                                .classList
-                                .remove("target");
-
-                        });
-
-
-                        selectedCard = null;
-
-                    }, 450);
-
-                }
-
+            answerCards.forEach(item => {
+                item.classList.remove("target");
             });
 
-        });
+            drawConnection(selectedCard, answer);
+
+            selectedCard = null;
+            completedMatches++;
+
+            if (completedMatches === 3) {
+                setTimeout(() => {
+                    showSmallConfetti(true);
+                    showFinalPopup();
+                }, 600);
+            }
+
+        } else {
+
+            speak("Try again!");
+
+            // Keep LEFT card active after wrong answer
+            if (selectedCard) {
+                selectedCard.classList.add("active");
+
+                selectedCard.style.border = "4px solid #00b894";
+                selectedCard.style.boxShadow =
+                    "0 0 0 5px rgba(0,184,148,.25), " +
+                    "0 10px 0 rgba(48,88,102,.15), " +
+                    "0 20px 30px rgba(40,75,90,.20)";
+            }
+
+            // Shake wrong answer only
+            answer.classList.add("shake");
+
+            setTimeout(() => {
+
+                answer.classList.remove("shake");
+
+                // IMPORTANT:
+                // Do NOT set selectedCard = null
+                // Do NOT remove active
+
+                if (selectedCard) {
+                    selectedCard.classList.add("active");
+
+                    selectedCard.style.border = "4px solid #00b894";
+                    selectedCard.style.boxShadow =
+                        "0 0 0 5px rgba(0,184,148,.25), " +
+                        "0 10px 0 rgba(48,88,102,.15), " +
+                        "0 20px 30px rgba(40,75,90,.20)";
+                }
+
+                // Allow another answer immediately
+                answerCards.forEach(item => {
+                    if (!item.classList.contains("matched")) {
+                        item.classList.add("target");
+                    }
+                });
+
+            }, 450);
+        }
+    });
+});
 
 
         /* =====================================

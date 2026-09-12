@@ -1,0 +1,1204 @@
+
+ <!doctype html>
+ <html lang="en">
+ <head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+   <title>Connect the Dots & Paint — Bunny</title>
+   <style>
+     :root {
+       --ink: #43372f;
+       --line: #5b4a3f;
+       --paper: #fffdf7;
+       --blue: #2f9bff;
+       --green: #35c26a;
+       --pink: #ff7aa8;
+       --yellow: #ffc93c;
+       --shadow: 0 6px 0 rgba(0, 0, 0, .12);
+     }
+     * {
+       box-sizing: border-box;
+       -webkit-tap-highlight-color: transparent
+     }
+     html,
+     body {
+       margin: 0;
+       min-height: 100%;
+       font-family: "Comic Sans MS", "Chalkboard SE", "Baloo 2", "Trebuchet MS", Verdana, sans-serif;
+       color: var(--ink);
+       background: linear-gradient(180deg, #bfe8ff 0%, #d8f3ff 40%, #eaffe6 100%);
+       background-attachment: fixed;
+       overscroll-behavior: none;
+     }
+     body {
+       padding: 8px
+     }
+     .card {
+       width: min(100%, 940px);
+       margin: 0 auto;
+       background: #fff;
+       border: 4px solid #fff;
+       border-radius: 26px;
+       padding: 10px 12px 14px;
+       box-shadow: 0 12px 34px rgba(37, 68, 99, .18)
+     }
+     /* ---------- top bar ---------- */
+     .topbar {
+       display: flex;
+       align-items: center;
+       gap: 8px;
+       margin-bottom: 8px
+     }
+     .icon-btn {
+       width: 50px;
+       height: 50px;
+       border: 0;
+       border-radius: 16px;
+       font-size: 24px;
+       cursor: pointer;
+       background: #eef3f9;
+       box-shadow: var(--shadow);
+       transition: transform .12s;
+       display:none;
+     }
+     .icon-btn:active {
+       transform: translateY(3px);
+       box-shadow: 0 3px 0 rgba(0, 0, 0, .12)
+     }
+     .title {
+       flex: 1;
+       text-align: center;
+       font-size: clamp(15px, 3.4vw, 22px);
+       font-weight: 700;
+       color: #2b6ea8;
+       letter-spacing: .3px
+     }
+     /* ---------- goal strip ---------- */
+     .goal {
+       display: flex;
+       align-items: center;
+       gap: 10px;
+       background: #fff8e2;
+       border: 3px dashed #ffd977;
+       border-radius: 18px;
+       padding: 8px 12px;
+       margin-bottom: 8px
+     }
+     .goal .say {
+       font-size: clamp(14px, 3.2vw, 19px);
+       font-weight: 700;
+       flex: 1;
+       line-height: 1.25
+     }
+     .bignum {
+       min-width: 78px;
+       height: 58px;
+       padding: 0 12px;
+       display: grid;
+       place-items: center;
+       border-radius: 16px;
+       background: var(--blue);
+       color: #fff;
+       font-size: 30px;
+       font-weight: 700;
+       box-shadow: 0 5px 0 #1c7bd4;
+       animation: nudge 2.4s ease-in-out infinite
+     }
+     @keyframes nudge {
+       0%,
+       88%,
+       100% {
+         transform: scale(1)
+       }
+       93% {
+         transform: scale(1.09)
+       }
+     }
+     .track {
+       position: relative;
+       height: 16px;
+       background: #eef1f5;
+       border-radius: 99px;
+       margin: 0 4px 8px;
+       overflow: visible
+     }
+     .track i {
+       display: block;
+       height: 100%;
+       width: 0%;
+       border-radius: 99px;
+       background: linear-gradient(90deg, #7fe08f, #35c26a);
+       transition: width .3s ease
+     }
+     .track b {
+       position: absolute;
+       top: -13px;
+       left: 0;
+       font-size: 22px;
+       transform: translateX(-50%);
+       transition: left .3s ease;
+       font-weight: 400
+     }
+     /* ---------- picture ---------- */
+     .picture {
+       position: relative;
+       border: 3px solid #e7edf4;
+       border-radius: 20px;
+       background: var(--paper);
+       overflow: hidden;
+       line-height: 0
+     }
+     #svg {
+       display: block;
+       width: 100%;
+       height: auto;
+       touch-action: none;
+       user-select: none;
+       -webkit-user-select: none
+     }
+     /* line art */
+     .region {
+       fill: #fffdf7;
+       stroke: var(--line);
+       stroke-width: 3.4;
+       stroke-linejoin: round;
+       stroke-linecap: round;
+       transition: fill .18s ease
+     }
+     #details path,
+     #details line,
+     #details circle,
+     #details ellipse {
+       fill: none;
+       stroke: var(--line);
+       stroke-width: 3.2;
+       stroke-linecap: round;
+       stroke-linejoin: round;
+       pointer-events: none
+     }
+     #details .solid {
+       fill: var(--line);
+       stroke: none
+     }
+     #details .white {
+       fill: #fff;
+       stroke: var(--line);
+       stroke-width: 2.6
+     }
+     #details .blush {
+       fill: #ffc2cf;
+       stroke: none;
+       opacity: .8
+     }
+     #dotLine {
+       fill: none;
+       stroke: #6b5a4d;
+       stroke-width: 5;
+       stroke-linecap: round;
+       stroke-linejoin: round
+     }
+     /* dot stage look */
+     .stage-dots .silhouette {
+       visibility: hidden
+     }
+     .stage-dots .region,
+     .stage-dots #details path,
+     .stage-dots #details line,
+     .stage-dots #details circle,
+     .stage-dots #details ellipse {
+       stroke: #cfd8e2
+     }
+     .stage-dots #details .solid {
+       fill: #cfd8e2
+     }
+     .stage-dots #details .white {
+       fill: #fff;
+       stroke: #cfd8e2
+     }
+     .stage-dots #details .blush {
+       opacity: 0
+     }
+     .stage-dots .region {
+       fill: #fffdf7
+     }
+     /* dots */
+     .hit {
+       fill: transparent;
+       cursor: pointer
+     }
+     .dot {
+       fill: #b9c6d4;
+       pointer-events: none
+     }
+     .dot.next {
+       fill: var(--blue)
+     }
+     .dot.done {
+       fill: #7a6a5c
+     }
+     .ring {
+       fill: none;
+       stroke: var(--blue);
+       stroke-width: 4;
+       opacity: 0;
+       pointer-events: none
+     }
+     .ring.on {
+       opacity: 1;
+       animation: ping 1.3s ease-out infinite
+     }
+     @keyframes ping {
+       0% {
+         r: 14;
+         opacity: .9;
+         stroke-width: 5
+       }
+       100% {
+         r: 34;
+         opacity: 0;
+         stroke-width: 1
+       }
+     }
+     .lbl {
+       font-family: "Trebuchet MS", Verdana, sans-serif;
+       font-size: 21px;
+       font-weight: 700;
+       fill: #7b8a99;
+       paint-order: stroke;
+       stroke: #fffdf7;
+       stroke-width: 5;
+       stroke-linejoin: round;
+       pointer-events: none;
+       text-anchor: middle;
+       dominant-baseline: middle
+     }
+     .lbl.next {
+       fill: #1173de;
+       font-size: 30px
+     }
+     .lbl.done {
+       fill: #c3ccd6;
+       font-size: 17px
+     }
+     .shake {
+       animation: shake .4s
+     }
+     @keyframes shake {
+       0%,
+       100% {
+         transform: translateX(0)
+       }
+       25% {
+         transform: translateX(-5px)
+       }
+       75% {
+         transform: translateX(5px)
+       }
+     }
+     #hand {
+       pointer-events: none;
+       font-size: 34px;
+       opacity: 0;
+       transition: opacity .2s
+     }
+     #hand.on {
+       opacity: 1;
+       animation: bob 1s ease-in-out infinite
+     }
+     @keyframes bob {
+       0%,
+       100% {
+         transform: translateY(0)
+       }
+       50% {
+         transform: translateY(7px)
+       }
+     }
+     /* painting */
+     .painting .region {
+       cursor: pointer
+     }
+     .region.wiggle {
+       animation: wig .45s;
+       transform-box: fill-box;
+       transform-origin: center
+     }
+     @keyframes wig {
+       0%,
+       100% {
+         transform: rotate(0)
+       }
+       25% {
+         transform: rotate(-2.5deg)
+       }
+       75% {
+         transform: rotate(2.5deg)
+       }
+     }
+     /* Clear target highlight: show the exact unfinished part(s) for the selected colour. */
+     .region.hintable {
+       fill: var(--hint-color, #fffdf7);
+       fill-opacity: .14;
+       stroke: #ff9f1c;
+       stroke-width: 7;
+       stroke-dasharray: 9 5;
+       filter: drop-shadow(0 0 7px rgba(255, 159, 28, .55));
+       animation: targetPulse 1.15s ease-in-out infinite;
+       transform-box: fill-box;
+       transform-origin: center;
+       pointer-events: auto
+     }
+
+     @keyframes targetPulse {
+       0%, 100% {
+         fill-opacity: .08;
+         stroke-width: 5;
+         filter: drop-shadow(0 0 4px rgba(255, 159, 28, .35));
+       }
+       50% {
+         fill-opacity: .22;
+         stroke-width: 8;
+         filter: drop-shadow(0 0 11px rgba(255, 159, 28, .75));
+       }
+     }
+
+     .painting .region.hintable {
+       cursor: pointer
+     }
+
+     @keyframes glow {
+       0%,
+       100% {
+         stroke: var(--line);
+         stroke-width: 3.4
+       }
+       50% {
+         stroke: #ffb43a;
+         stroke-width: 7
+       }
+     }
+     .region.pop {
+       animation: popz .35s;
+       transform-box: fill-box;
+       transform-origin: center
+     }
+     @keyframes popz {
+       50% {
+         transform: scale(1.035)
+       }
+     }
+     /* ---------- palette ---------- */
+     .paintbar {
+       display: none;
+       margin-top: 10px
+     }
+     .paintbar.show {
+       display: block
+     }
+     .palette {
+       display: grid;
+       grid-template-columns: repeat(6, minmax(0, 84px));
+       gap: 10px;
+       justify-content: center
+     }
+     .swatch {
+       width: 100%;
+       height: 78px;
+       border-radius: 18px;
+       border: 4px solid #fff;
+       background: #fff;
+       box-shadow: 0 4px 0 rgba(0, 0, 0, .13);
+       cursor: pointer;
+       display: grid;
+       grid-template-rows: 1fr auto;
+       overflow: hidden;
+       padding: 0;
+       transition: transform .12s
+     }
+     .swatch .chip {
+       border-radius: 12px;
+       margin: 4px 4px 0;
+       border: 2px solid rgba(0, 0, 0, .08)
+     }
+     .swatch .nm {
+       font-family: inherit;
+       font-size: 12px;
+       font-weight: 700;
+       color: #55636f;
+       padding: 3px 0 5px
+     }
+     .swatch:active {
+       transform: translateY(3px)
+     }
+     .swatch.sel {
+       border-color: var(--blue);
+       box-shadow: 0 0 0 4px #d5ecff, 0 4px 0 rgba(0, 0, 0, .13);
+       transform: translateY(-3px)
+     }
+     .swatch.want {
+       animation: want 1s ease-in-out infinite
+     }
+     @keyframes want {
+       0%,
+       100% {
+         transform: translateY(0)
+       }
+       50% {
+         transform: translateY(-8px)
+       }
+     }
+     .toolrow {
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       gap: 8px;
+       margin-top: 10px;
+       flex-wrap: wrap
+     }
+     .pill {
+       border: 0;
+       border-radius: 16px;
+       padding: 11px 16px;
+       font-family: inherit;
+       font-size: 15px;
+       font-weight: 700;
+       color: #fff;
+       background: var(--blue);
+       box-shadow: 0 5px 0 rgba(0, 0, 0, .14);
+       cursor: pointer
+     }
+     .pill.grey {
+       background: #93a3b3
+     }
+     .pill.green {
+       background: var(--green)
+     }
+     .pill:active {
+       transform: translateY(3px);
+       box-shadow: 0 2px 0 rgba(0, 0, 0, .14)
+     }
+     /* ---------- quiz ---------- */
+     .quiz {
+       display: none;
+       text-align: center;
+       padding: 6px 4px 2px
+     }
+     .quiz.show {
+       display: block
+     }
+     .quiz h2 {
+       margin: 6px 0 12px;
+       font-size: clamp(17px, 4vw, 23px)
+     }
+     .choices {
+       display: flex;
+       gap: 12px;
+       justify-content: center;
+       flex-wrap: wrap
+     }
+     .choice {
+       width: 122px;
+       border: 4px solid #eaf1f8;
+       background: #fff;
+       border-radius: 22px;
+       padding: 12px 6px;
+       cursor: pointer;
+       font-family: inherit;
+       font-size: 17px;
+       font-weight: 700;
+       color: #465565;
+       box-shadow: 0 5px 0 rgba(0, 0, 0, .1)
+     }
+     .choice .em {
+       display: block;
+       font-size: 44px;
+       line-height: 1.1
+     }
+     .choice:active {
+       transform: translateY(3px)
+     }
+     /* ---------- bubble + modal + confetti ---------- */
+     #bubble {
+       position: fixed;
+       left: 50%;
+       bottom: 18px;
+       transform: translate(-50%, 24px);
+       opacity: 0;
+       pointer-events: none;
+       z-index: 40;
+       max-width: 92vw;
+       padding: 13px 18px;
+       border-radius: 20px;
+       background: #fff;
+       color: var(--ink);
+       border: 4px solid var(--yellow);
+       font-size: 17px;
+       font-weight: 700;
+       box-shadow: 0 12px 30px rgba(0, 0, 0, .18);
+       transition: .2s;
+       text-align: center
+     }
+     #bubble.show {
+       opacity: 1;
+       transform: translate(-50%, 0)
+     }
+     .modal {
+       display: none;
+       position: fixed;
+       inset: 0;
+       place-items: center;
+       background: rgba(20, 40, 60, .45);
+       z-index: 50;
+       padding: 16px
+     }
+     .modal.show {
+       display: grid
+     }
+     .modal-card {
+       width: min(94vw, 400px);
+       background: #fff;
+       border-radius: 28px;
+       padding: 26px 22px;
+       text-align: center;
+       box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
+       animation: pop .28s ease
+     }
+     @keyframes pop {
+       from {
+         transform: scale(.9);
+         opacity: 0
+       }
+       to {
+         transform: scale(1);
+         opacity: 1
+       }
+     }
+     .modal-card .ic {
+       font-size: 58px;
+       line-height: 1
+     }
+     .modal-card h3 {
+       margin: 8px 0 6px;
+       font-size: 24px
+     }
+     .modal-card p {
+       margin: 0;
+       color: #6a7784;
+       font-size: 16px;
+       line-height: 1.45
+     }
+     .modal-card .row {
+       display: flex;
+       gap: 10px;
+       justify-content: center;
+       margin-top: 18px;
+       flex-wrap: wrap
+     }
+     .spark,
+     .conf {
+       position: fixed;
+       z-index: 45;
+       pointer-events: none;
+       font-size: 22px
+     }
+     @keyframes floatUp {
+       to {
+         transform: translate(var(--dx), -70px) scale(.4) rotate(var(--rot));
+         opacity: 0
+       }
+     }
+     @keyframes fall {
+       to {
+         transform: translateY(105vh) rotate(600deg);
+         opacity: .9
+       }
+     }
+     @media(max-width:620px) {
+       body {
+         padding: 4px
+       }
+       .card {
+         padding: 8px;
+         border-radius: 18px
+       }
+       .icon-btn {
+         width: 44px;
+         height: 44px;
+         font-size: 21px
+       }
+       .bignum {
+         min-width: 64px;
+         height: 50px;
+         font-size: 25px
+       }
+       .goal {
+         padding: 6px 9px;
+         gap: 7px
+       }
+       .palette {
+         grid-template-columns: repeat(3, minmax(0, 108px))
+       }
+       .swatch {
+         height: 70px
+       }
+       .lbl {
+         font-size: 24px
+       }
+       .lbl.next {
+         font-size: 34px
+       }
+       .choice {
+         width: 104px
+       }
+     }
+   </style>
+ </head>
+ <body>
+   <main class="card">
+     <div class="topbar">
+       <button class="icon-btn" id="homeBtn" title="Home">🏠</button>
+       <div class="title" id="title">🐰 Connect the Dots</div>
+       <button class="icon-btn" id="soundBtn" title="Sound">🔊</button>
+       <button class="icon-btn" id="resetBtn" title="Start again">↻</button>
+     </div>
+     <div class="goal">
+       <div class="say" id="say">Tap the dots in order. Start with number</div>
+       <div class="bignum" id="bignum">51</div>
+     </div>
+     <div class="track"><i id="bar"></i><b id="runner">🐰</b></div>
+     <div class="picture">
+       <svg id="svg" viewBox="-24 -30 676 620" preserveAspectRatio="xMidYMid meet" class="stage-dots">
+         <g id="scene"></g>
+         <g id="details"></g>
+         <g id="lineLayer"><path id="dotLine" d=""></path></g>
+         <g id="dots"></g>
+         <text id="hand" x="0" y="0" text-anchor="middle">👇</text>
+       </svg>
+     </div>
+     <section class="paintbar" id="paintbar">
+       <div class="palette" id="palette"></div>
+       <div class="toolrow">
+         <button class="pill" id="hintBtn">💡 Hints: ON</button>
+         <button class="pill grey" id="peekBtn">👀 Peek</button>
+       </div>
+     </section>
+     <section class="quiz" id="quiz">
+       <h2>Last question — which animal did you make?</h2>
+       <div class="choices">
+         <button class="choice" data-a="cat"><span class="em">🐱</span>Cat</button>
+         <button class="choice" data-a="rabbit"><span class="em">🐰</span>Rabbit</button>
+         <button class="choice" data-a="bear"><span class="em">🐻</span>Bear</button>
+       </div>
+     </section>
+   </main>
+   <div id="bubble"></div>
+   <div class="modal" id="modal">
+     <div class="modal-card">
+       <div class="ic" id="mIc">🎉</div>
+       <h3 id="mTitle">Well done!</h3>
+       <p id="mText"></p>
+       <div class="row" id="mRow"></div>
+     </div>
+   </div>
+   <script>
+     /* ================= data ================= */
+     const P = { 51: [360.5, 55.7], 52: [369.1, 80.4], 53: [380.5, 91.4], 54: [396.8, 116.9], 55: [411.2, 78.3], 56: [462.1, 28.2], 57: [542.6, 4.7], 58: [579.8, 69.7], 59: [566.7, 127.8], 60: [534.7, 83.8], 61: [471.7, 107.5], 62: [418, 147], 63: [436.1, 178.6], 64: [447.7, 214.4], 65: [443.5, 248.7], 66: [416, 279.7], 67: [449.4, 308.2], 68: [477.2, 329.1], 69: [497.8, 357.1], 70: [517, 343], 71: [541, 351], 72: [557, 374], 73: [548, 399], 74: [525, 415], 75: [501, 410], 76: [492.4, 449.8], 77: [432, 472], 78: [390.5, 473.5], 79: [364.7, 471.8], 80: [333, 455], 81: [301, 423], 82: [287.6, 384.1], 83: [279.1, 360.2], 84: [289, 338.8], 85: [304.1, 320.6], 86: [299.6, 289.2], 87: [250.3, 265.9], 88: [229.4, 229.1], 89: [233.4, 184.8], 90: [263.3, 140.9], 91: [312.4, 100.8], 92: [281.6, 68.7], 93: [247.6, 87.9], 94: [195.5, 125.7], 95: [137, 126.6], 96: [143.2, 78], 97: [213.1, 36.4], 98: [265.4, 30.6], 99: [305.1, 46], 100: [328.5, 93.8] };
+     const FIRST = 51, LAST = 100, N = LAST - FIRST + 1;
+     const ORDER = Array.from({ length: N }, (_, i) => FIRST + i);
+     const pts = ORDER.map(n => P[n]);
+     /* smooth closed spline (Catmull-Rom -> cubic) */
+     const T = 0.62;
+     const segs = pts.map((_, i) => {
+       const p0 = pts[(i - 1 + N) % N], p1 = pts[i], p2 = pts[(i + 1) % N], p3 = pts[(i + 2) % N];
+       return {
+         a: p1, b: p2,
+         c1: [p1[0] + (p2[0] - p0[0]) / 6 * T, p1[1] + (p2[1] - p0[1]) / 6 * T],
+         c2: [p2[0] - (p3[0] - p1[0]) / 6 * T, p2[1] - (p3[1] - p1[1]) / 6 * T]
+       };
+     });
+     const r1 = v => Math.round(v * 10) / 10;
+     const idx = n => n - FIRST;
+     function arc(a, b) { const out = []; let i = idx(a); for (let k = 0; k < N; k++) { out.push(segs[i]); i = (i + 1) % N; if (ORDER[i] === b) break; } return out; }
+     function curve(ranges, closers) {   // ranges: [[from,to],..]  closers: cubic control pairs joining ranges (and final close)
+       let d = '';
+       ranges.forEach((rg, k) => {
+         const ss = arc(rg[0], rg[1]);
+         if (k === 0) d += `M${r1(ss[0].a[0])} ${r1(ss[0].a[1])}`;
+         else { const c = closers[k - 1]; d += `C${c[0]} ${c[1]} ${c[2]} ${c[3]} ${r1(ss[0].a[0])} ${r1(ss[0].a[1])}`; }
+         ss.forEach(s => { d += `C${r1(s.c1[0])} ${r1(s.c1[1])} ${r1(s.c2[0])} ${r1(s.c2[1])} ${r1(s.b[0])} ${r1(s.b[1])}`; });
+       });
+       const last = closers[ranges.length - 1];
+       if (last) d += `C${last[0]} ${last[1]} ${last[2]} ${last[3]} ${r1(arc(ranges[0][0], ranges[0][1])[0].a[0])} ${r1(arc(ranges[0][0], ranges[0][1])[0].a[1])}`;
+       return d + 'Z';
+     }
+     const PATH = {
+       leftEar: curve([[91, 100]], [[322, 120, 316, 122]]),
+       rightEar: curve([[55, 62]], [[400, 128, 398, 96]]),
+       head: curve([[86, 91], [100, 55], [62, 66]], [[316, 88, 322, 84], [430, 96, 432, 124], [398, 316, 344, 320]]),
+       body: curve([[66, 86]], [[386, 292, 340, 292]]),
+       tail: curve([[69, 75]], [[486, 396, 480, 370]])
+     };
+     /* hand drawn extras */
+     const EX = {
+       leftArm: "M318 320C334 336 330 364 310 379C293 392 266 393 252 382C238 371 242 349 260 339C278 329 304 306 318 320Z",
+       rightArm: "M424 288C440 264 470 244 500 228C522 216 546 222 549 242C552 262 534 277 512 287C486 299 452 310 434 310Z",
+       leftFoot: "M376 448C350 442 314 448 290 460C268 471 266 489 284 495C306 502 348 498 372 487C390 478 392 455 376 448Z",
+       rightFoot: "M448 452C474 444 510 450 532 462C554 473 554 490 536 496C514 503 474 499 452 488C434 479 432 459 448 452Z",
+       carrot: "M250 328C272 328 286 344 283 363C280 386 262 416 247 434C238 445 227 442 225 429C221 404 230 366 238 348C242 337 245 328 250 328Z",
+       leaves: "M252 330C236 320 226 302 226 284C244 288 258 302 264 320ZM262 328C256 306 260 282 272 266C282 284 284 308 276 326ZM270 332C282 318 300 310 316 312C310 330 294 340 278 342Z",
+       grass: "M14 552C14 508 96 480 196 474C302 468 386 470 452 474C556 481 616 508 616 552Z"
+     };
+     /* parts: id -> {paths, color, name, layerOrder} */
+     const FUR = "#E8D3AE", PINK = "#F5A3A6", CREAM = "#FFF4E2", DARK = "#3B3330", ORANGE = "#F5901F", GREEN = "#63BE45";
+     const PARTS = [
+       { id: "grass", d: [EX.grass], c: GREEN, nm: "grass" },
+       /* Tail is already part of the finished bunny artwork and is NOT a coloring task. */
+       { id: "leftEar", d: [PATH.leftEar], c: FUR, nm: "left ear", sil: 1 },
+       { id: "rightEar", d: [PATH.rightEar], c: FUR, nm: "right ear", sil: 1 },
+       /* Inner ears are separate shapes. Do NOT reuse/scale the full outer-ear path,
+          because that makes the pink target overlap the fur area. */
+       { id: "innerEars", d: [
+         "M224 73C240 60 267 54 286 61C300 66 309 77 313 91C300 91 287 96 273 105C257 115 241 118 228 113C220 110 217 103 218 94C219 85 221 78 224 73Z",
+         "M452 73C467 58 492 51 510 55C523 58 531 68 534 80C529 89 520 96 507 101C489 108 472 116 455 125C449 119 445 110 446 100C447 89 449 79 452 73Z"
+       ], c: PINK, nm: "inner ears", sil: 1 },
+       { id: "body", d: [PATH.body], c: FUR, nm: "tummy", sil: 1 },
+       { id: "belly", d: ["M400 300C444 300 466 344 466 386C466 428 438 462 398 462C358 462 330 428 330 386C330 344 356 300 400 300Z"], c: CREAM, nm: "belly patch", sil: 1, clip: "body" },
+       { id: "rightArm", d: [EX.rightArm], c: FUR, nm: "waving arm" },
+       { id: "feet", d: [EX.leftFoot, EX.rightFoot], c: FUR, nm: "feet" },
+       { id: "head", d: [PATH.head], c: FUR, nm: "head", sil: 1 },
+       { id: "muzzle", d: ["M336 196C368 196 384 216 384 236C384 258 362 272 336 272C310 272 288 258 288 236C288 216 304 196 336 196Z"], c: CREAM, nm: "muzzle", clip: "head" },
+       { id: "eyes", d: ["M303 196C312 196 318 205 318 216C318 227 312 235 303 235C294 235 288 227 288 216C288 205 294 196 303 196Z", "M369 196C378 196 384 205 384 216C384 227 378 235 369 235C360 235 354 227 354 216C354 205 360 196 369 196Z"], c: DARK, nm: "eyes" },
+       { id: "nose", d: ["M336 232C348 232 354 240 348 248C344 253 340 256 336 256C332 256 328 253 324 248C318 240 324 232 336 232Z"], c: PINK, nm: "nose" },
+       { id: "carrot", d: [EX.carrot], c: ORANGE, nm: "carrot" },
+       { id: "leaves", d: [EX.leaves], c: GREEN, nm: "carrot leaves" },
+       { id: "leftArm", d: [EX.leftArm], c: FUR, nm: "paw" }
+     ];
+     const COLORS = [
+       { c: FUR, nm: "Fur", em: "🐰" },
+       { c: CREAM, nm: "Cream", em: "🥛" },
+       { c: PINK, nm: "Pink", em: "💗" },
+       { c: DARK, nm: "Eyes", em: "👀" },
+       { c: ORANGE, nm: "Carrot", em: "🥕" },
+       { c: GREEN, nm: "Green", em: "🌿" }
+     ];
+     /* ================= build svg ================= */
+     const SVGNS = "http://www.w3.org/2000/svg";
+     const svg = document.getElementById("svg"), scene = document.getElementById("scene"),
+       details = document.getElementById("details"), dotsG = document.getElementById("dots"),
+       dotLine = document.getElementById("dotLine"), hand = document.getElementById("hand");
+     function mk(t, a) { const e = document.createElementNS(SVGNS, t); for (const k in a) e.setAttribute(k, a[k]); return e; }
+     // clip paths for belly / muzzle so a fill can never leak outside its parent shape
+     const defs = mk("defs", {});
+     [["clip-body", PATH.body], ["clip-head", PATH.head], ["clip-leftEar", PATH.leftEar], ["clip-rightEar", PATH.rightEar]].forEach(([id, d]) => {
+       const cp = mk("clipPath", { id }); cp.appendChild(mk("path", { d })); defs.appendChild(cp);
+     });
+     svg.insertBefore(defs, scene);
+     /* Build each paintable region in its own layer. Inner ears are now real
+        independent shapes, so clicking/painting them can never paint the fur ear. */
+     PARTS.forEach(p => {
+       p.nodes = [];
+       p.d.forEach((d, i) => {
+         const at = { d, class: "region" + (p.sil ? " silhouette" : ""), "data-part": p.id };
+         if (p.clip) at["clip-path"] = `url(#clip-${p.clip})`;
+         const el = mk("path", at);
+         if (p.clips) {                       // clip in the PARENT space, so the transform can't escape the ear
+           const g = mk("g", { "clip-path": `url(#clip-${p.clips[i]})` });
+           g.appendChild(el); scene.appendChild(g);
+         } else scene.appendChild(el);
+         p.nodes.push(el);
+       });
+     });
+     /* face + small details (not paintable) */
+     const D = [
+       // eye shines
+       ['circle', { cx: 308, cy: 208, r: 4.4, class: "white", "stroke-width": 0, fill: "#fff" }],
+       ['circle', { cx: 374, cy: 208, r: 4.4, class: "white", "stroke-width": 0, fill: "#fff" }],
+       // brows
+       ['path', { d: "M286 176C292 168 302 166 310 170" }],
+       ['path', { d: "M386 176C380 168 370 166 362 170" }],
+       // mouth
+       ['path', { d: "M336 256L336 264" }],
+       ['path', { d: "M336 264C330 276 314 276 309 265" }],
+       ['path', { d: "M336 264C342 276 358 276 363 265" }],
+       // teeth
+       ['path', { d: "M328 266H344V282C344 288 328 288 328 282Z", class: "white" }],
+       ['path', { d: "M336 266V286" }],
+       // whiskers
+       ['path', { d: "M286 238L246 230" }], ['path', { d: "M286 248L248 250" }],
+       ['path', { d: "M386 238L426 230" }], ['path', { d: "M386 248L424 250" }],
+       // blush
+       ['ellipse', { cx: 279, cy: 244, rx: 15, ry: 9, class: "blush" }],
+       ['ellipse', { cx: 393, cy: 244, rx: 15, ry: 9, class: "blush" }],
+       // toes
+       ['path', { d: "M300 466V486" }], ['path', { d: "M318 464V488" }],
+       ['path', { d: "M522 468V488" }], ['path', { d: "M504 466V490" }],
+       ['path', { d: "M528 240C534 244 538 250 538 256" }],
+       // paw fingers
+       ['path', { d: "M268 356C264 364 264 372 268 379" }],
+       ['path', { d: "M284 350C280 359 280 370 284 378" }],
+       ['path', { d: "M300 346C296 356 296 368 300 376" }],
+       // carrot ridges
+       ['path', { d: "M262 346L247 358" }], ['path', { d: "M256 372L241 384" }],
+       // grass blades
+       ['path', { d: "M92 496C86 484 88 474 96 468" }], ['path', { d: "M104 498C100 486 104 476 112 470" }],
+       ['path', { d: "M566 500C572 488 570 478 562 472" }], ['path', { d: "M554 502C558 490 554 480 546 474" }],
+       ['path', { d: "M180 508C176 496 178 486 186 480" }],
+       ['path', { d: "M420 512C416 500 418 490 426 484" }]
+     ];
+     D.forEach(([t, a]) => details.appendChild(mk(t, a)));
+     /* little flowers on the grass */
+     [[132, 508, "#ffd35c"], [590, 518, "#ff9ec2"], [214, 522, "#ffffff"]].forEach(([fx, fy, col]) => {
+       details.appendChild(mk("path", { d: `M${fx} ${fy + 16}C${fx - 3} ${fy + 26} ${fx - 6} ${fy + 30} ${fx - 10} ${fy + 32}` }));
+       for (let i = 0; i < 5; i++) {
+         const a = i * (Math.PI * 2 / 5) - Math.PI / 2;
+         details.appendChild(mk("circle", { cx: fx + Math.cos(a) * 9, cy: fy + Math.sin(a) * 9, r: 6, style: `fill:${col}`, "stroke-width": 2.2 }));
+       }
+       details.appendChild(mk("circle", { cx: fx, cy: fy, r: 5, style: "fill:#ffdf7a", "stroke-width": 2.2 }));
+     });
+     /* ================= dots ================= */
+     const cx0 = pts.reduce((s, p) => s + p[0], 0) / N, cy0 = pts.reduce((s, p) => s + p[1], 0) / N;
+     /* label spots: start outside the shape, then gently push apart so no number covers another */
+     const LP = pts.map(p => {
+       let vx = p[0] - cx0, vy = p[1] - cy0; const L = Math.hypot(vx, vy) || 1;
+       return [p[0] + vx / L * 27, p[1] + vy / L * 27];
+     });
+     const clampLbl = (i) => {
+       const p = pts[i]; let dx = LP[i][0] - p[0], dy = LP[i][1] - p[1];
+       let d = Math.hypot(dx, dy) || .01; const t = Math.max(23, Math.min(46, d));
+       LP[i][0] = p[0] + dx / d * t; LP[i][1] = p[1] + dy / d * t;
+       LP[i][0] = Math.max(-6, Math.min(632, LP[i][0]));
+       LP[i][1] = Math.max(-12, Math.min(578, LP[i][1]));
+     };
+     for (let it = 0; it < 90; it++) {
+       for (let i = 0; i < N; i++) {
+         for (let j = i + 1; j < N; j++) {
+           const dx = LP[j][0] - LP[i][0], dy = LP[j][1] - LP[i][1], d = Math.hypot(dx, dy) || .01;
+           if (d < 36) { const f = (36 - d) * .25, ux = dx / d, uy = dy / d; LP[i][0] -= ux * f; LP[i][1] -= uy * f; LP[j][0] += ux * f; LP[j][1] += uy * f; }
+         }
+         for (let k = 0; k < N; k++) {
+           const dx = LP[i][0] - pts[k][0], dy = LP[i][1] - pts[k][1], d = Math.hypot(dx, dy) || .01;
+           if (d < 23) { const f = (23 - d) * .5; LP[i][0] += dx / d * f; LP[i][1] += dy / d * f; }
+         }
+         clampLbl(i);
+       }
+     }
+     const nodes = {};
+     ORDER.forEach((n, i) => {
+       const p = P[n];
+       const g = mk("g", {});
+       const ring = mk("circle", { cx: p[0], cy: p[1], r: 14, class: "ring" });
+       const dot = mk("circle", { cx: p[0], cy: p[1], r: 6.5, class: "dot" });
+       const lbl = mk("text", { x: r1(LP[i][0]), y: r1(LP[i][1]), class: "lbl" }); lbl.textContent = n;
+       const hit = mk("circle", { cx: p[0], cy: p[1], r: 26, class: "hit", "data-n": n });
+       g.append(ring, dot, lbl, hit); dotsG.appendChild(g);
+       nodes[n] = { g, ring, dot, lbl, hit, p };
+     });
+     /* ================= state ================= */
+     let next = FIRST, sound = true, stage = "dots", idleTimer = null;
+     const painted = new Set(); let picked = null, hints = true, dragging = false, wrongTries = {};
+     const say = document.getElementById("say"), bignum = document.getElementById("bignum"),
+       bar = document.getElementById("bar"), runner = document.getElementById("runner"),
+       paintbar = document.getElementById("paintbar"), quiz = document.getElementById("quiz"),
+       titleEl = document.getElementById("title");
+     /* ---- sound ---- */
+     let actx = null;
+     function tone(freq, dur = .13, type = "sine", vol = .06) {
+       if (!sound) return;
+       try {
+         actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+         const o = actx.createOscillator(), g = actx.createGain();
+         o.type = type; o.frequency.value = freq; g.gain.value = vol;
+         g.gain.exponentialRampToValueAtTime(.0001, actx.currentTime + dur);
+         o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + dur);
+       } catch (e) { }
+     }
+     const SCALE = [523, 587, 659, 784, 880, 1046];
+     const cheer = () => [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, .18, "triangle", .07), i * 90));
+     /* ---- helpers ---- */
+     function bubble(msg, ms = 1700) {
+       const b = document.getElementById("bubble"); b.textContent = msg; b.classList.add("show");
+       clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove("show"), ms);
+     }
+     function sparkle(clientX, clientY, chars = ["✨", "⭐", "💫"]) {
+       for (let i = 0; i < 6; i++) {
+         const s = document.createElement("div"); s.className = "spark";
+         s.textContent = chars[i % chars.length];
+         s.style.left = clientX + "px"; s.style.top = clientY + "px";
+         s.style.setProperty("--dx", (Math.random() * 90 - 45) + "px");
+         s.style.setProperty("--rot", (Math.random() * 240 - 120) + "deg");
+         s.style.animation = `floatUp ${600 + Math.random() * 400}ms ease-out forwards`;
+         document.body.appendChild(s); setTimeout(() => s.remove(), 1100);
+       }
+     }
+     function confetti() {
+       const em = ["🎉", "⭐", "🎊", "💛", "🐰", "🥕", "✨"];
+       for (let i = 0; i < 34; i++) {
+         const c = document.createElement("div"); c.className = "conf";
+         c.textContent = em[i % em.length];
+         c.style.left = Math.random() * 100 + "vw"; c.style.top = "-8vh";
+         c.style.fontSize = (16 + Math.random() * 18) + "px";
+         c.style.animation = `fall ${1800 + Math.random() * 1600}ms linear forwards`;
+         c.style.animationDelay = Math.random() * 500 + "ms";
+         document.body.appendChild(c); setTimeout(() => c.remove(), 4200);
+       }
+     }
+     function modal(ic, title, text, buttons) {
+       document.getElementById("mIc").textContent = ic;
+       document.getElementById("mTitle").textContent = title;
+       document.getElementById("mText").textContent = text;
+       const row = document.getElementById("mRow"); row.innerHTML = "";
+       buttons.forEach(b => {
+         const btn = document.createElement("button"); btn.className = "pill " + (b.cls || "");
+         btn.textContent = b.label; btn.onclick = () => { document.getElementById("modal").classList.remove("show"); b.fn && b.fn(); };
+         row.appendChild(btn);
+       });
+       document.getElementById("modal").classList.add("show");
+     }
+     /* ================= dot stage ================= */
+     function straightD(upto) {   // polyline as cubics (so it can morph later)
+       let d = "";
+       for (let i = 0; i < upto; i++) {
+         const s = segs[i], a = s.a, b = s.b;
+         if (i === 0) d += `M${a[0]} ${a[1]}`;
+         d += `C${a[0] + (b[0] - a[0]) / 3} ${a[1] + (b[1] - a[1]) / 3} ${a[0] + 2 * (b[0] - a[0]) / 3} ${a[1] + 2 * (b[1] - a[1]) / 3} ${b[0]} ${b[1]}`;
+       }
+       return d;
+     }
+     function mixD(t) {           // morph straight -> smooth
+       let d = "";
+       segs.forEach((s, i) => {
+         const a = s.a, b = s.b;
+         const s1 = [a[0] + (b[0] - a[0]) / 3, a[1] + (b[1] - a[1]) / 3], s2 = [a[0] + 2 * (b[0] - a[0]) / 3, a[1] + 2 * (b[1] - a[1]) / 3];
+         const c1 = [s1[0] + (s.c1[0] - s1[0]) * t, s1[1] + (s.c1[1] - s1[1]) * t];
+         const c2 = [s2[0] + (s.c2[0] - s2[0]) * t, s2[1] + (s.c2[1] - s2[1]) * t];
+         if (i === 0) d += `M${a[0]} ${a[1]}`;
+         d += `C${r1(c1[0])} ${r1(c1[1])} ${r1(c2[0])} ${r1(c2[1])} ${b[0]} ${b[1]}`;
+       });
+       return d + "Z";
+     }
+     function refreshDots() {
+       const done = next - FIRST, pct = Math.round(done / N * 100);
+       bar.style.width = pct + "%"; runner.style.left = pct + "%";
+       ORDER.forEach(n => {
+         const o = nodes[n];
+         o.dot.classList.toggle("next", n === next); o.dot.classList.toggle("done", n < next);
+         o.lbl.classList.toggle("next", n === next); o.lbl.classList.toggle("done", n < next);
+         o.ring.classList.toggle("on", n === next);
+       });
+       if (next <= LAST) {
+         say.textContent = "Find and tap the number";
+         bignum.textContent = next;
+         const o = nodes[next];
+         o.hit.setAttribute("r", 34);          // the dot you need is the easiest to hit
+         dotsG.appendChild(o.g);               // ...and always on top
+       }
+       dotLine.setAttribute("d", straightD(next - FIRST - 1 < 0 ? 0 : next - FIRST - 1));
+       armIdle();
+     }
+     function armIdle() {
+       clearTimeout(idleTimer); hand.classList.remove("on");
+       if (stage !== "dots" || next > LAST) return;
+       idleTimer = setTimeout(showHand, 5000);
+     }
+     function showHand() {
+       if (stage !== "dots" || next > LAST) return;
+       const p = P[next]; hand.setAttribute("x", p[0]); hand.setAttribute("y", p[1] - 22); hand.classList.add("on");
+     }
+     function tapDot(n, ev) {
+       if (stage !== "dots") return;
+       if (n === next) {
+         tone(SCALE[(n - FIRST) % SCALE.length] * (n > 75 ? 2 : 1) / (n > 75 ? 2 : 1), .12, "triangle", .05);
+         nodes[n].hit.style.display = "none";
+         next++;
+         refreshDots();
+         if (ev) sparkle(ev.clientX, ev.clientY, ["✨"]);
+         const done = next - FIRST;
+         if (done > 0 && done % 10 === 0 && next <= LAST) { bubble(`Awesome! ${done} dots done ⭐`); tone(880, .16, "triangle", .06); }
+         if (next > LAST) finishDots();
+       } else {
+         tone(300, .12, "sine", .04);
+         nodes[n].g.classList.add("shake"); setTimeout(() => nodes[n].g.classList.remove("shake"), 420);
+         bubble(`Almost! Look for number ${next} 🔎`, 1400);
+         showHand();
+       }
+     }
+     dotsG.addEventListener("pointerdown", e => {
+       const t = e.target.closest(".hit"); if (!t) return;
+       e.preventDefault(); tapDot(+t.dataset.n, e);
+     });
+     // drag along the dots
+     dotsG.addEventListener("pointermove", e => {
+       if (e.buttons !== 1 && e.pointerType === "mouse") return;
+       if (stage !== "dots") return;
+       const el = document.elementFromPoint(e.clientX, e.clientY);
+       const t = el && el.closest && el.closest(".hit");
+       if (t && +t.dataset.n === next) tapDot(next, e);
+     });
+     function finishDots() {
+       say.textContent = "You connected every dot!"; bignum.textContent = "🎉";
+       hand.classList.remove("on"); clearTimeout(idleTimer);
+       dotsG.style.display = "none";
+       // morph the straight outline into the smooth bunny, then reveal
+       const t0 = performance.now(), dur = 850;
+       (function step(now) {
+         const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+         dotLine.setAttribute("d", mixD(e));
+         if (k < 1) requestAnimationFrame(step); else revealPicture();
+       })(t0);
+       cheer();
+     }
+     function revealPicture() {
+       svg.classList.remove("stage-dots"); svg.classList.add("painting");
+       dotLine.style.transition = "opacity .5s"; dotLine.style.opacity = "0";
+       setTimeout(() => dotLine.style.display = "none", 550);
+       confetti();
+       stage = "paint";
+       titleEl.textContent = "🎨 Paint the Bunny";
+       paintbar.classList.add("show");
+       updatePaint();
+       modal("🎨", "Time to paint!", "Tap a colour, then tap the bunny. The paint always stays inside the lines!", [{ label: "Let's paint ✏️", cls: "green" }]);
+     }
+     /* ================= paint stage ================= */
+     const palette = document.getElementById("palette");
+     COLORS.forEach(col => {
+       const b = document.createElement("button"); b.className = "swatch"; b.dataset.color = col.c;
+       b.innerHTML = `<span class="chip" style="background:${col.c}"></span><span class="nm">${col.em} ${col.nm}</span>`;
+       b.addEventListener("click", () => pickColor(col.c));
+       palette.appendChild(b);
+     });
+     function pickColor(c) {
+       picked = c;
+       [...palette.children].forEach(s => s.classList.toggle("sel", s.dataset.color === c));
+       [...palette.children].forEach(s => s.classList.remove("want"));
+       tone(660, .09, "sine", .04);
+
+       // Immediately highlight the exact place(s) where the selected colour belongs.
+       markHints();
+
+       const matches = PARTS.filter(p => !painted.has(p.id) && p.c === c);
+       if (matches.length) {
+         const color = COLORS.find(x => x.c === c);
+         bubble(`✨ ${color ? color.em : "🎨"} goes on: ${matches.map(p => p.nm).join(" + ")}`, 1800);
+       } else {
+         bubble("✅ That colour is already finished. Pick a glowing colour!", 1600);
+       }
+       updatePaint();
+     }
+
+     function markHints() {
+       PARTS.forEach(p => p.nodes.forEach(nd => {
+         nd.classList.remove("hintable");
+         nd.style.removeProperty("--hint-color");
+         nd.removeAttribute("aria-label");
+       }));
+
+       if (!picked) return;
+
+       // Highlight every unfinished part that uses the selected colour.
+       PARTS.forEach(p => {
+         if (!painted.has(p.id) && p.c === picked) {
+           p.nodes.forEach(nd => {
+             nd.classList.add("hintable");
+             nd.style.setProperty("--hint-color", p.c);
+             nd.setAttribute("aria-label", `Colour the ${p.nm}`);
+           });
+         }
+       });
+     }
+     function partById(id) { return PARTS.find(p => p.id === id); }
+     function paintAt(ev) {
+       if (stage !== "paint") return;
+       const el = document.elementFromPoint(ev.clientX, ev.clientY);
+       const t = el && el.closest && el.closest("[data-part]");
+       if (!t) return;
+       apply(t.dataset.part, ev);
+     }
+     function apply(id, ev) {
+       const p = partById(id); if (!p || painted.has(id)) return;
+       if (!picked) { bubble("Tap a colour first 🎨"); return; }
+       if (picked !== p.c) {
+         wrongTries[id] = (wrongTries[id] || 0) + 1;
+         p.nodes.forEach(nd => { nd.classList.add("wiggle"); setTimeout(() => nd.classList.remove("wiggle"), 480); });
+         tone(280, .12, "sine", .04);
+         const want = COLORS.find(c => c.c === p.c);
+         bubble(`Try the ${want.em} ${want.nm} colour for the ${p.nm}!`);
+         [...palette.children].forEach(s => s.classList.toggle("want", s.dataset.color === p.c));
+
+         // Keep the user's selected colour. The correct destination is highlighted,
+         // while the palette briefly points at the colour that belongs here.
+         markHints();
+
+         setTimeout(() => [...palette.children].forEach(s => s.classList.remove("want")), 2600);
+         return;
+       }
+       painted.add(id);
+       p.nodes.forEach(nd => { nd.style.fill = p.c; nd.style.opacity = 1; nd.classList.add("pop"); setTimeout(() => nd.classList.remove("pop"), 380); });
+       tone(SCALE[painted.size % SCALE.length], .14, "triangle", .05);
+       if (ev) sparkle(ev.clientX, ev.clientY);
+       markHints(); updatePaint();
+       if (painted.size === PARTS.length) setTimeout(finishPaint, 500);
+     }
+     scene.addEventListener("pointerdown", e => { if (stage !== "paint") return; e.preventDefault(); dragging = true; paintAt(e); });
+     scene.addEventListener("pointermove", e => { if (dragging) paintAt(e); });
+     window.addEventListener("pointerup", () => dragging = false);
+     window.addEventListener("pointercancel", () => dragging = false);
+     function updatePaint() {
+       const done = painted.size, pct = Math.round(done / PARTS.length * 100);
+       bar.style.width = pct + "%"; runner.style.left = pct + "%"; runner.textContent = "🖌️";
+       bignum.textContent = done + "/" + PARTS.length;
+       const left = PARTS.find(p => !painted.has(p.id));
+       say.textContent = done === PARTS.length
+         ? "Beautiful! All painted!"
+         : (picked
+           ? "✨ The glowing parts show where this colour goes — tap or slide there"
+           : "Pick a colour below, then tap the highlighted picture");
+     }
+     document.getElementById("hintBtn").addEventListener("click", e => {
+       hints = !hints; e.currentTarget.textContent = hints ? "💡 Hints: ON" : "💡 Hints: OFF"; markHints();
+     });
+     let peeking = false;
+     document.getElementById("peekBtn").addEventListener("click", () => {
+       peeking = !peeking;
+       PARTS.forEach(p => { if (!painted.has(p.id)) p.nodes.forEach(nd => { nd.style.fill = peeking ? p.c : "#fffdf7"; nd.style.opacity = peeking ? .45 : 1; }); });
+       document.getElementById("peekBtn").textContent = peeking ? "👀 Hide" : "👀 Peek";
+       bubble(peeking ? "This is how it should look 👀" : "Keep painting! 🎨", 1300);
+     });
+     function finishPaint() {
+       confetti(); cheer();
+       stage = "quiz";
+       paintbar.classList.remove("show");
+       quiz.classList.add("show");
+       titleEl.textContent = "🐾 One last question";
+       say.textContent = "Which animal did you make?"; bignum.textContent = "❓";
+       modal("🌈", "Wonderful painting!", "Every part is coloured perfectly. Now, can you name the animal?", [{ label: "I know it! 🐾", cls: "green" }]);
+     }
+     document.querySelectorAll(".choice").forEach(b => b.addEventListener("click", () => {
+       if (b.dataset.a === "rabbit") {
+         confetti(); cheer();
+         modal("🏆", "You did it!", "You connected 50 dots, painted every part and named the rabbit. Superstar!", [
+           { label: "Play again ↻", cls: "green", fn: () => location.reload() },
+           { label: "🏠 Home", cls: "grey", fn: goHome }
+         ]);
+       } else {
+         tone(300, .14, "sine", .04);
+         bubble("Look at the long ears and the carrot 🥕 — try again!");
+       }
+     }));
+     /* ================= buttons ================= */
+     function goHome() { window.location.href = "../Grade2_chapter1.html"; }
+     document.getElementById("homeBtn").addEventListener("click", goHome);
+     document.getElementById("resetBtn").addEventListener("click", () => {
+       modal("↻", "Start again?", "Your picture will be cleared and you can start from dot 51.", [
+         { label: "Yes, start again", cls: "green", fn: () => location.reload() },
+         { label: "No, keep going", cls: "grey" }
+       ]);
+     });
+     document.getElementById("soundBtn").addEventListener("click", e => {
+       sound = !sound; e.currentTarget.textContent = sound ? "🔊" : "🔇";
+     });
+     /* ================= go ================= */
+     refreshDots();
+     setTimeout(() => bubble("Hi! Tap dot 51 to begin 🐰", 2600), 600);
+   </script>
+ </body>
+ </html>
