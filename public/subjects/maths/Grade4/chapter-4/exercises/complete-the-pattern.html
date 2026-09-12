@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Complete the Pattern · Chapter 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/quiz.css?v=16">
+<style>
+/* all five parts on one board, one line each — the book's layout.
+   The block hugs its widest line, so the board centres the whole question. */
+.pattern-list {
+  display: grid;
+  gap: clamp(6px, 1.4vh, 16px);
+  width: max-content;
+  max-width: 100%;
+}
+
+/* The number lines are the question here. Target 30px on a laptop and
+   40px on a monitor, but step the size (and the row gaps) down on short
+   windows so all five rows always fit the board without overlapping. */
+.pattern-list { --q: 30px; }
+
+.pattern-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4em;
+  font-size: var(--q);
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.pattern-line .tag { min-width: 2.1em; }
+/* Hold the input a step smaller than the line text and give it room top
+   and bottom so the typed value stays centred instead of riding over the
+   box border. content-box: the ch width the script sets is the room for
+   the digits themselves, so padding and the 3.5px border never eat into
+   it and the answer can't get clipped on any screen. */
+.pattern-line .blank {
+  width: 6ch !important;
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 0.8em;
+  line-height: 1.2;
+  min-height: 1.7em;
+  box-sizing: content-box;
+  min-width: 3.5ch;
+  padding: 0.15em 0.65em;
+}
+
+/* row-level "correct" flag, shown once both boxes on a line are right */
+.pattern-line .row-tick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  margin-left: 0.5em;
+  font-size: 0.6em;
+  color: var(--green, #2FB57C);
+  white-space: nowrap;
+}
+.pattern-line .row-tick::before {
+  content: "✓";
+  font-size: 1.2em;
+  line-height: 1;
+}
+.pattern-line .row-tick[hidden] { display: none; }
+
+/* The number text is fixed: 30px on laptops, 40px on monitors. On short
+   windows the ROW GAPS and the input box tighten instead, and the board
+   scrolls if it still needs to — the digits never shrink. */
+@media (min-width: 1600px) { .pattern-list { --q: 40px; gap: 22px; } }
+@media (max-height: 780px) {
+  .pattern-list { gap: 10px; }
+  .pattern-line .blank { min-height: 1.5em; padding: 0.1em 0.6em; }
+}
+@media (max-height: 660px) {
+  .pattern-list { gap: 6px; }
+}
+@media (max-width: 820px) { .pattern-list { --q: 18px; gap: 8px; } }
+</style>
+</head>
+<body>
+<script src="../assets/confetti.js?v=3"></script>
+<script src="../assets/quiz.js?v=19"></script>
+<script>
+/* Section 4.8 Q4 — "Complete the pattern."
+   All five parts of the book sit on the same board, two boxes each. */
+
+/* Spaces and capitals do not matter when a letter answer is checked. */
+function tidy(v) {
+  return String(v == null ? '' : v).replace(/[\s.,]/g, '').toUpperCase();
+}
+
+/* Add a "✓ correct" flag to the right of a row, lit only when every box
+   on that row is marked good. Hooks each box's mark() so it updates the
+   moment the engine grades the answers. */
+function markRowTick(Q, line, boxes) {
+  var tick = Q.el('span', 'row-tick', 'correct');
+  tick.hidden = true;
+  line.appendChild(tick);
+  boxes.forEach(function (box) {
+    var orig = box._f.mark;
+    box._f.mark = function (state) {
+      orig(state);
+      tick.hidden = !boxes.every(function (b) { return b.classList.contains('good'); });
+    };
+  });
+}
+
+var ROWS = [
+  { tag: 'a)', seq: [21, 25, 33, 49, 81], answers: ['145', '273'], letters: false,
+    why: 'a) adds 4, then 8, then 16, then 32 — each jump doubles, so 81 + 64 = 145 and 145 + 128 = 273.' },
+
+  { tag: 'b)', seq: [2, 3, 5, 8, 12], answers: ['17', '23'], letters: false,
+    why: 'b) grows by 1, 2, 3, 4 — so add 5 to reach 17, then 6 to reach 23.' },
+
+  { tag: 'c)', seq: ['ABC', 'DEF', 'GHI'], answers: ['JKL', 'MNO'], letters: true,
+    why: 'c) takes the alphabet three letters at a time: JKL then MNO.' },
+
+  { tag: 'd)', seq: ['28Z', '27Y', '26X'], answers: ['25W', '24V'], letters: true,
+    why: 'd) counts down by one and steps back through the alphabet: 25W then 24V.' },
+
+  { tag: 'e)', seq: [864, 764, 664], answers: ['564', '464'], letters: false,
+    why: 'e) takes away 100 each time: 564 then 464.' }
+];
+
+Quiz.mount({
+  title: 'Complete the Pattern',
+  hint: 'Find what changes from one term to the next, then carry the same change on twice.',
+  questions: [{
+    short: 'Q4',
+    praise: ROWS.map(function (r) { return r.why; }).join(' '),
+    build: function (host, Q) {
+      var list = Q.el('div', 'pattern-list');
+
+      ROWS.forEach(function (row) {
+        var line = Q.el('div', 'pattern-line');
+        line.appendChild(Q.el('span', 'tag', row.tag));
+
+        row.seq.forEach(function (item) {
+          line.appendChild(Q.el('span', 'num', item + ','));
+        });
+
+        var lineBoxes = [];
+        row.answers.forEach(function (ans) {
+          var box = Q.blank(ans, {
+            text: row.letters,
+            width: ans.length + 2,
+            label: row.tag + ' missing term'
+          });
+          box.placeholder = '';
+          if (row.letters) {
+            box._f.correct = function () { return tidy(box.value) === tidy(ans); };
+            /* c) and d) are letter patterns — force what the child types to
+               capitals so JKL never shows as "jkl". */
+            box.style.textTransform = 'uppercase';
+            box.addEventListener('input', function () {
+              var start = box.selectionStart, end = box.selectionEnd;
+              box.value = box.value.toUpperCase();
+              try { box.setSelectionRange(start, end); } catch (e) {}
+            });
+          }
+          lineBoxes.push(box);
+          line.appendChild(box);
+        });
+
+        markRowTick(Q, line, lineBoxes);
+        list.appendChild(line);
+      });
+
+      host.appendChild(list);
+    }
+  }]
+});
+</script>
+</body>
+</html>

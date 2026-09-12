@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Multiplication Property Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%}
+body{
+  overflow:hidden;
+  font-family:"Livvic",sans-serif;
+  color:#2f4f4f;
+  background:#fbf8f4;
+}
+
+#game{
+  position:relative;width:100%;height:100vh;min-height:620px;overflow:hidden;
+  
+}
+.spark{
+  position:absolute;pointer-events:none;
+  width:18px;height:18px;transform:rotate(45deg);
+  border:3px solid rgba(217,160,68,.34);
+}
+.spark.a{left:14%;top:16%}
+.spark.b{right:16%;top:23%}
+.dot{
+  position:absolute;pointer-events:none;width:12px;height:12px;border-radius:50%;
+  background:#9fcfc2;opacity:.45;
+}
+.dot.a{left:25%;top:28%}.dot.b{right:25%;top:38%}
+
+/* top title only */
+.topbar{
+  position:relative;z-index:20;height:90px;
+  display:flex;align-items:center;justify-content:center;
+  padding:12px 20px;
+}
+.hud{
+  display:flex;align-items:center;gap:13px;
+  padding:10px 25px;
+  background:#fffdf9;
+  border:3px solid #9274bd;
+  border-radius:25px 16px 25px 16px;
+  box-shadow:0 6px 0 rgba(83,55,126,.12);
+}
+.hud-icon{
+  width:45px;height:45px;display:grid;place-items:center;
+  border-radius:14px 18px 10px 18px;
+  background:#eadcf7;border:2px solid #b08bd2;
+  font-size:23px;
+}
+.hud h1{margin:0;font-size:22px;font-weight:400;white-space:nowrap}
+
+/* NO CARD: open game stage */
+.arena{
+  position:relative;z-index:5;
+  width:min(1180px,90vw);
+  height:calc(100vh - 175px);
+  min-height:0;
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.quest-layout{
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(280px,420px) minmax(440px,1fr);
+  align-items:center;
+  gap:70px;
+  position:relative;
+}
+
+/* worksheet image — actual image path */
+.visual{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:220px;
+}
+
+.question-image{
+  position:relative;z-index:2;
+  width:min(100%,420px);
+  height:auto;
+  display:block;
+  border-radius:16px;
+  user-select:none;
+  -webkit-user-drag:none;
+  user-drag:none;
+  filter:drop-shadow(0 15px 18px rgba(63,58,72,.15));
+  transform:rotate(-1.5deg);
+}
+
+/* live question side */
+.challenge{
+  position:relative;
+  padding:12px 0 18px;
+}
+
+.challenge-label{
+  display:inline-flex;align-items:center;gap:8px;
+  margin-bottom:22px;
+  color:#7350a8;font-size:16px;font-weight:600;
+  letter-spacing:.7px;text-transform:uppercase;
+}
+.challenge-label span{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:50%;background:#dff0ef;border:2px solid #8bb9ba;
+  color:#315d63;font-size:15px;
+}
+.problem{
+  display:flex;align-items:center;justify-content:center;
+  gap:12px;flex-wrap:wrap;
+  color:#303d40;font-size:30px;font-weight:400;
+  line-height:1.55;
+  text-align:center;
+}
+.expression{display:inline-flex;align-items:center;justify-content:center;gap:10px;white-space:nowrap}
+
+/* unique answer tiles */
+.box{
+  position:relative;
+  width:98px;height:53px;
+  border:0;
+  border-radius:20px 7px 20px 7px;
+  background:linear-gradient(145deg,#dff3f1,#c8e7ec);
+  box-shadow:0 5px 0 #8fb9bf,0 8px 13px rgba(47,79,79,.12),inset 0 2px 0 rgba(255,255,255,.78);
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:transform .15s ease,filter .15s ease,box-shadow .15s ease;
+}
+
+.box.small{width:82px}
+.box input{
+  position:relative;z-index:3;width:100%;height:100%;padding:0 8px;
+  border:0;outline:0;background:transparent;text-align:center;color:#315c63;
+  font:500 28px "Livvic",sans-serif;border-radius:inherit;
+}
+.box:focus-within{
+  transform:translateY(-3px) rotate(-1deg);
+  background:linear-gradient(145deg,#fff1bf,#f6d98e);
+  box-shadow:0 7px 0 #c99b48,0 11px 18px rgba(47,79,79,.16),inset 0 2px 0 rgba(255,255,255,.8);
+}
+.box.correct{
+  background:linear-gradient(145deg,#dff5e7,#bfe7ce);
+  box-shadow:0 5px 0 #16834f,0 8px 15px rgba(22,131,79,.16),inset 0 2px 0 rgba(255,255,255,.8);
+}
+.box.wrong{
+  background:linear-gradient(145deg,#ffe9e4,#ffcfc7);
+  box-shadow:0 5px 0 #c94740,0 8px 15px rgba(201,71,64,.16),inset 0 2px 0 rgba(255,255,255,.8);
+}
+.property{display:inline-flex;align-items:center;gap:9px;margin-left:14px;white-space:nowrap}
+.property-label{color:#607878;font-size:24px}
+.property .box{width:285px}
+.q2 .problem{gap:9px}.q2 .expression{gap:8px}.q2 .box{width:86px}.q2 .property .box{width:285px}
+
+.controls{display:flex;justify-content:center;margin-top:28px}
+.submit-btn{
+  min-width:155px;height:50px;padding:0 28px;border:0;border-radius:18px;
+  background:#2f4f4f;color:#fff;font:500 20px "Livvic",sans-serif;cursor:pointer;
+  box-shadow:0 8px 0 rgba(22,59,59,.18),0 13px 25px rgba(47,79,79,.20);
+}
+.submit-btn:hover{transform:translateY(-2px)}
+.submit-btn:active{transform:translateY(3px)}
+.submit-btn:disabled{opacity:.55;cursor:default;transform:none}
+.hint{margin-top:11px;text-align:center;color:#6c7e7e;font-size:16px}
+
+/* navigation */
+.nav-btn{
+  position:fixed;z-index:30;bottom:22px;
+  min-width:126px;height:46px;padding:0 19px;border-radius:15px;
+  font:500 20px "Livvic",sans-serif;color:#2f4f4f;
+  border:2px solid rgba(47,79,79,.12);cursor:pointer;
+  box-shadow:0 8px 18px rgba(47,79,79,.12);
+}
+#prevBtn{left:4%;background:#a9cbe2;border-color:#79a9c7}
+#nextBtn{right:4%;background:#efbca6;border-color:#d99074}
+.nav-btn:disabled{opacity:.48;cursor:default}
+.nav-btn:not(:disabled):hover{transform:translateY(-2px)}
+
+/* popups — same family */
+.feedback{
+  position:fixed;z-index:100;left:50%;top:50%;
+  transform:translate(-50%,-50%) scale(.92);
+  width:min(440px,88vw);min-height:215px;padding:26px 30px 28px;
+  border-radius:30px;text-align:center;display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 20px 50px rgba(32,57,57,.22);
+}
+.feedback.show{display:flex;animation:pop .18s ease-out forwards}
+@keyframes pop{to{transform:translate(-50%,-50%) scale(1)}}
+.correct-popup{background:linear-gradient(135deg,#e2f6e9,#f4fcf6);border:5px solid #16834f}
+.wrong-popup{background:linear-gradient(135deg,#fde6e2,#fff7f5);border:5px solid #c94740}
+.feedback-icon{
+  width:68px;height:68px;border-radius:24px 24px 24px 8px;
+  display:grid;place-items:center;color:#fff;font-size:34px;
+  box-shadow:0 8px 16px rgba(32,57,57,.14)
+}
+.correct-popup .feedback-icon{background:#16834f}
+.wrong-popup .feedback-icon{background:#c94740}
+.feedback h3{margin:0;font-size:28px;font-weight:600}
+.feedback p{margin:0;color:#607878;font-size:17px}
+
+.final-popup{
+  position:fixed;z-index:110;left:50%;top:50%;
+  transform:translate(-50%,-50%) scale(.94);
+  width:min(520px,91vw);padding:38px 36px 32px;border-radius:34px;
+  background:radial-gradient(circle at 25% 18%,rgba(255,255,255,.72),transparent 30%),
+             radial-gradient(circle at 80% 82%,rgba(255,255,255,.35),transparent 28%),
+             linear-gradient(145deg,#eadcff,#cbb5f4 58%,#b89ae8);
+  border:5px solid #7350a8;
+  box-shadow:0 10px 0 rgba(83,55,126,.18),0 28px 70px rgba(55,38,80,.30);
+  text-align:center;display:none;
+}
+.final-popup.show{display:block;animation:finalPop .25s ease-out forwards}
+@keyframes finalPop{to{transform:translate(-50%,-50%) scale(1)}}
+.final-emoji{font-size:78px;margin-bottom:8px}
+.final-popup h2{margin:0 0 8px;font-size:36px;font-weight:600;color:#4e3970}
+.final-popup p{margin:0 0 22px;font-size:18px;color:#5e4e70}
+.play-again-btn{
+  width:185px;height:52px;border:0;border-radius:17px;
+  background:#68449a;color:#fff;font:500 20px "Livvic",sans-serif;cursor:pointer;
+}
+
+/* monitor */
+@media (min-width:1400px){
+  .topbar{height:100px}
+  .hud{padding:13px 28px;border-width:4px;border-radius:28px 18px 28px 18px}
+  .hud-icon{width:54px;height:54px;font-size:28px}
+  .hud h1{font-size:30px}
+  .arena{width:min(1280px,92vw);height:calc(100vh - 185px)}
+  .quest-layout{grid-template-columns:minmax(360px,500px) minmax(520px,1fr);gap:85px}
+  .question-image{width:min(100%,500px)}
+  .challenge{padding:18px 0 25px}
+  .challenge-label{font-size:18px;margin-bottom:25px}
+  .challenge-label span{width:36px;height:36px;font-size:17px}
+  .problem{font-size:40px;gap:16px;line-height:1.5}
+  .expression{gap:13px}
+  .box{width:145px;height:76px;border-radius:25px 9px 25px 9px}
+  .box.small{width:120px}
+  .box input{font-size:32px}
+  .property{gap:12px;margin-left:20px}
+  .property-label{font-size:32px}
+  .property .box{width:315px}
+  .q2 .box{width:108px}.q2 .property .box{width:315px}
+  .controls{margin-top:34px}
+  .submit-btn{min-width:175px;height:56px;font-size:22px}
+  .hint{font-size:23px;margin-top:16px}
+  .nav-btn{min-width:155px;height:56px;font-size:30px;border-width:3px}
+  #prevBtn{left:4%}#nextBtn{right:4%}
+}
+
+/* laptop */
+@media (min-width:761px) and (max-width:1399px){
+  .arena{width:min(1080px,92vw)}
+  .quest-layout{grid-template-columns:minmax(250px,340px) minmax(420px,1fr);gap:48px}
+  .question-image{width:min(100%,340px)}
+  .challenge-label{margin-bottom:17px}
+}
+
+/* tablet / mobile */
+@media (max-width:760px){
+  body{overflow:auto}
+  #game{min-height:100vh;height:auto;overflow:hidden}
+  .topbar{height:72px;padding:8px 12px}
+  .hud{padding:8px 15px;gap:8px;border-width:2px}
+  .hud-icon{width:36px;height:36px;font-size:19px}
+  .hud h1{font-size:20px}
+  .arena{width:92vw;height:auto;min-height:0;margin:0 auto 85px}
+  .quest-layout{grid-template-columns:1fr;gap:22px}
+  .visual{min-height:0;padding-top:8px}
+  .question-image{width:min(100%,380px)}
+  .challenge{padding:0 0 20px}
+  .challenge:before{display:none}
+  .challenge-label{font-size:14px;margin-bottom:13px}
+  .challenge-label span{width:27px;height:27px;font-size:13px}
+  .problem{font-size:24px;gap:8px}
+  .expression{gap:7px}
+  .box{width:82px;height:48px;border-radius:15px 6px 15px 6px}
+  .box.small{width:72px}
+  .box input{font-size:23px}
+  .property{margin-left:0;gap:6px;flex-wrap:wrap;justify-content:center}
+  .property-label{font-size:18px}
+  .property .box{width:175px}
+  .q2 .box{width:65px}.q2 .property .box{width:175px}
+  .controls{margin-top:20px}
+  .submit-btn{min-width:125px;height:43px;font-size:17px}
+  .hint{font-size:14px}
+  .nav-btn{bottom:14px;min-width:82px;height:40px;padding:0 12px;font-size:15px}
+  #prevBtn{left:3%}#nextBtn{right:3%}
+}
+
+/* very small phones */
+@media (max-width:420px){
+  .hud h1{font-size:18px}
+  .question-image{width:100%}
+  .problem{font-size:21px}
+  .box{width:72px}.box.small{width:64px}.box input{font-size:20px}
+  .property-label{font-size:16px}.property .box{width:150px}
+}
+
+.nav button:disabled{
+  opacity:.48;
+  cursor:not-allowed;
+  pointer-events:none;
+}
+</style>
+</head>
+
+<body>
+<div id="game">
+  
+
+  <header class="topbar">
+    <div class="hud">
+      <div class="hud-icon">🧩</div>
+      <h1>Fill in the boxes</h1>
+    </div>
+  </header>
+
+  <main class="arena">
+    <div class="quest-layout">
+      <div class="visual">
+        <img id="questionImage" class="question-image"
+             src="multiplication_property_q1.png"
+             alt="Worksheet example for the current multiplication property question"
+             draggable="false">
+      </div>
+
+      <section class="challenge">
+        <div class="challenge-label">
+          <span id="qBadge">1</span>
+          <b>YOUR TURN</b>
+        </div>
+
+        <div class="live-question" id="board"></div>
+
+        <div class="controls">
+          <button id="submitBtn" class="submit-btn" type="button">Submit</button>
+        </div>
+        <div class="hint">Enter the missing values, then submit your answer.</div>
+      </section>
+    </div>
+  </main>
+
+  <button class="nav-btn" id="prevBtn" type="button">← Back</button>
+  <button class="nav-btn" id="nextBtn" type="button" disabled>Next →</button>
+
+  <div id="correctPopup" class="feedback correct-popup">
+    <div class="feedback-icon">🎉</div>
+    <h3>Perfect!</h3>
+    <p>Correct answer!</p>
+  </div>
+
+  <div id="wrongPopup" class="feedback wrong-popup">
+    <div class="feedback-icon">😕</div>
+    <h3>Try Again!</h3>
+    <p>Check the boxes and try again.</p>
+  </div>
+
+  <div id="finalPopup" class="final-popup">
+    <div class="final-emoji">🏆</div>
+    <h2>Well Done!</h2>
+    <p>You completed every question in this activity!</p>
+    <button id="playAgainBtn" class="play-again-btn" type="button">↻ Play Again</button>
+  </div>
+</div>
+
+<script>
+const questions=[
+  {
+    number:1,
+    image:"../images/kid1.png",
+    html:`<div class="problem">
+      <span>7201 ×</span>
+      <span class="box"><input maxlength="4" inputmode="numeric" autocomplete="off" aria-label="Missing number"></span>
+      <span>= 0</span>
+      <span class="property">
+        <span class="property-label">Property</span>
+        <span class="box"><input maxlength="30" autocomplete="off" aria-label="Property"></span>
+      </span>
+    </div>`,
+    answers:["0","zero"]
+  },
+  {
+    number:2,
+    image:"../images/kid2.png",
+    html:`<div class="problem">
+      <span>893 × (</span>
+      <span class="box"><input maxlength="4" inputmode="numeric" autocomplete="off" aria-label="Missing number"></span>
+      <span>×</span>
+      <span class="box"><input maxlength="4" inputmode="numeric" autocomplete="off" aria-label="Missing number"></span>
+      <span>) = 326 × (511 ×</span>
+      <span class="box"><input maxlength="4" inputmode="numeric" autocomplete="off" aria-label="Missing number"></span>
+      <span>)</span>
+      <span class="property">
+        <span class="property-label">Property</span>
+        <span class="box"><input maxlength="30" autocomplete="off" aria-label="Property"></span>
+      </span>
+    </div>`,
+    answers:["326","511","893","associative"]
+  },
+  {
+    number:3,
+     image:"../images/kid5.png",
+    html:`<div class="problem">
+      <span class="box"><input maxlength="5" inputmode="numeric" autocomplete="off" aria-label="Missing number"></span>
+      <span>× 1 = 8294</span>
+      <span class="property">
+        <span class="property-label">Property</span>
+        <span class="box"><input maxlength="30" autocomplete="off" aria-label="Property"></span>
+      </span>
+    </div>`,
+    answers:["8294","identity"]
+  },
+  {
+    number:4,
+      image:"../images/kid4.png",
+    html:`<div class="problem">
+      <span class="box"><input maxlength="5" inputmode="numeric" autocomplete="off" aria-label="Missing number"></span>
+      <span>× 5708 = 578 ×</span>
+      <span class="box"><input maxlength="5" inputmode="numeric" autocomplete="off" aria-label="Missing number"></span>
+      <span class="property">
+        <span class="property-label">Property</span>
+        <span class="box"><input maxlength="30" autocomplete="off" aria-label="Property"></span>
+      </span>
+    </div>`,
+    answers:["578","5708","commutative"]
+  },
+  {
+    number:5,
+    image:"../images/kid3.png",
+    html:`<div class="problem">
+      <span class="box"><input maxlength="2" inputmode="numeric" autocomplete="off" aria-label="Missing number"></span>
+      <span>is the multiplicative identity.</span>
+    </div>`,
+    answers:["1"]
+  }
+];
+
+let current=0;
+let solved=questions.map(()=>false);
+let finalShown=false;
+
+const board=document.getElementById("board");
+const qBadge=document.getElementById("qBadge");
+const questionImage=document.getElementById("questionImage");
+const submitBtn=document.getElementById("submitBtn");
+const prevBtn=document.getElementById("prevBtn");
+const nextBtn=document.getElementById("nextBtn");
+const correctPopup=document.getElementById("correctPopup");
+const wrongPopup=document.getElementById("wrongPopup");
+const finalPopup=document.getElementById("finalPopup");
+const playAgainBtn=document.getElementById("playAgainBtn");
+
+function speak(text){
+  if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+  try{
+    const synth=window.speechSynthesis;
+    synth.cancel(); synth.resume();
+    const msg=new SpeechSynthesisUtterance(text);
+    msg.volume=1; msg.rate=1; msg.pitch=1;
+    const voices=synth.getVoices();
+    const voice=voices.find(v=>v.lang==="en-US")||
+                voices.find(v=>/^en[-_]/i.test(v.lang))||
+                voices.find(v=>/English/i.test(v.name));
+    if(voice){msg.voice=voice;msg.lang=voice.lang}
+    else msg.lang="en-US";
+    synth.speak(msg);
+  }catch(error){console.warn("Voice error:",error)}
+}
+if("speechSynthesis" in window){
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+}
+
+function sound(type){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;
+    if(!C)return;
+    const ctx=new C();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    const now=ctx.currentTime;
+    if(type==="correct"){
+      o.frequency.setValueAtTime(660,now);
+      o.frequency.setValueAtTime(880,now+.09);
+    }else{
+      o.frequency.setValueAtTime(260,now);
+      o.frequency.setValueAtTime(190,now+.12);
+    }
+    g.gain.setValueAtTime(.0001,now);
+    g.gain.exponentialRampToValueAtTime(.12,now+.015);
+    g.gain.exponentialRampToValueAtTime(.0001,now+.22);
+    o.start(now);o.stop(now+.23);
+  }catch(e){}
+}
+
+function showPopup(el,time=1200){
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),time);
+}
+function normalize(value){return value.trim().toLowerCase().replace(/\s+/g," ")}
+
+function render(){
+  const q=questions[current];
+  qBadge.textContent=q.number;
+  questionImage.src=q.image;
+  questionImage.alt=`Relevant worksheet image for question ${q.number}`;
+  board.className="live-question q"+q.number;
+  board.innerHTML=q.html;
+
+  // Keep images from being dragged into answer boxes.
+  board.querySelectorAll("img").forEach(img=>{
+    img.draggable=false;
+    img.addEventListener("dragstart",e=>e.preventDefault());
+  });
+
+  const inputs=[...board.querySelectorAll("input")];
+  inputs.forEach((input,index)=>{
+input.addEventListener("input",()=>{
+  input.classList.remove("wrong","correct");
+
+  if(input.inputMode==="numeric"){
+    input.value=input.value.replace(/\D/g,"");
+  }else{
+    input.value=input.value.charAt(0).toUpperCase()+input.value.slice(1);
+  }
+});
+    input.addEventListener("keydown",e=>{
+      if(e.key==="Backspace"&&!input.value&&inputs[index-1])inputs[index-1].focus();
+      if(e.key==="Enter"){e.preventDefault();submitAnswer()}
+    });
+  });
+
+  if(solved[current]){
+    inputs.forEach((input,i)=>{
+      input.value=questions[current].answers[i]||"";
+      input.readOnly=true;
+      input.classList.add("correct");
+    });
+  } 
+  submitBtn.disabled=solved[current];
+  prevBtn.disabled=current===0;
+  // Next is locked until this question has been answered correctly.
+  nextBtn.disabled=!solved[current];    
+}
+
+function submitAnswer(){
+  if(finalShown||solved[current])return;
+  const q=questions[current];
+  const inputs=[...board.querySelectorAll("input")];
+  const values=inputs.map(i=>normalize(i.value));
+  if(values.some(v=>v==="")){
+    inputs.find(i=>!i.value)?.focus();
+    return;
+  }
+  const correct=values.length===q.answers.length &&
+    values.every((v,i)=>v===normalize(q.answers[i]));
+
+  if(correct){
+    inputs.forEach(i=>{i.readOnly=true;i.classList.add("correct")});
+    solved[current]=true;
+    submitBtn.disabled=true;
+    nextBtn.disabled=false;
+    sound("correct");
+    speak("Correct!");
+    showPopup(correctPopup);
+    if(solved.every(Boolean))setTimeout(showFinal,850);
+  }else{
+    inputs.forEach(i=>i.classList.add("wrong"));
+    sound("wrong");
+    speak("Try again!");
+    showPopup(wrongPopup);
+    setTimeout(()=>{
+      inputs.forEach(i=>{i.value="";i.classList.remove("wrong")});
+      inputs[0]?.focus();
+    },650);
+  }
+}
+
+function go(delta){
+  if(finalShown)return;
+  const target=current+delta;
+  if(target<0||target>=questions.length)return;
+  current=target;
+  render();
+}
+
+function showFinal(){
+  finalShown=true;
+  finalPopup.classList.add("show");
+  prevBtn.disabled=true;nextBtn.disabled=true;
+  
+}
+
+prevBtn.addEventListener("click",()=>go(-1));
+nextBtn.addEventListener("click",()=>go(1));
+submitBtn.addEventListener("click",submitAnswer);
+
+playAgainBtn.addEventListener("click",()=>{
+  current=0; solved=questions.map(()=>false); finalShown=false;
+  finalPopup.classList.remove("show"); render();
+});
+
+// Disable image/link dragging throughout the game.
+document.addEventListener("dragstart",e=>{
+  if(e.target.closest("img")) e.preventDefault();
+});
+
+render();
+</script>
+<script>
+/* ===== CONFETTI CELEBRATION (right & final popups) ===== */
+(function () {
+  let canvas, ctx, pieces = [], raf = null;
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    resize();
+    window.addEventListener("resize", resize);
+  }
+  function resize() {
+    if (!canvas) return;
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  const colors = ["#16834f", "#d99c36", "#7350a8", "#c94740", "#3a8fb7", "#e86ea4", "#ffd257"];
+  function burst(count) {
+    ensureCanvas();
+    for (let i = 0; i < count; i++) {
+      pieces.push({
+        x: innerWidth / 2 + (Math.random() - .5) * 180,
+        y: innerHeight / 2 + (Math.random() - .5) * 90,
+        vx: (Math.random() - .5) * 11,
+        vy: Math.random() * -13 - 4,
+        g: 0.30 + Math.random() * 0.14,
+        s: 6 + Math.random() * 7,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - .5) * 0.4,
+        color: colors[i % colors.length],
+        life: 0
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces = pieces.filter(p => p.life < 280 && p.y < innerHeight + 40);
+    pieces.forEach(p => {
+      p.life++;
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.99;
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6);
+      ctx.restore();
+    });
+    if (pieces.length) { raf = requestAnimationFrame(tick); }
+    else { raf = null; ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  }
+  window.fireConfetti = function (big) {
+    if (big) {
+      burst(170);
+      let n = 0;
+      const iv = setInterval(() => { burst(90); if (++n >= 4) clearInterval(iv); }, 400);
+    } else {
+      burst(90);
+    }
+  };
+  function watch(id, big) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let was = el.classList.contains("show");
+    new MutationObserver(() => {
+      const now = el.classList.contains("show");
+      if (now && !was) window.fireConfetti(big);
+      was = now;
+    }).observe(el, { attributes: true, attributeFilter: ["class"] });
+  }
+  function init() { watch("correctPopup", false); watch("finalPopup", true); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+
+</html>

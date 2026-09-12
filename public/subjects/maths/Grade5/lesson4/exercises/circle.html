@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Draw the Circle</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../assets/css/quiz-popup.css">
+<script src="../assets/js/quiz-popup.js"></script>
+
+<style>
+* { box-sizing: border-box; }
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body {
+    font-family: "Livvic", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #fffdf8;
+}
+
+.quiz {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    padding: clamp(8px, 1.4vh, 18px) clamp(14px, 2.5vw, 42px) clamp(8px, 1.2vh, 16px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1vh, 14px);
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 7% 5%, rgba(238,232,255,.72), transparent 24%),
+        radial-gradient(circle at 93% 8%, rgba(222,245,233,.68), transparent 23%),
+        linear-gradient(180deg,#fffefb 0%,#fffaf2 100%);
+}
+
+.topbar {
+    width: 100%;
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr) 90px;
+    align-items: start;
+    gap: 10px;
+}
+
+.icon-btn {
+    background: none;
+    border: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+}
+
+.icon-circle {
+    width: clamp(42px, 4.2vw, 62px);
+    height: clamp(42px, 4.2vw, 62px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: clamp(18px, 1.8vw, 27px);
+    transition: transform .2s ease;
+}
+
+.icon-btn:hover .icon-circle { transform: scale(1.06); }
+
+.icon-circle.home {
+    background: linear-gradient(145deg, #8b6fe0, #6f42c1);
+    box-shadow: 0 4px 0 #4f2e93;
+}
+
+.icon-circle.hint {
+    background: linear-gradient(145deg, #ffc94d, #f7a800);
+    box-shadow: 0 4px 0 #c17e00;
+}
+
+.title-block {
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.title {
+    margin: 0;
+    text-align: center;
+    color: #1f2d3d;
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1.15;
+}
+
+.quiz-layout {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 1.5vh, 14px);
+}
+
+.question-text {
+    flex: 0 0 auto;
+    width: min(760px, 90vw);
+    text-align: center;
+    color: #1f2d3d;
+    font-size: 26px;
+    font-weight: 400;
+}
+
+.board-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: min(560px, 90vw);
+    height: clamp(220px, 48vh, 460px);
+    background: #fff;
+    border-radius: 18px;
+    border: 3px solid #e2d5f5;
+    box-shadow: 0 6px 18px rgba(111,66,193,.1);
+    overflow: hidden;
+    position: relative;
+    touch-action: none;
+}
+
+.board-wrap svg { width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+.readout {
+    flex: 0 0 auto;
+    font-size: clamp(14px, 1.6vw, 18px);
+    color: #6f42c1;
+    font-weight:400;
+    min-height: 1.3em;
+}
+
+.action-row {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.action-btn {
+    min-width: 130px;
+    height: 46px;
+    border: none;
+    border-radius: 22px;
+    font-family: "Livvic", sans-serif;
+    font-size: 16px;
+    font-weight:400;
+    cursor: pointer;
+    color: #fff;
+    transition: transform .15s ease;
+}
+
+.action-btn:active { transform: translateY(2px); }
+
+.action-btn.check {
+    background: linear-gradient(145deg, #6fd18b, #29b44c);
+    box-shadow: 0 4px 0 #1c7c34;
+}
+
+.action-btn.clear {
+    background: linear-gradient(145deg, #ff9d9d, #ff6b6b);
+    box-shadow: 0 4px 0 #c14343;
+}
+
+.action-btn:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
+/* ---------- Hint overlay ---------- */
+.hint-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 3500;
+    background: rgba(0,0,0,.25);
+}
+.hint-overlay.show { display: flex; }
+
+.hint-box {
+    width: min(420px, calc(100vw - 32px));
+    padding: 26px 28px;
+    background: #fff;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 12px 35px rgba(0,0,0,.18);
+    animation: hintPop .35s ease;
+}
+.hint-box h3 { margin: 0 0 10px; font-size: clamp(24px,3vw,32px); font-weight:400; color: #e08e00; }
+.hint-box p { margin: 0; font-size: clamp(16px,1.6vw,21px); line-height: 1.45; color: #1f2d3d; }
+
+.hint-close {
+    margin-top: 18px;
+    min-width: 110px;
+    height: 44px;
+    border: none;
+    border-radius: 24px;
+    background: linear-gradient(145deg, #ffc94d, #f7a800);
+    color: #fff;
+    font-family: "Livvic", sans-serif;
+    font-size: 17px;
+    font-weight:400;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #c17e00;
+}
+.hint-close:active { transform: translateY(3px); box-shadow: 0 1px 0 #c17e00; }
+
+@keyframes hintPop {
+    from { opacity: 0; transform: scale(.85); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* ---------- Answer popup ---------- */
+.kid-popup {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 4000;
+    background: rgba(0,0,0,.2);
+}
+.kid-popup .kid-card {
+    background: #fff;
+    border-radius: 26px;
+    padding: 30px 36px;
+    text-align: center;
+    box-shadow: 0 14px 40px rgba(0,0,0,.2);
+    animation: hintPop .3s ease;
+    max-width: min(360px, 84vw);
+}
+.kid-popup .kid-icon { font-size: 54px; margin-bottom: 8px; }
+.kid-popup h3 { margin: 0 0 6px; font-size: 24px; color: #1f2d3d; }
+.kid-popup p { margin: 0; font-size: 17px; color: #4b5563; }
+.kid-correct .kid-card { border: 3px solid #29b44c; }
+.kid-wrong .kid-card { border: 3px solid #ff4444; }
+
+/* ---------- Final popup ---------- */
+#finalPopup {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 4500;
+    background: rgba(0,0,0,.35);
+}
+.final-kid-box {
+    background: #fff;
+    border-radius: 28px;
+    padding: 36px 40px;
+    text-align: center;
+    box-shadow: 0 16px 45px rgba(0,0,0,.25);
+    animation: hintPop .35s ease;
+    max-width: min(400px, 88vw);
+}
+.final-kid-box h2 { margin: 0 0 12px; font-size: 26px; color: #1f2d3d; }
+.final-kid-box p { margin: 0 0 10px; font-size: 19px; color: #4b5563; }
+#stars { font-size: 34px; margin: 10px 0 18px; }
+.playAgain-btn {
+    min-width: 150px;
+    height: 48px;
+    border: none;
+    border-radius: 24px;
+    background: linear-gradient(145deg, #8b6fe0, #6f42c1);
+    color: #fff;
+    font-family: "Livvic", sans-serif;
+    font-size: 17px;
+    font-weight:400;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #4f2e93;
+}
+.playAgain-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #4f2e93; }
+
+@media (max-width: 600px) {
+    .title { font-size: 16px; }
+    .icon-circle { width: 38px; height: 38px; font-size: 16px; }
+    .question-text { font-size: 16px; }
+    .board-wrap { width: 92vw; height: 42vh; }
+    .action-btn { min-width: 110px; height: 42px; font-size: 14px; }
+}
+/* ================= LARGE DESKTOP ONLY ================= */
+@media (min-width: 1440px) {
+
+    html,
+    body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .quiz {
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        padding: 8px 40px;
+        gap: 6px;
+        overflow: hidden;
+    }
+
+    .topbar {
+        flex: 0 0 60px;
+        height: 60px;
+    }
+
+    .icon-circle {
+        width: 52px;
+        height: 52px;
+        font-size: 23px;
+    }
+
+    .title {
+        font-size: 26px;
+    }
+
+    .quiz-layout {
+        flex: 1 1 auto;
+        min-height: 0;
+        justify-content: center;
+        gap: 8px;
+        overflow: hidden;
+    }
+
+    .question-text {
+        width: 900px;
+        font-size: 26px;
+        line-height: 1.1;
+        flex: 0 0 auto;
+        margin: 0;
+    }
+
+    .board-wrap {
+        width: min(500px, 48vh);
+        height: min(500px, 48vh);
+        flex: 0 0 auto;
+    }
+
+    .readout {
+        font-size: 17px;
+        min-height: 20px;
+    }
+
+    .action-btn {
+        min-width: 140px;
+        height: 46px;
+        font-size: 17px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .title { font-size: 40px; }
+    .question-text { font-size: 40px; }
+}
+</style>
+</head>
+<body>
+
+<div class="quiz" id="quizCard">
+
+    <div class="topbar">
+        <button class="icon-btn" id="homeBtn" aria-label="Home">
+            <span class="icon-circle home"><i class="fa-solid fa-house"></i></span>
+        </button>
+
+        <div class="title-block">
+            <p class="title">Draw the Circle</p>
+        </div>
+
+        <button class="icon-btn" id="hintBtn" aria-label="Hint">
+            <span class="icon-circle hint"><i class="fa-solid fa-lightbulb"></i></span>
+        </button>
+    </div>
+
+    <div class="quiz-layout">
+        <div class="question-text" id="questionText">Draw a circle with a radius of 1.7 cm.</div>
+
+        <div class="board-wrap">
+            <svg id="board" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+
+        <div class="readout" id="readout">Click the center dot and drag outward, then release to draw.</div>
+
+        <div class="action-row">
+            <button class="action-btn clear" id="clearBtn">Clear</button>
+            <button class="action-btn check" id="checkBtn" disabled>Check</button>
+        </div>
+    </div>
+
+</div>
+
+<div class="hint-overlay" id="hintOverlay">
+    <div class="hint-box">
+        <h3>Hint</h3>
+        <p>Each big grid square is 1 cm. Starting at the center dot, drag outward 1 whole square plus a bit more than half of the next square (1.7 cm) and let go.</p>
+        <button class="hint-close" id="closeHintBtn">Got it!</button>
+    </div>
+</div>
+
+<div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+        <div class="kid-icon" id="popupIcon"></div>
+        <h3 id="popupTitle"></h3>
+        <p id="popupMsg"></p>
+    </div>
+</div>
+
+<div id="finalPopup">
+    <div class="final-kid-box">
+        <h2>🎉 Congratulations!</h2>
+        <p id="finalScore"></p>
+        <div id="stars"></div>
+        <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+/* =========================================================
+   SETUP: grid = 40px per cm, board is 400x400 (10cm x 10cm)
+   center fixed at (200,200), target radius = 1.7cm = 68px
+   ========================================================= */
+
+const PX_PER_CM = 40;
+const CENTER = { x: 200, y: 200 };
+const TARGET_CM = 1.7;
+const TOLERANCE_CM = 0.15;
+
+const svg = document.getElementById("board");
+const readout = document.getElementById("readout");
+const clearBtn = document.getElementById("clearBtn");
+const checkBtn = document.getElementById("checkBtn");
+
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+const homeBtn = document.getElementById("homeBtn");
+if (window.top !== window.self) homeBtn.style.visibility = "hidden";
+
+const hintBtn = document.getElementById("hintBtn");
+const hintOverlay = document.getElementById("hintOverlay");
+const closeHintBtn = document.getElementById("closeHintBtn");
+
+const NS = "http://www.w3.org/2000/svg";
+let dragging = false;
+let currentRadiusPx = 0;
+let solved = false;
+
+function el(tag, attrs) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+}
+
+function buildGrid() {
+    // minor lines every 0.5cm, major every 1cm, labeled in cm
+    for (let i = 0; i <= 10; i++) {
+        const pos = i * PX_PER_CM;
+        svg.appendChild(el("line", { x1: pos, y1: 0, x2: pos, y2: 400, stroke: "#eee0ff", "stroke-width": 1 }));
+        svg.appendChild(el("line", { x1: 0, y1: pos, x2: 400, y2: pos, stroke: "#eee0ff", "stroke-width": 1 }));
+    }
+    for (let i = 0; i <= 20; i++) {
+        const pos = i * (PX_PER_CM / 2);
+        svg.appendChild(el("line", { x1: pos, y1: 0, x2: pos, y2: 400, stroke: "#f5eeff", "stroke-width": 0.5 }));
+        svg.appendChild(el("line", { x1: 0, y1: pos, x2: 400, y2: pos, stroke: "#f5eeff", "stroke-width": 0.5 }));
+    }
+    for (let i = 1; i <= 9; i++) {
+        const label = el("text", { x: i * PX_PER_CM + 2, y: 12, "font-size": 9, fill: "#b9a6de" });
+        label.textContent = i;
+        svg.appendChild(label);
+    }
+}
+
+const previewLine = el("line", { stroke: "#8b6fe0", "stroke-width": 2, "stroke-dasharray": "4 3", visibility: "hidden" });
+const previewCircle = el("circle", { fill: "none", stroke: "#6f42c1", "stroke-width": 3, visibility: "hidden" });
+const centerDot = el("circle", { cx: CENTER.x, cy: CENTER.y, r: 6, fill: "#ff6b6b", stroke: "#fff", "stroke-width": 2 });
+
+function buildBoard() {
+    svg.innerHTML = "";
+    buildGrid();
+    svg.appendChild(previewLine);
+    svg.appendChild(previewCircle);
+    svg.appendChild(centerDot);
+}
+
+function svgPoint(evt) {
+    const rect = svg.getBoundingClientRect();
+    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    const x = ((clientX - rect.left) / rect.width) * 400;
+    const y = ((clientY - rect.top) / rect.height) * 400;
+    return { x, y };
+}
+
+function updatePreview(x, y) {
+    const dx = x - CENTER.x;
+    const dy = y - CENTER.y;
+    const r = Math.sqrt(dx * dx + dy * dy);
+    currentRadiusPx = r;
+
+    previewLine.setAttribute("x1", CENTER.x);
+    previewLine.setAttribute("y1", CENTER.y);
+    previewLine.setAttribute("x2", x);
+    previewLine.setAttribute("y2", y);
+    previewLine.setAttribute("visibility", "visible");
+
+    previewCircle.setAttribute("cx", CENTER.x);
+    previewCircle.setAttribute("cy", CENTER.y);
+    previewCircle.setAttribute("r", r);
+    previewCircle.setAttribute("visibility", "visible");
+
+    const cm = (r / PX_PER_CM).toFixed(2);
+    readout.textContent = `Current radius: ${cm} cm`;
+}
+
+function startDrag(evt) {
+    if (solved) return;
+    evt.preventDefault();
+    dragging = true;
+    const p = svgPoint(evt);
+    updatePreview(p.x, p.y);
+}
+
+function moveDrag(evt) {
+    if (!dragging) return;
+    evt.preventDefault();
+    const p = svgPoint(evt);
+    updatePreview(p.x, p.y);
+}
+
+function endDrag(evt) {
+    if (!dragging) return;
+    dragging = false;
+    checkBtn.disabled = currentRadiusPx <= 0;
+}
+
+svg.addEventListener("mousedown", startDrag);
+svg.addEventListener("mousemove", moveDrag);
+window.addEventListener("mouseup", endDrag);
+
+svg.addEventListener("touchstart", startDrag, { passive: false });
+svg.addEventListener("touchmove", moveDrag, { passive: false });
+window.addEventListener("touchend", endDrag);
+
+clearBtn.addEventListener("click", () => {
+    if (solved) return;
+    currentRadiusPx = 0;
+    previewLine.setAttribute("visibility", "hidden");
+    previewCircle.setAttribute("visibility", "hidden");
+    readout.textContent = "Click the center dot and drag outward, then release to draw.";
+    checkBtn.disabled = true;
+});
+
+function showPopup(isCorrect) {
+    QuizPopup.answer(isCorrect);
+}
+
+function smallConfetti() {
+    if (!window.confetti) return;
+    confetti({ particleCount: 40, spread: 60, origin: { y: 0.7 }, scalar: 0.8 });
+}
+
+function showFinal() {
+    QuizPopup.final(1, 1);
+
+    if (window.confetti) {
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+        setTimeout(() => confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }), 300);
+    }
+}
+
+checkBtn.addEventListener("click", () => {
+    if (solved || currentRadiusPx <= 0) return;
+
+    const drawnCm = currentRadiusPx / PX_PER_CM;
+    const diff = Math.abs(drawnCm - TARGET_CM);
+
+    if (diff <= TOLERANCE_CM) {
+        solved = true;
+        previewCircle.setAttribute("stroke", "#29b44c");
+        checkBtn.disabled = true;
+        clearBtn.disabled = true;
+
+        correctSound.currentTime = 0;
+        correctSound.play().catch(() => {});
+
+        showPopup(true);
+        smallConfetti();
+
+        setTimeout(showFinal, 1000);
+    } else {
+        wrongSound.currentTime = 0;
+        wrongSound.play().catch(() => {});
+
+        previewCircle.setAttribute("stroke", "#ff4444");
+        showPopup(false);
+
+        setTimeout(() => {
+            if (!solved) previewCircle.setAttribute("stroke", "#6f42c1");
+        }, 500);
+    }
+});
+
+homeBtn.addEventListener("click", () => {
+    window.location.href = "../Grade2_chapter1.html";
+});
+
+hintBtn.addEventListener("click", () => hintOverlay.classList.add("show"));
+closeHintBtn.addEventListener("click", () => hintOverlay.classList.remove("show"));
+hintOverlay.addEventListener("click", e => {
+    if (e.target === hintOverlay) hintOverlay.classList.remove("show");
+});
+
+buildBoard();
+</script>
+
+</body>
+</html>

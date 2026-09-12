@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Smallest Number → Fishing</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link rel="stylesheet" href="../assets/css/reuse.css">
+
+<style>
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+*{
+  box-sizing:border-box;
+  font-family:"Livvic",sans-serif;
+}
+
+html,
+body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#F8F4FF;
+  touch-action:none;
+  overscroll-behavior:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+html,
+body,
+.quiz-card,
+.quiz-card *{
+  cursor:default !important;
+}
+
+/* =========================================================
+   QUIZ CARD
+   ========================================================= */
+
+.quiz-card{
+  width:100%;
+  height:100vh;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:
+    clamp(10px,2vh,20px)
+    clamp(12px,3vw,40px)
+    clamp(10px,1.6vh,18px);
+  overflow:hidden;
+  gap:clamp(4px,1vh,10px);
+}
+
+/* =========================================================
+  HEADER BANNER (title)
+   ========================================================= */
+
+.header-banner{
+  flex:0 0 auto;
+  width:calc(100% - clamp(70px,12vw,120px));
+  max-width:900px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#FCF3E3;
+  border:3px dashed #f3b9c9;
+  border-radius:999px;
+  padding:clamp(6px,1.2vh,12px) clamp(10px,2vw,20px);
+  box-shadow:0 6px 0 rgba(0,0,0,.05);
+}
+
+.banner-text{
+  flex:1 1 auto;
+  min-width:0;
+  text-align:center;
+}
+
+.game-title{
+  margin:0;
+  font-size:clamp(18px,3.6vw,32px);
+  font-weight:400;
+  line-height:1.15;
+  color:#1f3d6e;
+}
+
+.heading{
+  margin:2px 0 0;
+  font-size:clamp(11px,2vw,17px);
+  line-height:1.25;
+  color:#4a4a4a;
+  font-weight:500;
+}
+
+.icon-flat{
+  position:absolute;
+  top:clamp(10px,2vh,20px);
+  flex:0 0 auto;
+  width:clamp(34px,6vw,52px);
+  height:clamp(34px,6vw,52px);
+  border-radius:50%;
+  border:none;
+  font-size:clamp(16px,3vw,24px);
+  line-height:1;
+  padding:0;
+  cursor:pointer;
+  transition:transform .2s ease;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.icon-flat#homeBtn{ background:#ff8fa3; }
+.icon-flat#hintBtn{ background:#ffc94d; }
+.icon-flat#homeBtn{ left:clamp(12px,3vw,40px); }
+.icon-flat#hintBtn{ right:clamp(12px,3vw,40px); }
+.icon-flat:hover{ transform:scale(1.1); }
+
+/* =========================================================
+   FISHING ROD (decorative, sits just above the water)
+   ========================================================= */
+
+.rod-wrap{
+  flex:0 0 auto;
+  width:clamp(80px,13vw,150px);
+  margin:0 auto -6px;
+  pointer-events:none;
+  z-index:5;
+}
+
+.rod-img{
+  width:100%;
+  display:block;
+  pointer-events:none;
+}
+
+/* =========================================================
+   WATER STAGE — everything fish/hook related is bounded here
+   ========================================================= */
+
+.water-stage{
+  position:relative;
+  flex:1 1 auto;
+  width:100%;
+  max-width:1000px;
+  min-height:0;
+  overflow:hidden;
+  border-radius:clamp(16px,3vw,28px);
+  background:#bfe6ff;
+  box-shadow:inset 0 0 0 4px rgba(255,255,255,.4);
+}
+
+.scene-bg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  z-index:0;
+  pointer-events:none;
+}
+
+/* ambient bubbles, purely decorative */
+.bubbles{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  overflow:hidden;
+  pointer-events:none;
+}
+.bubbles span{
+  position:absolute;
+  bottom:-30px;
+  border-radius:50%;
+  background:rgba(255,255,255,.55);
+  animation:bubbleRise linear infinite;
+}
+.bubbles span:nth-child(1){ left:8%;  width:9px;  height:9px;  animation-duration:6.5s;  animation-delay:0s; }
+.bubbles span:nth-child(2){ left:22%; width:6px;  height:6px;  animation-duration:5.2s;  animation-delay:1.1s; }
+.bubbles span:nth-child(3){ left:41%; width:11px; height:11px; animation-duration:7.4s;  animation-delay:.4s; }
+.bubbles span:nth-child(4){ left:63%; width:7px;  height:7px;  animation-duration:5.8s;  animation-delay:2.2s; }
+.bubbles span:nth-child(5){ left:80%; width:10px; height:10px; animation-duration:6.9s;  animation-delay:.9s; }
+.bubbles span:nth-child(6){ left:92%; width:6px;  height:6px;  animation-duration:5.5s;  animation-delay:1.7s; }
+
+@keyframes bubbleRise{
+  from{ transform:translateY(0); opacity:.75; }
+  to{ transform:translateY(-380%); opacity:0; }
+}
+
+/* question badge, floats over the water top-left */
+.qlabel-chip{
+  position:absolute;
+  left:clamp(8px,2vw,18px);
+  top:clamp(8px,2vh,16px);
+  z-index:3;
+  background:rgba(255,255,255,.85);
+  border-radius:14px;
+  padding:4px 14px;
+  font-size:30px;
+  /* font-weight:700; */
+  color:#2f2f2f;
+  /* box-shadow:0 3px 0 rgba(0,0,0,.08); */
+}
+
+/* fish live inside this layer, absolutely positioned by JS */
+.fish-layer{
+  position:absolute;
+  inset:0;
+  z-index:2;
+}
+
+.fish-option{
+  position:absolute;
+  left:0;
+  top:0;
+  width:clamp(66px,15vw,150px);
+  height:clamp(82px,19vw,190px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  will-change:transform;
+  transition:opacity .3s ease, filter .2s ease;
+}
+
+.fish-img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+  pointer-events:none;
+}
+
+.fish-option .fish-number{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-58%);
+  color:#2f2f2f;
+  font-size:clamp(16px,2.6vw,30px);
+  font-weight:700;
+  line-height:1;
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.7),
+    0 2px 6px rgba(0,0,0,.12);
+  pointer-events:none;
+}
+
+/* glow when the hook is close enough to make a catch */
+.fish-option.near-hook{
+  filter:drop-shadow(0 0 14px rgba(255,220,90,.9)) brightness(1.08);
+}
+
+/* fish caught: rides up with the hook, then vanishes */
+.fish-option.caught{
+  z-index:6;
+}
+
+/* persistent correct marker when revisiting an answered question */
+.fish-option.correct-final{
+  filter:drop-shadow(0 0 10px rgba(85,200,120,.55));
+}
+.fish-option.correct-final::after{
+  content:"✓";
+  position:absolute;
+  right:6%;
+  top:2%;
+  width:28px;
+  height:28px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#55c878;
+  color:#fff;
+  font-size:18px;
+  font-weight:800;
+  box-shadow:0 3px 8px rgba(50,130,80,.28);
+  z-index:6;
+}
+
+.fish-option.faded{
+  opacity:0;
+  pointer-events:none;
+}
+
+/* quick "just missed it" dart-away wiggle */
+.fish-option.wrong-shake{
+  animation:fishShake .35s ease;
+}
+@keyframes fishShake{
+  0%,100%{ }
+  25%{ filter:brightness(1.15); }
+  75%{ filter:brightness(1.15); }
+}
+
+/* =========================================================
+   FISHING LINE + HOOK
+   ========================================================= */
+
+.fishing-line{
+  position:absolute;
+  left:0;
+  top:0;
+  width:3px;
+  height:0;
+  background:linear-gradient(#9aa0a6,#d8dde2);
+  transform-origin:top center;
+  z-index:3;
+  pointer-events:none;
+  border-radius:999px;
+}
+
+.hook-btn{
+  position:absolute;
+  left:50%;
+  top:0;
+  width:clamp(48px,9vw,92px);
+  height:clamp(48px,9vw,92px);
+  transform:translate(-50%,-50%);
+  border:0;
+  padding:0;
+  background:transparent;
+  z-index:4;
+  touch-action:none;
+  cursor:grab !important;
+}
+.hook-btn.dragging{ cursor:grabbing !important; }
+
+.hook-inner{
+  display:block;
+  width:100%;
+  height:100%;
+}
+.hook-inner img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+  pointer-events:none;
+}
+
+/* =========================================================
+   NAV
+   ========================================================= */
+
+
+
+/* =========================================================
+   SMALL-SCREEN TWEAKS
+   ========================================================= */
+
+@media (max-width:480px){
+  .header-banner{ border-width:2px; gap:6px; padding:5px 8px; }
+  .game-title{ font-size:16px; }
+  .heading{ font-size:10.5px; }
+  .icon-flat{ width:32px; height:32px; font-size:15px; }
+  .nav{ gap:14px; }
+}
+
+@media (min-width:1600px){
+  .water-stage{ max-width:1200px; }
+  .header-banner{ max-width:1100px; padding:14px 26px; }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="quiz-card" id="quizCard">
+
+  <div class="header-banner">
+    <div class="banner-text">
+      <h1 class="game-title">Catch the Smallest Fish!</h1>
+      <p class="heading" id="heading">Drag the fishing hook onto the fish with the smallest number to catch it.</p>
+    </div>
+  </div>
+
+  <button class="icon-flat" id="homeBtn" style="display: none;" title="Home" aria-label="Home">🏠</button>
+  <button class="icon-flat" id="hintBtn" title="Hint" aria-label="Hint">💡</button>
+
+  <div class="rod-wrap" id="rodWrap">
+    <img class="rod-img" src="../assets/images/fishing-rod.png" alt="">
+  </div>
+
+  <div class="water-stage" id="waterStage">
+
+    <img class="scene-bg" src="../assets/images/water.png" alt="">
+
+    <div class="bubbles" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <div class="qlabel-chip" id="qLabel">Q1.</div>
+
+    <div class="fish-layer" id="fishLayer"><!-- fish injected by JS --></div>
+
+    <div class="fishing-line" id="fishingLine"></div>
+
+    <button class="hook-btn" id="hookBtn" type="button" aria-label="Drag the fishing hook onto a fish">
+
+  <span class="hook-line"></span>
+
+  <span class="hook-inner">
+    <img src="../assets/images/hook.png" alt="">
+  </span>
+
+</button>
+
+  </div>
+
+  <div class="nav">
+    <button class="prev" id="prevBtn" disabled>← Prev</button>
+    <button class="next" id="nextBtn" disabled>Next →</button>
+  </div>
+
+</div>
+
+<div class="hint-overlay" id="hintOverlay" aria-live="polite">
+  <div class="hint-box">
+    <h3>Hint</h3>
+    <p id="hintText">Drag the fishing hook onto the fish with the smallest number and release it to catch the correct fish.</p>
+    <button class="popup-btn" id="closeHintBtn">Got it!</button>
+  </div>
+</div>
+
+<!-- POPUPS -->
+<div id="answerPopup" class="popup">
+  <div class="popup-content">
+    <div class="popup-icon" id="popupIcon"></div>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMsg"></p>
+  </div>
+</div>
+
+<div id="finalPopup">
+  <div class="finalpopup-box">
+    <h2 class="final-heading">🎉 Amazing Job!</h2>
+    <p id="finalScore"></p>
+    <div id="stars">⭐⭐⭐</div>
+    <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+  </div>
+</div>
+
+<!-- SOUNDS -->
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+
+/* =========================================================
+   QUESTION DATA
+   ========================================================= */
+
+const QUESTIONS = [
+  { label:"Q1.", options:[98, 88, 89, 90], answer:88 },
+  { label:"Q2.", options:[42, 24, 21, 22], answer:21 },
+  { label:"Q3.", options:[10, 70, 60, 50], answer:10 },
+  { label:"Q4.", options:[31, 33, 23, 3],  answer:3  }
+];
+
+const total = QUESTIONS.length;
+let current = 0;
+
+const state = QUESTIONS.map(() => ({ answered:false }));
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const quizCard     = document.getElementById("quizCard");
+const waterStage    = document.getElementById("waterStage");
+const qLabel        = document.getElementById("qLabel");
+const fishLayer      = document.getElementById("fishLayer");
+const hookBtn        = document.getElementById("hookBtn");
+const lineEl         = document.getElementById("fishingLine");
+const prevBtn       = document.getElementById("prevBtn");
+const nextBtn       = document.getElementById("nextBtn");
+
+const correctSound  = document.getElementById("correctSound");
+const wrongSound    = document.getElementById("wrongSound");
+const homeBtn       = document.getElementById("homeBtn");
+const hintBtn       = document.getElementById("hintBtn");
+const hintOverlay   = document.getElementById("hintOverlay");
+const closeHintBtn  = document.getElementById("closeHintBtn");
+const hintText      = document.getElementById("hintText");
+
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* =========================================================
+   SPEAK
+   ========================================================= */
+
+function speak(t){
+  if(!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-UK";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+/* =========================================================
+   STAGE / COORDINATE HELPERS
+   (accounts for the page possibly being scaled by an embedding parent,
+   same trick the original template used for the rod/hook)
+   ========================================================= */
+
+function getScale(){
+  const rect = quizCard.getBoundingClientRect();
+  return rect.width / quizCard.offsetWidth || 1;
+}
+
+function stageLocalPoint(clientX, clientY){
+  const rect  = waterStage.getBoundingClientRect();
+  const scale = getScale();
+  return {
+    x:(clientX - rect.left) / scale,
+    y:(clientY - rect.top)  / scale
+  };
+}
+
+function stageSize(){
+  return { w: waterStage.offsetWidth, h: waterStage.offsetHeight };
+}
+
+/* =========================================================
+   FISH + HOOK STATE
+   ========================================================= */
+
+let fishes = [];          // {el, value, isAnswer, x, y, vx, vy, w, h, changeTimer, frozen, caught}
+let bounds = { minX:0, maxX:0, minY:0, maxY:0 };
+
+let hookRest   = { x:0, y:0 };
+let hookPos    = { x:0, y:0 };
+let dragging   = false;
+let hookBusy   = false;   // true while a tween/resolution animation owns the hook
+let resolving  = false;   // true while a catch (right or wrong) is being played out
+let candidate  = null;    // fish currently in "near-hook" range while dragging
+
+let rafId = null;
+let lastTs = null;
+
+const anchor = () => ({ x: stageSize().w / 2, y: 2 });
+
+function catchRadius(){
+  return Math.max(46, stageSize().w * 0.09);
+}
+
+/* =========================================================
+   BUILD FISH FOR THE CURRENT QUESTION
+   ========================================================= */
+
+function computeBounds(){
+  const { w, h } = stageSize();
+  const fw = fishes[0] ? fishes[0].w : Math.min(150, Math.max(66, w * 0.16));
+  const fh = fishes[0] ? fishes[0].h : fw * 1.27;
+  bounds = {
+    minX: fw * 0.55,
+    maxX: Math.max(fw * 0.55, w - fw * 0.55),
+    minY: h * 0.22,
+    maxY: Math.max(h * 0.22, h - fh * 0.6)
+  };
+}
+
+function randomSpot(existing, minDist){
+  const { w, h } = stageSize();
+  let p, tries = 0;
+  do{
+    p = {
+      x: w * 0.12 + Math.random() * (w * 0.76),
+      y: h * 0.32 + Math.random() * (h * 0.55)
+    };
+    tries++;
+  } while(tries < 30 && existing.some(q => Math.hypot(q.x - p.x, q.y - p.y) < minDist));
+  return p;
+}
+
+function buildFish(){
+  fishLayer.innerHTML = "";
+  fishes = [];
+
+  const q  = QUESTIONS[current];
+  const st = state[current];
+  const { w } = stageSize();
+  const fw = Math.min(150, Math.max(66, w * 0.16));
+  const fh = fw * 1.27;
+  const minDist = fw * 1.15;
+
+  const placed = [];
+
+  q.options.forEach((value) => {
+    const el = document.createElement("div");
+    el.className = "fish-option";
+
+    const img = document.createElement("img");
+img.className = "fish-img";
+img.src = "../assets/images/fish.png";
+img.alt = "";
+
+// Give every fish a different random color
+const fishColors = [
+  "hue-rotate(0deg)",    // red
+  "hue-rotate(45deg)",   // orange/yellow
+  "hue-rotate(100deg)",  // green
+  "hue-rotate(180deg)",  // cyan/blue
+  "hue-rotate(230deg)",  // blue/purple
+  "hue-rotate(300deg)"   // pink
+];
+
+img.style.filter =
+  fishColors[Math.floor(Math.random() * fishColors.length)];
+
+el.appendChild(img);
+
+    const label = document.createElement("span");
+    label.className = "fish-number";
+    label.textContent = value;
+    el.appendChild(label);
+
+    fishLayer.appendChild(el);
+
+    const isAnswer = value === q.answer;
+    const fish = {
+      el, value, isAnswer,
+      w: fw, h: fh,
+      vx:0, vy:0,
+      changeTimer: 0.3 + Math.random() * 0.6,
+      frozen:false, caught:false
+    };
+
+    if(st.answered){
+      // static, resolved view
+      const idx = q.options.indexOf(value);
+      const spot = { x: (idx + 1) / (q.options.length + 1) * w, y: stageSize().h * 0.55 };
+      fish.x = spot.x; fish.y = spot.y;
+      fish.frozen = true;
+      el.classList.add(isAnswer ? "correct-final" : "faded");
+    } else {
+      const spot = randomSpot(placed, minDist);
+      placed.push(spot);
+      fish.x = spot.x; fish.y = spot.y;
+    }
+
+    positionFish(fish);
+    fishes.push(fish);
+  });
+
+  computeBounds();
+}
+
+function positionFish(fish, angleOverride){
+  const angle = angleOverride !== undefined ? angleOverride
+    : Math.max(-14, Math.min(14, fish.vx * 0.35));
+  fish.el.style.width  = fish.w + "px";
+  fish.el.style.height = fish.h + "px";
+  fish.el.style.transform =
+    `translate(-50%,-50%) translate(${fish.x}px, ${fish.y}px) rotate(${angle}deg)`;
+}
+
+/* =========================================================
+   HOOK POSITIONING
+   ========================================================= */
+
+function computeHookRest(){
+  const { h } = stageSize();
+  hookRest = { x: anchor().x, y: h * 0.16 };
+}
+
+function applyHook(x, y, rotate){
+  hookPos.x = x;
+  hookPos.y = y;
+
+  const r = rotate !== undefined
+    ? rotate
+    : Math.max(
+        -22,
+        Math.min(22, (x - hookRest.x) * 0.12)
+      );
+
+  hookBtn.style.left = x + "px";
+  hookBtn.style.top = y + "px";
+  hookBtn.style.transform =
+    `translate(-50%,-50%) rotate(${r}deg)`;
+
+  // Keep the fishing line aligned with the hook direction
+  updateLine(r);
+}
+function updateLine() {
+  const a = anchor();
+
+  const dx = hookPos.x - a.x;
+  const dy = hookPos.y - a.y;
+
+  const length = Math.hypot(dx, dy);
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI - 90;
+
+  lineEl.style.left = a.x + "px";
+  lineEl.style.top = a.y + "px";
+  lineEl.style.height = length + "px";
+
+  lineEl.style.transform =
+    `translateX(-50%) rotate(${angle}deg)`;
+}
+function tweenHook(toX, toY, duration, onDone){
+  hookBusy = true;
+  const startX = hookPos.x, startY = hookPos.y;
+  const start = performance.now();
+  function step(now){
+    const t = Math.min((now - start) / duration, 1);
+    const e = 1 - Math.pow(1 - t, 3);
+    const x = startX + (toX - startX) * e;
+    const y = startY + (toY - startY) * e;
+    applyHook(x, y);
+    updateLine();
+    if(t < 1){
+      requestAnimationFrame(step);
+    } else {
+      hookBusy = false;
+      if(onDone) onDone();
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+/* =========================================================
+   MAIN LOOP — free-swimming fish + idle hook bob + line sync
+   ========================================================= */
+
+function tick(ts){
+  if(lastTs == null) lastTs = ts;
+  const dt = Math.min((ts - lastTs) / 1000, 0.05);
+  lastTs = ts;
+
+  if(!resolving){
+    updateFish(dt, ts);
+  }
+
+  if(!dragging && !hookBusy && !resolving){
+    const bobAmp  = reducedMotion ? 2 : 7;
+    const swayAmp = reducedMotion ? 2 : 5;
+    const bx = hookRest.x + Math.sin(ts / 700) * swayAmp;
+    const by = hookRest.y + Math.sin(ts / 480) * bobAmp;
+    applyHook(bx, by);
+  }
+
+  updateLine();
+  rafId = requestAnimationFrame(tick);
+}
+
+function updateFish(dt, ts){
+  fishes.forEach((fish) => {
+    if(fish.frozen || fish.caught) return;
+
+    fish.changeTimer -= dt;
+    if(fish.changeTimer <= 0){
+      const angle = Math.random() * Math.PI * 2;
+      const speed = reducedMotion ? 8 : 26 + Math.random() * 34;
+      fish.vx = Math.cos(angle) * speed;
+      fish.vy = Math.sin(angle) * speed * 0.7;
+      fish.changeTimer = 1.1 + Math.random() * 1.9;
+    }
+
+    fish.x += fish.vx * dt;
+    fish.y += fish.vy * dt;
+
+    if(fish.x < bounds.minX){ fish.x = bounds.minX; fish.vx *= -1; }
+    if(fish.x > bounds.maxX){ fish.x = bounds.maxX; fish.vx *= -1; }
+    if(fish.y < bounds.minY){ fish.y = bounds.minY; fish.vy *= -1; }
+    if(fish.y > bounds.maxY){ fish.y = bounds.maxY; fish.vy *= -1; }
+
+    positionFish(fish);
+  });
+}
+
+function startLoop(){
+  if(rafId) return;
+  lastTs = null;
+  rafId = requestAnimationFrame(tick);
+}
+
+/* =========================================================
+   RENDER QUESTION
+   ========================================================= */
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  qLabel.textContent = q.label;
+
+  resolving = false;
+  hookBusy = false;
+  candidate = null;
+
+  buildFish();
+  computeHookRest();
+  applyHook(hookRest.x, hookRest.y);
+  updateLine();
+
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = !state[current].answered || current === total - 1;
+
+  startLoop();
+}
+
+/* =========================================================
+   DRAG THE HOOK — the only way to make a pick
+   ========================================================= */
+
+hookBtn.addEventListener("pointerdown", (e) => {
+  if(resolving || hookBusy || state[current].answered) return;
+  dragging = true;
+  hookBtn.classList.add("dragging");
+  hookBtn.setPointerCapture(e.pointerId);
+});
+
+hookBtn.addEventListener("pointermove", (e) => {
+  if(!dragging) return;
+
+  const { w, h } = stageSize();
+  const p = stageLocalPoint(e.clientX, e.clientY);
+  const margin = hookBtn.offsetWidth / 2;
+  const x = Math.min(Math.max(p.x, margin), w - margin);
+  const y = Math.min(Math.max(p.y, margin), h - margin);
+
+  applyHook(x, y);
+
+  // find the nearest catchable fish within range
+  let nearest = null, nearestDist = Infinity;
+  fishes.forEach((fish) => {
+    if(fish.frozen || fish.caught) return;
+    const d = Math.hypot(fish.x - x, fish.y - y);
+    if(d < catchRadius() && d < nearestDist){
+      nearest = fish;
+      nearestDist = d;
+    }
+  });
+
+  if(candidate && candidate !== nearest){
+    candidate.el.classList.remove("near-hook");
+  }
+  candidate = nearest;
+  if(candidate){
+    candidate.el.classList.add("near-hook");
+  }
+});
+
+hookBtn.addEventListener("pointerup", () => {
+  if(!dragging) return;
+  dragging = false;
+  hookBtn.classList.remove("dragging");
+
+  if(resolving || state[current].answered){
+    tweenHook(hookRest.x, hookRest.y, 320);
+    return;
+  }
+
+  const caughtFish = candidate;
+  if(candidate){
+    candidate.el.classList.remove("near-hook");
+    candidate = null;
+  }
+
+  if(caughtFish){
+    resolvePick(caughtFish);
+  } else {
+    tweenHook(hookRest.x, hookRest.y, 320);
+  }
+});
+
+hookBtn.addEventListener("pointercancel", () => {
+  if(dragging){
+    dragging = false;
+    hookBtn.classList.remove("dragging");
+    if(candidate){ candidate.el.classList.remove("near-hook"); candidate = null; }
+    tweenHook(hookRest.x, hookRest.y, 320);
+  }
+});
+
+/* =========================================================
+   RESOLVE A PICK
+   ========================================================= */
+
+function resolvePick(fish){
+  resolving = true;
+
+  if(fish.isAnswer){
+
+    state[current].answered = true;
+
+    // Keep the correct fish exactly where it was caught
+    fish.frozen = true;
+    fish.caught = false;
+
+    // Keep the correct fish visible and highlighted
+    fish.el.classList.remove("faded");
+    fish.el.classList.remove("caught");
+    fish.el.classList.add("correct-final");
+
+    // Hide all other fish
+    fishes.forEach(f => {
+      if(f !== fish){
+        f.frozen = true;
+        f.caught = false;
+        f.el.classList.add("faded");
+      }
+    });
+
+    // Keep the hook where it is, then return it to the rod
+    tweenHook(hookRest.x, hookRest.y, 320, () => {
+      resolving = false;
+    });
+
+    // Correct feedback
+    correctSound.currentTime = 0;
+    correctSound.play().catch(() => {});
+    speak("correct");
+    showPopup(true);
+    fireConfetti();
+
+    // Enable Next
+    nextBtn.disabled = current === total - 1;
+
+    // Final question
+    if(current === total - 1){
+      setTimeout(() => {
+        fireBigConfetti();
+        showFinal();
+      }, 900);
+    }
+
+  } else {
+
+    // Wrong fish: shake and move slightly away
+    const angle =
+      Math.atan2(
+        fish.y - hookPos.y,
+        fish.x - hookPos.x
+      ) || Math.random() * Math.PI * 2;
+
+    const dartDist = fish.w * 1.3;
+
+    let tx = fish.x + Math.cos(angle) * dartDist;
+    let ty = fish.y + Math.sin(angle) * dartDist;
+
+    tx = Math.min(
+      Math.max(tx, bounds.minX),
+      bounds.maxX
+    );
+
+    ty = Math.min(
+      Math.max(ty, bounds.minY),
+      bounds.maxY
+    );
+
+    fish.el.classList.add("wrong-shake");
+
+    fish.vx = (tx - fish.x) / 0.25;
+    fish.vy = (ty - fish.y) / 0.25;
+    fish.changeTimer = 0.6;
+
+    setTimeout(() => {
+      fish.el.classList.remove("wrong-shake");
+    }, 350);
+
+    // Wrong feedback
+    wrongSound.currentTime = 0;
+    wrongSound.play().catch(() => {});
+    speak("wrong");
+    showPopup(false);
+
+    // Return hook
+    tweenHook(
+      hookRest.x,
+      hookRest.y,
+      320,
+      () => {
+        resolving = false;
+      }
+    );
+  }
+}
+/* =========================================================
+   POPUP
+   ========================================================= */
+
+function showPopup(isCorrect){
+  const popup = document.getElementById("answerPopup");
+  const icon  = document.getElementById("popupIcon");
+  const title = document.getElementById("popupTitle");
+  const msg   = document.getElementById("popupMsg");
+
+  popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+  popup.style.display = "flex";
+
+  if(isCorrect){
+    icon.textContent = "🎉";
+    title.textContent = "Correct!";
+    msg.textContent = "Great catch!";
+  } else {
+    icon.textContent = "❌";
+    title.textContent = "Try Again!";
+    msg.textContent = "That's not the smallest number.";
+  }
+
+  clearTimeout(showPopup._t);
+  showPopup._t = setTimeout(() => { popup.style.display = "none"; }, 1100);
+}
+
+/* =========================================================
+   FINAL
+   ========================================================= */
+
+function showFinal(){
+  const finalPopup = document.getElementById("finalPopup");
+  finalPopup.style.display = "flex";
+  document.getElementById("finalScore").textContent = `${total} / ${total} Completed`;
+  document.getElementById("stars").textContent = "⭐⭐⭐";
+}
+
+/* =========================================================
+   CONFETTI
+   ========================================================= */
+
+function fireConfetti(){
+  if(!window.confetti) return;
+  confetti({
+    particleCount:24,
+    spread:55,
+    startVelocity:26,
+    origin:{ x:.5, y:.4 },
+    colors:["#e6473f","#3a6fd8","#f7b733","#8bba8a","#c9a8e0"]
+  });
+}
+
+function fireBigConfetti(){
+  if(!window.confetti) return;
+  const end = Date.now() + 1800;
+  (function frame(){
+    confetti({ particleCount:6, angle:60,  spread:55, origin:{ x:0 } });
+    confetti({ particleCount:6, angle:120, spread:55, origin:{ x:1 } });
+    if(Date.now() < end){ requestAnimationFrame(frame); }
+  })();
+}
+
+/* =========================================================
+   NAV
+   ========================================================= */
+
+prevBtn.addEventListener("click", () => {
+  if(current === 0) return;
+  current--;
+  renderQuestion();
+});
+
+nextBtn.addEventListener("click", () => {
+  if(nextBtn.disabled) return;
+  if(current < total - 1){
+    current++;
+    renderQuestion();
+  }
+});
+
+homeBtn.addEventListener("click", () => {
+  window.location.href = "../Grade2_chapter1.html";
+});
+
+hintBtn.addEventListener("click", () => {
+  hintText.textContent = "Drag the fishing hook onto the fish with the smallest number and release it to catch the correct fish.";
+  hintOverlay.classList.add("show");
+});
+
+closeHintBtn.addEventListener("click", () => {
+  hintOverlay.classList.remove("show");
+});
+
+hintOverlay.addEventListener("click", (event) => {
+  if(event.target === hintOverlay){
+    hintOverlay.classList.remove("show");
+  }
+});
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if(dragging || resolving) return;
+    computeHookRest();
+    if(!hookBusy){ applyHook(hookRest.x, hookRest.y); }
+    if(!state[current].answered){
+      buildFish();
+    } else {
+      computeBounds();
+    }
+  }, 150);
+});
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+renderQuestion();
+
+</script>
+
+</body>
+</html>

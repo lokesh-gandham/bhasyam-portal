@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candy Factory Abacus Subtraction</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+        }
+
+        body {
+            /* Soft Light Pastel Sky Background - NO CARDS */
+            background: linear-gradient(135deg, #fefce8 0%, #f0fdf4 50%, #e0f2fe 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2vh 2vw;
+            overflow: hidden;
+            /* STRICTLY Prevents Scrolling */
+            color: #1e293b;
+        }
+
+        header {
+            text-align: center;
+            z-index: 10;
+            flex-shrink: 0;
+            margin-bottom: 1vh;
+        }
+
+        h1 {
+            color: #0f172a;
+            font-weight: 400;
+            text-shadow: 0 2px 0 #ffffff;
+            margin-bottom: 6px;
+        }
+
+        @media screen and (max-width: 1599px) {
+            h1 {
+                font-size: 22px;
+            }
+        }
+
+        @media screen and (min-width: 1600px) {
+            h1 {
+                font-size: 30px;
+            }
+        }
+
+
+        .instruction-badge {
+            font-size: clamp(14px, 1.5vw, 18px);
+            color: #2f4f4f;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 8px 24px;
+            border-radius: 30px;
+            border: 3px solid #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            display: inline-block;
+        }
+
+        /* =========================
+   GAME PLAYGROUND
+========================= */
+        .game-stage {
+            width: 100%;
+            max-width: 1100px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+            min-height: 0;
+            position: relative;
+            gap: 10px;
+        }
+
+        .equation-board {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: clamp(15px, 2.5vw, 35px);
+            width: 100%;
+            max-width: 950px;
+        }
+
+        /* =========================
+   CANDY CONVEYOR STATIONS
+========================= */
+        .factory-station {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .conveyor-pod {
+            display: flex;
+            gap: clamp(20px, 1.5vw, 25px);
+            align-items: flex-end;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.65);
+            border: 4px solid #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .candy-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Expanded height to fit up to 9 items cleanly */
+            height: clamp(230px, 40vh, 320px);
+            position: relative;
+            gap: 5px;
+        }
+
+        /* Vertical Conveyor Shaft with Dynamic Grid Layout */
+        .conveyor-belt {
+            width: clamp(75px, 8.5vw, 100px);
+            flex-grow: 1;
+            background: rgba(241, 245, 249, 0.85);
+            backdrop-filter: blur(4px);
+            border: 3px solid #a4bbf2;
+            border-radius: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            align-content: flex-end;
+            justify-items: center;
+            padding: 8px 6px;
+            row-gap: 4px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Bead Sprites with Auto-Resizing Classes */
+        .candy {
+            user-select: none;
+            cursor: pointer;
+            z-index: 5;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: dropCandy 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        /* Dynamic Sizing to Prevent Top Overlap */
+        .candy.size-large {
+            font-size: clamp(22px, 2.5vw, 30px);
+        }
+
+        .candy.size-medium {
+            font-size: clamp(18px, 2vw, 24px);
+        }
+
+        .candy.size-small {
+            font-size: clamp(15px, 1.6vw, 20px);
+        }
+
+        .candy:hover {
+            transform: scale(1.25);
+        }
+
+        @keyframes dropCandy {
+            0% {
+                transform: translateY(-100px) scale(0.2);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Arcade Lever Button */
+        .arcade-lever {
+            width: clamp(50px, 4vw, 80px);
+            height: 40px;
+            background: linear-gradient(180deg, #4fddca 0%, #29cab5 100%);
+            border: none;
+            border-radius: 8px 8px 12px 12px;
+            cursor: pointer;
+            z-index: 10;
+            margin-top: 4px;
+            box-shadow: 0 4px 0 #099986, 0 6px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .arcade-lever::after {
+            content: '🕹️';
+            font-size: 24px;
+        }
+
+        .arcade-lever:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #701a75;
+        }
+
+        .arcade-lever:disabled {
+            background: #cbd5e1;
+            box-shadow: 0 4px 0 #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .arcade-lever:disabled::after {
+            content: '👍';
+        }
+
+        /* Labels (T & O) */
+        .pod-labels {
+            display: flex;
+            gap: clamp(12px, 2vw, 24px);
+        }
+
+        .label-tag {
+            font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+            font-weight: 900;
+            color: #ffffff;
+            background: #c026d3;
+            width: 36px;
+            height: 26px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 6px;
+            box-shadow: 0 3px 0 #86198f;
+            display: none;
+        }
+
+        /* Preset Given Number Display Boxes */
+        .preset-box {
+            width: clamp(45px, 5vw, 60px);
+            height: clamp(40px, 4.5vw, 50px);
+            font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+            font-weight: 600;
+            color: #0f172a;
+            background: #ffffff;
+            border: 3px solid #f97316;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 0 #ea580c;
+        }
+
+        /* =========================
+   EQUATION INPUTS & OPERATORS
+========================= */
+        .operator {
+            font-size: clamp(2.5rem, 4vw, 3.8rem);
+            font-weight: 500;
+            color: #64748b;
+            text-shadow: 0 3px 0 #ffffff;
+            flex-shrink: 0;
+            margin-bottom: clamp(20px, 3vh, 35px);
+        }
+
+        .equation-inputs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(12px, 2vw, 25px);
+            margin-top: 2px;
+        }
+
+        input[type="text"] {
+            width: clamp(70px, 8vw, 90px);
+            height: clamp(55px, 6.5vw, 70px);
+            font-size: clamp(2rem, 3vw, 2.8rem);
+            font-weight: 600;
+            text-align: center;
+            border: 4px solid #f59e0b;
+            border-radius: 18px;
+            background: #ffffff;
+            color: #0f172a;
+            outline: none;
+            box-shadow: 0 6px 0 #d97706, 0 10px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        input[type="text"]:focus {
+            transform: translateY(-4px);
+            border-color: #fbbf24;
+            box-shadow: 0 10px 0 #d97706, 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+
+        input[type="text"]:disabled {
+            background-color: #f1f2f6;
+            border-color: #10b981;
+            color: #059669;
+            box-shadow: 0 6px 0 #059669;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* =========================
+   CORNER CONTROLS
+========================= */
+        .bottom-controls {
+            width: 100%;
+            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 1vh 2vw 2vh 2vw;
+            z-index: 20;
+            flex-shrink: 0;
+        }
+
+        .left-control {
+            justify-self: start;
+        }
+
+        .center-control {
+            justify-self: center;
+        }
+
+        .right-control {
+            justify-self: end;
+        }
+
+        /* Strict Button Sizing Rules (Laptop: 20px, Monitor: 30px) */
+        .nav-btn,
+        .submit-btn,
+        .replay-btn {
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 20px;
+            min-width: 178px;
+            height: 45px;
+            border-radius: 40px;
+        }
+
+        @media screen and (min-width: 1600px) {
+            h1 {
+                font-size: 30px;
+            }
+
+            .nav-btn,
+            .submit-btn,
+            .replay-btn {
+                width: 200px;
+                min-width: 200px;
+                height: 60px;
+                font-size: 30px;
+                padding: 0;
+                border-radius: 50px;
+            }
+        }
+
+        .nav-btn.prev {
+            background: #64748b;
+            color: #ffffff;
+            box-shadow: 0 8px 0 #475569;
+        }
+
+        .nav-btn.prev:active:not(:disabled) {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #475569;
+        }
+
+        .nav-btn.next {
+            background: #f97316;
+            color: #ffffff;
+            box-shadow: 0 8px 0 #c2410c;
+        }
+
+        .nav-btn.next:active:not(:disabled) {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #c2410c;
+        }
+
+        .submit-btn {
+            background: #10b981;
+            color: #ffffff;
+            box-shadow: 0 8px 0 #059669;
+        }
+
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #059669;
+        }
+
+        .replay-btn {
+            background: #0ea5e9;
+            color: white;
+            box-shadow: 0 8px 0 #0284c7;
+            margin-top: 20px;
+        }
+
+        .replay-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #0284c7;
+        }
+
+        .nav-btn:disabled,
+        .submit-btn:disabled {
+            background: #cbd5e1;
+            box-shadow: 0 8px 0 #94a3b8;
+            color: #f8fafc;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        /* =========================
+   REFERENCE POPUP DESIGN
+========================= */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-card {
+            position: relative;
+            width: 90%;
+            max-width: 520px;
+            padding: 40px 30px;
+            border-radius: 36px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            transform: scale(0.8);
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+        }
+
+        .popup-card::before,
+        .popup-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .popup-card::before {
+            width: 220px;
+            height: 220px;
+            top: -60px;
+            right: -50px;
+        }
+
+        .popup-card::after {
+            width: 180px;
+            height: 180px;
+            bottom: -70px;
+            left: -40px;
+        }
+
+        .popup-card.correct {
+            background: #edfbf4;
+            border: 6px solid #00c885;
+        }
+
+        .popup-card.correct::before,
+        .popup-card.correct::after {
+            background: rgba(162, 245, 209, 0.45);
+        }
+
+        .popup-card.correct .popup-title {
+            color: #00a86b;
+        }
+
+        .popup-card.correct .popup-subtitle {
+            color: #2e7d5b;
+        }
+
+        .popup-card.wrong {
+            background: #fff0f2;
+            border: 6px solid #ff6b7a;
+        }
+
+        .popup-card.wrong::before,
+        .popup-card.wrong::after {
+            background: rgba(255, 196, 203, 0.45);
+        }
+
+        .popup-card.wrong .popup-title {
+            color: #d33847;
+        }
+
+        .popup-card.wrong .popup-subtitle {
+            color: #a33b45;
+        }
+
+        .popup-card.complete {
+            background: #f0f3ff;
+            border: 6px solid #6c5ce7;
+        }
+
+        .popup-card.complete::before,
+        .popup-card.complete::after {
+            background: rgba(162, 155, 254, 0.35);
+        }
+
+        .popup-card.complete .popup-title {
+            color: #6c5ce7;
+        }
+
+        .popup-card.complete .popup-subtitle {
+            color: #4834d4;
+        }
+
+        .popup-overlay.active .popup-card {
+            transform: scale(1);
+        }
+
+        .popup-icon {
+            font-size: 4.8rem;
+            margin-bottom: 12px;
+            line-height: 1;
+            filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.1));
+        }
+
+        .popup-title {
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-subtitle {
+            font-size: 1.4rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #333;
+        }
+
+        @media screen and (max-width: 768px) {
+            .equation-board {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .operator {
+                transform: rotate(90deg);
+                margin-bottom: 0;
+            }
+
+            input[type="text"] {
+                width: 60px;
+                height: 50px;
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Question line sizing: regular weight, 30px laptop and 40px monitor */
+        .equation-inputs .preset-box,
+        .equation-inputs input[type="text"] {
+            font-size: 30px;
+            font-weight: 400;
+        }
+
+        .equation-inputs .operator {
+            font-size: 30px;
+            font-weight: 400;
+        }
+
+        @media screen and (min-width: 1600px) {
+
+            .equation-inputs .preset-box,
+            .equation-inputs input[type="text"] {
+                font-size: 40px;
+                font-weight: 400;
+            }
+
+            .conveyor-belt {
+                width: clamp(120px, 8.5vw, 150px);
+            }
+
+            .equation-inputs .operator {
+                font-size: 40px;
+                font-weight: 400;
+            }
+
+            .arcade-lever {
+                width: clamp(80px, 6vw, 100px);
+                height: 60px;
+            }
+
+            .arcade-lever::after {
+                content: '🕹️';
+                font-size: 35px;
+            }
+
+            .preset-box {
+                width: clamp(85px, 6vw, 65px);
+                height: clamp(65px, 5.5vw, 50px);
+            }
+
+        }
+
+
+        /* Larger bead visuals on monitor screens */
+        @media screen and (min-width: 1600px) {
+            .candy.size-large {
+                font-size: 40px;
+            }
+
+            .candy.size-medium {
+                font-size: 34px;
+            }
+
+            .candy.size-small {
+                font-size: 28px;
+            }
+        }
+
+
+        /* EXACT SAME CONFETTI EFFECT */
+        #confettiContainer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 200;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 9px;
+            height: 14px;
+            border-radius: 2px;
+            opacity: 0;
+            animation: pageConfetti 1700ms cubic-bezier(.16, .72, .3, 1) forwards;
+            will-change: transform, opacity;
+        }
+
+        .final-confetti-piece {
+            width: 10px;
+            height: 16px;
+            animation-duration: 2300ms;
+        }
+
+        .final-confetti-piece:nth-child(3n) {
+            border-radius: 50%;
+        }
+
+        .final-confetti-piece:nth-child(4n) {
+            width: 7px;
+            height: 19px;
+            border-radius: 1px;
+        }
+
+        .final-confetti-piece:nth-child(5n) {
+            width: 13px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        @keyframes pageConfetti {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+            }
+
+            55% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+            }
+        }
+
+        .popup-card.complete {
+            box-shadow:
+                0 20px 45px rgba(108, 92, 231, 0.18),
+                0 0 0 8px rgba(162, 155, 254, 0.12);
+        }
+
+        .popup-card.complete .replay-btn {
+            margin-top: 12px;
+        }
+
+        .popup-card.complete .popup-icon {
+            animation: finalTrophyBounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes finalTrophyBounce {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Draw the beads on the abacus and subtract accordingly</h1>
+        <div class="instruction-badge">Pull arcade levers to drop beads onto belts, then solve!</div>
+    </header>
+
+    <main class="game-stage" id="stage">
+    </main>
+
+    <div class="bottom-controls">
+        <div class="left-control">
+            <button class="nav-btn prev" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+        </div>
+        <div class="center-control">
+            <button class="submit-btn" id="submitBtn" onclick="checkAnswers()" disabled>SUBMIT</button>
+        </div>
+        <div class="right-control">
+            <button class="nav-btn next" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+        </div>
+    </div>
+
+    <div id="confettiContainer"></div>
+
+    <div class="popup-overlay" id="popup">
+        <div class="popup-card" id="popupCard">
+            <div class="popup-icon" id="popupIcon">⭐</div>
+            <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+            <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+            <button class="replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play
+                Again</button>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================
+           QUIZ DATA (Strict Match to Worksheet)
+        ========================================== */
+        const quizData = [
+            {
+                // a) 4 - 2 = 2
+                groups: [
+                    { showT: false, showO: true, val: "4" },
+                    { showT: false, showO: true, val: "2" },
+                    { showT: false, showO: true, val: "" }
+                ],
+                num1: 4, num2: 2, targetAns: 2
+            },
+            {
+                // b) 9 - 8 = 1
+                groups: [
+                    { showT: false, showO: true, val: "9" },
+                    { showT: false, showO: true, val: "8" },
+                    { showT: false, showO: true, val: "" }
+                ],
+                num1: 9, num2: 8, targetAns: 1
+            },
+            {
+                // c) 16 - 3 = 13
+                groups: [
+                    { showT: true, showO: true, val: "16" },
+                    { showT: false, showO: true, val: "3" },
+                    { showT: true, showO: true, val: "" }
+                ],
+                num1: 16, num2: 3, targetAns: 13
+            },
+            {
+                // d) 19 - 15 = 4
+                groups: [
+                    { showT: true, showO: true, val: "19" },
+                    { showT: true, showO: true, val: "15" },
+                    { showT: true, showO: true, val: "" }
+                ],
+                num1: 19, num2: 15, targetAns: 4
+            }
+        ];
+
+        let quizState = Array.from({ length: quizData.length }, () => ({
+            isSolved: false,
+            userAns: "",
+            candiesCount: [
+                { t: 0, o: 0 }, // Station 1
+                { t: 0, o: 0 }, // Station 2
+                { t: 0, o: 0 }  // Station 3
+            ]
+        }));
+
+        let currentIndex = 0;
+        let popupTimer = null;
+        let finalTimer = null;
+        let audioCtx = null;
+
+        const stageEl = document.getElementById("stage");
+        const submitBtn = document.getElementById("submitBtn");
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const playAgainBtn = document.getElementById("playAgainBtn");
+
+        /* ==========================================
+           AUDIO SYNTHESIZER
+        ========================================== */
+        function playTone(type) {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === "suspended") {
+                    audioCtx.resume();
+                }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === "correct") {
+                    osc.type = "sine";
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === "wrong") {
+                    osc.type = "sawtooth";
+                    osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === "drop") {
+                    osc.type = "sine";
+                    osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.08);
+                } else if (type === "crunch") {
+                    osc.type = "triangle";
+                    osc.frequency.setValueAtTime(650, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.06);
+                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.06);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.06);
+                }
+            } catch (error) {
+                console.log("Audio error:", error);
+            }
+        }
+
+        function speak(text) {
+            if ("speechSynthesis" in window) {
+                speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.lang = "en-US";
+                msg.volume = 0.8;
+                msg.rate = 1;
+                msg.pitch = 1.2;
+                speechSynthesis.speak(msg);
+            }
+        }
+
+        /* Helper function to return proper sizing class to avoid overlapping */
+        function getSizeClass(count) {
+            if (count <= 4) return 'size-large';
+            if (count <= 6) return 'size-medium';
+            return 'size-small';
+        }
+
+        /* ==========================================
+           LOAD QUESTION
+        ========================================== */
+        function renderFactoryStationHTML(groupData, groupIdx) {
+            const state = quizState[currentIndex];
+            const cCount = state.candiesCount[groupIdx];
+
+            let html = `<div class="factory-station">`;
+            html += `<div class="conveyor-pod">`;
+
+            // Tens Column (Gummy Bears)
+            if (groupData.showT) {
+                const sizeClassT = getSizeClass(cCount.t);
+                html += `<div class="candy-column">`;
+                html += `<div class="conveyor-belt">`;
+                for (let i = 0; i < cCount.t; i++) {
+                    html += `<span class="candy ${sizeClassT}" data-group="${groupIdx}" data-type="t">🔵</span>`;
+                }
+                html += `</div>`;
+                html += `<button class="arcade-lever" data-group="${groupIdx}" data-type="t" ${state.isSolved ? 'disabled' : ''}></button>`;
+                html += `</div>`;
+            }
+
+            // Ones Column (Candy Drops)
+            if (groupData.showO) {
+                const sizeClassO = getSizeClass(cCount.o);
+                html += `<div class="candy-column">`;
+                html += `<div class="conveyor-belt">`;
+                for (let i = 0; i < cCount.o; i++) {
+                    html += `<span class="candy ${sizeClassO}" data-group="${groupIdx}" data-type="o">🔵</span>`;
+                }
+                html += `</div>`;
+                html += `<button class="arcade-lever" data-group="${groupIdx}" data-type="o" ${state.isSolved ? 'disabled' : ''}></button>`;
+                html += `</div>`;
+            }
+
+            html += `</div>`;
+
+            // Labels Area
+            html += `<div class="pod-labels">`;
+            if (groupData.showT) html += `<div class="label-tag">T</div>`;
+            if (groupData.showO) html += `<div class="label-tag">O</div>`;
+            html += `</div>`;
+
+            html += `</div>`;
+            return html;
+        }
+
+        function loadQuestion() {
+            const q = quizData[currentIndex];
+            const state = quizState[currentIndex];
+
+            // The answer must come from the third abacus.
+            // Keep the input box display-only so typing cannot bypass the abacus.
+            const answerValue = (state.candiesCount[2].t * 10) + state.candiesCount[2].o;
+            state.userAns = answerValue > 0 ? String(answerValue) : "";
+
+            stageEl.innerHTML = `
+        <div class="equation-board">
+            ${renderFactoryStationHTML(q.groups[0], 0)}
+            <div class="operator">−</div>
+            ${renderFactoryStationHTML(q.groups[1], 1)}
+            <div class="operator">=</div>
+            ${renderFactoryStationHTML(q.groups[2], 2)}
+        </div>
+
+        <div class="equation-inputs">
+            <div class="preset-box">${q.groups[0].val}</div>
+            <span class="operator">−</span>
+            <div class="preset-box">${q.groups[1].val}</div>
+            <span class="operator">=</span>
+            <input type="text" id="finalInput" inputmode="numeric" maxlength="2" value="${state.userAns}" disabled aria-label="Answer shown from abacus">
+        </div>
+    `;
+
+            const inputEl = document.getElementById("finalInput");
+
+            // Arcade Lever Event Listeners
+            document.querySelectorAll('.arcade-lever').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    if (state.isSolved) return;
+                    const gIdx = parseInt(this.dataset.group);
+                    const type = this.dataset.type;
+
+                    if (state.candiesCount[gIdx][type] < 9) {
+                        state.candiesCount[gIdx][type]++;
+                        playTone("drop");
+                        loadQuestion();
+                    }
+                });
+            });
+
+            // Candy Remove Event Listeners
+            document.querySelectorAll('.candy').forEach(candy => {
+                candy.addEventListener('click', function () {
+                    if (state.isSolved) return;
+                    const gIdx = parseInt(this.dataset.group);
+                    const type = this.dataset.type;
+
+                    if (state.candiesCount[gIdx][type] > 0) {
+                        state.candiesCount[gIdx][type]--;
+                        playTone("crunch");
+                        loadQuestion();
+                    }
+                });
+            });
+
+            // Answer input is intentionally disabled.
+            // The third abacus is the only way to build the answer.
+            inputEl.disabled = true;
+
+            checkSubmitState();
+
+            prevBtn.disabled = (currentIndex === 0);
+            nextBtn.disabled = (!state.isSolved || currentIndex === quizData.length - 1);
+        }
+
+        function checkSubmitState() {
+            const state = quizState[currentIndex];
+
+            const answerBeadCount =
+                state.candiesCount[2].t +
+                state.candiesCount[2].o;
+
+            // Do not allow validation until the learner has actually
+            // built an answer on the third abacus.
+            submitBtn.disabled = state.isSolved || answerBeadCount === 0;
+        }
+
+        function navigate(direction) {
+            const state = quizState[currentIndex];
+
+            if (direction === 1 && !state.isSolved) {
+                return;
+            }
+
+            currentIndex += direction;
+
+            if (currentIndex < 0) currentIndex = 0;
+            if (currentIndex > quizData.length - 1) currentIndex = quizData.length - 1;
+
+            loadQuestion();
+        }
+        function checkAnswers() {
+
+            const q = quizData[currentIndex];
+            const state = quizState[currentIndex];
+
+            const userAnsVal = parseInt(state.userAns);
+
+
+            /* ==========================================
+               EXPECTED BEADS - FIRST NUMBER
+            ========================================== */
+
+            const expectedN1T = Math.floor(q.num1 / 10);
+            const expectedN1O = q.num1 % 10;
+
+
+            /* ==========================================
+               EXPECTED BEADS - SECOND NUMBER
+            ========================================== */
+
+            const expectedN2T = Math.floor(q.num2 / 10);
+            const expectedN2O = q.num2 % 10;
+
+
+            /* ==========================================
+               VALIDATE FIRST ABACUS
+            ========================================== */
+
+            const firstAbacusCorrect =
+                state.candiesCount[0].t === expectedN1T &&
+                state.candiesCount[0].o === expectedN1O;
+
+
+            /* ==========================================
+               VALIDATE SECOND ABACUS
+            ========================================== */
+
+            const secondAbacusCorrect =
+                state.candiesCount[1].t === expectedN2T &&
+                state.candiesCount[1].o === expectedN2O;
+
+
+            /* ==========================================
+               VALIDATE TYPED ANSWER
+            ========================================== */
+
+            const answerCorrect =
+                userAnsVal === q.targetAns;
+
+
+            /* ==========================================
+               FINAL VALIDATION
+            ========================================== */
+
+            const isCorrect =
+                firstAbacusCorrect &&
+                secondAbacusCorrect &&
+                answerCorrect;
+
+
+            /* ==========================================
+               WRONG ANSWER
+            ========================================== */
+
+            if (!isCorrect) {
+
+                /* Play wrong sound */
+
+                playTone("wrong");
+
+
+                /* Speak wrong message */
+
+                speak(
+                    "Try again"
+                );
+
+
+                /* ==========================================
+                   CLEAR ALL BEADS
+                ========================================== */
+
+                state.candiesCount[0].t = 0;
+                state.candiesCount[0].o = 0;
+
+                state.candiesCount[1].t = 0;
+                state.candiesCount[1].o = 0;
+
+                state.candiesCount[2].t = 0;
+                state.candiesCount[2].o = 0;
+
+
+                /* ==========================================
+                   CLEAR ANSWER TEXT
+                ========================================== */
+
+                state.userAns = "";
+
+
+                /* ==========================================
+                   CLEAR THE ACTUAL INPUT ELEMENT ALSO
+                ========================================== */
+
+                const inputEl = document.getElementById("finalInput");
+
+                if (inputEl) {
+                    inputEl.value = "";
+                }
+
+
+                /* ==========================================
+                   RELOAD QUESTION
+        
+                   This redraws all three abacuses empty.
+                ========================================== */
+
+                loadQuestion();
+
+
+                /* ==========================================
+                   SHOW WRONG POPUP
+                ========================================== */
+
+                showPopup(
+                    "wrong",
+                    "😟",
+                    "Try Again!",
+                    "Let's try once more! Draw the beads again and solve it. 🌈",
+                    false
+                );
+
+
+                return;
+            }
+
+
+            /* ==========================================
+               CORRECT ANSWER
+            ========================================== */
+
+
+            /* ==========================================
+               SHOW ANSWER BEADS IN RESULT ABACUS ONLY
+        
+               Example:
+        
+               4 - 2 = 2
+        
+               Third abacus automatically shows 2 beads.
+            ========================================== */
+
+            const answerTens = Math.floor(q.targetAns / 10);
+            const answerOnes = q.targetAns % 10;
+
+            state.candiesCount[2].t = answerTens;
+            state.candiesCount[2].o = answerOnes;
+
+
+            /* Mark question as solved */
+
+            state.isSolved = true;
+
+
+            /* Reload question to display result beads */
+
+            loadQuestion();
+
+
+            /* Disable answer input */
+
+            const finalInput = document.getElementById("finalInput");
+
+            if (finalInput) {
+                finalInput.disabled = true;
+            }
+
+
+            /* Disable submit button */
+
+            submitBtn.disabled = true;
+
+
+            /* Play correct sound */
+
+            playTone("correct");
+
+
+            /* ==========================================
+               LAST QUESTION
+               Correct popup + small confetti first,
+               then Final popup + large confetti.
+            ========================================== */
+
+            if (currentIndex === quizData.length - 1) {
+
+                nextBtn.disabled = true;
+
+                clearTimeout(finalTimer);
+
+                showSmallConfetti(false);
+
+                showPopup(
+                    "correct",
+                    "🌟",
+                    "Amazing!",
+                    "You got it right! ✨",
+                    false
+                );
+
+                speak("Correct!");
+
+                clearTimeout(popupTimer);
+                popupTimer = null;
+
+                finalTimer = setTimeout(() => {
+                    closePopup();
+                    showSmallConfetti(true);
+
+                    showPopup(
+                        "complete",
+                        "🏆",
+                        "Congratulations!",
+                        "Fantastic job! You solved all questions! 🎉",
+                        true
+                    );
+
+
+                }, 1800);
+
+            } else {
+
+                /* Enable NEXT button */
+
+                nextBtn.disabled = false;
+
+                /* Correct answer gets the same small confetti. */
+                showSmallConfetti(false);
+
+                showPopup(
+                    "correct",
+                    "🌟",
+                    "Amazing!",
+                    "You got it right! ✨",
+                    false
+                );
+
+                speak("Correct!");
+            }
+        }
+
+        function showSmallConfetti(isFinal = false) {
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (!confettiContainer) return;
+
+            confettiContainer.innerHTML = '';
+
+            const count = isFinal ? 95 : 42;
+
+            const colors = [
+                '#00b894',
+                '#e67e22',
+                '#6c5ce7',
+                '#0984e3',
+                '#fdcb6e',
+                '#ff6b7a',
+                '#00cec9',
+                '#a29bfe'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('span');
+
+                piece.className =
+                    isFinal
+                        ? 'confetti-piece final-confetti-piece'
+                        : 'confetti-piece';
+
+                const startX = Math.random() * 100;
+                const startY = -8 + Math.random() * 10;
+
+                const drift =
+                    (Math.random() * 520 - 260) *
+                    (isFinal ? 1.15 : 0.9);
+
+                const fall =
+                    window.innerHeight *
+                    (0.82 + Math.random() * 0.48);
+
+                const rotation =
+                    Math.random() * 1400 - 700;
+
+                piece.style.left = startX + '%';
+                piece.style.top = startY + '%';
+
+                piece.style.setProperty('--x', drift + 'px');
+                piece.style.setProperty('--y', fall + 'px');
+                piece.style.setProperty('--r', rotation + 'deg');
+
+                piece.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+
+                piece.style.animationDelay =
+                    (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(
+                    () => piece.remove(),
+                    isFinal ? 2900 : 2050
+                );
+            }
+        }
+
+        function showPopup(status, icon, title, subtitle, isFinal = false) {
+            const popup = document.getElementById("popup");
+            const card = document.getElementById("popupCard");
+
+            card.className = `popup-card ${status}${isFinal ? " complete" : ""}`;
+            document.getElementById("popupIcon").innerText = icon;
+            document.getElementById("popupTitle").innerText = title;
+            document.getElementById("popupSubtitle").innerText = subtitle;
+
+            playAgainBtn.style.display = isFinal ? "inline-block" : "none";
+            popup.classList.add("active");
+
+            if (!isFinal) {
+                clearTimeout(popupTimer);
+                popupTimer = setTimeout(closePopup, 1800);
+            }
+        }
+
+        function closePopup() {
+            document.getElementById("popup").classList.remove("active");
+        }
+
+        function restartGame() {
+            closePopup();
+            clearTimeout(popupTimer);
+            clearTimeout(finalTimer);
+            popupTimer = null;
+            finalTimer = null;
+            const confettiContainer = document.getElementById("confettiContainer");
+            if (confettiContainer) confettiContainer.innerHTML = "";
+            quizState = Array.from({ length: quizData.length }, () => ({
+                isSolved: false,
+                userAns: "",
+                candiesCount: [
+                    { t: 0, o: 0 },
+                    { t: 0, o: 0 },
+                    { t: 0, o: 0 }
+                ]
+            }));
+            currentIndex = 0;
+            loadQuestion();
+        }
+
+        window.onload = function () {
+            loadQuestion();
+        };
+    </script>
+
+</body>
+
+</html>

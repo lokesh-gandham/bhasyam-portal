@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One and Many Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+            -webkit-user-drag: none; /* Prevents image dragging */
+            user-select: none; /* Disables selection highlighting */
+        }
+
+        body {
+           
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            overflow: hidden;
+        }
+
+        /* Header Styling */
+        header {
+          
+            padding: 12px 40px;
+            border-radius: 25px;
+         
+            text-align: center;
+            margin-top: 5px;
+            
+        }
+
+     
+
+        header h2 {
+            font-size: 22px;
+            color: #2f4f4f;
+              font-weight: 600;
+        }
+
+        .instruction {
+            font-size: 20px;
+            color: #555;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        /* Main Game Stage Layout */
+        .game-stage {
+            width: 100%;
+            max-width: 1100px;
+            height: 68vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .slide-item {
+            display: none;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide-item.active {
+            display: flex;
+        }
+
+        /* Unique Island Stage (No Square Boxes) */
+        .island-arena {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            width: 100%;
+            max-width: 950px;
+            height: 420px;
+            position: relative;
+            padding-bottom: 30px;
+        }
+
+        .island-station {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            width: 380px;
+            z-index: 5;
+        }
+
+        /* Floating Image Platform */
+        .item-image-wrapper {
+            height: 250px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .item-image {
+            max-height: 230px;
+            max-width: 90%;
+            object-fit: contain;
+            filter: drop-shadow(0 15px 20px rgba(0,0,0,0.12));
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        /* Glowing Circular Base Disc */
+        .island-disc {
+            width: 240px;
+            height: 28px;
+            background: linear-gradient(180deg, #e0e6ed 0%, #cbd5e1 100%);
+            border-radius: 50%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        /* Dynamic Island Feedback States */
+        .island-station.one .island-disc {
+            background: linear-gradient(180deg, #74b9ff 0%, #0984e3 100%);
+            box-shadow: 0 0 25px rgba(9, 132, 227, 0.4);
+        }
+
+        .island-station.many .island-disc {
+            background: linear-gradient(180deg, #fd79a8 0%, #e84393 100%);
+            box-shadow: 0 0 25px rgba(232, 67, 147, 0.4);
+        }
+
+        .island-station.one .item-image {
+            transform: scale(1.08) translateY(-8px);
+        }
+
+        .island-station.many .item-image {
+            transform: scale(1.08) translateY(-8px);
+        }
+
+        /* EXACT ORIGINAL BADGES */
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.6rem;
+            font-weight: 500;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+
+        .status-badge.one-badge {
+            background: #0984e3;
+            display: flex;
+        }
+
+        .status-badge.many-badge {
+            background: #e84393;
+            display: flex;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* EXACT ORIGINAL INPUT CONTROL */
+        input[type="text"] {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+            font-weight: 500;
+            text-align: center;
+            text-transform: uppercase;
+            border: 4px solid #e67e22;
+            border-radius: 16px;
+            background: #ffffff;
+            color: #2d3436;
+            outline: none;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            z-index: 10;
+            position: relative;
+            user-select: text;
+        }
+
+        input[type="text"]:disabled {
+            background-color: #f1f2f6;
+            border-color: #00b894;
+            color: #2d3436;
+            cursor: not-allowed;
+        }
+
+        /* EXACT ORIGINAL FOOTER & BUTTONS */
+        footer {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .nav-btn {
+            background: #e67e22;
+            color: #ffffff;
+            border: none;
+            width: 178px;
+            height: 45px;
+            padding: 0;
+            font-size: 20px;
+            font-weight: 500;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #d35400;
+            transition: all 0.1s ease;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #d35400;
+        }
+
+        .nav-btn:disabled {
+            background: #b2bec3;
+            box-shadow: 0 6px 0 #636e72;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .check-btn {
+            background: #00b894;
+            box-shadow: 0 6px 0 #008f72;
+        }
+
+        .check-btn:active:not(:disabled) {
+            box-shadow: 0 2px 0 #008f72;
+        }
+
+        .replay-btn {
+            background: #0984e3;
+            box-shadow: 0 6px 0 #0975c7;
+            margin-top: 20px;
+            z-index: 5;
+        }
+
+        .replay-btn:active {
+            box-shadow: 0 2px 0 #0975c7;
+        }
+
+        @media screen and (min-width: 1600px) {
+            header h2 {
+                font-size: 30px;
+            }
+
+            .instruction {
+                font-size: 25px;
+            }
+
+            .nav-btn {
+                width: 178px;
+                height: 45px;
+                padding: 0;
+                font-size: 20px;
+            }
+        }
+
+        /* EXACT ORIGINAL POPUP OVERLAY & CARD */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+           
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+          
+            z-index: 100;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-card {
+            position: relative;
+            width: 90%;
+            max-width: 520px;
+            padding: 40px 30px;
+            border-radius: 36px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transform: scale(0.8);
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-card::before,
+        .popup-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .popup-card::before {
+            width: 220px;
+            height: 220px;
+            top: -60px;
+            right: -50px;
+        }
+
+        .popup-card::after {
+            width: 180px;
+            height: 180px;
+            bottom: -70px;
+            left: -40px;
+        }
+
+        .popup-card.correct {
+            background: #edfbf4;
+            border: 6px solid #00c885;
+        }
+
+        .popup-card.correct::before,
+        .popup-card.correct::after {
+            background: rgba(162, 245, 209, 0.45);
+        }
+
+        .popup-card.correct .popup-title { color: #00a86b; }
+        .popup-card.correct .popup-subtitle { color: #2e7d5b; }
+
+        .popup-card.wrong {
+            background: #fff0f2;
+            border: 6px solid #ff6b7a;
+        }
+
+        .popup-card.wrong::before,
+        .popup-card.wrong::after {
+            background: rgba(255, 196, 203, 0.45);
+        }
+
+        .popup-card.wrong .popup-title { color: #d33847; }
+        .popup-card.wrong .popup-subtitle { color: #a33b45; }
+
+        .popup-card.complete {
+            background: #f0f3ff;
+            border: 6px solid #6c5ce7;
+        }
+
+        .popup-card.complete::before,
+        .popup-card.complete::after {
+            background: rgba(162, 155, 254, 0.35);
+        }
+
+        .popup-card.complete .popup-title { color: #6c5ce7; }
+        .popup-card.complete .popup-subtitle { color: #4834d4; }
+
+        .popup-overlay.active .popup-card { transform: scale(1); }
+
+        .popup-icon {
+            font-size: 4.8rem;
+            margin-bottom: 12px;
+            z-index: 2;
+            line-height: 1;
+            filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1));
+        }
+
+        .popup-title {
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            z-index: 2;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-subtitle {
+            font-size: 1.4rem;
+            font-weight: 500;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* EXACT SAME CONFETTI */
+        #confettiContainer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 90;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 9px;
+            height: 14px;
+            border-radius: 2px;
+            opacity: 0;
+            animation: pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+            will-change: transform, opacity;
+        }
+
+        .final-confetti-piece {
+            width: 10px;
+            height: 16px;
+            animation-duration: 2300ms;
+        }
+
+        .final-confetti-piece:nth-child(3n) {
+            border-radius: 50%;
+        }
+
+        .final-confetti-piece:nth-child(4n) {
+            width: 7px;
+            height: 19px;
+            border-radius: 1px;
+        }
+
+        .final-confetti-piece:nth-child(5n) {
+            width: 13px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        @keyframes pageConfetti {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+            }
+            55% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+            }
+        }
+
+        .final-confetti-piece::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: inherit;
+        }
+
+        .popup-card.complete .replay-btn {
+            margin-top: 12px;
+        }
+
+        .popup-card.complete {
+            box-shadow:
+                0 20px 45px rgba(108, 92, 231, 0.18),
+                0 0 0 8px rgba(162, 155, 254, 0.12);
+        }
+
+        .popup-card.complete .popup-icon {
+            animation: finalTrophyBounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes finalTrophyBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+    
+/* ===== LESSON 1 QUIZ HEADINGS: title large, subheading smaller ===== */
+header h1,
+header h2,
+header .instruction-title,
+header .distance-title,
+.game-header h1,
+.game-header h2,
+.game-header .instruction-title,
+#questionHeading {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+}
+.game-header:not(:has(h1, h2)) .instruction,
+.game-header:not(:has(h1, h2)) p.instruction {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+    color: #2f4f4f;
+}
+header:has(h1, h2, .instruction-title) .instruction,
+header:has(h1, h2) .instruction-text,
+header:has(h1, h2, .instruction-title) p.instruction,
+header:has(h1, h2) p.instruction-text,
+.game-header:has(h1, h2) .instruction,
+.game-header:has(h1, h2) p.instruction,
+#instruction,
+.distance-header .instruction-text,
+.distance-header p.instruction-text {
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    color: #666;
+    line-height: 1.3;
+}
+header .instruction span,
+header .instruction-text span,
+header p.instruction span,
+header p.instruction-text span,
+.game-header .instruction span,
+#instruction span {
+    font-weight: 700 !important;
+    font-size: inherit !important;
+}
+@media screen and (min-width: 1600px) {
+    header h1,
+    header h2,
+    header .instruction-title,
+    header .distance-title,
+    .game-header h1,
+    .game-header h2,
+    .game-header .instruction-title,
+    #questionHeading {
+        font-size: 40px !important;
+    }
+    .game-header:not(:has(h1, h2)) .instruction,
+    .game-header:not(:has(h1, h2)) p.instruction {
+        font-size: 40px !important;
+    }
+    header:has(h1, h2, .instruction-title) .instruction,
+    header:has(h1, h2) .instruction-text,
+    header:has(h1, h2, .instruction-title) p.instruction,
+    header:has(h1, h2) p.instruction-text,
+    .game-header:has(h1, h2) .instruction,
+    .game-header:has(h1, h2) p.instruction,
+    #instruction,
+    .distance-header .instruction-text,
+    .distance-header p.instruction-text {
+        font-size: 18px !important;
+    }
+}
+
+/* ===== LAYOUT FIT: the heading always keeps its own space =====
+   The header is a fixed-size flex item and the play area takes exactly
+   the height that is left over, so artwork can never ride up into the
+   title on shorter laptop screens. */
+header,
+.game-header,
+.distance-header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 5;
+}
+main.game-stage,
+main.game-area,
+.game-stage,
+.game-area {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+footer,
+.navigation {
+    flex: 0 0 auto;
+}
+
+.slide-item { min-height: 0; }
+.island-arena { max-height: 100%; min-height: 0; }
+.island-station { height: 100% !important; min-height: 0; justify-content: flex-end; }
+.item-image-wrapper { height: auto !important; flex: 1 1 auto; min-height: 0; }
+.item-image { max-height: min(230px, 100%) !important; }
+
+/* ===== Sub-heading stays on a single line ===== */
+.instruction-box,
+.distance-title { max-width: none !important; }
+header .instruction,
+header .instruction-text,
+header p.instruction,
+header p.instruction-text,
+.game-header .instruction,
+#instruction,
+.distance-header .instruction-text {
+    white-space: nowrap;
+    max-width: 100%;
+}
+@media screen and (max-width: 1100px) {
+    header .instruction, header .instruction-text,
+    header p.instruction, header p.instruction-text,
+    .game-header .instruction,
+    #instruction,
+    .distance-header .instruction-text {
+        white-space: normal;
+    }
+}
+</style>
+</head>
+<body>
+
+    <header>
+        <h2>One & Many Quiz</h2>
+        <p class="instruction">Type '<span style="color: #0984e3; font-weight: 600;">O</span>' for One and '<span style="color: #e84393; font-weight: 600;">M</span>' for Many!</p>
+    </header>
+
+    <main class="game-stage">
+        <!-- Question 1: Birds -->
+        <div class="slide-item active" data-q="0">
+            <div class="island-arena">
+                <div class="island-station" id="station-0-1">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-0-1"></div>
+                        <img src="../images/one_bird.png" alt="One Bird" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="O" class="input-box" aria-label="One Bird input">
+                </div>
+
+                <div class="island-station" id="station-0-2">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-0-2"></div>
+                        <img src="../images/many_bird.png" alt="Many Birds" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="M" class="input-box" aria-label="Many Birds input">
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 2: Mangoes -->
+        <div class="slide-item" data-q="1">
+            <div class="island-arena">
+                <div class="island-station" id="station-1-1">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-1-1"></div>
+                        <img src="../images/many_mango.png" alt="Many Mangoes" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="M" class="input-box" aria-label="Many Mangoes input">
+                </div>
+
+                <div class="island-station" id="station-1-2">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-1-2"></div>
+                        <img src="../images/one_mango.png" alt="One Mango" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="O" class="input-box" aria-label="One Mango input">
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 3: Tulips -->
+        <div class="slide-item" data-q="2">
+            <div class="island-arena">
+                <div class="island-station" id="station-2-1">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-2-1"></div>
+                        <img src="../images/one_tulip.png" alt="One Tulip" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="O" class="input-box" aria-label="One Tulip input">
+                </div>
+
+                <div class="island-station" id="station-2-2">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-2-2"></div>
+                        <img src="../images/many_tulip.png" alt="Many Tulips" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="M" class="input-box" aria-label="Many Tulips input">
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 4: Kites -->
+        <div class="slide-item" data-q="3">
+            <div class="island-arena">
+                <div class="island-station" id="station-3-1">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-3-1"></div>
+                        <img src="../images/many_kite.png" alt="Many Kites" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="M" class="input-box" aria-label="Many Kites input">
+                </div>
+
+                <div class="island-station" id="station-3-2">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-3-2"></div>
+                        <img src="../images/one_kite.png" alt="One Kite" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="O" class="input-box" aria-label="One Kite input">
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 5: Stars -->
+        <div class="slide-item" data-q="4">
+            <div class="island-arena">
+                <div class="island-station" id="station-4-1">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-4-1"></div>
+                        <img src="../images/one_star.png" alt="One Star" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="O" class="input-box" aria-label="One Star input">
+                </div>
+
+                <div class="island-station" id="station-4-2">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-4-2"></div>
+                        <img src="../images/many_star.png" alt="Many Stars" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="M" class="input-box" aria-label="Many Stars input">
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 6: Ants -->
+        <div class="slide-item" data-q="5">
+            <div class="island-arena">
+                <div class="island-station" id="station-5-1">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-5-1"></div>
+                        <img src="../images/one_ant.png" alt="One Ant" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="O" class="input-box" aria-label="One Ant input">
+                </div>
+
+                <div class="island-station" id="station-5-2">
+                    <div class="item-image-wrapper">
+                        <div class="status-badge" id="badge-5-2"></div>
+                        <img src="../images/many_ant.png" alt="Many Ants" class="item-image" draggable="false">
+                    </div>
+                    <div class="island-disc"></div>
+                    <input type="text" maxlength="1" data-target="M" class="input-box" aria-label="Many Ants input">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+        <button class="nav-btn check-btn" id="submitBtn" onclick="checkAnswers()" disabled>SUBMIT</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+    </footer>
+
+    <div id="confettiContainer"></div>
+
+    <!-- Result Popup Overlay -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup-card" id="popupCard">
+            <div class="popup-icon" id="popupIcon">⭐</div>
+            <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+            <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+            <button class="nav-btn replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        let quizState = Array.from({ length: 6 }, () => ({
+            input1: '',
+            input2: '',
+            isUnlocked: false
+        }));
+
+        let currentIndex = 0;
+        let popupTimer = null;
+
+        const slides = document.querySelectorAll('.slide-item');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        // Global Drag Disabler
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+            }
+        });
+
+        // REQUESTED SPEAK FUNCTION WITH VOLUME 0.25
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playAudioTone(isCorrect) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2); 
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            }
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // Setup Input events per slide
+        function bindSlideEvents() {
+            slides.forEach((slide, sIdx) => {
+                const inputs = slide.querySelectorAll('.input-box');
+                const badge1 = document.getElementById(`badge-${sIdx}-1`);
+                const badge2 = document.getElementById(`badge-${sIdx}-2`);
+                const station1 = document.getElementById(`station-${sIdx}-1`);
+                const station2 = document.getElementById(`station-${sIdx}-2`);
+
+                inputs.forEach((input, iIdx) => {
+                    input.addEventListener('input', (e) => {
+                        let val = e.target.value.toUpperCase();
+                        
+                        e.target.value = val;
+
+                        if (iIdx === 0) quizState[sIdx].input1 = val;
+                        if (iIdx === 1) quizState[sIdx].input2 = val;
+
+                        const targetBadge = iIdx === 0 ? badge1 : badge2;
+                        const targetStation = iIdx === 0 ? station1 : station2;
+
+                        targetStation.classList.remove('one', 'many');
+
+                        if (val === 'O') {
+                            targetBadge.innerHTML = '1';
+                            targetBadge.className = 'status-badge one-badge';
+                            targetStation.classList.add('one');
+                        } else if (val === 'M') {
+                            targetBadge.innerHTML = '∞';
+                            targetBadge.className = 'status-badge many-badge';
+                            targetStation.classList.add('many');
+                        } else {
+                            targetBadge.className = 'status-badge';
+                        }
+
+                        updateNavButtons();
+                    });
+                });
+            });
+        }
+
+        bindSlideEvents();
+
+        function navigate(dir) {
+            slides[currentIndex].classList.remove('active');
+            currentIndex += dir;
+            slides[currentIndex].classList.add('active');
+
+            restoreCurrentSlideState();
+            updateNavButtons();
+        }
+
+        function restoreCurrentSlideState() {
+            const activeSlide = slides[currentIndex];
+            const inputs = activeSlide.querySelectorAll('.input-box');
+            const savedState = quizState[currentIndex];
+
+            inputs[0].value = savedState.input1;
+            inputs[1].value = savedState.input2;
+
+            inputs[0].disabled = savedState.isUnlocked;
+            inputs[1].disabled = savedState.isUnlocked;
+
+            const badge1 = document.getElementById(`badge-${currentIndex}-1`);
+            const badge2 = document.getElementById(`badge-${currentIndex}-2`);
+            const station1 = document.getElementById(`station-${currentIndex}-1`);
+            const station2 = document.getElementById(`station-${currentIndex}-2`);
+
+            updateBadgeAndStation(badge1, station1, savedState.input1);
+            updateBadgeAndStation(badge2, station2, savedState.input2);
+        }
+
+        function updateBadgeAndStation(badgeEl, stationEl, val) {
+            stationEl.classList.remove('one', 'many');
+            if (val === 'O') {
+                badgeEl.innerHTML = '1';
+                badgeEl.className = 'status-badge one-badge';
+                stationEl.classList.add('one');
+            } else if (val === 'M') {
+                badgeEl.innerHTML = '∞';
+                badgeEl.className = 'status-badge many-badge';
+                stationEl.classList.add('many');
+            } else {
+                badgeEl.className = 'status-badge';
+            }
+        }
+
+        function updateNavButtons() {
+            prevBtn.disabled = currentIndex === 0;
+            
+            const isLastQuestion = currentIndex === slides.length - 1;
+            const isUnlocked = quizState[currentIndex].isUnlocked;
+
+            nextBtn.disabled = isLastQuestion || !isUnlocked;
+
+            const activeSlide = slides[currentIndex];
+            const inputs = activeSlide.querySelectorAll('.input-box');
+            const val1 = inputs[0].value.trim();
+            const val2 = inputs[1].value.trim();
+
+            submitBtn.disabled = isUnlocked || !val1 || !val2;
+        }
+
+        function checkAnswers() {
+            const activeSlide = slides[currentIndex];
+            const inputs = activeSlide.querySelectorAll('.input-box');
+            
+            const val1 = inputs[0].value.trim().toUpperCase();
+            const val2 = inputs[1].value.trim().toUpperCase();
+
+            const target1 = inputs[0].dataset.target;
+            const target2 = inputs[1].dataset.target;
+
+            if (!val1 || !val2) {
+                showPopup('wrong', '😟', 'Keep Going!', 'Try again, you can do it! 🌈', false);
+                playAudioTone(false);
+                speak("Try again");
+                resetCurrentInputs();
+                return;
+            }
+
+            if (val1 === target1 && val2 === target2) {
+                quizState[currentIndex].isUnlocked = true;
+                
+                inputs[0].disabled = true;
+                inputs[1].disabled = true;
+
+                if (currentIndex === slides.length - 1) {
+                    showSmallConfetti(false);
+                    showPopup('correct', '🌟', 'Amazing!', 'You got it right! ✨', false);
+                    playAudioTone(true);
+                    speak("Correct");
+
+                    setTimeout(() => {
+                        showSmallConfetti(true);
+                        showPopup('complete', '🏆', 'Congratulations!', 'Fantastic job! You solved all questions! 🎉', true);
+                    }, 1900);
+
+                } else {
+                    showSmallConfetti(false);
+                    showPopup('correct', '🌟', 'Amazing!', 'You got it right! ✨', false);
+                    playAudioTone(true);
+                    speak("Correct");
+                }
+
+                updateNavButtons();
+            } else {
+                showPopup('wrong', '😟', 'Keep Going!', 'Try again, you can do it! 🌈', false);
+                playAudioTone(false);
+                speak("Wrong");
+                resetCurrentInputs();
+            }
+        }
+
+        function resetCurrentInputs() {
+            const activeSlide = slides[currentIndex];
+            const inputs = activeSlide.querySelectorAll('.input-box');
+            
+            inputs.forEach(input => {
+                input.value = '';
+            });
+
+            quizState[currentIndex].input1 = '';
+            quizState[currentIndex].input2 = '';
+
+            const badge1 = document.getElementById(`badge-${currentIndex}-1`);
+            const badge2 = document.getElementById(`badge-${currentIndex}-2`);
+            const station1 = document.getElementById(`station-${currentIndex}-1`);
+            const station2 = document.getElementById(`station-${currentIndex}-2`);
+
+            if (badge1) badge1.className = 'status-badge';
+            if (badge2) badge2.className = 'status-badge';
+
+            if (station1) station1.classList.remove('one', 'many');
+            if (station2) station2.classList.remove('one', 'many');
+
+            updateNavButtons();
+        }
+
+
+        // EXACT SAME CONFETTI
+        function showSmallConfetti(isFinal = false) {
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (!confettiContainer) return;
+
+            confettiContainer.innerHTML = '';
+
+            // Final completion gets a fuller, more playful celebration.
+            const count = isFinal ? 95 : 42;
+
+            const colors = [
+                '#00b894',
+                '#e67e22',
+                '#6c5ce7',
+                '#0984e3',
+                '#fdcb6e',
+                '#ff6b7a',
+                '#00cec9',
+                '#a29bfe'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('span');
+
+                piece.className =
+                    isFinal
+                        ? 'confetti-piece final-confetti-piece'
+                        : 'confetti-piece';
+
+                const startX = Math.random() * 100;
+                const startY = -8 + Math.random() * 10;
+
+                const drift =
+                    (Math.random() * 520 - 260) *
+                    (isFinal ? 1.15 : 0.9);
+
+                const fall =
+                    window.innerHeight *
+                    (0.82 + Math.random() * 0.48);
+
+                const rotation =
+                    Math.random() * 1400 - 700;
+
+                piece.style.left = startX + '%';
+                piece.style.top = startY + '%';
+
+                piece.style.setProperty('--x', drift + 'px');
+                piece.style.setProperty('--y', fall + 'px');
+                piece.style.setProperty('--r', rotation + 'deg');
+
+                piece.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+
+                piece.style.animationDelay =
+                    (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(
+                    () => piece.remove(),
+                    isFinal ? 2900 : 2050
+                );
+            }
+        }
+
+        function showPopup(status, icon, title, subtitle, isFinal = false) {
+            const popup = document.getElementById('popup');
+            const card = document.getElementById('popupCard');
+            
+            card.className = `popup-card ${status}`;
+            document.getElementById('popupIcon').innerText = icon;
+            document.getElementById('popupTitle').innerText = title;
+            document.getElementById('popupSubtitle').innerText = subtitle;
+            
+            if (isFinal) {
+                playAgainBtn.style.display = 'inline-block';
+            } else {
+                playAgainBtn.style.display = 'none';
+            }
+
+            popup.classList.add('active');
+
+            clearTimeout(popupTimer);
+            if (!isFinal) {
+                popupTimer = setTimeout(() => {
+                    closePopup();
+                }, 1800);
+            }
+        }
+
+        function closePopup() {
+            document.getElementById('popup').classList.remove('active');
+        }
+
+        function restartGame() {
+            closePopup();
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (confettiContainer) confettiContainer.innerHTML = '';
+            quizState = Array.from({ length: 6 }, () => ({
+                input1: '',
+                input2: '',
+                isUnlocked: false
+            }));
+
+            slides[currentIndex].classList.remove('active');
+            currentIndex = 0;
+            slides[currentIndex].classList.add('active');
+
+            slides.forEach((slide, sIdx) => {
+                const inputs = slide.querySelectorAll('.input-box');
+                inputs.forEach(inp => {
+                    inp.value = '';
+                    inp.disabled = false;
+                });
+                document.getElementById(`badge-${sIdx}-1`).className = 'status-badge';
+                document.getElementById(`badge-${sIdx}-2`).className = 'status-badge';
+                document.getElementById(`station-${sIdx}-1`).classList.remove('one', 'many');
+                document.getElementById(`station-${sIdx}-2`).classList.remove('one', 'many');
+            });
+
+            updateNavButtons();
+        }
+
+        updateNavButtons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,2588 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make 8</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="../assets/css/reuse.css">
+
+  <style>
+    /* =========================================================
+   BASE STYLES
+   ========================================================= */
+
+    * {
+      box-sizing: border-box;
+      font-family: "Livvic", sans-serif;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .quiz-card {
+      width: 100%;
+      height: 100dvh;
+      min-height: 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: clamp(8px, 1.8vh, 20px) clamp(10px, 2.5vw, 34px);
+      overflow: hidden;
+      background: #F8F4FF;
+    }
+
+    /* =========================================================
+   TOP BAR
+   ========================================================= */
+
+    .topbar {
+      width: 100%;
+      flex: 0 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 3px;
+      z-index: 20;
+    }
+
+    .icon-flat {
+      background: transparent;
+      border: 0;
+      font-size: 28px;
+      line-height: 1;
+      padding: 0 6px;
+      cursor: pointer;
+      flex: 0 0 auto;
+      transition: transform .2s ease;
+    }
+
+    .icon-flat:hover {
+      transform: scale(1.1);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+    }
+
+    /* =========================================================
+   TITLE
+   ========================================================= */
+
+    .heading {
+      width: 100%;
+      margin: clamp(2px, 1vh, 8px) 0 0;
+      text-align: center;
+      color: #2f2f2f;
+      font-size: clamp(22px, 2.2vw, 32px);
+      line-height: 1.1;
+      flex: 0 0 auto;
+    }
+
+    /* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+    .content-row {
+      width: 100%;
+      max-width: 1250px;
+      min-height: 0;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(4px, 1vh, 10px);
+    }
+
+    .question-heading {
+      width: 100%;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 7px;
+      flex: 0 0 auto;
+      margin: 0;
+    }
+
+    .qlabel,
+    .question-text {
+      margin: 0;
+      color: #2f2f2f;
+    }
+
+    .qlabel {
+      font-size: clamp(20px, 2vw, 30px);
+    }
+
+    .question-text {
+      font-size: clamp(19px, 2vw, 28px);
+    }
+
+    /* =========================================================
+   GAME AREA
+   ========================================================= */
+
+    .game-area {
+      width: 100%;
+      min-height: 0;
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 2vw, 30px);
+    }
+
+    /* =========================================================
+   NUMBER-BOND BOARD
+   ========================================================= */
+
+    .number-board {
+      position: relative;
+      width: min(760px, calc(100% - 180px));
+      height: min(390px, 78vh);
+      min-width: 0;
+      min-height: 260px;
+    }
+
+    /* central vertical dotted line */
+
+    .number-board::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 12%;
+      bottom: 10%;
+      transform: translateX(-50%);
+      border-left: 2px dashed #777;
+      opacity: .8;
+    }
+
+    /* =========================================================
+   TARGET NUMBER
+   ========================================================= */
+
+    .target-eight {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+      width: clamp(70px, 8vw, 92px);
+      height: clamp(70px, 8vw, 92px);
+      border-radius: 50%;
+      background: #ffd34e;
+      border: 3px solid #f3a900;
+      box-shadow:
+        inset 0 0 0 3px #ffe99c,
+        0 3px 5px rgba(0, 0, 0, .12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #5b1f9d;
+      font-size: clamp(30px, 4vw, 50px);
+      font-weight: 400;
+      z-index: 5;
+    }
+
+    .target-eight::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px dashed #ed8f00;
+      border-radius: 50%;
+    }
+
+    /* =========================================================
+   EQUATION BASE
+   ========================================================= */
+
+    .equation {
+      position: absolute;
+      width: clamp(145px, 19vw, 205px);
+      height: clamp(52px, 7vh, 66px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(5px, .7vw, 9px);
+      padding: 6px 8px;
+      border-radius: 12px;
+      background: #fff;
+      z-index: 3;
+    }
+
+    .side-left {
+      left: 0;
+    }
+
+    .side-right {
+      right: 0;
+    }
+
+    .eq-bottom {
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+    }
+
+    /* compact sizing for boards with more than 4 rows per side */
+
+    .number-board.compact .equation {
+      width: clamp(120px, 15.5vw, 172px);
+      height: clamp(40px, 5.6vh, 52px);
+      gap: 4px;
+      padding: 4px 6px;
+      border-radius: 10px;
+    }
+
+    .number-board.compact .fixed-number {
+      font-size: clamp(17px, 2vw, 25px);
+      min-width: 18px;
+    }
+
+    .number-board.compact .plus-sign {
+      font-size: clamp(15px, 1.8vw, 23px);
+    }
+
+    .number-board.compact .drop-slot {
+      width: clamp(38px, 4.8vw, 52px);
+      height: clamp(28px, 4.2vh, 38px);
+      font-size: clamp(16px, 1.9vw, 23px);
+    }
+
+    .number-board.compact .center-dot {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* =========================================================
+   CARD BORDER COLORS
+   ========================================================= */
+
+    .eq-pink {
+      border: 2px solid #ff3e63;
+      box-shadow: inset 0 0 0 2px #ffe2e8;
+    }
+
+    .eq-orange {
+      border: 2px solid #ff8a00;
+      box-shadow: inset 0 0 0 2px #fff0d6;
+    }
+
+    .eq-green {
+      border: 2px solid #8abf35;
+      box-shadow: inset 0 0 0 2px #edf8d9;
+    }
+
+    .eq-purple {
+      border: 2px solid #a052c9;
+      box-shadow: inset 0 0 0 2px #f2e4fa;
+    }
+
+    .eq-blue {
+      border: 2px solid #008ee8;
+      box-shadow: inset 0 0 0 2px #dff3ff;
+    }
+
+    /* LOCKED ANSWERS */
+    .drop-slot.correct {
+      pointer-events: none;
+      cursor: default;
+    }
+
+    .number-board.compact .equation {
+      gap: 12px;
+    }
+
+    /* =========================================================
+   CONNECTOR LINES (geometry set via JS so they always
+   touch the center dot on one end and the box on the other)
+   ========================================================= */
+
+    .connector {
+      position: absolute;
+      height: 0;
+      border-top: 2px dashed #777;
+      opacity: .75;
+      z-index: 1;
+      transform-origin: 0 0;
+      pointer-events: none;
+    }
+
+    /* small center dots */
+
+    .center-dot {
+      position: absolute;
+      left: 50%;
+      width: 17px;
+      height: 17px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid #777;
+      z-index: 4;
+    }
+
+    /* =========================================================
+   EQUATION CONTENT
+   ========================================================= */
+
+    .fixed-number {
+      min-width: 22px;
+      text-align: center;
+      color: #111;
+      font-size: clamp(24px, 2.7vw, 34px);
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    .plus-sign {
+      color: #111;
+      font-size: clamp(22px, 2.5vw, 32px);
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    /* =========================================================
+   DROP SLOT
+   ========================================================= */
+
+    .drop-slot {
+      width: clamp(54px, 6vw, 68px);
+      height: clamp(36px, 5vh, 48px);
+      border: 2px dashed #aaa;
+      border-radius: 7px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #222;
+      font-size: clamp(23px, 2.6vw, 32px);
+      font-weight: 400;
+      transition:
+        background .18s ease,
+        border-color .18s ease,
+        transform .18s ease;
+    }
+
+    .drop-slot.over {
+      background: #fff4c9;
+      border-color: #f3a900;
+      transform: scale(1.04);
+    }
+
+    .drop-slot.filled {
+      border-style: solid;
+    }
+
+    .drop-slot.correct {
+      border: 3px solid #35c759;
+      background: #effff2;
+      color: #237a37;
+    }
+
+    .drop-slot.wrong {
+      border-color: #e6473f;
+      background: #fff1f0;
+      animation: shake .28s ease;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      75% {
+        transform: translateX(5px);
+      }
+    }
+
+    /* =========================================================
+   DRAG TRAY
+   ========================================================= */
+
+    .digit-tray {
+      flex: 0 0 auto;
+      width: clamp(120px, 13vw, 174px);
+      height: clamp(245px, 67vh, 330px);
+      padding: clamp(12px, 1.5vw, 18px);
+      border: 2px solid #ffb25c;
+      border-radius: 15px;
+      background: #fff8e6;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, .08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .tray-title {
+      margin: 0 0 10px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: #9250b8;
+      color: #fff;
+      font-size: clamp(13px, 1.4vw, 17px);
+      font-weight: 700;
+      box-shadow: 0 2px 0 rgba(0, 0, 0, .12);
+    }
+
+    .digit-grid {
+      width: 100%;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-auto-rows: 1fr;
+      gap: clamp(6px, 1vh, 11px);
+    }
+
+    .digit {
+      min-width: 0;
+      min-height: 0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: clamp(21px, 2.4vw, 31px);
+      font-weight: 400;
+      cursor: grab;
+      border: 2px solid rgba(255, 255, 255, .7);
+      box-shadow:
+        inset 0 -3px 0 rgba(0, 0, 0, .13),
+        0 2px 3px rgba(0, 0, 0, .1);
+      touch-action: none;
+    }
+
+    .digit.two-digit {
+      font-size: clamp(16px, 1.9vw, 24px);
+    }
+
+    .digit:active {
+      cursor: grabbing;
+    }
+
+    .digit.dragging {
+      opacity: .55;
+      transform: scale(.94);
+    }
+
+    /* =========================================================
+   COMPLETED EQUATION
+   ========================================================= */
+
+    .equation.completed {
+      filter: saturate(1.05);
+    }
+
+    .equation.completed .drop-slot {
+      border: 3px solid #35c759;
+      background: #f0fff3;
+      color: #237a37;
+    }
+
+    /* =========================================================
+   MEDIA QUERIES
+   ========================================================= */
+
+    @media (min-width:769px) {
+
+      .quiz-card {
+        padding-left: clamp(20px, 3vw, 44px);
+        padding-right: clamp(20px, 3vw, 44px);
+      }
+
+      .content-row {
+        max-width: 1320px;
+      }
+
+      .game-area {
+        gap: clamp(18px, 2.5vw, 36px);
+      }
+
+      .number-board {
+        width: min(820px, calc(100% - 185px));
+      }
+
+      .digit-tray {
+        width: 165px;
+      }
+    }
+
+    @media (min-width:1200px) {
+
+      .quiz-card {
+        padding-top: 12px;
+        padding-bottom: 6px;
+      }
+
+      .heading {
+        font-size: 34px;
+      }
+
+      .content-row {
+        max-width: 1400px;
+      }
+
+      .number-board {
+        width: 820px;
+        height: 390px;
+      }
+
+      .equation {
+        width: 205px;
+        height: 66px;
+      }
+
+      .digit-tray {
+        width: 174px;
+        height: 330px;
+      }
+    }
+
+    @media (max-width:768px) {
+
+      .quiz-card {
+        padding: 7px 10px 4px;
+      }
+
+      .icon-flat {
+        font-size: 24px;
+      }
+
+      .heading {
+        margin-top: 2px;
+        font-size: 19px;
+      }
+
+      .content-row {
+        gap: 3px;
+      }
+
+      .qlabel {
+        font-size: 20px;
+      }
+
+      .question-text {
+        font-size: 18px;
+      }
+
+      .game-area {
+        gap: 8px;
+      }
+
+      .number-board {
+        width: calc(100% - 115px);
+        height: min(365px, 73vh);
+      }
+
+      .equation {
+        width: clamp(112px, 24vw, 165px);
+        height: clamp(43px, 6vh, 56px);
+        padding: 4px 5px;
+        gap: 4px;
+        border-radius: 9px;
+      }
+
+      .number-board.compact .equation {
+        width: clamp(96px, 21vw, 150px);
+        height: clamp(36px, 5.2vh, 46px);
+      }
+
+      .fixed-number {
+        font-size: clamp(19px, 4.2vw, 28px);
+        min-width: 17px;
+      }
+
+      .plus-sign {
+        font-size: clamp(18px, 4vw, 27px);
+      }
+
+      .drop-slot {
+        width: clamp(42px, 10vw, 58px);
+        height: clamp(30px, 5vh, 42px);
+        font-size: clamp(19px, 4vw, 27px);
+      }
+
+      .target-eight {
+        width: clamp(58px, 14vw, 78px);
+        height: clamp(58px, 14vw, 78px);
+        font-size: clamp(26px, 6vw, 40px);
+      }
+
+      .digit-tray {
+        width: 108px;
+        height: min(290px, 65vh);
+        padding: 8px;
+        border-radius: 11px;
+      }
+
+      .tray-title {
+        font-size: 12px;
+        margin-bottom: 7px;
+        padding: 5px 7px;
+      }
+
+      .digit-grid {
+        gap: 5px;
+      }
+
+      .digit {
+        font-size: 22px;
+        border-radius: 6px;
+      }
+
+      .digit.two-digit {
+        font-size: 17px;
+      }
+    }
+
+    @media (max-width:480px) {
+
+      .quiz-card {
+        padding: 5px 6px 3px;
+      }
+
+      .heading {
+        font-size: 17px;
+      }
+
+      .question-heading {
+        gap: 5px;
+      }
+
+      .qlabel {
+        font-size: 18px;
+      }
+
+      .question-text {
+        font-size: 16px;
+      }
+
+      .game-area {
+        gap: 4px;
+      }
+
+      .number-board {
+        width: calc(100% - 88px);
+        height: min(315px, 70vh);
+        min-height: 230px;
+      }
+
+      .equation {
+        width: clamp(88px, 27vw, 125px);
+        height: clamp(37px, 5.8vh, 47px);
+        padding: 3px;
+        gap: 2px;
+        border-radius: 7px;
+      }
+
+      .number-board.compact .equation {
+        width: clamp(76px, 24vw, 112px);
+        height: clamp(32px, 5vh, 40px);
+      }
+
+      .fixed-number {
+        font-size: clamp(16px, 5vw, 22px);
+        min-width: 14px;
+      }
+
+      .plus-sign {
+        font-size: clamp(15px, 4.5vw, 21px);
+      }
+
+      .drop-slot {
+        width: clamp(32px, 10vw, 43px);
+        height: clamp(26px, 5vh, 35px);
+        font-size: clamp(16px, 4.8vw, 22px);
+        border-radius: 5px;
+      }
+
+      .target-eight {
+        width: 55px;
+        height: 55px;
+        font-size: 28px;
+        border-width: 2px;
+      }
+
+      .digit-tray {
+        width: 82px;
+        height: min(270px, 63vh);
+        padding: 6px;
+      }
+
+      .tray-title {
+        font-size: 10px;
+        padding: 4px 5px;
+        margin-bottom: 5px;
+      }
+
+      .digit-grid {
+        gap: 4px;
+      }
+
+      .digit {
+        font-size: 18px;
+        border-radius: 5px;
+      }
+
+      .digit.two-digit {
+        font-size: 14px;
+      }
+
+      .center-dot {
+        width: 12px;
+        height: 12px;
+        border-width: 2px;
+      }
+    }
+
+    @media (max-height:640px) {
+
+      .quiz-card {
+        padding-top: 4px;
+        padding-bottom: 2px;
+      }
+
+      .heading {
+        margin-top: 1px;
+      }
+
+      .content-row {
+        gap: 2px;
+      }
+
+      .number-board {
+        height: 285px;
+      }
+
+      .equation {
+        height: 42px;
+      }
+
+      .drop-slot {
+        height: 30px;
+      }
+
+      .digit-tray {
+        height: 250px;
+      }
+    }
+
+    @media (max-width:360px) {
+
+      .heading {
+        font-size: 15px;
+      }
+
+      .qlabel {
+        font-size: 16px;
+      }
+
+      .question-text {
+        font-size: 14px;
+      }
+
+      .number-board {
+        width: calc(100% - 76px);
+        height: 250px;
+      }
+
+      .equation {
+        width: 82px;
+        height: 34px;
+      }
+
+      .fixed-number {
+        font-size: 15px;
+      }
+
+      .plus-sign {
+        font-size: 14px;
+      }
+
+      .drop-slot {
+        width: 29px;
+        height: 24px;
+        font-size: 15px;
+      }
+
+      .target-eight {
+        width: 47px;
+        height: 47px;
+        font-size: 25px;
+      }
+
+      .digit-tray {
+        width: 70px;
+        height: 220px;
+        padding: 5px;
+      }
+
+      .tray-title {
+        font-size: 9px;
+      }
+
+      .digit {
+        font-size: 16px;
+      }
+    }
+
+    /* =========================================================
+   Q2 EQUATION GAP
+   ========================================================= */
+    @media screen and (min-width:1400px) {
+      .number-board.compact .equation {
+        gap: 12px;
+      }
+
+      .number-board.compact .fixed-number {
+        font-size: 28px;
+      }
+
+      .number-board.compact .plus-sign {
+        font-size: 26px;
+      }
+
+      .number-board.compact .drop-slot {
+        width: 52px;
+        height: 38px;
+        font-size: 25px;
+      }
+    }
+
+    /* =========================================================
+   1600px+ DESKTOP
+   ========================================================= */
+    @media screen and (min-width:1600px) {
+
+      .quiz-card {
+        padding: 20px 55px 10px;
+      }
+
+      .icon-flat {
+        font-size: 40px;
+      }
+
+      .heading {
+        font-size: 44px;
+        margin-bottom: 22px;
+      }
+
+      .content-row {
+        max-width: 1700px;
+      }
+
+      .question-heading {
+        gap: 16px;
+      }
+
+      .qlabel {
+        font-size: 40px;
+      }
+
+      .question-text {
+        font-size: 38px;
+      }
+
+      .game-area {
+        gap: 55px;
+      }
+
+      .number-board {
+        width: 1050px;
+        height: 500px;
+      }
+
+      .target-eight {
+        width: 112px;
+        height: 112px;
+        font-size: 58px;
+      }
+
+      .equation {
+        width: 250px;
+        height: 82px;
+        gap: 18px;
+        padding: 10px 14px;
+      }
+
+      .number-board.compact .equation {
+        width: 215px;
+        height: 64px;
+        gap: 16px;
+        padding: 7px 10px;
+      }
+
+      .fixed-number {
+        font-size: 42px;
+      }
+
+      .plus-sign {
+        font-size: 40px;
+      }
+
+      .number-board.compact .fixed-number {
+        font-size: 32px;
+      }
+
+      .number-board.compact .plus-sign {
+        font-size: 30px;
+      }
+
+      .drop-slot {
+        width: 80px;
+        height: 56px;
+        font-size: 40px;
+      }
+
+      .number-board.compact .drop-slot {
+        width: 60px;
+        height: 44px;
+        font-size: 29px;
+      }
+
+      .center-dot {
+        width: 21px;
+        height: 21px;
+      }
+
+      .digit-tray {
+        width: 215px;
+        height: 390px;
+        padding: 18px;
+      }
+
+      .tray-title {
+        font-size: 21px;
+        padding: 8px 16px;
+      }
+
+      .digit-grid {
+        gap: 11px;
+      }
+
+      .digit {
+        font-size: 38px;
+      }
+
+      .digit.two-digit {
+        font-size: 29px;
+      }
+
+      .nav {
+        gap: 26px;
+      }
+
+      .nav .prev,
+      .nav .next {
+        min-width: 135px;
+        height: 52px;
+        font-size: 22px;
+      }
+    }
+
+    /* Keep Q2 equations as large and evenly spaced as Q1. */
+    .number-board.compact .equation {
+      width: clamp(145px, 19vw, 205px);
+      height: clamp(52px, 7vh, 66px);
+      gap: clamp(5px, .7vw, 9px);
+      padding: 6px 8px;
+      border-radius: 12px;
+    }
+
+    .number-board.compact {
+      height: min(500px, 88vh);
+    }
+
+    @media (min-width:769px) {
+      .number-board.compact .equation {
+        width: clamp(64px, 6.4vw, 92px);
+        height: clamp(54px, 7.4vh, 72px);
+        gap: clamp(5px, .7vw, 9px);
+      }
+    }
+
+    @media (min-width:1200px) {
+      .number-board.compact {
+        height: 450px;
+      }
+
+      .number-board.compact .equation {
+        width: 205px;
+        height: 66px;
+      }
+    }
+
+    @media (min-width:1600px) {
+      .number-board.compact {
+        height: 540px;
+      }
+
+      .number-board.compact .equation {
+        width: 250px;
+        height: 82px;
+        gap: 18px;
+        padding: 10px 14px;
+      }
+    }
+
+    @media (max-width:768px) {
+      .number-board.compact {
+        height: min(430px, 78vh);
+      }
+
+      .number-board.compact .equation {
+        width: clamp(112px, 24vw, 165px);
+        height: clamp(43px, 6vh, 56px);
+        gap: 4px;
+        padding: 4px 5px;
+        border-radius: 9px;
+      }
+    }
+
+    @media (max-width:480px) {
+      .number-board.compact {
+        height: min(390px, 76vh);
+      }
+    }
+
+
+    /* =========================================================
+   FINAL RESPONSIVE OVERRIDES
+   Designed to keep the complete activity inside the viewport
+   on phones, tablets, laptops and large monitors.
+   ========================================================= */
+
+    :root {
+      --page-x: clamp(6px, 2vw, 42px);
+      --game-gap: clamp(6px, 2vw, 32px);
+      --tray-w: clamp(76px, 13vw, 215px);
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden !important;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .quiz-card {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 0;
+      min-width: 0;
+      padding: clamp(5px, 1.4vh, 20px) var(--page-x) clamp(3px, 1vh, 12px);
+      overflow: hidden;
+    }
+
+    .topbar {
+      width: 100%;
+      min-height: clamp(28px, 5vh, 48px);
+    }
+
+    .icon-flat {
+      font-size: clamp(20px, 2.5vw, 38px);
+      padding: 0 4px;
+    }
+
+    .heading {
+      flex: 0 0 auto;
+      margin: clamp(1px, 0.8vh, 8px) 0;
+      font-size: clamp(16px, 2.2vw, 38px);
+      line-height: 1.05;
+      white-space: nowrap;
+    }
+
+    .content-row {
+      width: 100%;
+      max-width: 1700px;
+      min-width: 0;
+      min-height: 0;
+      flex: 1 1 auto;
+      gap: clamp(2px, 0.8vh, 10px);
+      overflow: hidden;
+    }
+
+    .question-heading {
+      flex: 0 0 auto;
+      min-width: 0;
+      max-width: 100%;
+      gap: clamp(3px, 0.7vw, 12px);
+      line-height: 1.1;
+    }
+
+    .qlabel {
+      font-size: clamp(16px, 2vw, 34px);
+    }
+
+    .question-text {
+      font-size: clamp(15px, 1.9vw, 32px);
+      text-align: center;
+    }
+
+    .game-area {
+      width: 100%;
+      min-width: 0;
+      min-height: 0;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: var(--game-gap);
+      overflow: hidden;
+    }
+
+    .number-board {
+      flex: 1 1 auto;
+      width: auto;
+      max-width: 1100px;
+      min-width: 0;
+      min-height: 0;
+      height: min(76vh, 540px);
+      max-height: 100%;
+      position: relative;
+    }
+
+    .number-board.compact {
+      height: min(82vh, 540px);
+      max-height: 100%;
+    }
+
+    /* Keep equation cards on their own side without crossing the center. */
+    .equation {
+      width: min(clamp(96px, 17vw, 250px), calc(50% - 22px));
+      height: clamp(38px, 7vh, 82px);
+      max-width: calc(50% - 22px);
+      padding: clamp(3px, 0.7vw, 10px);
+      gap: clamp(3px, 0.7vw, 12px);
+    }
+
+    .number-board.compact .equation {
+      width: min(clamp(96px, 17vw, 215px), calc(50% - 22px));
+      max-width: calc(50% - 22px);
+      height: clamp(36px, 6.5vh, 70px);
+      padding: clamp(3px, 0.6vw, 8px);
+      gap: clamp(3px, 0.6vw, 10px);
+    }
+
+    .fixed-number {
+      min-width: 0;
+      font-size: clamp(16px, 2.7vw, 42px);
+    }
+
+    .plus-sign {
+      font-size: clamp(15px, 2.5vw, 40px);
+    }
+
+    .drop-slot {
+      flex: 0 0 auto;
+      width: clamp(34px, 5.8vw, 80px);
+      height: clamp(25px, 5vh, 56px);
+      font-size: clamp(15px, 2.5vw, 40px);
+    }
+
+    .number-board.compact .fixed-number {
+      font-size: clamp(15px, 2.3vw, 32px);
+    }
+
+    .number-board.compact .plus-sign {
+      font-size: clamp(14px, 2.2vw, 30px);
+    }
+
+    .number-board.compact .drop-slot {
+      width: clamp(32px, 4.8vw, 60px);
+      height: clamp(24px, 4.5vh, 44px);
+      font-size: clamp(14px, 2vw, 29px);
+    }
+
+    .target-eight {
+      width: clamp(48px, 7.5vw, 112px);
+      height: clamp(48px, 7.5vw, 112px);
+      font-size: clamp(24px, 4vw, 58px);
+    }
+
+    .center-dot {
+      width: clamp(11px, 1.4vw, 21px);
+      height: clamp(11px, 1.4vw, 21px);
+    }
+
+    .digit-tray {
+      flex: 0 0 var(--tray-w);
+      width: var(--tray-w);
+      height: min(68vh, 390px);
+      max-height: 100%;
+      min-height: 0;
+      padding: clamp(5px, 1.1vw, 18px);
+    }
+
+    .tray-title {
+      max-width: 100%;
+      white-space: nowrap;
+      font-size: clamp(9px, 1.3vw, 21px);
+      padding: clamp(3px, 0.5vw, 8px) clamp(5px, 0.8vw, 16px);
+      margin-bottom: clamp(4px, 0.8vh, 10px);
+    }
+
+    .digit-grid {
+      min-width: 0;
+      min-height: 0;
+      gap: clamp(3px, 0.8vh, 11px);
+    }
+
+    .digit {
+      min-width: 0;
+      min-height: 0;
+      font-size: clamp(16px, 2.3vw, 38px);
+      border-radius: clamp(5px, 0.5vw, 8px);
+    }
+
+    .digit.two-digit {
+      font-size: clamp(13px, 1.8vw, 29px);
+    }
+
+    .nav {
+      flex: 0 0 auto;
+      max-width: 100%;
+    }
+
+    /* ---------- Tablets / small laptops ---------- */
+    @media (max-width: 1100px) {
+      :root {
+        --page-x: 8px;
+        --game-gap: 8px;
+        --tray-w: clamp(82px, 14vw, 150px);
+      }
+
+      .number-board {
+        height: min(74vh, 500px);
+      }
+
+      .number-board.compact {
+        height: min(78vh, 500px);
+      }
+
+      .equation {
+        width: min(clamp(90px, 18vw, 180px), calc(50% - 16px));
+        max-width: calc(50% - 16px);
+      }
+
+      .number-board.compact .equation {
+        width: min(clamp(88px, 17vw, 170px), calc(50% - 16px));
+        max-width: calc(50% - 16px);
+      }
+    }
+
+    /* ---------- Phones ---------- */
+    @media (max-width: 768px) {
+      :root {
+        --page-x: 5px;
+        --game-gap: 4px;
+        --tray-w: clamp(68px, 23vw, 108px);
+      }
+
+      .quiz-card {
+        padding: 4px var(--page-x) 3px;
+      }
+
+      .topbar {
+        min-height: 25px;
+      }
+
+      .heading {
+        margin: 1px 0 3px;
+        font-size: clamp(15px, 4.8vw, 20px);
+      }
+
+      .question-heading {
+        gap: 4px;
+      }
+
+      .qlabel {
+        font-size: clamp(15px, 5vw, 20px);
+      }
+
+      .question-text {
+        font-size: clamp(14px, 4.5vw, 18px);
+      }
+
+      .game-area {
+        gap: 4px;
+      }
+
+      .number-board,
+      .number-board.compact {
+        height: min(72vh, 430px);
+      }
+
+      .equation,
+      .number-board.compact .equation {
+        width: min(clamp(78px, 24vw, 150px), calc(50% - 10px));
+        max-width: calc(50% - 10px);
+        height: clamp(34px, 5.8vh, 52px);
+        padding: 3px 4px;
+        gap: 2px;
+        border-radius: 7px;
+      }
+
+      .fixed-number {
+        font-size: clamp(15px, 4.5vw, 26px);
+      }
+
+      .plus-sign {
+        font-size: clamp(14px, 4.2vw, 24px);
+      }
+
+      .drop-slot,
+      .number-board.compact .drop-slot {
+        width: clamp(30px, 9vw, 52px);
+        height: clamp(24px, 4.8vh, 38px);
+        font-size: clamp(14px, 4.2vw, 24px);
+      }
+
+      .target-eight {
+        width: clamp(46px, 13vw, 70px);
+        height: clamp(46px, 13vw, 70px);
+        font-size: clamp(23px, 6vw, 36px);
+      }
+
+      .digit-tray {
+        height: min(64vh, 290px);
+        padding: 6px;
+      }
+
+      .tray-title {
+        font-size: clamp(9px, 2.8vw, 12px);
+        padding: 4px 5px;
+        margin-bottom: 4px;
+      }
+
+      .digit-grid {
+        gap: 4px;
+      }
+
+      .digit {
+        font-size: clamp(16px, 5vw, 22px);
+      }
+
+      .digit.two-digit {
+        font-size: clamp(12px, 4vw, 17px);
+      }
+
+      .nav {
+        gap: clamp(5px, 2vw, 14px);
+      }
+
+      .nav .prev,
+      .nav .next {
+        min-width: 0;
+      }
+    }
+
+    /* ---------- Very small phones ---------- */
+    @media (max-width: 480px) {
+      :root {
+        --page-x: 3px;
+        --game-gap: 3px;
+        --tray-w: clamp(62px, 22vw, 84px);
+      }
+
+      .number-board,
+      .number-board.compact {
+        height: min(69vh, 350px);
+      }
+
+      .equation,
+      .number-board.compact .equation {
+        width: min(clamp(70px, 26vw, 118px), calc(50% - 7px));
+        max-width: calc(50% - 7px);
+        height: clamp(30px, 5.5vh, 44px);
+        gap: 1px;
+        padding: 2px;
+      }
+
+      .fixed-number {
+        font-size: clamp(13px, 5vw, 21px);
+      }
+
+      .plus-sign {
+        font-size: clamp(12px, 4.5vw, 19px);
+      }
+
+      .drop-slot,
+      .number-board.compact .drop-slot {
+        width: clamp(27px, 10vw, 43px);
+        height: clamp(22px, 4.5vh, 34px);
+        font-size: clamp(13px, 4.8vw, 20px);
+      }
+
+      .target-eight {
+        width: 50px;
+        height: 50px;
+        font-size: 26px;
+      }
+
+      .digit-tray {
+        height: min(62vh, 265px);
+        padding: 5px;
+      }
+
+      .digit {
+        font-size: clamp(14px, 5vw, 18px);
+      }
+
+      .digit.two-digit {
+        font-size: clamp(11px, 4vw, 14px);
+      }
+    }
+
+    /* ---------- Short screens: prioritize fitting vertically ---------- */
+    @media (max-height: 650px) {
+      .quiz-card {
+        padding-top: 2px;
+        padding-bottom: 2px;
+      }
+
+      .topbar {
+        min-height: 22px;
+      }
+
+      .heading {
+        margin: 0 0 2px;
+      }
+
+      .content-row {
+        gap: 1px;
+      }
+
+      .number-board,
+      .number-board.compact {
+        height: min(66vh, 300px);
+      }
+
+      .digit-tray {
+        height: min(58vh, 245px);
+      }
+
+      .nav {
+        transform: scale(.9);
+        transform-origin: center bottom;
+      }
+    }
+
+    /* ---------- Extra-wide screens ---------- */
+    @media (min-width: 1600px) {
+      :root {
+        --page-x: clamp(25px, 3vw, 60px);
+        --game-gap: clamp(30px, 3vw, 60px);
+        --tray-w: 215px;
+      }
+
+      .number-board {
+        max-width: 1100px;
+        height: min(76vh, 540px);
+      }
+
+      .number-board.compact {
+        height: min(82vh, 540px);
+      }
+
+      .equation {
+        width: min(250px, calc(50% - 28px));
+        max-width: calc(50% - 28px);
+        height: 82px;
+      }
+
+      .number-board.compact .equation {
+        width: min(215px, calc(50% - 28px));
+        max-width: calc(50% - 28px);
+        height: 70px;
+      }
+    }
+
+    /* =========================================================
+   LAPTOP + MONITOR DESKTOP TUNING
+   Keeps the board and tray proportional at 1024px, 1366px,
+   1440px, 1600px and 1920px+ desktop widths.
+   ========================================================= */
+    @media screen and (min-width: 769px) and (max-width: 1599px) {
+      .quiz-card {
+        padding-left: clamp(12px, 2.2vw, 34px);
+        padding-right: clamp(12px, 2.2vw, 34px);
+      }
+
+      .content-row {
+        width: 100%;
+        max-width: 1450px;
+      }
+
+      .game-area {
+        width: 100%;
+        max-width: 1450px;
+        gap: clamp(10px, 2vw, 28px);
+      }
+
+      .number-board {
+        flex: 1 1 0;
+        width: auto;
+        max-width: 1050px;
+        height: min(65vh, 400px);
+      }
+
+      .number-board.compact {
+        height: min(78vh, 520px);
+      }
+
+      .equation {
+        width: clamp(145px, 16vw, 205px);
+        max-width: calc(50% - 18px);
+        height: clamp(48px, 6.5vh, 66px);
+      }
+
+      .number-board.compact .equation {
+        width: clamp(135px, 15vw, 195px);
+        max-width: calc(50% - 18px);
+        height: clamp(44px, 6vh, 62px);
+        gap: clamp(4px, .65vw, 9px);
+      }
+
+      .fixed-number {
+        font-size: clamp(22px, 2.4vw, 34px);
+      }
+
+      .plus-sign {
+        font-size: clamp(20px, 2.2vw, 32px);
+      }
+
+      .drop-slot {
+        width: clamp(48px, 5vw, 68px);
+        height: clamp(34px, 4.8vh, 48px);
+        font-size: clamp(20px, 2.3vw, 32px);
+      }
+
+      .number-board.compact .fixed-number {
+        font-size: clamp(19px, 2.1vw, 28px);
+      }
+
+      .number-board.compact .plus-sign {
+        font-size: clamp(18px, 2vw, 26px);
+      }
+
+      .number-board.compact .drop-slot {
+        width: clamp(42px, 4.4vw, 58px);
+        height: clamp(30px, 4.1vh, 42px);
+        font-size: clamp(18px, 1.9vw, 26px);
+      }
+
+      .digit-tray {
+        flex: 0 0 clamp(125px, 12vw, 174px);
+        width: clamp(125px, 12vw, 174px);
+        height: min(66vh, 340px);
+      }
+
+      .digit {
+        font-size: clamp(22px, 2.5vw, 31px);
+      }
+
+      .digit.two-digit {
+        font-size: clamp(16px, 1.9vw, 24px);
+      }
+
+      .nav {
+        margin-bottom: 10px;
+      }
+    }
+
+    /* Standard laptop: 1024-1280px. Make every element fit without
+   squeezing the board excessively. */
+    @media screen and (min-width:769px) and (max-width:1280px) {
+      .heading {
+        font-size: clamp(20px, 2.4vw, 30px);
+      }
+
+      .qlabel {
+        font-size: clamp(18px, 2.2vw, 28px);
+      }
+
+      .question-text {
+        font-size: clamp(17px, 2vw, 26px);
+      }
+
+      .game-area {
+        gap: clamp(6px, 1.2vw, 14px);
+      }
+
+      .number-board {
+        height: min(68vh, 440px);
+      }
+
+      .number-board.compact {
+        height: min(74vh, 455px);
+      }
+
+      .equation {
+        width: clamp(125px, 16vw, 175px);
+        max-width: calc(50% - 12px);
+        height: clamp(43px, 6vh, 58px);
+        padding: 4px 6px;
+        gap: clamp(3px, .5vw, 7px);
+      }
+
+      .number-board.compact .equation {
+        width: clamp(120px, 15vw, 165px);
+        max-width: calc(50% - 12px);
+        height: clamp(39px, 5.5vh, 53px);
+        padding: 3px 5px;
+      }
+
+      .fixed-number {
+        font-size: clamp(19px, 2.6vw, 28px);
+      }
+
+      .plus-sign {
+        font-size: clamp(18px, 2.4vw, 27px);
+      }
+
+      .drop-slot {
+        width: clamp(42px, 5.5vw, 58px);
+        height: clamp(30px, 4.5vh, 42px);
+        font-size: clamp(18px, 2.5vw, 27px);
+      }
+
+      .number-board.compact .fixed-number {
+        font-size: clamp(17px, 2.2vw, 24px);
+      }
+
+      .number-board.compact .plus-sign {
+        font-size: clamp(16px, 2vw, 23px);
+      }
+
+      .number-board.compact .drop-slot {
+        width: clamp(38px, 4.7vw, 52px);
+        height: clamp(27px, 4vh, 37px);
+        font-size: clamp(16px, 2vw, 23px);
+      }
+
+      .digit-tray {
+        flex-basis: clamp(105px, 12vw, 145px);
+        width: clamp(105px, 12vw, 145px);
+        height: min(62vh, 310px);
+        padding: 8px;
+      }
+
+      .tray-title {
+        font-size: clamp(10px, 1.2vw, 15px);
+      }
+
+      .digit {
+        font-size: clamp(19px, 2.5vw, 27px);
+      }
+
+      .digit.two-digit {
+        font-size: clamp(14px, 1.8vw, 21px);
+      }
+    }
+
+    /* Never allow the main flex children to create horizontal overflow. */
+    .game-area>*,
+    .content-row>*,
+    .quiz-card>* {
+      min-width: 0;
+    }
+
+    .nav button {
+      max-width: 45vw;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="quiz-card" id="quizCard">
+
+    <!-- HOME / HINT -->
+    <div class="topbar">
+      <button class="icon-flat" style="visibility: hidden;" id="homeBtn" title="Home" aria-label="Home">🏠</button>
+
+      <div class="topbar-right">
+        <button class="icon-flat" id="hintBtn" title="Hint" aria-label="Hint">💡</button>
+      </div>
+    </div>
+
+    <!-- CENTERED TITLE -->
+    <p class="heading" id="heading">Make the total 8.</p>
+
+    <div class="content-row">
+
+      <div class="question-heading">
+        <span class="qlabel" id="qLabel">Q1.</span>
+        <span class="question-text" id="questionText">
+          Drag a number into each box.
+        </span>
+      </div>
+
+      <div class="game-area">
+
+        <!-- =================================================
+           MAIN NUMBER BOARD (built dynamically per question)
+           ================================================= -->
+
+        <div class="number-board" id="numberBoard"></div>
+
+        <!-- =================================================
+           DIGIT TRAY (built dynamically per question)
+           ================================================= -->
+
+        <div class="digit-tray">
+
+          <div class="tray-title">Drag &amp; Drop</div>
+
+          <div class="digit-grid" id="digitGrid"></div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- KEEP reuse.css NAV -->
+    <div class="nav">
+      <button class="prev" id="prevBtn" disabled>← Prev</button>
+      <button class="next" id="nextBtn" disabled>Next →</button>
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+     HINT
+     ======================================================= -->
+
+  <div class="hint-overlay" id="hintOverlay" aria-live="polite">
+    <div class="hint-box">
+      <h3>Hint</h3>
+
+      <p id="hintText">
+        Drag the number that makes each pair total 8.
+      </p>
+
+      <button class="popup-btn" id="closeHintBtn">
+        Got it!
+      </button>
+    </div>
+  </div>
+
+
+  <!-- =======================================================
+     POPUP — reuse.css
+     ======================================================= -->
+
+  <div id="answerPopup" class="popup">
+    <div class="popup-content">
+      <div class="popup-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+
+  <!-- =======================================================
+     FINAL POPUP — reuse.css
+     ======================================================= -->
+
+  <div id="finalPopup">
+
+    <div class="finalpopup-box">
+
+      <h2 class="final-heading">
+        🎉 Amazing Job!
+      </h2>
+
+      <p id="finalScore"></p>
+
+      <div id="stars">⭐⭐⭐</div>
+
+      <button onclick="location.reload()" class="playAgain-btn">
+        Play Again
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3">
+  </audio>
+
+  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3">
+  </audio>
+
+
+  <script>
+
+    /* =========================================================
+       QUESTION DATA
+       Each pair is [fixed, blank]. "mirrorRight:false" draws the
+       right column the same way as the left (fixed then blank),
+       matching the worksheet artwork. "mirrorRight:true" draws
+       the right column reversed (blank then fixed).
+       ========================================================= */
+
+    const QUESTIONS = [
+      {
+        label: "Q1.",
+        text: "Drag a number into each box.",
+        target: 8,
+        left: [[0, 8], [1, 7], [3, 5], [6, 2]],
+        right: [[6, 2], [3, 5], [1, 7], [4, 4]],
+        bottom: [8, 0],
+        mirrorRight: true,
+        hint: "Drag the number that makes each pair total 8."
+      },
+      {
+        label: "Q2.",
+        text: "Drag a number into each box.",
+        target: 12,
+        left: [[2, 10], [5, 7], [8, 4], [11, 1], [9, 3], [4, 8]],
+        right: [[1, 11], [3, 9], [6, 6], [10, 2], [7, 5], [12, 0]],
+        bottom: null,
+        mirrorRight: false,
+        hint: "Drag the number that makes each pair total 12."
+      }
+    ];
+
+    const total = QUESTIONS.length;
+    let current = 0;
+
+    const LEFT_COLORS = ["eq-pink", "eq-orange", "eq-green", "eq-purple"];
+    const RIGHT_COLORS = ["eq-blue", "eq-green", "eq-pink", "eq-orange"];
+    const DOT_COLORS = ["#ff4967", "#ff9700", "#8abc35", "#a052c9", "#008ee8"];
+    const DIGIT_PALETTE = ["#ff4967", "#ff9200", "#75ad2c", "#13b79f", "#9551b9", "#0799db"];
+
+
+    /* =========================================================
+       DOM
+       ========================================================= */
+
+    const heading = document.getElementById("heading");
+    const qLabel = document.getElementById("qLabel");
+    const questionText = document.getElementById("questionText");
+    const numberBoard = document.getElementById("numberBoard");
+    const digitGrid = document.getElementById("digitGrid");
+
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const correctSound = document.getElementById("correctSound");
+    const wrongSound = document.getElementById("wrongSound");
+
+    const homeBtn = document.getElementById("homeBtn");
+    const hintBtn = document.getElementById("hintBtn");
+
+    const hintOverlay = document.getElementById("hintOverlay");
+    const closeHintBtn = document.getElementById("closeHintBtn");
+    const hintText = document.getElementById("hintText");
+
+
+    /* =========================================================
+       STATE
+       ========================================================= */
+
+    let slots = [];
+    let completedSlots = 0;
+
+    let draggedValue = null;
+    let draggedDigit = null;
+
+    /* refs kept so connectors can be recalculated on resize */
+    let layoutRefs = null;
+
+
+    /* =========================================================
+       SPEECH
+       ========================================================= */
+
+    function speak(text) {
+
+      if (!window.speechSynthesis) return;
+
+      speechSynthesis.cancel();
+
+      const msg = new SpeechSynthesisUtterance(text);
+
+      msg.lang = "en-UK";
+      msg.volume = 0.25;
+      msg.rate = 1;
+      msg.pitch = 1;
+
+      speechSynthesis.speak(msg);
+    }
+
+
+    /* =========================================================
+       POPUP
+       ========================================================= */
+
+    function showPopup(isCorrect, titleOverride, msgOverride) {
+
+      const popup = document.getElementById("answerPopup");
+      const icon = document.getElementById("popupIcon");
+      const title = document.getElementById("popupTitle");
+      const msg = document.getElementById("popupMsg");
+
+      popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+      popup.style.display = "flex";
+
+      if (isCorrect) {
+        icon.textContent = "🎉";
+        title.textContent = titleOverride || "Correct!";
+        msg.textContent = msgOverride || "Great job!";
+      } else {
+        icon.textContent = "❌";
+        title.textContent = titleOverride || "Try Again!";
+        msg.textContent = msgOverride || "Check your answer.";
+      }
+
+      clearTimeout(showPopup._t);
+
+      showPopup._t = setTimeout(() => {
+        popup.style.display = "none";
+      }, 1100);
+    }
+    const questionAnswers = QUESTIONS.map(q => ({
+      left: q.left.map(() => null),
+      right: q.right.map(() => null),
+      bottom: q.bottom ? [null] : null
+    }));
+
+
+    /* =========================================================
+       CONFETTI
+       ========================================================= */
+
+    function fireConfetti() {
+
+      if (!window.confetti) return;
+
+      confetti({
+        particleCount: 24,
+        spread: 55,
+        startVelocity: 26,
+        origin: { x: .5, y: .4 },
+        colors: ["#e6473f", "#3a6fd8", "#f7b733", "#8bba8a", "#c9a8e0"]
+      });
+    }
+
+    function fireBigConfetti() {
+
+      if (!window.confetti) return;
+
+      const end = Date.now() + 1800;
+
+      (function frame() {
+
+        confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 } });
+        confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 } });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+
+      })();
+    }
+
+
+    /* =========================================================
+       BOARD BUILDING
+       ========================================================= */
+
+    function rowTop(i, n) {
+      if (n <= 1) return 45;
+      if (n > 4) return 8 + i * (80 / (n - 1));
+      return 15 + i * (60 / (n - 1));
+    }
+
+    function makeEquation(pair, side, colorClass, topPercent, mirror) {
+
+      const [fixed, blank] = pair;
+
+      const eq = document.createElement("div");
+      eq.className = "equation " + side + " " + colorClass;
+      eq.style.top = topPercent + "%";
+
+      const fixedEl = document.createElement("span");
+      fixedEl.className = "fixed-number";
+      fixedEl.textContent = fixed;
+
+      const plusEl = document.createElement("span");
+      plusEl.className = "plus-sign";
+      plusEl.textContent = "+";
+
+      const slotEl = document.createElement("div");
+      slotEl.className = "drop-slot";
+      slotEl.dataset.answer = blank;
+      const slotIndex = slots.length;
+
+      slotEl.dataset.slotIndex = slotIndex;
+      slotEl.dataset.side = side;
+
+      const reversed = side === "side-right" && mirror;
+
+      if (reversed) {
+        eq.appendChild(slotEl);
+        eq.appendChild(plusEl);
+        eq.appendChild(fixedEl);
+      } else {
+        eq.appendChild(fixedEl);
+        eq.appendChild(plusEl);
+        eq.appendChild(slotEl);
+      }
+
+      bindSlotEvents(slotEl);
+      slots.push(slotEl);
+
+      return eq;
+    }
+
+    function makeDot(topPercent, color) {
+      const dot = document.createElement("div");
+      dot.className = "center-dot";
+      dot.style.top = topPercent + "%";
+      dot.style.borderColor = color;
+      numberBoard.appendChild(dot);
+      return dot;
+    }
+
+    function makeConnector(x1, y1, x2, y2) {
+
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const length = Math.sqrt(dx * dx + dy * dy);
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+      const el = document.createElement("div");
+      el.className = "connector";
+      el.style.left = x1 + "px";
+      el.style.top = y1 + "px";
+      el.style.width = length + "px";
+      el.style.transform = `rotate(${angle}deg)`;
+
+      numberBoard.appendChild(el);
+    }
+
+    function drawConnectors() {
+
+      if (!layoutRefs) return;
+
+      /* clear old connector lines only */
+      numberBoard.querySelectorAll(".connector").forEach(el => el.remove());
+
+      const boardRect = numberBoard.getBoundingClientRect();
+      const { leftEls, rightEls, dotEls, bottomEq, bottomDot } = layoutRefs;
+
+      const dotPoint = dot => {
+        const r = dot.getBoundingClientRect();
+        return {
+          x: r.left + r.width / 2 - boardRect.left,
+          y: r.top + r.height / 2 - boardRect.top
+        };
+      };
+
+      dotEls.forEach((dot, i) => {
+
+        const d = dotPoint(dot);
+
+        if (leftEls[i]) {
+          const r = leftEls[i].getBoundingClientRect();
+          const px = r.right - boardRect.left;
+          const py = r.top + r.height / 2 - boardRect.top;
+          makeConnector(px, py, d.x, d.y);
+        }
+
+        if (rightEls[i]) {
+          const r = rightEls[i].getBoundingClientRect();
+          const px = r.left - boardRect.left;
+          const py = r.top + r.height / 2 - boardRect.top;
+          makeConnector(d.x, d.y, px, py);
+        }
+      });
+
+      if (bottomEq && bottomDot) {
+        const d = dotPoint(bottomDot);
+        const r = bottomEq.getBoundingClientRect();
+        const ex = r.left + r.width / 2 - boardRect.left;
+        const ey = r.top - boardRect.top;
+        makeConnector(d.x, d.y, ex, ey);
+      }
+    }
+
+    function buildBoard(question) {
+
+      numberBoard.innerHTML = "";
+      slots = [];
+
+      const targetEl = document.createElement("div");
+      targetEl.className = "target-eight";
+      targetEl.textContent = question.target;
+      numberBoard.appendChild(targetEl);
+
+      const rows = Math.max(question.left.length, question.right.length);
+
+      numberBoard.classList.toggle("compact", rows > 4);
+
+      const leftEls = [];
+      const rightEls = [];
+      const dotEls = [];
+
+      for (let i = 0; i < rows; i++) {
+
+        const top = rowTop(i, rows);
+        const dotColor = DOT_COLORS[i % DOT_COLORS.length];
+        const dot = makeDot(top, dotColor);
+        dotEls.push(dot);
+
+        if (question.left[i]) {
+          const colorClass = LEFT_COLORS[i % LEFT_COLORS.length];
+          const eq = makeEquation(question.left[i], "side-left", colorClass, top, question.mirrorRight);
+          numberBoard.appendChild(eq);
+          leftEls.push(eq);
+        } else {
+          leftEls.push(null);
+        }
+
+        if (question.right[i]) {
+          const colorClass = RIGHT_COLORS[i % RIGHT_COLORS.length];
+          const eq = makeEquation(question.right[i], "side-right", colorClass, top, question.mirrorRight);
+          numberBoard.appendChild(eq);
+          rightEls.push(eq);
+        } else {
+          rightEls.push(null);
+        }
+      }
+
+      let bottomEq = null;
+      let bottomDot = null;
+
+      if (question.bottom) {
+        bottomDot = makeDot(90, DOT_COLORS[rows % DOT_COLORS.length]);
+        bottomEq = makeEquation(question.bottom, "eq-bottom", "eq-blue", 0, false);
+        bottomEq.style.top = "";
+        numberBoard.appendChild(bottomEq);
+      }
+
+      layoutRefs = { leftEls, rightEls, dotEls, bottomEq, bottomDot };
+
+      requestAnimationFrame(drawConnectors);
+    }
+
+
+    /* =========================================================
+       DIGIT TRAY
+       ========================================================= */
+
+    function buildDigitTray(question) {
+
+      digitGrid.innerHTML = "";
+
+      const answers = new Set();
+
+      question.left.forEach(p => answers.add(p[1]));
+      question.right.forEach(p => answers.add(p[1]));
+      if (question.bottom) answers.add(question.bottom[1]);
+
+      const values = [...answers].sort((a, b) => a - b);
+
+      values.forEach(v => {
+
+        const digit = document.createElement("div");
+        digit.className = "digit" + (String(v).length > 1 ? " two-digit" : "");
+        digit.draggable = true;
+        digit.dataset.value = v;
+        digit.textContent = v;
+        digit.style.background = DIGIT_PALETTE[v % DIGIT_PALETTE.length];
+
+        bindDigitEvents(digit);
+
+        digitGrid.appendChild(digit);
+      });
+    }
+
+
+    /* =========================================================
+       DRAG & DROP — DIGITS
+       ========================================================= */
+
+    function bindDigitEvents(digit) {
+
+      /* ---------- DESKTOP DRAG ---------- */
+
+      digit.addEventListener("dragstart", event => {
+
+        draggedValue = Number(digit.dataset.value);
+        draggedDigit = digit;
+
+        digit.classList.add("dragging");
+
+        event.dataTransfer.effectAllowed = "copy";
+        event.dataTransfer.setData("text/plain", digit.dataset.value);
+      });
+
+      digit.addEventListener("dragend", () => {
+        digit.classList.remove("dragging");
+        draggedValue = null;
+        draggedDigit = null;
+      });
+
+      /* ---------- TOUCH / POINTER DRAG ---------- */
+
+      digit.addEventListener("pointerdown", event => {
+
+        if (event.pointerType === "mouse") return;
+
+        event.preventDefault();
+
+        draggedValue = Number(digit.dataset.value);
+        draggedDigit = digit;
+
+        digit.classList.add("dragging");
+        digit.setPointerCapture(event.pointerId);
+      });
+
+      digit.addEventListener("pointermove", event => {
+
+        if (draggedDigit !== digit) return;
+        if (event.pointerType === "mouse") return;
+
+        const element = document.elementFromPoint(event.clientX, event.clientY);
+
+        slots.forEach(slot => slot.classList.remove("over"));
+
+        if (element && element.classList.contains("drop-slot")) {
+          if (!element.classList.contains("correct")) {
+            element.classList.add("over");
+          }
+        }
+      });
+
+      digit.addEventListener("pointerup", event => {
+
+        if (draggedDigit !== digit) return;
+        if (event.pointerType === "mouse") return;
+
+        const element = document.elementFromPoint(event.clientX, event.clientY);
+
+        slots.forEach(slot => slot.classList.remove("over"));
+
+        if (element && element.classList.contains("drop-slot")) {
+          placeDigit(element, draggedValue);
+        }
+
+        digit.classList.remove("dragging");
+
+        draggedDigit = null;
+        draggedValue = null;
+      });
+    }
+
+
+    /* =========================================================
+       DRAG & DROP — SLOTS
+       ========================================================= */
+
+    function bindSlotEvents(slot) {
+
+      slot.addEventListener("dragover", event => {
+        event.preventDefault();
+        if (slot.classList.contains("correct")) return;
+        slot.classList.add("over");
+      });
+
+      slot.addEventListener("dragleave", () => {
+        slot.classList.remove("over");
+      });
+
+      slot.addEventListener("drop", event => {
+        event.preventDefault();
+        slot.classList.remove("over");
+        const value = Number(event.dataTransfer.getData("text/plain"));
+        placeDigit(slot, value);
+      });
+    }
+
+
+    /* =========================================================
+       PLACE DIGIT
+       ========================================================= */
+
+    /* =========================================================
+       REPLACE placeDigit()
+       ========================================================= */
+
+    function placeDigit(slot, value) {
+
+      if (slot.classList.contains("correct")) return;
+
+      const expected = Number(slot.dataset.answer);
+
+      slot.textContent = value;
+      slot.classList.add("filled");
+
+      if (value === expected) {
+
+        slot.classList.remove("wrong");
+        slot.classList.add("correct");
+
+        const equation = slot.closest(".equation");
+        equation.classList.add("completed");
+
+        /* SAVE ANSWER */
+        const index = Number(slot.dataset.slotIndex);
+
+        if (slot.dataset.side === "side-left") {
+          questionAnswers[current].left[index] = value;
+        }
+        else if (slot.dataset.side === "side-right") {
+          questionAnswers[current].right[index] = value;
+        }
+        else {
+          questionAnswers[current].bottom[0] = value;
+        }
+
+        completedSlots++;
+
+        correctSound.currentTime = 0;
+        correctSound.play().catch(() => { });
+
+        speak("Correct!");
+        showPopup(true, "Correct!", "Great job!");
+        fireConfetti();
+
+        checkFinished();
+
+        return;
+      }
+
+      slot.classList.remove("correct");
+      slot.classList.remove("wrong");
+
+      void slot.offsetWidth;
+
+      slot.classList.add("wrong");
+
+      wrongSound.currentTime = 0;
+      wrongSound.play().catch(() => { });
+
+      speak("Try again.");
+      showPopup(false, "Try Again!", "That number is not correct.");
+
+      setTimeout(() => {
+        if (!slot.classList.contains("correct")) {
+          slot.textContent = "";
+          slot.classList.remove("filled", "wrong");
+        }
+      }, 500);
+    }
+    /* =========================================================
+       CHECK IF QUESTION IS FINISHED
+       ========================================================= */
+
+    function checkFinished() {
+
+      if (completedSlots !== slots.length) {
+        updateNavigation();
+        return;
+      }
+
+      slots.forEach(slot => slot.classList.add("correct"));
+
+      setTimeout(() => {
+        fireBigConfetti();
+        showPopup(true, "Amazing!", `All the pairs make ${QUESTIONS[current].target}!`);
+      }, 350);
+
+      if (current === total - 1) {
+        setTimeout(() => { showFinal(); }, 1500);
+      }
+
+      updateNavigation();
+    }
+
+
+    /* =========================================================
+       FINAL POPUP
+       ========================================================= */
+
+    function showFinal() {
+
+      const finalPopup = document.getElementById("finalPopup");
+      finalPopup.style.display = "flex";
+
+      const allSlots = QUESTIONS.reduce((sum, q) => {
+        return sum + q.left.length + q.right.length + (q.bottom ? 1 : 0);
+      }, 0);
+
+      document.getElementById("finalScore").textContent =
+        `${allSlots} / ${allSlots} Completed`;
+
+      document.getElementById("stars").textContent = "⭐⭐⭐";
+    }
+
+
+    /* =========================================================
+       NAVIGATION
+       ========================================================= */
+
+    function updateNavigation() {
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = completedSlots !== slots.length || current === total - 1;
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (current === 0) return;
+      current--;
+      renderQuestion();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (nextBtn.disabled) return;
+      if (current < total - 1) {
+        current++;
+        renderQuestion();
+      }
+    });
+
+
+    /* =========================================================
+       QUESTION RENDER
+       ========================================================= */
+
+    /* =========================================================
+       REPLACE renderQuestion()
+       ========================================================= */
+
+    function renderQuestion() {
+
+      const q = QUESTIONS[current];
+
+      heading.textContent = `Make the total ${q.target}.`;
+      qLabel.textContent = q.label;
+      questionText.textContent = q.text;
+
+      completedSlots = 0;
+
+      buildBoard(q);
+      buildDigitTray(q);
+
+      /* RESTORE PREVIOUS ANSWERS AND LOCK THEM */
+      const saved = questionAnswers[current];
+
+      slots.forEach((slot, index) => {
+
+        let savedValue = null;
+
+        if (slot.dataset.side === "side-left") {
+          savedValue = saved.left[index];
+        }
+        else if (slot.dataset.side === "side-right") {
+          savedValue = saved.right[index];
+        }
+        else if (saved.bottom) {
+          savedValue = saved.bottom[0];
+        }
+
+        if (savedValue !== null && savedValue !== undefined) {
+
+          slot.textContent = savedValue;
+          slot.classList.add("filled", "correct");
+
+          const equation = slot.closest(".equation");
+          if (equation) {
+            equation.classList.add("completed");
+          }
+
+          completedSlots++;
+        }
+      });
+
+      updateNavigation();
+    }
+
+    /* =========================================================
+       RESIZE — keep connectors touching on layout changes
+       ========================================================= */
+
+    let resizeTimer = null;
+
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(drawConnectors, 120);
+    });
+
+
+    /* =========================================================
+       HOME
+       ========================================================= */
+
+    homeBtn.addEventListener("click", () => {
+      window.location.href = "../Grade2_chapter1.html";
+    });
+
+
+    /* =========================================================
+       HINT
+       ========================================================= */
+
+    hintBtn.addEventListener("click", () => {
+      hintText.textContent = QUESTIONS[current].hint;
+      hintOverlay.classList.add("show");
+    });
+
+    closeHintBtn.addEventListener("click", () => {
+      hintOverlay.classList.remove("show");
+    });
+
+    hintOverlay.addEventListener("click", event => {
+      if (event.target === hintOverlay) {
+        hintOverlay.classList.remove("show");
+      }
+    });
+
+
+    /* =========================================================
+       INITIALIZE
+       ========================================================= */
+
+    renderQuestion();
+
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subtraction with Bricks</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Livvic&display=swap');
+
+        /* =========================================================
+   BASE STYLES
+========================================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none !important;
+
+        }
+
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: "Livvic", sans-serif;
+
+            /* Softer background so the content stands out */
+            background:
+                radial-gradient(circle at 8% 16%, rgba(255, 255, 255, .65) 0 30px, transparent 31px),
+                radial-gradient(circle at 86% 14%, rgba(255, 255, 255, .6) 0 38px, transparent 39px),
+                linear-gradient(135deg, #faf7ff 0%, #fffafb 48%, #f7fcff 100%);
+
+            color: #332267;
+            overflow: hidden;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+        }
+
+        button:focus-visible,
+        input:focus-visible {
+            outline: 3px solid rgba(108, 118, 255, .35);
+            outline-offset: 3px;
+        }
+
+        .quiz-page {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 22px 30px 28px;
+        }
+
+        .quiz-page::before,
+        .quiz-page::after {
+            content: "";
+            position: absolute;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .quiz-page::before {
+            width: 440px;
+            height: 210px;
+            left: -80px;
+            bottom: -95px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffe3a3, #ffd5e3);
+            transform: rotate(8deg);
+        }
+
+        .quiz-page::after {
+            width: 520px;
+            height: 220px;
+            right: -110px;
+            bottom: -105px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #d9f6ff, #e2d4ff);
+            transform: rotate(-8deg);
+        }
+
+        /* =========================================================
+   TOP BAR
+========================================================= */
+        .top-bar {
+            position: relative;
+            z-index: 5;
+            min-height: 112px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .title-wrap {
+            text-align: center;
+            padding-top: 8px;
+        }
+
+        .page-title {
+            font-size: 30px;
+            line-height: 1;
+            color: #3d247b;
+            letter-spacing: .2px;
+        }
+
+        .title-dots {
+            margin: 16px auto 0;
+            width: min(480px, 58vw);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .title-dots span {
+            width: 11px;
+            height: 6px;
+            border-radius: 999px;
+            display: block;
+        }
+
+        .title-dots span:nth-child(5n+1) {
+            background: #ff8caf
+        }
+
+        .title-dots span:nth-child(5n+2) {
+            background: #ffc76f
+        }
+
+        .title-dots span:nth-child(5n+3) {
+            background: #83d7c5
+        }
+
+        .title-dots span:nth-child(5n+4) {
+            background: #cbb6ff
+        }
+
+        .title-dots span:nth-child(5n) {
+            background: #9fd6ff
+        }
+
+        .icon-button {
+            position: absolute;
+            top: 0;
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: none;
+            transition: transform .18s ease, filter .18s ease;
+            box-shadow: 0 7px 16px rgba(76, 56, 124, .16), inset 0 0 0 4px rgba(255, 255, 255, .9);
+        }
+
+        .icon-button:hover {
+            transform: translateY(-2px) scale(1.04)
+        }
+
+        .icon-button:active {
+            transform: translateY(2px) scale(.98)
+        }
+
+        .home-button {
+            left: 4px;
+            background: linear-gradient(145deg, #b8a1ff, #8d78ef);
+        }
+
+        .hint-button {
+            right: 4px;
+            background: linear-gradient(145deg, #7fe4e5, #56cdd2);
+        }
+
+        .icon-button img {
+            width: 54%;
+            height: 54%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .object-button.selected-image img {
+            animation: imageChange .35s ease;
+        }
+
+        @keyframes imageChange {
+            0% {
+                opacity: .35;
+                transform: scale(.75) rotate(-8deg);
+            }
+
+            60% {
+                opacity: 1;
+                transform: scale(1.08) rotate(3deg);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0);
+            }
+        }
+
+        /* =========================================================
+   QUESTION
+========================================================= */
+        .question-line {
+            position: relative;
+            z-index: 4;
+            min-height: 92px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            text-align: center;
+            padding: 8px 110px;
+            font-size: 30px;
+        }
+
+        .question-number,
+        .question-text {
+            font-size: 30px;
+            line-height: 1.15;
+        }
+
+        .question-number {
+            color: #2f4f4f;
+        }
+
+        .question-text {
+            color: #2f4f4f;
+        }
+
+        .question-line.animate {
+            animation: questionFloat .48s ease;
+        }
+
+        @keyframes questionFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(-12px)
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* =========================================================
+   GAME CONTENT
+========================================================= */
+        .game-area {
+            position: relative;
+            z-index: 3;
+            width: min(1360px, 100%);
+            margin: 0 auto;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.05fr 1fr;
+            gap: 44px;
+            align-items: center;
+            padding: 10px 34px 96px;
+        }
+
+        .object-side,
+        .equation-side {
+            min-width: 0;
+        }
+
+        .object-heading {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .total-label {
+            font-size: 54px;
+            color: #ff5f94;
+        }
+
+        .object-word {
+            font-size: 28px;
+            color: #32245f;
+        }
+
+        .objects-grid {
+            min-height: 248px;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(70px, 1fr));
+            justify-items: center;
+            align-items: center;
+            gap: 22px 20px;
+            padding: 14px 8px;
+        }
+
+        .object-button {
+            width: 100%;
+            max-width: 108px;
+            aspect-ratio: 1.45/1;
+            padding: 0;
+            background: transparent;
+            cursor: none;
+            position: relative;
+            transition: transform .18s ease, opacity .18s ease, filter .18s ease;
+        }
+
+        .object-button img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+            pointer-events: none;
+            filter: drop-shadow(0 8px 6px rgba(87, 55, 68, .12));
+        }
+
+        .object-button:hover:not(:disabled) {
+            transform: translateY(-5px) rotate(-2deg) scale(1.04);
+        }
+
+        .object-button.selected {
+            animation: takeAway .45s ease forwards;
+            pointer-events: none;
+        }
+
+        .object-button.locked:not(.selected) {
+            cursor: default;
+        }
+
+        @keyframes takeAway {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0)
+            }
+
+            45% {
+                opacity: .58;
+                transform: translateY(-12px) scale(.9) rotate(-8deg)
+            }
+
+            100% {
+                opacity: .18;
+                transform: translateY(18px) scale(.66) rotate(9deg)
+            }
+        }
+
+        .equation-side {
+            border-left: 2px dashed #d9c4f7;
+            padding-left: 44px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .take-away-text {
+            min-width: min(100%, 470px);
+            padding: 15px 24px;
+            border: 1px solid #f4d88d;
+            border-radius: 15px;
+            background: linear-gradient(90deg, #fff5ce, #fff9e8);
+            text-align: center;
+            font-size: 25px;
+            color: #352368;
+            margin-bottom: 50px;
+        }
+
+        .take-away-text .remove-count {
+            color: #ff5f94;
+        }
+
+        .equation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .number-box {
+            width: 136px;
+            height: 128px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, .72);
+            text-align: center;
+            font-size: 40px;
+            color: #ff5f94;
+        }
+
+        .number-box.total-box {
+            border: 2px solid #ff6d9d;
+        }
+
+        .number-box.remove-box {
+            border: 2px solid #7294ff;
+            color: #5666ce;
+        }
+
+        .number-box.answer-box {
+            border: 2px solid #86b94f;
+            color: #5d8d31;
+
+        }
+
+        .number-box.answer-box.correct {
+
+            border: 4px solid #86b94f;
+            background-color: #5d8d31;
+        }
+
+
+        .number-box:disabled {
+            opacity: 1;
+            -webkit-text-fill-color: #ff5f94;
+        }
+
+        .number-box[readonly] {
+            cursor: default;
+        }
+
+        .number-box:not(:disabled):not([readonly]) {
+            cursor: text;
+        }
+
+        .math-symbol {
+            font-size: 40px;
+            color: #30235e;
+        }
+
+        /* =========================================================
+   NAVIGATION
+========================================================= */
+        .navigation {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 26px;
+            z-index: 6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: min(46vw, 600px);
+            pointer-events: none;
+        }
+
+        .nav-button {
+            pointer-events: auto;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: none;
+            /* box-shadow:0 7px 16px rgba(76,56,124,.18),inset 0 0 0 4px rgba(255,255,255,.9); */
+            transition: transform .18s ease, opacity .18s ease, filter .18s ease;
+        }
+
+        .prev-button {
+            background: linear-gradient(145deg, #ff91af, #ff6f99)
+        }
+
+        .next-button {
+            background: linear-gradient(145deg, #73b9ff, #4d9cf4)
+        }
+
+        .nav-button img {
+            width: 52%;
+            height: 52%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .nav-button:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.04)
+        }
+
+        .nav-button:active:not(:disabled) {
+            transform: translateY(2px) scale(.98)
+        }
+
+        .nav-button:disabled {
+            /* opacity:.3; */
+            /* filter:grayscale(.2); */
+            cursor: not-allowed;
+        }
+
+        /* =========================================================
+   CUSTOM HAND POINTER
+========================================================= */
+        .hand-pointer {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 62px;
+            height: 62px;
+            object-fit: contain;
+            z-index: 99999;
+            pointer-events: none;
+            transform: translate(-10px, -8px);
+            opacity: 0;
+            transition: opacity .12s ease;
+            filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .18));
+        }
+
+        .hand-pointer.show {
+            opacity: 1
+        }
+
+        .next-button:not(:disabled) {
+            animation: nextButtonMove 1s ease-in-out infinite;
+        }
+
+        @keyframes nextButtonMove {
+
+            0%,
+            100% {
+                transform: translateX(0) scale(1);
+            }
+
+            40% {
+                transform: translateX(9px) scale(1.05);
+            }
+
+            60% {
+                transform: translateX(5px) scale(1.02);
+            }
+        }
+
+        /* =========================================================
+   POPUPS  (unchanged behaviour)
+========================================================= */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 22px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .22s ease, visibility .22s ease;
+        }
+
+        .popup-icon img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .popup-card {
+            width: min(470px, 92vw);
+            border-radius: 28px;
+            background: #fffdfd;
+            border: 2px solid rgba(206, 186, 240, .7);
+            padding: 32px 28px 28px;
+            text-align: center;
+            transform: scale(.84) translateY(15px);
+            transition: transform .24s ease;
+        }
+
+        .popup-overlay.show .popup-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .popup-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 14px;
+            font-size: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-title {
+            font-size: 34px;
+            color: #402a75;
+            margin-bottom: 10px;
+        }
+
+        .popup-message {
+            font-size: 19px;
+            line-height: 1.45;
+            color: #5a4b78;
+        }
+
+        .popup-button {
+            min-width: 150px;
+            min-height: 52px;
+            margin-top: 22px;
+            padding: 10px 24px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #9b85f5, #7c68df);
+            color: #fff;
+            font-size: 19px;
+            border: 0;
+        }
+
+        .final-card .popup-icon img {
+            width: 90px;
+            height: 90px;
+        }
+
+        .final-card {
+            width: min(540px, 94vw);
+            max-height: calc(100vh - 44px);
+            overflow: auto;
+            background: linear-gradient(145deg, #fffdfc, #f8f2ff);
+            border-color: #e2cfff;
+            padding: 38px 30px 32px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 24px 60px rgba(76, 56, 124, .22);
+        }
+
+        .final-card .popup-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+        }
+
+        .final-card .popup-icon img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
+
+        .final-card .popup-title {
+            margin-bottom: 10px;
+        }
+
+        .final-card .popup-message {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .final-card .play-again-button {
+            margin-top: 22px;
+        }
+
+        .final-card .popup-icon {
+            font-size: 72px;
+        }
+
+        .final-card .popup-title {
+            font-size: 40px;
+        }
+
+        .play-again-button {
+            background: linear-gradient(135deg, #ff8eae, #8f7bf1);
+        }
+
+        /* =========================================================
+   CONFETTI
+========================================================= */
+        .confetti-piece {
+            position: fixed;
+            top: -20px;
+            width: 10px;
+            height: 16px;
+            border-radius: 3px;
+            z-index: 12000;
+            pointer-events: none;
+            animation: confettiFall 1.55s ease-in forwards;
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(110vh) rotate(760deg);
+                opacity: .3;
+            }
+        }
+
+        /* =========================================================
+   MOBILE
+========================================================= */
+        @media (max-width:600px) {
+            .quiz-page {
+                padding: 12px 10px 20px;
+                min-height: 100vh
+            }
+
+            .top-bar {
+                min-height: 84px
+            }
+
+            .page-title {
+                font-size: 30px;
+                padding-top: 5px
+            }
+
+            .title-dots {
+                margin-top: 10px;
+                width: 58vw;
+                gap: 7px
+            }
+
+            .title-dots span {
+                width: 7px;
+                height: 4px
+            }
+
+            .icon-button {
+                width: 58px;
+                height: 58px
+            }
+
+            .question-line {
+                min-height: 72px;
+                padding: 6px 12px;
+                gap: 8px
+            }
+
+            .question-number,
+            .question-text {
+                font-size: 30px
+            }
+
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 24px;
+                padding: 0 4px 100px
+            }
+
+            .object-heading {
+                margin-bottom: 10px
+            }
+
+            .total-label {
+                font-size: 40px
+            }
+
+            .object-word {
+                font-size: 23px
+            }
+
+            .objects-grid {
+                min-height: 175px;
+                grid-template-columns: repeat(5, minmax(45px, 1fr));
+                gap: 12px 8px;
+                padding: 4px
+            }
+
+            .object-button {
+                max-width: 75px
+            }
+
+            .equation-side {
+                border-left: 0;
+                border-top: 2px dashed #d9c4f7;
+                padding-left: 0;
+                padding-top: 24px
+            }
+
+            .take-away-text {
+                font-size: 18px;
+                margin-bottom: 24px;
+                padding: 12px 14px
+            }
+
+            .equation {
+                gap: 8px
+            }
+
+            .number-box {
+                width: 78px;
+                height: 72px;
+                border-radius: 13px;
+                font-size: 28px
+            }
+
+            .math-symbol {
+                font-size: 28px
+            }
+
+            .navigation {
+                bottom: 18px;
+                gap: 46vw
+            }
+
+            .nav-button {
+                width: 66px;
+                height: 66px
+            }
+
+            .hand-pointer {
+                width: 54px;
+                height: 54px
+            }
+
+            .popup-title {
+                font-size: 28px
+            }
+
+            .popup-message {
+                font-size: 17px
+            }
+        }
+
+        /* =========================================================
+   TABLET
+========================================================= */
+        @media (min-width:601px) and (max-width:900px) {
+            .quiz-page {
+                padding: 18px 20px 24px
+            }
+
+            .page-title {
+                font-size: 30px
+            }
+
+            .icon-button {
+                width: 72px;
+                height: 72px
+            }
+
+            .question-line {
+                padding: 6px 90px;
+                min-height: 80px
+            }
+
+            .question-number,
+            .question-text {
+                font-size: 30px
+            }
+
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 28px;
+                padding: 0 24px 108px
+            }
+
+            .objects-grid {
+                min-height: 210px;
+                max-width: 620px;
+                margin: auto;
+                width: 100%
+            }
+
+            .object-button {
+                max-width: 90px
+            }
+
+            .equation-side {
+                border-left: 0;
+                border-top: 2px dashed #d9c4f7;
+                padding: 26px 0 0
+            }
+
+            .take-away-text {
+                margin-bottom: 28px;
+                font-size: 22px
+            }
+
+            .number-box {
+                width: 110px;
+                height: 100px;
+                font-size: 34px
+            }
+
+            .navigation {
+                gap: 58vw
+            }
+
+            .nav-button {
+                width: 78px;
+                height: 78px
+            }
+        }
+
+        /* =========================================================
+   LAPTOP
+========================================================= */
+        @media (min-width:901px) and (max-width:1440px) {
+            .quiz-page {
+                padding: 18px 24px 24px
+            }
+
+            .top-bar {
+                min-height: 102px
+            }
+
+            .page-title {
+                font-size: 30px
+            }
+
+            .icon-button {
+                width: 76px;
+                height: 76px
+            }
+
+            .question-line {
+                min-height: 86px
+            }
+
+            .question-number,
+            .question-text {
+                font-size: 30px
+            }
+
+            .game-area {
+                gap: 34px;
+                padding: 4px 26px 96px
+            }
+
+            .total-label {
+                font-size: 48px
+            }
+
+            .object-word {
+                font-size: 25px
+            }
+
+            .objects-grid {
+                min-height: 228px;
+                gap: 18px 14px
+            }
+
+            .object-button {
+                max-width: 94px
+            }
+
+            .equation-side {
+                padding-left: 34px
+            }
+
+            .take-away-text {
+                font-size: 22px;
+                margin-bottom: 38px
+            }
+
+            .number-box {
+                width: 112px;
+                height: 106px;
+                font-size: 34px
+            }
+
+            .navigation {
+                gap: 48vw
+            }
+
+            .nav-button {
+                width: 78px;
+                height: 78px
+            }
+        }
+
+        /* =========================================================
+   DESKTOP / MONITOR
+========================================================= */
+        @media (min-width:1441px) {
+
+            .quiz-page {
+                padding: 10px 38px 20px
+            }
+
+            .top-bar {
+                min-height: 100px
+            }
+
+            .question-line {
+                min-height: 75px
+            }
+
+            .page-title {
+                font-size: 40px
+            }
+
+            .game-area {
+                /* max-width:1500px; */
+                /* gap:45px; */
+                /* padding:5px 42px 80px; */
+                /* grid-template-columns:minmax(750px, 1.3fr) minmax(500px, 1fr); */
+                max-width: 1500px;
+                grid-template-columns: 1fr 1fr;
+                gap: 35px;
+            }
+
+            .question-number,
+            .question-text {
+                font-size: 40px
+            }
+
+            .object-word {
+                font-size: 40px
+            }
+
+            .objects-grid {
+                width: 100%;
+                max-width: 1600px;
+                column-gap: 75px;
+                row-gap: 0px;
+                /* padding-right:80px; */
+                padding-right: 140px;
+                transform: translateX(-60px)
+                    /* padding-right:0; */
+            }
+
+            .object-button {
+                width: 150px;
+                height: 150px;
+                max-width: 150px;
+            }
+
+            .take-away-text {
+                font-size: 27px
+            }
+
+            .number-box {
+                width: 145px;
+                height: 126px;
+                font-size: 46px !important;
+            }
+
+            .navigation {
+                gap: min(52vw, 720px)
+            }
+
+            .nav-button {
+                width: 96px;
+                height: 96px
+            }
+
+        }
+
+        /* SCREEN FIT - NO PAGE SCROLL */
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .quiz-page {
+            height: 100vh;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .game-area {
+            min-height: 0;
+        }
+
+        .objects-grid {
+            min-height: 0;
+        }
+
+        .popup-overlay {
+            overflow: hidden;
+        }
+
+        @media (max-width:600px) {
+            .quiz-page {
+                padding: 8px 8px 10px
+            }
+
+            .top-bar {
+                min-height: 70px
+            }
+
+            .question-line {
+                min-height: 58px
+            }
+
+            .game-area {
+                gap: 10px;
+                padding: 0 2px 72px
+            }
+
+            .object-heading {
+                margin-bottom: 4px
+            }
+
+            .objects-grid {
+                min-height: 0;
+                gap: 6px 4px;
+                padding: 2px
+            }
+
+            .object-button {
+                max-width: 58px
+            }
+
+            .equation-side {
+                padding-top: 12px
+            }
+
+            .take-away-text {
+                margin-bottom: 12px;
+                padding: 8px 10px
+            }
+
+            .number-box {
+                width: 66px;
+                height: 60px
+            }
+
+            .navigation {
+                bottom: 10px
+            }
+
+            .nav-button {
+                width: 58px;
+                height: 58px
+            }
+        }
+
+        @media (min-width:601px) and (max-width:900px) {
+            .quiz-page {
+                padding: 10px 16px 14px
+            }
+
+            .top-bar {
+                min-height: 76px
+            }
+
+            .question-line {
+                min-height: 64px
+            }
+
+            .game-area {
+                gap: 16px;
+                padding: 0 18px 82px
+            }
+
+            .objects-grid {
+                min-height: 0;
+                gap: 8px 8px
+            }
+
+            .object-button {
+                max-width: 72px
+            }
+
+            .equation-side {
+                padding-top: 16px
+            }
+
+            .take-away-text {
+                margin-bottom: 16px
+            }
+
+            .number-box {
+                width: 90px;
+                height: 78px
+            }
+
+            .navigation {
+                bottom: 12px
+            }
+
+            .nav-button {
+                width: 68px;
+                height: 68px
+            }
+        }
+
+        @media (min-width:901px) and (max-width:1440px) {
+            .quiz-page {
+                padding: 10px 20px 16px
+            }
+
+            .top-bar {
+                min-height: 86px
+            }
+
+            .question-line {
+                min-height: 68px
+            }
+
+            .game-area {
+                gap: 24px;
+                padding: 0 22px 82px
+            }
+
+            .objects-grid {
+                min-height: 0;
+                gap: 10px 10px
+            }
+
+            .object-button {
+                max-width: 82px
+            }
+
+            .take-away-text {
+                margin-bottom: 22px
+            }
+
+            .number-box {
+                width: 100px;
+                height: 90px
+            }
+
+            .navigation {
+                bottom: 14px
+            }
+
+            .nav-button {
+                width: 72px;
+                height: 72px
+            }
+        }
+
+        @media (min-width:1441px) {
+            .quiz-page {
+                padding: 8px 32px 14px
+            }
+
+            .top-bar {
+                min-height: 90px
+            }
+
+            .question-line {
+                min-height: 68px
+            }
+
+            .game-area {
+                min-height: 0;
+                padding: 0 34px 82px
+            }
+
+            .objects-grid {
+                min-height: 0
+            }
+
+            .object-button {
+                width: 140px;
+                height: 140px;
+                max-width: 140px
+            }
+
+            .take-away-text {
+                margin-bottom: 28px
+            }
+
+            .number-box {
+                height: 116px
+            }
+
+            .navigation {
+                bottom: 16px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-page" id="quizPage">
+
+        <div class="top-bar">
+            <button class="icon-button home-button hand-target" id="homeButton" type="button" aria-label="Home"
+                title="Home">
+                <img src="../assets/images/home.png" alt="">
+            </button>
+
+            <div class="title-wrap">
+                <div class="page-title">Subtraction with Bricks</div>
+                <div class="title-dots" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+
+            <button class="icon-button hint-button hand-target" id="hintButton" type="button" aria-label="Hint"
+                title="Hint">
+                <img src="../assets/images/hint.png" alt="">
+            </button>
+        </div>
+
+        <div class="question-line" id="questionLine">
+            <span class="question-number" id="questionNumber">Q1.</span>
+            <span class="question-text" id="questionText">How many are left?</span>
+        </div>
+
+        <main class="game-area">
+            <section class="object-side">
+                <div class="object-heading">
+                    <span class="total-label" id="totalLabel">10</span>
+                    <span class="object-word" id="objectWord">bricks</span>
+                </div>
+                <div class="objects-grid" id="objectsGrid" aria-label="Objects to take away"></div>
+            </section>
+
+            <section class="equation-side">
+                <div class="take-away-text" id="takeAwayText">If <span class="remove-count">5</span> bricks are taken
+                    away</div>
+                <div class="equation">
+                    <input class="number-box total-box" id="totalBox" type="text" inputmode="numeric"
+                        aria-label="Total number" disabled>
+                    <span class="math-symbol">−</span>
+                    <input class="number-box remove-box" id="removeBox" type="text" inputmode="numeric" maxlength="2"
+                        aria-label="Number taken away" disabled>
+                    <span class="math-symbol">=</span>
+                    <input class="number-box answer-box" id="answerBox" type="text" inputmode="numeric" maxlength="2"
+                        aria-label="Number left" disabled>
+                </div>
+            </section>
+        </main>
+
+        <div class="navigation">
+            <button class="nav-button prev-button hand-target" id="prevButton" type="button"
+                aria-label="Previous question" disabled>
+                <img src="../assets/images/left-arrow.png" alt="">
+            </button>
+            <button class="nav-button next-button hand-target" id="nextButton" type="button" aria-label="Next question"
+                disabled>
+                <img src="../assets/images/right-arrow.png" alt="">
+            </button>
+        </div>
+    </div>
+
+    <img class="hand-pointer" id="handPointer" src="../assets/images/hand-pointer.png" alt="" aria-hidden="true">
+
+    <!-- HINT POPUP -->
+    <div class="popup-overlay" id="hintOverlay" aria-hidden="true">
+        <div class="popup-card">
+            <img class="popup-icon" src="../assets/images/hint.png" alt="">
+            <div class="popup-title">Hint</div>
+            <div class="popup-message" id="hintMessage"></div>
+            <button class="popup-button hand-target" id="hintCloseButton" type="button">OK</button>
+        </div>
+    </div>
+
+    <!-- CORRECT POPUP -->
+    <div class="popup-overlay" id="correctOverlay" aria-hidden="true">
+        <div class="popup-card">
+            <div class="popup-icon"><img src="../assets/images/correct.png" alt="Correct"></div>
+            <div class="popup-title">Correct!</div>
+            <div class="popup-message">Great job! Your answer is correct.</div>
+        </div>
+    </div>
+
+    <!-- WRONG POPUP -->
+    <div class="popup-overlay" id="wrongOverlay" aria-hidden="true">
+        <div class="popup-card">
+            <div class="popup-icon"><img src="../assets/images/wrong.png" alt="Wrong"></div>
+            <div class="popup-title">Try Again</div>
+            <div class="popup-message">That answer is not correct yet. Try once more.</div>
+        </div>
+    </div>
+
+    <!-- FINAL POPUP -->
+    <div class="popup-overlay" id="finalOverlay" aria-hidden="true">
+        <div class="popup-card final-card" role="dialog" aria-modal="true" aria-labelledby="finalPopupTitle">
+            <div class="popup-icon">
+                <img src="../assets/images/trophy.png" alt="Trophy">
+            </div>
+            <div class="popup-title" id="finalPopupTitle">Activity Complete!</div>
+            <div class="popup-message">You finished all the questions.</div>
+            <button class="popup-button play-again-button hand-target" id="playAgainButton" type="button">
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                total: 9,
+                remove: 5,
+                answer: 4,
+                objectName: "bricks",
+                objectImage: "../assets/images/brick.png",
+                questionText: "How many are left?",
+                takeAwayText: "If 5 bricks are taken away",
+                hint: "Tap 5 bricks first. Then enter how many were taken away and how many are left."
+            },
+            {
+                total: 12,
+                remove: 6,
+                answer: 6,
+                objectName: "cherries",
+                objectImage: "../assets/images/cherry.png",
+                questionText: "How many are left?",
+                takeAwayText: "If 6 cherries are eaten",
+                hint: "Tap all 6 cherries. If every cherry is eaten, think about how many remain."
+            },
+            {
+                total: 10,
+                remove: 3,
+                answer: 7,
+                objectName: "glasses",
+                objectImage: "../assets/images/milk.png",
+                selectedImage: "../assets/images/glass.png",
+                questionText: "How many are left?",
+                takeAwayText: "If 3 glasses are empty",
+                hint: "Tap 3 glasses, then count the glasses that are still left."
+            },
+            {
+                total: 16,
+                remove: 8,
+                answer: 8,
+                objectName: "huts",
+                objectImage: "../assets/images/hut.png",
+                selectedImage: "../assets/images/painted-hut.png",
+                questionText: "How many are left?",
+                takeAwayText: "If 8 huts are painted",
+                hint: "Tap 8 huts, then subtract 8 from the total number of huts."
+            },
+            {
+                total: 15,
+                remove: 7,
+                answer: 8,
+                objectName: "trees",
+                objectImage: "../assets/images/drytree.png",
+                selectedImage: "../assets/images/tree.png",
+                pointerImage: "../assets/images/hand-pointer.png",
+                questionText: "How many are left?",
+                takeAwayText: "If 7 trees are watered in the morning",
+                hint: "Tap 7 trees first. Then count how many trees have not been tapped."
+            }
+        ];
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        let currentQuestion = 0;
+        let selectedCount = 0;
+        let answerChecked = false;
+        const completed = new Array(quizData.length).fill(false);
+        const savedAnswers = quizData.map(() => ({ removed: "", answer: "", selected: 0 }));
+
+        const questionLine = document.getElementById("questionLine");
+        const questionNumber = document.getElementById("questionNumber");
+        const questionText = document.getElementById("questionText");
+        const totalLabel = document.getElementById("totalLabel");
+        const objectWord = document.getElementById("objectWord");
+        const objectsGrid = document.getElementById("objectsGrid");
+        const takeAwayText = document.getElementById("takeAwayText");
+        const totalBox = document.getElementById("totalBox");
+        const removeBox = document.getElementById("removeBox");
+        const answerBox = document.getElementById("answerBox");
+        const prevButton = document.getElementById("prevButton");
+        const nextButton = document.getElementById("nextButton");
+        const hintButton = document.getElementById("hintButton");
+        const homeButton = document.getElementById("homeButton");
+        const handPointer = document.getElementById("handPointer");
+
+        const hintOverlay = document.getElementById("hintOverlay");
+        const correctOverlay = document.getElementById("correctOverlay");
+        const wrongOverlay = document.getElementById("wrongOverlay");
+        const finalOverlay = document.getElementById("finalOverlay");
+        const hintMessage = document.getElementById("hintMessage");
+
+        function loadQuestion() {
+            const q = quizData[currentQuestion];
+
+            const state = savedAnswers[currentQuestion];
+            updatePointerImage();
+
+            selectedCount = state.selected || 0;
+            answerChecked = completed[currentQuestion];
+
+            questionNumber.textContent = `Q${currentQuestion + 1}.`;
+            questionText.textContent = q.questionText;
+            totalLabel.textContent = q.total;
+            objectWord.textContent = q.objectName;
+            takeAwayText.innerHTML = escapeHtml(q.takeAwayText).replace(String(q.remove), `<span class="remove-count">${q.remove}</span>`);
+            totalBox.value = q.total;
+            removeBox.value = state.removed;
+            answerBox.value = state.answer;
+
+            questionLine.classList.remove("animate");
+            void questionLine.offsetWidth;
+            questionLine.classList.add("animate");
+
+            renderObjects();
+            updateInputState();
+            updateNavigation();
+        }
+        function updatePointerImage() {
+            const q = quizData[currentQuestion];
+
+            handPointer.src =
+                q.pointerImage ||
+                "../assets/images/handPointer.png";
+        }
+
+        function renderObjects() {
+            const q = quizData[currentQuestion];
+            objectsGrid.innerHTML = "";
+
+            for (let i = 0; i < q.total; i++) {
+
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "object-button hand-target";
+                button.dataset.index = i;
+
+                button.setAttribute(
+                    "aria-label",
+                    `${q.objectName.slice(0, -1) || q.objectName} ${i + 1}`
+                );
+
+                const image = document.createElement("img");
+
+                /*
+                 * Q3, Q4, Q5:
+                 * tapped image changes to selectedImage
+                 *
+                 * Q1, Q2:
+                 * tapped image disappears using .selected
+                 */
+                if (i < selectedCount && q.selectedImage) {
+                    image.src = q.selectedImage;
+                    button.classList.add("selected-image");
+                }
+                else {
+                    image.src = q.objectImage;
+
+                    if (i < selectedCount) {
+                        button.classList.add("selected");
+                    }
+                }
+
+                image.alt = "";
+                button.appendChild(image);
+
+                button.addEventListener("click", () => selectObject(button));
+
+                objectsGrid.appendChild(button);
+            }
+        }
+        function selectObject(button) {
+            const q = quizData[currentQuestion];
+
+            // Strictly allow only the required number of taps
+            if (selectedCount >= q.remove) return;
+
+            // Same image cannot be tapped twice
+            if (button.dataset.tapped === "true") return;
+
+            button.dataset.tapped = "true";
+
+            selectedCount++;
+            savedAnswers[currentQuestion].selected = selectedCount;
+
+            const image = button.querySelector("img");
+
+            /*
+             * Q3, Q4, Q5:
+             * Change the tapped image
+             */
+            if (q.selectedImage) {
+                image.src = q.selectedImage;
+                button.classList.add("selected-image");
+            }
+
+            /*
+             * Q1, Q2:
+             * Make the tapped image disappear
+             */
+            else {
+                button.classList.add("selected");
+            }
+
+            // After exactly the required number of taps
+            if (selectedCount === q.remove) {
+
+                savedAnswers[currentQuestion].removed = String(q.remove);
+                removeBox.value = q.remove;
+
+                updateInputState();
+
+                requestAnimationFrame(() => {
+                    answerBox.focus();
+                });
+            }
+        }
+
+        function updateInputState() {
+            const q = quizData[currentQuestion];
+            const canType = selectedCount === q.remove;
+
+            removeBox.disabled = !canType || completed[currentQuestion];
+            answerBox.disabled = !canType || completed[currentQuestion];
+
+            if (canType && !savedAnswers[currentQuestion].removed) {
+                savedAnswers[currentQuestion].removed = String(q.remove);
+                removeBox.value = q.remove;
+            }
+        }
+
+        function numericOnly(input) {
+            input.value = input.value.replace(/\D/g, "").slice(0, 2);
+        }
+
+        removeBox.addEventListener("input", () => {
+            numericOnly(removeBox);
+            savedAnswers[currentQuestion].removed = removeBox.value;
+
+            const q = quizData[currentQuestion];
+            if (removeBox.value.length >= String(q.remove).length) {
+                answerBox.focus();
+            }
+            updateNavigation();
+        });
+
+        answerBox.addEventListener("input", () => {
+            numericOnly(answerBox);
+            savedAnswers[currentQuestion].answer = answerBox.value;
+            answerChecked = false;
+            updateNavigation();
+
+            if (answerBox.value !== "" && removeBox.value !== "") {
+                validateAnswer();
+            }
+        });
+
+        answerBox.addEventListener("keydown", event => {
+            if (event.key === "Enter" && answerBox.value !== "") validateAnswer();
+        });
+
+        function validateAnswer() {
+            const q = quizData[currentQuestion];
+            const removed = Number(removeBox.value);
+            const answer = Number(answerBox.value);
+
+            if (removeBox.value === "" || answerBox.value === "") return;
+
+            if (removed === q.remove && answer === q.answer) {
+                completed[currentQuestion] = true;
+                answerChecked = true;
+                removeBox.disabled = true;
+                answerBox.disabled = true;
+                savedAnswers[currentQuestion].removed = String(q.remove);
+                savedAnswers[currentQuestion].answer = String(q.answer);
+
+                // Always show the correct popup first, including on the last question
+                showPopup(correctOverlay);
+                playCorrectSound();
+                launchConfetti(55);
+
+                if (currentQuestion === quizData.length - 1) {
+                    // Last question: after 1600ms, close the correct popup and show final popup
+                    setTimeout(() => {
+                        hidePopup(correctOverlay);
+                        showPopup(finalOverlay);
+                        playCorrectSound();
+                        launchConfetti(110);
+                    }, 1600);
+                } else {
+                    // Other questions: close correct popup after 1500ms, but stay on this question
+                    setTimeout(() => {
+                        hidePopup(correctOverlay);
+                    }, 1500);
+                }
+            } else {
+                completed[currentQuestion] = false;
+                answerChecked = false;
+                showPopup(wrongOverlay);
+                playWrongSound();
+
+                // Automatically close wrong popup and allow another attempt
+                setTimeout(() => {
+                    hidePopup(wrongOverlay);
+                    answerBox.value = "";
+                    savedAnswers[currentQuestion].answer = "";
+                    answerBox.focus();
+                }, 1500);
+            }
+
+            updateNavigation();
+        }
+
+        function updateNavigation() {
+            prevButton.disabled = currentQuestion === 0;
+            nextButton.disabled = !completed[currentQuestion];
+        }
+
+        prevButton.addEventListener("click", () => {
+            if (currentQuestion === 0) return;
+            currentQuestion--;
+            loadQuestion();
+        });
+
+        nextButton.addEventListener("click", () => {
+            if (!completed[currentQuestion]) return;
+
+            if (currentQuestion === quizData.length - 1) {
+                return;
+            }
+
+            currentQuestion++;
+            loadQuestion();
+        });
+
+        hintButton.addEventListener("click", () => {
+            hintMessage.textContent = quizData[currentQuestion].hint;
+            showPopup(hintOverlay);
+        });
+
+        document.getElementById("hintCloseButton").addEventListener("click", () => hidePopup(hintOverlay));
+        document.getElementById("playAgainButton").addEventListener("click", () => {
+            hidePopup(finalOverlay);
+            currentQuestion = 0;
+            selectedCount = 0;
+            completed.fill(false);
+            savedAnswers.forEach(state => {
+                state.removed = "";
+                state.answer = "";
+                state.selected = 0;
+            });
+            loadQuestion();
+        });
+
+        homeButton.addEventListener("click", () => {
+            window.location.href = "../Grade2_chapter4.html";
+        });
+
+        function showPopup(overlay) {
+            overlay.classList.add("show");
+            overlay.setAttribute("aria-hidden", "false");
+        }
+
+        function hidePopup(overlay) {
+            overlay.classList.remove("show");
+            overlay.setAttribute("aria-hidden", "true");
+        }
+
+        [hintOverlay, correctOverlay, wrongOverlay].forEach(overlay => {
+            overlay.addEventListener("click", event => {
+                if (event.target === overlay) {
+                    if (overlay === wrongOverlay) {
+                        hidePopup(overlay);
+                        answerBox.value = "";
+                        savedAnswers[currentQuestion].answer = "";
+                        answerBox.focus();
+                    } else {
+                        hidePopup(overlay);
+                    }
+                }
+            });
+        });
+
+        function launchConfetti(count) {
+            const colors = ["#ff8cab", "#8a78ed", "#65cbd2", "#ffd26e", "#7BCB5A"];
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement("span");
+                piece.className = "confetti-piece";
+                piece.style.left = `${Math.random() * 100}vw`;
+                piece.style.background = colors[i % colors.length];
+                piece.style.animationDelay = `${Math.random() * .5}s`;
+                piece.style.transform = `rotate(${Math.random() * 180}deg)`;
+                document.body.appendChild(piece);
+                setTimeout(() => piece.remove(), 2200);
+            }
+        }
+
+        function playTone(frequency, duration, type = "sine", delay = 0) {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return;
+                const ctx = new AudioContextClass();
+                const oscillator = ctx.createOscillator();
+                const gain = ctx.createGain();
+                oscillator.type = type;
+                oscillator.frequency.value = frequency;
+                gain.gain.setValueAtTime(.0001, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(.12, ctx.currentTime + .02 + delay);
+                gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + duration + delay);
+                oscillator.connect(gain);
+                gain.connect(ctx.destination);
+                oscillator.start(ctx.currentTime + delay);
+                oscillator.stop(ctx.currentTime + duration + delay + .02);
+                oscillator.addEventListener("ended", () => ctx.close());
+            } catch (error) { }
+        }
+
+        function playCorrectSound() {
+            playTone(523, .18, "sine", 0);
+            playTone(659, .18, "sine", .12);
+            playTone(784, .26, "sine", .24);
+        }
+
+        function playWrongSound() {
+            playTone(220, .22, "triangle", 0);
+            playTone(174, .3, "triangle", .14);
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        /* Large custom hand clipart pointer for clickable controls and objects. */
+        // document.addEventListener("pointermove",event => {
+        //     handPointer.style.left = `${event.clientX}px`;
+        //     handPointer.style.top = `${event.clientY}px`;
+
+        //     const target = event.target.closest(".hand-target");
+        //     if(target && !target.disabled){
+        //         handPointer.classList.add("show");
+        //     }else{
+        //         handPointer.classList.remove("show");
+        //     }
+        // });
+        document.addEventListener("pointermove", e => {
+            handPointer.style.left = `${e.clientX}px`;
+            handPointer.style.top = `${e.clientY}px`;
+            handPointer.classList.add("show");
+        });
+
+        document.addEventListener("pointerleave", () => handPointer.classList.remove("show"));
+        document.addEventListener("pointerdown", () => handPointer.style.transform = "translate(-10px,-8px) scale(.88)");
+        document.addEventListener("pointerup", () => handPointer.style.transform = "translate(-10px,-8px) scale(1)");
+
+        loadQuestion();
+    </script>
+</body>
+
+</html>

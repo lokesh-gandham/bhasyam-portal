@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>One Word</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../assets/css/reuse.css">
+
+<style>
+/* =========================================================
+   BASE STYLES
+   Page-specific styles only.
+   Next/Prev, answer popup and final popup come from reuse.css.
+   ========================================================= */
+
+*{box-sizing:border-box}
+
+html,body{
+    width:100%;
+    height:100%;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+}
+
+body{
+    font-family:"Livvic",sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#33424f;
+    background:#fffdf8;
+}
+
+.quiz{
+    width:100%;
+    height:100vh;
+    height:100dvh;
+    padding:clamp(8px,1.4vh,18px) clamp(14px,3vw,48px) clamp(8px,1.2vh,16px);
+    display:flex;
+    flex-direction:column;
+    gap:clamp(6px,1vh,14px);
+    overflow:hidden;
+    background:
+        radial-gradient(circle at 7% 5%,rgba(238,232,255,.72),transparent 24%),
+        radial-gradient(circle at 93% 8%,rgba(222,245,233,.68),transparent 23%),
+        linear-gradient(180deg,#fffefb 0%,#fffaf2 100%);
+}
+
+.topbar{
+    width:100%;
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:90px minmax(0,1fr) 90px;
+    align-items:start;
+    gap:10px;
+}
+
+.icon-btn{
+    background:none;
+    border:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    cursor:pointer;
+}
+
+.icon-circle{
+    width:clamp(42px,4.2vw,62px);
+    height:clamp(42px,4.2vw,62px);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:clamp(18px,1.8vw,27px);
+    transition:transform .2s ease;
+}
+
+.icon-btn:hover .icon-circle{
+    transform:scale(1.06);
+}
+
+.icon-circle.home{
+    background:linear-gradient(145deg,#8b6fe0,#6f42c1);
+    box-shadow:0 4px 0 #4f2e93;
+}
+
+.icon-circle.hint{
+    background:linear-gradient(145deg,#ffc94d,#f7a800);
+    box-shadow:0 4px 0 #c17e00;
+}
+
+.title-block{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.title{
+    margin:0;
+    text-align:center;
+    color:#1f2d3d;
+    font-size:26px;
+    line-height:1.12;
+}
+
+.quiz-layout{
+    flex:1 1 auto;
+    min-height:0;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(12px,2vh,22px);
+    overflow:hidden;
+    text-align:center;
+}
+
+.question-line{
+    width:min(1100px,94vw);
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(8px,1vw,14px);
+    color:#33424f;
+    text-align:center;
+}
+
+.question-number{
+    flex:0 0 auto;
+    margin:0;
+    font-size:30px;
+    line-height:1.15;
+    white-space:nowrap;
+}
+
+.question-statement{
+    min-width:0;
+    max-width:950px;
+    margin:0;
+    font-size:30px;
+    line-height:1.25;
+    text-align:center;
+}
+
+.question-line.q10 .question-statement{
+    font-size:clamp(12px,2.1vw,30px);
+    white-space:nowrap;
+}
+
+.question-image{
+    width:min(520px,72vw);
+    height:clamp(120px,24vh,220px);
+    flex:0 0 auto;
+    object-fit:contain;
+    display:block;
+    pointer-events:none;
+    -webkit-user-drag:none;
+}
+
+.answer-area{
+    width:min(720px,88vw);
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(10px,1.2vw,16px);
+}
+
+.answer-input{
+    width:min(500px,70vw);
+    height:clamp(54px,7vh,70px);
+    padding:0 clamp(16px,2vw,24px);
+    border:3px solid #e2a43b;
+    border-radius:18px;
+    outline:none;
+    background:#fff;
+    color:#33424f;
+    font-family:"Livvic",sans-serif;
+    font-size:clamp(18px,1.7vw,25px);
+    font-weight:400;
+    text-align:center;
+    text-transform:capitalize;
+    box-shadow:0 5px 0 #f1d69b,0 8px 18px rgba(190,135,39,.08);
+    transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+
+.answer-input::placeholder{
+    color:#a6a6a6;
+    font-weight:400;
+}
+
+.answer-input:focus{
+    border-color:#8b6fe0;
+    box-shadow:0 5px 0 #d9cef2,0 9px 22px rgba(111,66,193,.12);
+}
+
+.answer-input:disabled{
+    background:#f5fff7;
+    border-color:#73b88d;
+    color:#397553;
+}
+
+.submit-btn{
+    min-width:clamp(105px,12vw,145px);
+    height:clamp(54px,7vh,70px);
+    padding:0 22px;
+    border:0;
+    border-radius:18px;
+    background:linear-gradient(145deg,#8b6fe0,#6f42c1);
+    color:#fff;
+    font-family:"Livvic",sans-serif;
+    font-size:clamp(17px,1.6vw,23px);
+    font-weight:400;
+    cursor:pointer;
+    box-shadow:0 5px 0 #4f2e93,0 9px 20px rgba(111,66,193,.14);
+    transition:transform .18s ease,box-shadow .18s ease,opacity .18s ease;
+}
+
+.submit-btn:hover:not(:disabled){
+    transform:translateY(-3px);
+    box-shadow:0 8px 0 #4f2e93,0 12px 24px rgba(111,66,193,.18);
+}
+
+.submit-btn:active:not(:disabled){
+    transform:translateY(3px);
+    box-shadow:0 2px 0 #4f2e93;
+}
+
+.submit-btn:disabled{
+    cursor:default;
+    opacity:.72;
+}
+
+.answer-input.input-wrong{
+    border-color:#df8f95;
+    background:#fff5f5;
+    animation:inputShake .42s ease;
+}
+
+@keyframes inputShake{
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-7px)}
+    50%{transform:translateX(7px)}
+    75%{transform:translateX(-4px)}
+}
+
+.hint-overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:3500;
+    background:rgba(0,0,0,.25);
+}
+
+.hint-overlay.show{
+    display:flex;
+}
+
+.hint-box{
+    width:min(420px,calc(100vw - 32px));
+    padding:26px 28px;
+    background:#fff;
+    border-radius:24px;
+    text-align:center;
+    box-shadow:0 12px 35px rgba(0,0,0,.18);
+}
+
+.hint-box h3{
+    margin:0 0 10px;
+    font-size:clamp(24px,3vw,32px);
+    font-weight:400;
+    color:#e08e00;
+}
+
+.hint-box p{
+    margin:0;
+    font-size:clamp(16px,1.6vw,21px);
+    line-height:1.45;
+    color:#1f2d3d;
+}
+
+.hint-close{
+    margin-top:18px;
+    min-width:110px;
+    height:44px;
+    border:0;
+    border-radius:24px;
+    background:linear-gradient(145deg,#ffc94d,#f7a800);
+    color:#fff;
+    font-family:"Livvic",sans-serif;
+    font-size:17px;
+    font-weight:400;
+    cursor:pointer;
+    box-shadow:0 4px 0 #c17e00;
+}
+
+.hint-close:active{
+    transform:translateY(3px);
+    box-shadow:0 1px 0 #c17e00;
+}
+
+.controls{
+    flex:0 0 auto;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+/* =========================================================
+   RESPONSIVE MEDIA QUERIES
+   Ordered from smallest to largest.
+   Shared navigation/popup styles are not redefined here.
+   ========================================================= */
+
+@media (max-width:400px){
+    .quiz{
+        padding:5px 7px;
+        gap:3px;
+    }
+
+    .topbar{
+        grid-template-columns:42px minmax(0,1fr) 42px;
+    }
+
+    .icon-circle{
+        width:34px;
+        height:34px;
+        font-size:14px;
+    }
+
+    .title{
+        font-size:15px;
+    }
+
+    .quiz-layout{
+        gap:7px;
+    }
+
+    .question-line{
+        width:95vw;
+        gap:5px;
+        flex-direction:row;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .question-number{
+        font-size:15px;
+    }
+
+    .question-statement{
+        font-size:13px;
+        line-height:1.18;
+        max-width:92vw;
+    }
+
+    .question-image{
+        width:min(300px,68vw);
+        height:clamp(75px,17vh,110px);
+    }
+
+    .answer-area{
+        width:95vw;
+        gap:7px;
+    }
+
+    .answer-input{
+        width:min(210px,57vw);
+        height:46px;
+        padding:0 10px;
+        border-width:2px;
+        border-radius:13px;
+        font-size:13px;
+    }
+
+    .submit-btn{
+        min-width:88px;
+        height:46px;
+        padding:0 12px;
+        border-radius:13px;
+        font-size:13px;
+    }
+}
+
+@media (max-width:600px){
+    .quiz{
+        padding:6px 9px;
+        gap:4px;
+    }
+
+    .topbar{
+        grid-template-columns:46px minmax(0,1fr) 46px;
+    }
+
+    .icon-circle{
+        width:37px;
+        height:37px;
+        font-size:15px;
+    }
+
+    .title{
+        font-size:clamp(16px,4.5vw,21px);
+    }
+
+    .quiz-layout{
+        gap:9px;
+    }
+
+    .question-line{
+        width:94vw;
+        gap:6px;
+        flex-direction:row;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .question-number{
+        font-size:26px;
+    }
+
+    .question-statement{
+        font-size:26px;
+        max-width:92vw;
+    }
+
+    .question-image{
+        width:min(350px,70vw);
+        height:clamp(90px,19vh,130px);
+    }
+
+    .answer-area{
+        width:94vw;
+        gap:8px;
+    }
+
+    .answer-input{
+        width:min(270px,63vw);
+        height:50px;
+        border-radius:15px;
+        font-size:15px;
+    }
+
+    .submit-btn{
+        min-width:96px;
+        height:50px;
+        border-radius:15px;
+        font-size:15px;
+    }
+}
+
+@media (max-width:900px){
+    .quiz{
+        padding:8px 12px;
+        gap:5px;
+    }
+
+    .topbar{
+        grid-template-columns:55px minmax(0,1fr) 55px;
+    }
+
+    .quiz-layout{
+        gap:11px;
+    }
+
+    .question-line{
+        width:92vw;
+        gap:8px;
+        flex-direction:row;
+        align-items:center;
+        justify-content:center;
+    }
+
+    .question-number{
+        font-size:26px;
+    }
+
+    .question-statement{
+        font-size:26px;
+        max-width:90vw;
+    }
+
+    .question-image{
+        width:min(420px,70vw);
+        height:clamp(105px,21vh,160px);
+    }
+
+    .answer-area{
+        width:min(650px,92vw);
+        gap:12px;
+    }
+
+    .answer-input{
+        width:min(420px,65vw);
+        height:58px;
+        border-radius:16px;
+        font-size:17px;
+    }
+
+    .submit-btn{
+        min-width:110px;
+        height:58px;
+        border-radius:16px;
+        font-size:17px;
+    }
+}
+
+@media (min-width:1200px){
+    .quiz{
+        padding-left:40px;
+        padding-right:40px;
+    }
+
+    .question-line{
+        width:min(1150px,90vw);
+        gap:12px;
+    }
+
+    .question-number{
+        font-size:30px;
+    }
+
+    .question-statement{
+        font-size:30px;
+        max-width:1000px;
+    }
+
+    .question-image{
+        width:440px;
+        height:21vh;
+    }
+
+    .answer-area{
+        width:min(760px,72vw);
+        gap:20px;
+    }
+
+    .answer-input{
+        width:500px;
+        height:68px;
+        font-size:24px;
+        border-radius:20px;
+    }
+
+    .submit-btn{
+        min-width:135px;
+        height:68px;
+        font-size:23px;
+        border-radius:20px;
+    }
+}
+
+@media (min-width:1600px){
+    .title{
+        font-size:40px !important;
+    }
+}
+
+@media (min-width:1440px){
+    .question-line{
+        width:1150px;
+    }
+
+    .question-number{
+        font-size:30px;
+    }
+
+    .question-statement{
+        font-size:30px;
+    }
+
+    .question-image{
+        width:480px;
+        height:22vh;
+    }
+
+    .answer-area{
+        width:780px;
+        gap:24px;
+    }
+
+    .answer-input{
+        width:530px;
+        height:72px;
+        font-size:27px;
+        border-radius:22px;
+    }
+
+    .submit-btn{
+        min-width:145px;
+        height:72px;
+        font-size:25px;
+        border-radius:22px;
+    }
+    .question-line.q10 .question-statement {
+        font-size:30px;
+    }
+}
+
+/* Question text: 30px on laptops (base), 40px on large monitors */
+@media (min-width:1600px){
+    .question-number{
+        font-size:40px;
+    }
+
+    .question-statement{
+        font-size:40px;
+    }
+
+    .question-line.q10 .question-statement{
+        font-size:40px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="quiz" id="quizCard">
+
+    <div class="topbar">
+        <button class="icon-btn" id="homeBtn" aria-label="Home">
+            <span class="icon-circle home"><i class="fa-solid fa-house"></i></span>
+        </button>
+
+        <div class="title-block">
+            <p class="title">One Word</p>
+        </div>
+
+        <button class="icon-btn" id="hintBtn" aria-label="Hint">
+            <span class="icon-circle hint"><i class="fa-solid fa-lightbulb"></i></span>
+        </button>
+    </div>
+
+    <div class="quiz-layout">
+
+        <div class="question-line">
+            <p class="question-number" id="questionNumber">Q1.</p>
+            <p class="question-statement" id="questionStatement"></p>
+        </div>
+
+        <img class="question-image" id="questionImage" src="" alt="">
+
+        <div class="answer-area">
+            <input
+                class="answer-input"
+                id="answerInput"
+                type="text"
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                placeholder="Type one word"
+                aria-label="Answer"
+            >
+            <button class="submit-btn" id="submitBtn" type="button">Submit</button>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="prev" id="prevBtn" disabled>
+            <i class="fa-solid fa-circle-arrow-left"></i> Prev
+        </button>
+
+        <button class="next" id="nextBtn" disabled>
+            Next <i class="fa-solid fa-circle-arrow-right"></i>
+        </button>
+    </div>
+
+</div>
+
+<div class="hint-overlay" id="hintOverlay">
+    <div class="hint-box">
+        <h3>Hint</h3>
+        <p id="hintText"></p>
+        <button class="hint-close" id="closeHintBtn">Got it!</button>
+    </div>
+</div>
+
+<div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+        <div class="kid-icon" id="popupIcon"></div>
+        <h3 id="popupTitle"></h3>
+        <p id="popupMsg"></p>
+    </div>
+</div>
+
+<div id="finalPopup">
+    <div class="final-kid-box">
+        <h2>🎉 Congratulations!</h2>
+        <p id="finalScore"></p>
+        <div id="stars"></div>
+        <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+const QUESTIONS = [
+    {
+        label:"Q1.",
+        text:"Distance from centre to the circumference of the circle",
+        answer:"radius",
+        image:"../assets/images/radius.png",
+        hint:"Think of the distance from the centre of a circle to its circumference."
+    },
+    {
+        label:"Q2.",
+        text:"Half of a circle",
+        answer:"semicircle",
+        image:"../assets/images/semicircle.png",
+        hint:"It is one-half of a circle."
+    },
+    {
+        label:"Q3.",
+        text:"Longest chord of a circle",
+        answer:"diameter",
+        image:"../assets/images/diameter.png",
+        hint:"It is the chord that passes through the centre and is the longest chord."
+    },
+    {
+        label:"Q4.",
+        text:"The path around a circle",
+        answer:"circumference",
+        image:"../assets/images/circumference.png",
+        hint:"Think of the boundary or path around the circle."
+    },
+    {
+        label:"Q5.",
+        text:"Mid point of the circle",
+        answer:"centre",
+        image:"../assets/images/center.png",
+        hint:"It is the point exactly in the middle of the circle."
+    },
+    {
+        label:"Q6.",
+        text:"A 2D shape bounded by a closed curve",
+        answer:"circle",
+        acceptedAnswers:["circle","oval"],
+        image:"../assets/images/circle.png",
+        hint:"It is the familiar round 2D shape."
+    },
+{
+    label:"Q7.",
+    text:"Area enclosed by the circumference ",
+    answer:"Interior of the circle",
+    acceptedAnswers:[
+        "interior",
+        "interior of circle",
+        "interior of the circle",
+        "interior of a circle",
+        "inside",
+        "inside of circle",
+        "inside of the circle",
+        "inside the circle"
+    ],
+    image:"../assets/images/center.png",
+    hint:"Think of the entire region inside the circumference."
+},
+    {
+        label:"Q8.",
+        text:"A line drawn between two points on the circle",
+        answer:"chord",
+        image:"../assets/images/chord.png",
+        hint:"It joins two points on the circle."
+    },
+    {
+        label:"Q9.",
+        text:"The area formed by the arc and two radii of the circle",
+        answer:"sector",
+        image:"../assets/images/sector.png",
+        hint:"It is the wedge-shaped region made by two radii and an arc."
+    },
+    {
+        label:"Q10.",
+        text:"The area formed by the chord and the corresponding arc",
+        answer:"segment",
+        image:"../assets/images/segment.png",
+        hint:"It is the region between a chord and its corresponding arc."
+    },
+    {
+        label:"Q11.",
+        text:"Any part of the circle",
+        answer:"arc",
+        image:"../assets/images/arc.png",
+        hint:"Think of a part of the circumference of a circle."
+    }
+];
+
+const total=QUESTIONS.length;
+let current=0;
+let score=0;
+const answered=QUESTIONS.map(()=>false);
+const userAnswers=QUESTIONS.map(()=>"");
+
+const questionNumber=document.getElementById("questionNumber");
+const questionStatement=document.getElementById("questionStatement");
+const questionImage=document.getElementById("questionImage");
+const answerInput=document.getElementById("answerInput");
+const submitBtn=document.getElementById("submitBtn");
+const prevBtn=document.getElementById("prevBtn");
+const nextBtn=document.getElementById("nextBtn");
+const correctSound=document.getElementById("correctSound");
+const wrongSound=document.getElementById("wrongSound");
+const homeBtn=document.getElementById("homeBtn");
+if(window.top!==window.self)homeBtn.style.visibility="hidden";
+const hintBtn=document.getElementById("hintBtn");
+const hintOverlay=document.getElementById("hintOverlay");
+const closeHintBtn=document.getElementById("closeHintBtn");
+const hintText=document.getElementById("hintText");
+
+function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-US";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+function smallConfetti(){
+    if(!window.confetti)return;
+    confetti({
+        particleCount:40,
+        spread:60,
+        origin:{y:.7},
+        scalar:.8
+    });
+}
+
+function showPopup(isCorrect){
+    const popup=document.getElementById("answerPopup");
+    const icon=document.getElementById("popupIcon");
+    const title=document.getElementById("popupTitle");
+    const msg=document.getElementById("popupMsg");
+
+    popup.className="kid-popup "+(isCorrect?"kid-correct":"kid-wrong");
+    popup.style.display="flex";
+
+    if(isCorrect){
+        icon.textContent="🎉";
+        title.textContent="Correct!";
+        msg.textContent="";
+    }else{
+        icon.textContent="🥲";
+        title.textContent="Try again";
+        msg.textContent="";
+    }
+
+    clearTimeout(showPopup._t);
+    showPopup._t=setTimeout(()=>{
+        popup.style.display="none";
+    },1400);
+}
+
+function showFinal(){
+    const popup=document.getElementById("finalPopup");
+
+    document.getElementById("finalScore").textContent=
+        `Your Score: ${score} / ${total}`;
+
+    document.getElementById("stars").textContent=
+        "⭐⭐⭐";
+
+    popup.style.display="flex";
+
+    if(window.confetti){
+        confetti({
+            particleCount:150,
+            spread:100,
+            origin:{y:.5}
+        });
+
+        setTimeout(()=>{
+            confetti({
+                particleCount:100,
+                spread:70,
+                origin:{y:.6}
+            });
+        },300);
+    }
+}
+
+function normalizeAnswer(value){
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g," ")
+        .replace(/^(the|a|an)\s+/,""); // strip leading article
+}
+
+function isCorrectAnswer(question,userAnswer){
+    const acceptedAnswers=question.acceptedAnswers||[question.answer];
+    return acceptedAnswers.some(answer=>normalizeAnswer(answer)===userAnswer);
+}
+
+function renderQuestion(){
+    const q=QUESTIONS[current];
+
+    questionNumber.textContent=q.label;
+    questionStatement.textContent=q.text;
+    questionStatement.parentElement.classList.toggle("q10",q.label==="Q10.");
+    questionImage.src=q.image;
+    questionImage.alt="";
+
+    answerInput.value="";
+    answerInput.classList.remove("input-wrong");
+    answerInput.disabled=answered[current];
+    submitBtn.disabled=answered[current];
+
+    if(answered[current]){
+        answerInput.value=userAnswers[current];
+    }
+
+    prevBtn.disabled=current===0;
+    nextBtn.disabled=!answered[current]||current===total-1;
+}
+
+function submitAnswer(){
+    if(answered[current])return;
+
+    const q=QUESTIONS[current];
+    const userAnswer=normalizeAnswer(answerInput.value);
+
+    if(!userAnswer){
+        answerInput.focus();
+        return;
+    }
+
+    if(isCorrectAnswer(q,userAnswer)){
+        answered[current]=true;
+        userAnswers[current]=answerInput.value.trim();
+        score++;
+
+        answerInput.disabled=true;
+        submitBtn.disabled=true;
+        answerInput.classList.remove("input-wrong");
+
+        correctSound.currentTime=0;
+        correctSound.play().catch(()=>{});
+
+        speak("Correct");
+        showPopup(true);
+        smallConfetti();
+
+        nextBtn.disabled=current===total-1;
+
+        if(current===total-1){
+            setTimeout(showFinal,1000);
+        }
+    }else{
+        answerInput.classList.remove("input-wrong");
+        void answerInput.offsetWidth;
+        answerInput.classList.add("input-wrong");
+
+        wrongSound.currentTime=0;
+        wrongSound.play().catch(()=>{});
+
+        speak("Try again");
+        showPopup(false);
+
+        setTimeout(()=>{
+            answerInput.classList.remove("input-wrong");
+            answerInput.value="";
+            answerInput.focus();
+        },450);
+    }
+}
+
+submitBtn.addEventListener("click",submitAnswer);
+
+answerInput.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){
+        e.preventDefault();
+        submitAnswer();
+    }
+});
+
+prevBtn.addEventListener("click",()=>{
+    if(current===0)return;
+    current--;
+    renderQuestion();
+});
+
+nextBtn.addEventListener("click",()=>{
+    if(nextBtn.disabled)return;
+
+    if(current<total-1){
+        current++;
+        renderQuestion();
+    }
+});
+
+homeBtn.addEventListener("click",()=>{
+    window.location.href="../Grade2_chapter1.html";
+});
+
+hintBtn.addEventListener("click",()=>{
+    hintText.textContent=QUESTIONS[current].hint;
+    hintOverlay.classList.add("show");
+});
+
+closeHintBtn.addEventListener("click",()=>{
+    hintOverlay.classList.remove("show");
+});
+
+hintOverlay.addEventListener("click",e=>{
+    if(e.target===hintOverlay){
+        hintOverlay.classList.remove("show");
+    }
+});
+
+renderQuestion();
+</script>
+</body>
+</html>

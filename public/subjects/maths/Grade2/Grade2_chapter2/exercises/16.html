@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sort the numbers into the even and odd baskets.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../assets/css/reuse.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;overscroll-behavior:none}
+body{background-image:url("../assets/images/bg.png");font-family:inherit;max-width:100vw}
+button{font-family:inherit}
+.even-odd-quiz{width:100%;max-width:100vw;height:100vh;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:clamp(5px,1vh,12px) clamp(10px,2.5vw,40px) clamp(4px,1vh,10px)}
+.quiz-top{width:100%;max-width:100%;flex:0 0 auto;display:grid;grid-template-columns:90px minmax(0,1fr) 90px;align-items:start;gap:10px}
+.quiz-top>.quiz-icon-btn{width:100%;height:62px;margin:0;padding:0;border:0;outline:none;background:transparent!important;display:flex;align-items:flex-start;position:relative;z-index:100;cursor:pointer;appearance:none;-webkit-appearance:none;-webkit-tap-highlight-color:transparent}
+.quiz-top>.home-btn{justify-content:flex-start}
+.quiz-top>.hint-btn{justify-content:flex-end}
+.quiz-top>.quiz-icon-btn .quiz-icon-circle{width:clamp(44px,4.2vw,62px);height:clamp(44px,4.2vw,62px);min-width:clamp(44px,4.2vw,62px);min-height:clamp(44px,4.2vw,62px);flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:clamp(19px,1.8vw,27px);line-height:1;position:relative;z-index:101;box-sizing:border-box;opacity:1!important;visibility:visible!important;transition:transform .2s ease,box-shadow .2s ease}
+.quiz-top>.home-btn .home-icon{background:linear-gradient(145deg,#8b6fe0,#6f42c1)!important}
+.quiz-top>.hint-btn .hint-icon{background:linear-gradient(145deg,#ffc94d,#f7a800)!important;box-shadow:0 4px 0 #c17e00,0 7px 14px rgba(193,126,0,.25)!important}
+.quiz-top>.quiz-icon-btn .quiz-icon-circle i{display:inline-block!important;color:#fff!important;opacity:1!important;visibility:visible!important;line-height:1}
+.quiz-top>.quiz-icon-btn:hover .quiz-icon-circle{transform:translateY(-2px) scale(1.06)}
+.quiz-top>.quiz-icon-btn:active .quiz-icon-circle{transform:translateY(2px) scale(.97)}
+.quiz-title{width:100%;max-width:100%;margin:0;text-align:center;font-size:30px;line-height:1.12;font-weight:400;color:#1f2d3d;transform:translateY(12px);overflow-wrap:normal}
+.question-area{flex:1 1 auto;min-width:0;min-height:0;width:100%;max-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:clamp(5px,1vh,15px) 0;gap:clamp(10px,2vh,22px)}
+.question-row{width:min(900px,96vw);max-width:100%;min-width:0;display:flex;align-items:center;justify-content:center;gap:clamp(10px,2vw,28px);flex:0 1 auto}
+.question-label{flex:0 0 auto;margin:0;font-size:30px;line-height:1;font-weight:400;color:#2f4f4f;transform:translateY(-4px)}
+.apple-stage{position:relative;width:clamp(135px,17vw,245px);height:clamp(135px,17vw,245px);display:flex;align-items:center;justify-content:center;flex:0 1 auto;z-index:10;touch-action:none;cursor:grab}
+.apple-stage.dragging{cursor:grabbing;z-index:100}
+.apple-stage img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.apple-number{position:absolute;left:50%;top:50%;transform:translate(-50%,-48%);width:48%;display:flex;align-items:center;justify-content:center;font-size:clamp(28px,4vw,54px);line-height:1;font-weight:700;color:#1f2d3d;pointer-events:none}
+.apple-stage.dragging{filter:drop-shadow(0 8px 10px rgba(0,0,0,.18))}.apple-stage.selected{transform:scale(1.05);filter:drop-shadow(0 6px 10px rgba(0,0,0,.16))}
+.baskets-area{width:min(1050px,96vw);max-width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end;justify-items:center;gap:clamp(30px,12vw,150px);flex:0 1 auto}
+.basket{position:relative;width:clamp(180px,22vw,310px);height:clamp(145px,18vw,245px);border:0;padding:0;background:transparent;display:flex;align-items:center;justify-content:center;touch-action:none;transition:transform .2s ease,filter .2s ease}
+.basket img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.basket-label{position:absolute;left:50%;top:61%;transform:translate(-50%,-50%);font-size:clamp(22px,3vw,42px);line-height:1;font-weight:800;letter-spacing:.5px;color:#000;text-shadow:0 2px 0 rgba(0,0,0,.22);pointer-events:none}
+.basket.hover-target{transform:translateY(-5px) scale(1.04);filter:drop-shadow(0 7px 10px rgba(0,0,0,.15))}
+.basket.correct-target{filter:drop-shadow(0 0 12px rgba(67,185,75,.8))}
+.basket.wrong-target{animation:basketShake .35s ease}
+@keyframes basketShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
+.basket.apple-landed{transform:scale(1.03)}
+.instruction{margin:0;text-align:center;font-size:clamp(14px,1.5vw,20px);line-height:1.1;color:#59636e;font-weight:500}
+.controls{flex:0 0 auto}
+
+/* =========================
+   HINT POPUP
+   ========================= */
+.hint-overlay{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(0,0,0,.45);
+    z-index:99999;
+    pointer-events:none;
+}
+.hint-overlay.show{
+    display:flex !important;
+    pointer-events:auto;
+}
+.hint-box{
+    width:min(520px,92vw);
+    max-width:100%;
+    padding:30px 28px 25px;
+    background:#fff;
+    border-radius:24px;
+    text-align:center;
+    box-shadow:0 15px 40px rgba(0,0,0,.28);
+    animation:hintPopupIn .25s ease-out;
+}
+.hint-box h3{
+    margin:0 0 15px;
+    font-family:"Livvic",sans-serif;
+    font-size:30px;
+    line-height:1.1;
+    font-weight:700;
+    color:#f7a800;
+}
+.hint-box p{
+    margin:0 0 25px;
+    font-family:"Livvic",sans-serif;
+    font-size:21px;
+    line-height:1.45;
+    font-weight:500;
+    color:#2f4f4f;
+}
+.hint-close{
+    border:0;
+    outline:none;
+    padding:12px 28px;
+    border-radius:14px;
+    background:linear-gradient(145deg,#ffc94d,#f7a800);
+    color:#fff;
+    font-family:"Livvic",sans-serif;
+    font-size:18px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 5px 0 #c17e00,0 8px 15px rgba(193,126,0,.25);
+    transition:transform .15s ease;
+}
+.hint-close:hover{transform:translateY(-2px)}
+.hint-close:active{transform:translateY(3px)}
+@keyframes hintPopupIn{
+    from{opacity:0;transform:scale(.85) translateY(15px)}
+    to{opacity:1;transform:scale(1) translateY(0)}
+}
+body.hint-open{overflow:hidden}
+@media(max-width:600px){
+    .hint-box{width:92vw;padding:24px 18px 20px;border-radius:20px}
+    .hint-box h3{font-size:24px}
+    .hint-box p{font-size:17px}
+    .hint-close{font-size:16px;padding:10px 24px}
+}
+
+@media (min-width:901px){
+.question-area{gap:clamp(12px,2.5vh,30px)}
+.baskets-area{margin-top:clamp(2px,1vh,12px)}
+}
+@media (min-width:601px) and (max-width:900px){
+.even-odd-quiz{padding:5px 12px 4px}
+.quiz-top{grid-template-columns:55px minmax(0,1fr) 55px}
+.quiz-title{font-size:23px;transform:translateY(8px)}
+.question-area{gap:12px;padding:5px 0}
+.question-row{width:94%;gap:14px}
+.question-label{font-size:30px;transform:translateY(-6px)}
+.apple-stage{width:clamp(125px,20vw,175px);height:clamp(125px,20vw,175px)}
+.apple-number{font-size:clamp(28px,4vw,42px)}
+.baskets-area{width:94%;gap:clamp(20px,8vw,70px)}
+.basket{width:clamp(155px,25vw,220px);height:clamp(125px,20vw,180px)}
+.basket-label{font-size:clamp(20px,3vw,31px)}
+.instruction{font-size:13px}
+}
+@media (min-width:401px) and (max-width:600px){
+.even-odd-quiz{padding:4px 7px 3px}
+.quiz-top{grid-template-columns:42px minmax(0,1fr) 42px;gap:4px}
+.quiz-title{font-size:28px}
+.question-area{gap:8px;padding:3px 0}
+.question-row{width:99%;gap:7px}
+.question-label{font-size:16px}
+.apple-stage{width:clamp(105px,min(29vw,18vh),145px);height:clamp(105px,min(29vw,18vh),145px)}
+.apple-number{font-size:clamp(24px,6vw,34px)}
+.baskets-area{width:100%;gap:clamp(8px,5vw,28px)}
+.basket{width:clamp(120px,min(38vw,25vh),170px);height:clamp(100px,min(31vw,21vh),140px)}
+.basket-label{font-size:clamp(17px,5vw,25px)}
+.instruction{font-size:10px}
+.quiz-top>.quiz-icon-btn{height:43px}
+.quiz-top>.quiz-icon-btn .quiz-icon-circle{width:38px;height:38px;min-width:38px;min-height:38px;font-size:16px;border-width:2px!important;box-shadow:0 3px 0 rgba(0,0,0,.18)!important}
+}
+@media (max-width:400px){
+.even-odd-quiz{padding:3px 5px 2px}
+.quiz-top{grid-template-columns:35px minmax(0,1fr) 35px;gap:2px}
+.quiz-title{font-size:13px}
+.question-area{gap:5px;padding:2px 0}
+.question-row{width:100%;gap:4px}
+.question-label{font-size:13px}
+.apple-stage{width:clamp(88px,min(27vw,17vh),110px);height:clamp(88px,min(27vw,17vh),110px)}
+.apple-number{font-size:clamp(20px,6vw,27px)}
+.baskets-area{width:100%;gap:4px}
+.basket{width:clamp(100px,min(38vw,24vh),130px);height:clamp(82px,min(31vw,20vh),108px)}
+.basket-label{font-size:clamp(15px,5vw,20px)}
+.instruction{font-size:9px}
+.quiz-top>.quiz-icon-btn{height:37px}
+.quiz-top>.quiz-icon-btn .quiz-icon-circle{width:34px;height:34px;min-width:34px;min-height:34px;font-size:14px;border-width:2px!important;box-shadow:0 3px 0 rgba(0,0,0,.18)!important}
+}
+@media (max-height:600px) and (min-width:601px){
+.even-odd-quiz{padding-top:3px;padding-bottom:2px}
+.quiz-title{font-size:30px}
+.question-area{gap:7px;padding:2px 0}
+.question-row{gap:12px}
+.apple-stage{width:clamp(115px,17vh,165px);height:clamp(115px,17vh,165px)}
+.apple-number{font-size:32px}
+.baskets-area{gap:clamp(20px,7vw,70px)}
+.basket{width:clamp(145px,22vh,205px);height:clamp(115px,17vh,165px)}
+.basket-label{font-size:26px}
+.instruction{font-size:12px}
+}
+@media (min-width:1200px){
+.question-row{width:1000px}
+.question-label{font-size:30px}
+.apple-stage{width:clamp(180px,17vw,260px);height:clamp(180px,17vw,260px)}
+.apple-number{font-size:clamp(38px,3.5vw,54px)}
+.baskets-area{width:1150px;gap:150px}
+.basket{width:300px;height:235px}
+.basket-label{font-size:40px}
+.instruction{font-size:19px}
+}
+@media (min-width:1440px){
+.quiz-title{font-size:40px!important}
+.question-row{width:1200px}
+.question-label{font-size:40px}
+.apple-stage{width:280px;height:280px}
+.apple-number{font-size:50px}
+.baskets-area{width:1250px;gap:180px}
+.basket{width:330px;height:260px}
+.basket-label{font-size:44px}
+.instruction{font-size:22px}
+}
+@media (min-width:1600px){
+.even-odd-quiz{padding:8px 45px 5px}
+.question-row{width:1300px;gap:70px}
+.question-label{font-size:40px}
+.apple-stage{width:320px;height:320px}
+.apple-number{font-size:56px}
+.baskets-area{width:1400px;gap:220px}
+.basket{width:360px;height:285px}
+.basket-label{font-size:48px}
+.quiz-title{font-size:42px}
+.instruction{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="even-odd-quiz">
+<div class="quiz-top">
+<button type="button" id="homeBtn" class="quiz-icon-btn home-btn" aria-label="Home"><span class="quiz-icon-circle home-icon"><i class="fa-solid fa-house"></i></span></button>
+<div><h1 class="quiz-title">Sort the numbers into the even and odd baskets.</h1></div>
+<button type="button" id="hintBtn" class="quiz-icon-btn hint-btn" aria-label="Hint"><span class="quiz-icon-circle hint-icon"><i class="fa-solid fa-lightbulb"></i></span></button>
+</div>
+<main class="question-area">
+<div class="question-row">
+<p class="question-label" id="questionLabel">Q1.</p>
+<div class="apple-stage" id="apple" role="button" tabindex="0" aria-label="Drag the apple to the correct basket">
+<img src="../assets/images/apple.png" alt="Apple">
+<span class="apple-number" id="appleNumber"></span>
+</div>
+</div>
+<p class="instruction">Drag the apple to the correct basket.</p>
+<div class="baskets-area">
+<button type="button" class="basket" id="evenBasket" aria-label="Even basket">
+<img src="../assets/images/basket.png" alt="Even basket">
+<span class="basket-label">EVEN</span>
+</button>
+<button type="button" class="basket" id="oddBasket" aria-label="Odd basket">
+<img src="../assets/images/basket.png" alt="Odd basket">
+<span class="basket-label">ODD</span>
+</button>
+</div>
+</main>
+<div class="controls">
+<button id="prevBtn" class="prev" disabled> <i class="fa-solid fa-circle-arrow-left"></i>Prev</button>
+<button id="nextBtn" class="next" disabled>Next <i class="fa-solid fa-circle-arrow-right"></i></button>
+</div>
+</div>
+<div class="hint-overlay" id="hintOverlay">
+<div class="hint-box">
+<h3>Hint</h3>
+<p id="hintText"></p>
+<button class="hint-close" id="closeHintBtn">Got it!</button>
+</div>
+</div>
+<div id="answerPopup" class="kid-popup">
+<div class="kid-card">
+<div class="kid-icon" id="popupIcon"></div>
+<h3 id="popupTitle"></h3>
+<p id="popupMsg"></p>
+</div>
+</div>
+<div id="finalPopup">
+<div class="final-kid-box">
+<h2>🎉 <span>Congratulations!</span></h2>
+<p id="finalScore"></p>
+<div id="stars">⭐⭐⭐</div>
+<button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+</div>
+</div>
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+<script>
+const QUESTIONS=[
+{label:"Q1.",number:576,answer:"E",hint:"576 ends in 6, so it is even."},
+{label:"Q2.",number:801,answer:"O",hint:"801 ends in 1, so it is odd."},
+{label:"Q3.",number:922,answer:"E",hint:"922 ends in 2, so it is even."},
+{label:"Q4.",number:600,answer:"E",hint:"600 ends in 0, so it is even."},
+{label:"Q5.",number:453,answer:"O",hint:"453 ends in 3, so it is odd."}
+];
+const APPLE_SRC="../assets/images/apple.png";
+let current=0;
+let score=0;
+const answered=QUESTIONS.map(()=>false);
+const questionLabel=document.getElementById("questionLabel");
+const apple=document.getElementById("apple");
+const appleNumber=document.getElementById("appleNumber");
+const evenBasket=document.getElementById("evenBasket");
+const oddBasket=document.getElementById("oddBasket");
+const prevBtn=document.getElementById("prevBtn");
+const nextBtn=document.getElementById("nextBtn");
+const correctSound=document.getElementById("correctSound");
+const wrongSound=document.getElementById("wrongSound");
+const hintBtn=document.getElementById("hintBtn");
+const hintOverlay=document.getElementById("hintOverlay");
+const hintText=document.getElementById("hintText");
+const closeHintBtn=document.getElementById("closeHintBtn");
+let dragState=null;
+function playSound(audio){audio.currentTime=0;audio.play().catch(()=>{});}
+function speak(text){
+if(!window.speechSynthesis)return;
+speechSynthesis.cancel();
+const utterance=new SpeechSynthesisUtterance(text);
+utterance.lang="en-UK";
+utterance.volume=.25;
+utterance.rate=1;
+speechSynthesis.speak(utterance);
+}
+function smallConfetti(){
+if(!window.confetti)return;
+confetti({particleCount:35,spread:65,origin:{y:.7},scalar:.8});
+}
+function showPopup(correct){
+const popup=document.getElementById("answerPopup");
+const icon=document.getElementById("popupIcon");
+const title=document.getElementById("popupTitle");
+const message=document.getElementById("popupMsg");
+popup.className="kid-popup "+(correct?"kid-correct":"kid-wrong");
+popup.style.display="flex";
+if(correct){icon.textContent="🎉";title.textContent="Great Job!";message.textContent="You got it right!";}
+else{icon.textContent="🥲";title.textContent="Oops!";message.textContent="Try again!";}
+clearTimeout(showPopup.timer);
+showPopup.timer=setTimeout(()=>{popup.style.display="none";},1300);
+}
+function updateNavigation(){
+prevBtn.disabled=current===0;
+nextBtn.disabled=!answered[current]||current===QUESTIONS.length-1;
+}
+function clearBasketStates(){
+[evenBasket,oddBasket].forEach(b=>b.classList.remove("hover-target","correct-target","wrong-target","apple-landed"));
+}
+function placeAppleInBasket(basket){
+const a=apple.getBoundingClientRect();
+const b=basket.getBoundingClientRect();
+apple.style.transform=`translate(${b.left+b.width/2-(a.left+a.width/2)}px,${b.top+b.height*.45-(a.top+a.height/2)}px) scale(.72)`;
+}
+function renderQuestion(){
+const q=QUESTIONS[current];
+questionLabel.textContent=q.label;
+appleNumber.textContent=q.number;
+clearBasketStates();
+apple.style.transform="";
+apple.style.opacity="1";
+apple.style.pointerEvents=answered[current]?"none":"auto";
+if(answered[current]){
+const basket=q.answer==="E"?evenBasket:oddBasket;
+basket.classList.add("correct-target","apple-landed");
+requestAnimationFrame(()=>placeAppleInBasket(basket));
+}
+updateNavigation();
+}
+function getBasketFromPoint(x,y){
+for(const basket of [evenBasket,oddBasket]){
+const r=basket.getBoundingClientRect();
+if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom)return basket;
+}
+return null;
+}
+function resetApplePosition(){
+apple.style.transform="";
+apple.style.opacity="1";
+}
+function validateDrop(basket){
+if(answered[current])return;
+const q=QUESTIONS[current];
+const correctBasket=q.answer==="E"?evenBasket:oddBasket;
+if(basket===correctBasket){
+answered[current]=true;
+score++;
+apple.style.pointerEvents="none";
+placeAppleInBasket(correctBasket);
+correctBasket.classList.add("correct-target","apple-landed");
+playSound(correctSound);
+speak("Correct");
+showPopup(true);
+smallConfetti();
+updateNavigation();
+if(current===QUESTIONS.length-1)setTimeout(showFinal,1100);
+}else{
+basket.classList.remove("wrong-target");
+void basket.offsetWidth;
+basket.classList.add("wrong-target");
+playSound(wrongSound);
+speak("Try again");
+showPopup(false);
+setTimeout(()=>basket.classList.remove("wrong-target"),450);
+resetApplePosition();
+}
+}
+function beginDrag(event){
+if(answered[current])return;
+event.preventDefault();
+const r=apple.getBoundingClientRect();
+dragState={pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,offsetX:event.clientX-r.left,offsetY:event.clientY-r.top,moved:false};
+apple.setPointerCapture(event.pointerId);
+apple.classList.add("dragging");
+}
+function moveDrag(event){
+if(!dragState||event.pointerId!==dragState.pointerId)return;
+event.preventDefault();
+const dx=event.clientX-dragState.startX;
+const dy=event.clientY-dragState.startY;
+if(Math.abs(dx)+Math.abs(dy)>5)dragState.moved=true;
+apple.style.transform=`translate(${dx}px,${dy}px)`;
+const target=getBasketFromPoint(event.clientX,event.clientY);
+[evenBasket,oddBasket].forEach(b=>b.classList.toggle("hover-target",b===target));
+}
+function endDrag(event){
+if(!dragState||event.pointerId!==dragState.pointerId)return;
+const wasMoved=dragState.moved;
+const target=getBasketFromPoint(event.clientX,event.clientY);
+dragState=null;
+apple.classList.remove("dragging");
+[evenBasket,oddBasket].forEach(b=>b.classList.remove("hover-target"));
+if(wasMoved){
+apple.style.transform="";
+if(target)validateDrop(target);
+else resetApplePosition();
+}
+}
+apple.addEventListener("pointerdown",beginDrag);
+apple.addEventListener("pointermove",moveDrag);
+apple.addEventListener("pointerup",endDrag);
+apple.addEventListener("pointercancel",endDrag);
+apple.addEventListener("click",()=>{
+if(answered[current])return;
+apple.classList.toggle("selected");
+});
+[evenBasket,oddBasket].forEach(basket=>{
+basket.addEventListener("click",()=>validateDrop(basket));
+});
+apple.addEventListener("keydown",event=>{
+if(answered[current])return;
+if(event.key==="Enter"||event.key===" "){
+event.preventDefault();
+apple.classList.add("selected");
+}
+});
+function clearSelection(){
+apple.classList.remove("selected");
+}
+evenBasket.addEventListener("pointerenter",()=>{if(dragState)evenBasket.classList.add("hover-target")});
+oddBasket.addEventListener("pointerenter",()=>{if(dragState)oddBasket.classList.add("hover-target")});
+prevBtn.addEventListener("click",()=>{
+if(current<=0)return;
+clearSelection();
+current--;
+renderQuestion();
+});
+nextBtn.addEventListener("click",()=>{
+if(nextBtn.disabled)return;
+if(current<QUESTIONS.length-1){clearSelection();current++;renderQuestion();}
+});
+document.getElementById("homeBtn").addEventListener("click",()=>{window.location.href="../Grade2_chapter2.html";});
+function openHint(){
+    const question=QUESTIONS[current];
+
+    if(!question || !question.hint){
+        return;
+    }
+
+    hintText.textContent=question.hint;
+    hintOverlay.classList.add("show");
+    document.body.classList.add("hint-open");
+}
+
+function closeHint(){
+    hintOverlay.classList.remove("show");
+    document.body.classList.remove("hint-open");
+}
+
+hintBtn.addEventListener("click",openHint);
+
+closeHintBtn.addEventListener("click",closeHint);
+
+hintOverlay.addEventListener("click",event=>{
+    if(event.target===hintOverlay){
+        closeHint();
+    }
+});
+
+document.addEventListener("keydown",event=>{
+    if(event.key==="Escape" && hintOverlay.classList.contains("show")){
+        closeHint();
+    }
+});
+function showFinal(){
+const finalPopup=document.getElementById("finalPopup");
+document.getElementById("finalScore").textContent=`Your Score: ${score} / ${QUESTIONS.length}`;
+document.getElementById("stars").textContent="⭐⭐⭐";
+finalPopup.style.display="flex";
+if(window.confetti){
+confetti({particleCount:150,spread:100,origin:{y:.5}});
+setTimeout(()=>confetti({particleCount:100,spread:70,origin:{y:.6}}),300);
+}
+}
+renderQuestion();
+</script>
+</body>
+</html>

@@ -1,0 +1,3070 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
+
+<title>Write the number represented on the abacus</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet">
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- reuse.css MUST remain before page-specific styles -->
+<link rel="stylesheet"
+      href="../assets/css/reuse.css">
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+
+<style>
+
+/* =========================================================
+   BASE STYLES
+   ========================================================= */
+
+*{
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+    font-family:"Livvic",sans-serif;
+}
+
+body{
+    user-select:none;
+    -webkit-user-select:none;
+}
+
+button,
+input{
+    font-family:"Livvic",sans-serif;
+}
+
+.quiz{
+    width:100%;
+    height:100vh;
+    height:100dvh;
+
+    padding:
+        clamp(8px,1.4vh,18px)
+        clamp(14px,2.5vw,42px)
+        clamp(8px,1.2vh,16px);
+
+    display:flex;
+    flex-direction:column;
+
+    gap:clamp(6px,1vh,14px);
+
+    overflow:hidden;
+}
+
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.topbar{
+    width:100%;
+    flex:0 0 auto;
+
+    display:grid;
+
+    grid-template-columns:
+        90px
+        minmax(0,1fr)
+        90px;
+
+    align-items:start;
+    gap:10px;
+}
+
+.icon-btn{
+    background:none;
+    border:0;
+    padding:0;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+    cursor:pointer;
+}
+
+.icon-circle{
+    width:clamp(42px,4.2vw,62px);
+    height:clamp(42px,4.2vw,62px);
+
+    border-radius:50%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:#fff;
+
+    font-size:clamp(18px,1.8vw,27px);
+
+    transition:transform .2s ease;
+}
+
+.icon-btn:hover .icon-circle{
+    transform:scale(1.06);
+}
+
+.icon-circle.home{
+    background:linear-gradient(
+        145deg,
+        #8b6fe0,
+        #6f42c1
+    );
+
+    box-shadow:
+        0 4px 0 #4f2e93;
+}
+
+.icon-circle.hint{
+    background:linear-gradient(
+        145deg,
+        #ffc94d,
+        #f7a800
+    );
+
+    box-shadow:
+        0 4px 0 #c17e00;
+}
+
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
+.title-block{
+    min-width:0;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.title{
+    margin:0;
+    width:100%;
+
+    text-align:center;
+
+    color:#303030;
+
+    font-size:clamp(21px,2.7vw,40px);
+
+    line-height:1.12;
+    font-weight:400;
+}
+
+
+/* =========================================================
+   MAIN LAYOUT
+   ========================================================= */
+
+.quiz-layout{
+    flex:1 1 auto;
+    min-height:0;
+    width:100%;
+
+    display:grid;
+
+    grid-template-columns:
+        minmax(0,1.05fr)
+        minmax(320px,.95fr);
+
+    gap:clamp(25px,5vw,75px);
+
+    align-items:center;
+
+    overflow:hidden;
+}
+
+
+/* =========================================================
+   QUESTION SIDE
+   ========================================================= */
+
+.question-side{
+    width:100%;
+    min-width:0;
+    min-height:0;
+    height:100%;
+
+    display:flex;
+    flex-direction:column;
+
+    align-items:center;
+    justify-content:center;
+
+    gap:clamp(8px,1.5vh,18px);
+}
+
+.question-number{
+    width:100%;
+    margin:0;
+
+    align-self:flex-start;
+
+    color:#303030;
+
+    font-size:clamp(21px,2.1vw,31px);
+
+    line-height:1;
+    font-weight:400;
+}
+
+
+/* =========================================================
+   ABACUS
+   ========================================================= */
+
+.abacus{
+    position:relative;
+
+    width:min(570px,95%);
+    height:clamp(270px,48vh,390px);
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
+}
+
+
+/* =========================================================
+   RODS
+   ========================================================= */
+
+.rods{
+    position:absolute;
+
+    top:0;
+    left:0;
+    right:0;
+
+    height:82%;
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(3,1fr);
+
+    gap:clamp(20px,5vw,65px);
+
+    padding:
+        0
+        clamp(20px,5vw,65px);
+}
+
+.rod{
+    position:relative;
+
+    width:4px;
+    height:100%;
+
+    justify-self:center;
+
+    background:#383838;
+
+    border-radius:5px;
+}
+
+
+/* =========================================================
+   BEAD STACK
+   ========================================================= */
+
+.bead-stack{
+    position:absolute;
+    left:50%;
+    top:auto;
+    bottom:0;
+    transform:translateX(-50%);
+    width:max-content;
+    height:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    gap:2px;
+    overflow:visible;
+}
+
+.bead{
+    width:clamp(29px,3.2vw,43px);
+    height:clamp(29px,3.2vw,43px);
+
+    border-radius:50%;
+
+    box-shadow:
+        inset -3px -4px 5px rgba(0,0,0,.15),
+        0 2px 3px rgba(0,0,0,.14);
+}
+
+.bead.hundred{
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #ffe976 0%,
+            #ffd329 50%,
+            #f2ad00 100%
+        );
+}
+
+.bead.ten{
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #59d789 0%,
+            #16b957 50%,
+            #07963d 100%
+        );
+}
+
+.bead.one{
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #62c8ff 0%,
+            #129fdf 50%,
+            #087bb7 100%
+        );
+}
+
+
+/* =========================================================
+   ABACUS BASE
+   ========================================================= */
+
+.abacus-base{
+    position:relative;
+
+    width:clamp(260px,45vw,430px);
+    height:clamp(46px,6vh,60px);
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(3,1fr);
+
+    align-items:center;
+
+    border-radius:10px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #f6ad60 0%,
+            #e98c39 100%
+        );
+
+    border:2px solid #c86e25;
+
+    box-shadow:
+        0 4px 0 #bd6b2b,
+        0 7px 12px rgba(0,0,0,.12);
+
+    color:#663d1d;
+
+    font-size:clamp(16px,1.8vw,23px);
+    font-weight:700;
+}
+
+.base-label{
+    text-align:center;
+}
+
+
+/* =========================================================
+   INPUT SIDE
+   ========================================================= */
+
+.input-side{
+    width:100%;
+    min-width:0;
+    min-height:0;
+
+    display:flex;
+    flex-direction:column;
+
+    align-items:center;
+    justify-content:center;
+
+    gap:clamp(14px,2.2vh,24px);
+}
+
+.input-group{
+    width:min(500px,100%);
+
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+
+    gap:7px;
+}
+
+.input-label{
+    margin:0;
+
+    color:#303030;
+
+    font-size:clamp(17px,1.6vw,22px);
+
+    font-weight:600;
+}
+
+.answer-input{
+    width:100%;
+
+    height:clamp(58px,7vh,72px);
+
+    border:3px solid #d5b8f5;
+    border-radius:16px;
+
+    background:#fff;
+
+    color:#58329b;
+
+    outline:none;
+
+    font-size:clamp(23px,2.2vw,31px);
+
+    font-weight:400;
+
+    text-align:center;
+
+    box-shadow:
+        0 4px 0 rgba(88,50,155,.10),
+        0 8px 18px rgba(0,0,0,.08);
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background .2s ease,
+        transform .2s ease;
+}
+
+.answer-input.number-input{
+    width:clamp(125px,14vw,165px);
+
+    height:clamp(52px,6vh,64px);
+
+    align-self:center;
+}
+
+.answer-input:focus{
+    border-color:#8754c7;
+
+    box-shadow:
+        0 0 0 4px rgba(135,84,199,.13),
+        0 5px 12px rgba(0,0,0,.10);
+}
+
+.answer-input:disabled{
+    background:#f1f1f1;
+    border-color:#d7d7d7;
+
+    color:#999;
+
+    cursor:not-allowed;
+
+    box-shadow:none;
+}
+
+.answer-input.correct-input{
+    background:#ecfff2;
+    border-color:#20b957;
+    color:#168044;
+}
+
+.answer-input.wrong-input{
+    border-color:#ef6b6b;
+    background:#fff5f5;
+
+    animation:inputShake .4s ease;
+}
+
+/* =========================================================
+   EDIT THEME FOR WRONG ENGLISH WORD ANSWER
+   Keeps the user's text and lets them edit it directly.
+   ========================================================= */
+.answer-input.edit-input{
+    background:#fff8e8;
+    border-color:#f2a900;
+    color:#8a5a00;
+    box-shadow:
+        0 0 0 4px rgba(242,169,0,.12),
+        0 5px 12px rgba(242,169,0,.12);
+    cursor:text;
+}
+
+.answer-input.edit-input:focus{
+    background:#fffdf5;
+    border-color:#e08e00;
+    color:#5f4500;
+    box-shadow:
+        0 0 0 4px rgba(224,142,0,.16),
+        0 5px 12px rgba(0,0,0,.10);
+}
+
+@keyframes inputShake{
+
+    0%,100%{
+        transform:translateX(0);
+    }
+
+    25%{
+        transform:translateX(-6px);
+    }
+
+    75%{
+        transform:translateX(6px);
+    }
+}
+
+.input-help{
+    margin:0;
+
+    width:100%;
+
+    text-align:center;
+
+    color:#777;
+
+    font-size:clamp(12px,1.2vw,15px);
+
+    line-height:1.3;
+}
+/* =========================================================
+   SUBMIT BUTTON
+   ========================================================= */
+
+.submit-btn{
+    width:min(260px,100%);
+    height:54px;
+
+    margin-top:2px;
+
+    border:0;
+    border-radius:16px;
+
+    background:linear-gradient(
+        145deg,
+        #8b6fe0,
+        #6f42c1
+    );
+
+    color:#fff;
+
+    font-family:"Livvic",sans-serif;
+    font-size:clamp(17px,1.7vw,21px);
+    font-weight:700;
+
+    cursor:pointer;
+
+    box-shadow:
+        0 5px 0 #4f2e93,
+        0 8px 16px rgba(0,0,0,.12);
+
+    transition:
+        transform .15s ease,
+        box-shadow .15s ease;
+}
+
+.submit-btn:hover{
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 7px 0 #4f2e93,
+        0 11px 18px rgba(0,0,0,.14);
+}
+
+.submit-btn:active{
+    transform:translateY(2px);
+
+    box-shadow:
+        0 2px 0 #4f2e93;
+}
+
+.submit-btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+    pointer-events:none;
+    transform:none;
+    background:linear-gradient(145deg,#b8b8b8,#929292);
+    color:#f5f5f5;
+    box-shadow:0 3px 0 #777;
+}
+
+
+/* =========================================================
+   HINT
+   ========================================================= */
+
+.hint-overlay{
+    position:fixed;
+
+    inset:0;
+
+    display:none;
+
+    align-items:center;
+    justify-content:center;
+
+    z-index:3500;
+
+    background:rgba(0,0,0,.25);
+}
+
+.hint-overlay.show{
+    display:flex;
+}
+
+.hint-box{
+    width:min(420px,calc(100vw - 32px));
+
+    padding:26px 28px;
+
+    background:#fff;
+
+    border-radius:24px;
+
+    text-align:center;
+
+    box-shadow:
+        0 12px 35px rgba(0,0,0,.18);
+}
+
+.hint-box h3{
+    margin:0 0 10px;
+
+    color:#e08e00;
+
+    font-size:clamp(24px,3vw,32px);
+
+    font-weight:700;
+}
+
+.hint-box p{
+    margin:0;
+
+    color:#1f2d3d;
+
+    font-size:clamp(16px,1.6vw,21px);
+
+    line-height:1.45;
+}
+
+.hint-close{
+    margin-top:18px;
+
+    min-width:110px;
+
+    height:44px;
+
+    border:0;
+
+    border-radius:24px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffc94d,
+            #f7a800
+        );
+
+    color:#fff;
+
+    font-family:"Livvic",sans-serif;
+
+    font-size:17px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    box-shadow:0 4px 0 #c17e00;
+}
+
+
+/* =========================================================
+   MEDIA QUERY 1 — TABLET
+   ========================================================= */
+
+@media (max-width:900px){
+
+    .quiz{
+        padding:
+            7px
+            12px
+            6px;
+
+        gap:5px;
+    }
+
+    .topbar{
+        grid-template-columns:
+            55px
+            minmax(0,1fr)
+            55px;
+    }
+
+    .quiz-layout{
+        grid-template-columns:
+            minmax(0,1fr)
+            minmax(260px,.8fr);
+
+        gap:18px;
+    }
+
+    .question-number{
+        font-size:19px;
+    }
+
+    .abacus{
+        width:100%;
+        height:clamp(245px,45vh,320px);
+    }
+
+    .rods{
+        padding:0 45px;
+        gap:45px;
+    }
+
+    .bead{
+        width:34px;
+        height:34px;
+    }
+
+    .abacus-base{
+        width:290px;
+        height:45px;
+    }
+
+    .input-side{
+        gap:14px;
+    }
+
+    .input-group{
+        width:min(360px,100%);
+    }
+
+    .answer-input{
+        height:58px;
+        font-size:22px;
+    }
+
+    .answer-input.number-input{
+        width:125px;
+        height:52px;
+    }
+
+}
+
+
+/* =========================================================
+   MEDIA QUERY 2 — MOBILE
+   ========================================================= */
+
+@media (max-width:600px){
+
+    .quiz{
+        padding:
+            5px
+            8px
+            4px;
+
+        gap:3px;
+    }
+
+    .topbar{
+        grid-template-columns:
+            45px
+            minmax(0,1fr)
+            45px;
+    }
+
+    .icon-circle{
+        width:36px;
+        height:36px;
+
+        font-size:15px;
+    }
+
+    .title{
+        font-size:
+            clamp(
+                15px,
+                4.5vw,
+                21px
+            );
+    }
+
+    .quiz-layout{
+        grid-template-columns:1fr;
+
+        grid-template-rows:
+            minmax(0,1fr)
+            auto;
+
+        gap:4px;
+    }
+
+    .question-side{
+        height:auto;
+        gap:3px;
+    }
+
+    .question-number{
+        font-size:16px;
+    }
+
+    .abacus{
+        width:min(400px,100%);
+
+        height:
+            clamp(
+                175px,
+                31vh,
+                230px
+            );
+    }
+
+    .rods{
+        height:81%;
+
+        padding:
+            0
+            22%;
+
+        gap:25px;
+    }
+
+    .rod{
+        width:3px;
+    }
+
+    .bead-stack{
+        top:auto;
+        bottom:0;
+        gap:1px;
+    }
+
+    .bead{
+        width:25px;
+        height:25px;
+    }
+
+    .abacus-base{
+        width:205px;
+        height:36px;
+
+        font-size:14px;
+    }
+
+    .input-side{
+        width:min(470px,97%);
+
+        gap:7px;
+    }
+
+    .input-group{
+        width:100%;
+
+        gap:3px;
+    }
+
+    .input-label{
+        font-size:13px;
+    }
+
+    .answer-input{
+        width:100%;
+        height:46px;
+
+        border-width:2px;
+        border-radius:11px;
+
+        font-size:19px;
+    }
+
+    .answer-input.number-input{
+        width:95px;
+        height:42px;
+    }
+
+    .input-help{
+        display:none;
+    }
+
+}
+
+
+/* =========================================================
+   MEDIA QUERY 3 — VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width:400px){
+
+    .quiz{
+        padding:
+            4px
+            6px
+            3px;
+
+        gap:2px;
+    }
+
+    .topbar{
+        grid-template-columns:
+            38px
+            minmax(0,1fr)
+            38px;
+    }
+
+    .icon-circle{
+        width:32px;
+        height:32px;
+
+        font-size:13px;
+    }
+
+    .title{
+        font-size:14px;
+    }
+
+    .question-number{
+        font-size:14px;
+    }
+
+    .abacus{
+        height:160px;
+    }
+
+    .rods{
+        padding:
+            0
+            24%;
+
+        gap:20px;
+    }
+
+    .bead-stack{
+        top:auto;
+        bottom:0;
+    }
+
+    .bead{
+        width:21px;
+        height:21px;
+    }
+
+    .abacus-base{
+        width:175px;
+        height:31px;
+
+        font-size:12px;
+    }
+
+    .input-side{
+        gap:5px;
+    }
+
+    .input-label{
+        font-size:11px;
+    }
+
+    .answer-input{
+        height:39px;
+
+        border-radius:9px;
+
+        font-size:16px;
+    }
+
+    .answer-input.number-input{
+        width:82px;
+        height:36px;
+    }
+
+}
+
+
+/* =========================================================
+   MEDIA QUERY 4 — SHORT SCREENS
+   ========================================================= */
+
+@media (max-height:640px){
+
+    .quiz{
+        gap:2px;
+    }
+
+    .quiz-layout{
+        gap:2px;
+    }
+
+    .question-side{
+        gap:2px;
+    }
+
+    .abacus{
+        height:180px;
+    }
+
+    .bead-stack{
+        top:auto;
+        bottom:0;
+    }
+
+    .bead{
+        width:23px;
+        height:23px;
+    }
+
+    .abacus-base{
+        height:34px;
+    }
+
+    .input-side{
+        gap:5px;
+    }
+
+    .answer-input{
+        height:48px;
+    }
+
+    .answer-input.number-input{
+        height:42px;
+    }
+
+}
+
+
+/* =========================================================
+   MEDIA QUERY 5 — LARGE DESKTOP
+   ========================================================= */
+
+@media (min-width:1200px){
+
+    .quiz{
+        padding-left:40px;
+        padding-right:40px;
+    }
+
+    .quiz-layout{
+        grid-template-columns:
+            minmax(0,1.1fr)
+            minmax(400px,.9fr);
+
+        gap:65px;
+    }
+
+    .abacus{
+        width:610px;
+        height:370px;
+    }
+
+    .rods{
+        padding:
+            0
+            85px;
+
+        gap:85px;
+    }
+
+    .bead{
+        width:42px;
+        height:42px;
+    }
+
+    .abacus-base{
+        width:420px;
+        height:58px;
+    }
+
+    .input-group{
+        width:500px;
+    }
+
+}
+
+
+/* =========================================================
+   MEDIA QUERY 6 — EXTRA LARGE DESKTOP
+   ========================================================= */
+
+@media (min-width:1440px){
+
+    .title{
+        font-size:40px;
+    }
+
+    .abacus{
+        width:650px;
+        height:390px;
+    }
+
+    .rods{
+        padding:
+            0
+            100px;
+
+        gap:100px;
+    }
+
+    .bead{
+        width:44px;
+        height:44px;
+    }
+
+    .input-group{
+        width:520px;
+    }
+
+}
+
+
+
+/* =========================================================
+   ABACUS ALIGNMENT FIX
+   Keeps every bead centered exactly on its rod and keeps
+   the complete bead stack above the abacus base.
+   ========================================================= */
+
+.abacus{
+    position:relative;
+    width:min(620px,96%);
+    height:clamp(285px,48vh,390px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
+}
+
+.rods{
+    position:absolute;
+    inset:0 0 clamp(48px,6vh,60px);
+    height:auto;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:0;
+    padding:0 clamp(45px,8vw,100px);
+    align-items:stretch;
+}
+
+.rod{
+    position:relative;
+    width:4px;
+    height:100%;
+    justify-self:center;
+    align-self:stretch;
+    background:#383838;
+    border-radius:5px;
+}
+
+.bead-stack{
+    position:absolute;
+    left:50%;
+    top:auto;
+    bottom:0;
+    transform:translateX(-50%);
+    width:max-content;
+    height:auto;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    gap:2px;
+    overflow:visible;
+}
+
+/* The beads shrink only when a rod contains many beads.
+   They remain perfectly round and stay centered on the rod. */
+.bead{
+    width:clamp(28px,3vw,42px);
+    height:clamp(28px,3vw,42px);
+    min-width:0;
+    min-height:0;
+    flex:0 1 auto;
+    aspect-ratio:1 / 1;
+    border-radius:50%;
+}
+
+/* The maximum stack is 9 beads, so keep all 9 inside the rod. */
+.bead-stack:has(.bead:nth-child(9)){
+    gap:1px;
+}
+
+.bead-stack:has(.bead:nth-child(9)) .bead{
+    width:clamp(24px,2.45vw,35px);
+    height:clamp(24px,2.45vw,35px);
+}
+
+.abacus-base{
+    position:relative;
+    z-index:5;
+    width:min(420px,78%);
+    height:clamp(46px,6vh,60px);
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    align-items:center;
+}
+
+/* Make the three labels sit exactly under the three rods. */
+.abacus-base .base-label{
+    text-align:center;
+}
+
+/* ---------------- LARGE DESKTOP ---------------- */
+@media (min-width:1200px){
+    .abacus{
+        width:620px;
+        height:390px;
+    }
+
+    .rods{
+        inset:0 0 60px;
+        padding-left:90px;
+        padding-right:90px;
+    }
+
+    .rod{
+        width:4px;
+    }
+
+    .bead{
+        width:42px;
+        height:42px;
+    }
+
+    .bead-stack:has(.bead:nth-child(9)) .bead{
+        width:35px;
+        height:35px;
+    }
+
+    .abacus-base{
+        width:420px;
+        height:60px;
+    }
+}
+
+/* ---------------- 1920px MONITOR ---------------- */
+@media (min-width:1800px){
+    .quiz{
+        padding-left:50px;
+        padding-right:50px;
+    }
+
+    .quiz-layout{
+        grid-template-columns:minmax(0,1fr) minmax(430px,0.9fr);
+        gap:80px;
+    }
+
+    .abacus{
+        width:680px;
+        height:410px;
+    }
+
+    .rods{
+        inset:0 0 62px;
+        padding-left:105px;
+        padding-right:105px;
+    }
+
+    .bead{
+        width:44px;
+        height:44px;
+    }
+
+    .bead-stack:has(.bead:nth-child(9)) .bead{
+        width:37px;
+        height:37px;
+    }
+
+    .abacus-base{
+        width:440px;
+        height:62px;
+    }
+
+    .input-group{
+        width:520px;
+    }
+}
+
+/* ---------------- TABLET ---------------- */
+@media (max-width:900px){
+    .abacus{
+        width:100%;
+        height:clamp(245px,45vh,320px);
+    }
+
+    .rods{
+        inset:0 0 45px;
+        padding-left:45px;
+        padding-right:45px;
+    }
+
+    .bead{
+        width:34px;
+        height:34px;
+    }
+
+    .bead-stack:has(.bead:nth-child(9)) .bead{
+        width:27px;
+        height:27px;
+    }
+
+    .abacus-base{
+        width:290px;
+        height:45px;
+    }
+}
+
+/* ---------------- MOBILE ---------------- */
+@media (max-width:600px){
+    .abacus{
+        width:min(400px,100%);
+        height:clamp(180px,31vh,230px);
+    }
+
+    .rods{
+        inset:0 0 36px;
+        padding-left:22%;
+        padding-right:22%;
+        gap:0;
+    }
+
+    .rod{
+        width:3px;
+    }
+
+    .bead-stack{
+        top:auto;
+        bottom:0;
+        gap:1px;
+    }
+
+    .bead{
+        width:25px;
+        height:25px;
+    }
+
+    .bead-stack:has(.bead:nth-child(9)) .bead{
+        width:19px;
+        height:19px;
+    }
+
+    .abacus-base{
+        width:205px;
+        height:36px;
+    }
+}
+
+/* ---------------- VERY SMALL PHONES ---------------- */
+@media (max-width:400px){
+    .abacus{
+        height:160px;
+    }
+
+    .rods{
+        inset:0 0 31px;
+        padding-left:24%;
+        padding-right:24%;
+    }
+
+    .bead-stack{
+        top:auto;
+        bottom:0;
+    }
+
+    .bead{
+        width:21px;
+        height:21px;
+    }
+
+    .bead-stack:has(.bead:nth-child(9)) .bead{
+        width:13px;
+        height:13px;
+    }
+
+    .abacus-base{
+        width:175px;
+        height:31px;
+    }
+}
+
+/* ---------------- SHORT SCREENS ---------------- */
+@media (max-height:640px) and (min-width:601px){
+    .abacus{
+        height:190px;
+    }
+
+    .rods{
+        inset:0 0 34px;
+    }
+
+    .bead{
+        width:23px;
+        height:23px;
+    }
+
+    .bead-stack:has(.bead:nth-child(9)) .bead{
+        width:20px;
+        height:20px;
+    }
+
+    .abacus-base{
+        height:34px;
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="quiz" id="quizCard">
+
+
+    <!-- =====================================================
+         TOP BAR
+         ===================================================== -->
+
+    <div class="topbar">
+
+        <button class="icon-btn"
+                id="homeBtn"
+                aria-label="Home">
+
+            <span class="icon-circle home">
+                <i class="fa-solid fa-house"></i>
+            </span>
+
+        </button>
+
+
+        <div class="title-block">
+
+            <h1 class="title">
+                Write the number represented on the abacus scale.
+            </h1>
+
+        </div>
+
+
+        <button class="icon-btn"
+                id="hintBtn"
+                aria-label="Hint">
+
+            <span class="icon-circle hint">
+                <i class="fa-solid fa-lightbulb"></i>
+            </span>
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN
+         ===================================================== -->
+
+    <div class="quiz-layout">
+
+
+        <!-- =================================================
+             ABACUS SIDE
+             ================================================= -->
+
+        <div class="question-side">
+
+            <p class="question-number"
+               id="questionNumber">
+                Q1.
+            </p>
+
+
+            <div class="abacus">
+
+
+                <div class="rods">
+
+                    <div class="rod">
+
+                        <div class="bead-stack"
+                             id="hundredsBeads">
+                        </div>
+
+                    </div>
+
+
+                    <div class="rod">
+
+                        <div class="bead-stack"
+                             id="tensBeads">
+                        </div>
+
+                    </div>
+
+
+                    <div class="rod">
+
+                        <div class="bead-stack"
+                             id="onesBeads">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="abacus-base">
+
+                    <div class="base-label">
+                        H
+                    </div>
+
+                    <div class="base-label">
+                        T
+                    </div>
+
+                    <div class="base-label">
+                        O
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             INPUT SIDE
+             ================================================= -->
+
+    <div class="input-side">
+
+    <div class="input-group">
+
+        <p class="input-label">
+            Write the number
+        </p>
+
+        <input
+            id="numberInput"
+            class="answer-input number-input"
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            aria-label="Write the number"
+            maxlength="3"
+        >
+
+    </div>
+
+
+    <div class="input-group">
+
+        <p class="input-label">
+            Write the number in English words
+        </p>
+
+        <input
+            id="wordsInput"
+            class="answer-input words-input"
+            type="text"
+            autocomplete="off"
+            aria-label="Write the number in English words"
+        >
+
+    </div>
+
+
+    <button
+        type="button"
+        id="submitBtn"
+        class="submit-btn">
+
+        Submit
+
+    </button>
+
+</div>
+
+    </div>
+
+
+    <!-- =====================================================
+         EXISTING NAVIGATION
+         Keep exactly from reuse.css
+         ===================================================== -->
+
+    <div class="controls">
+
+        <button class="prev"
+                id="prevBtn"
+                disabled>
+
+            <i class="fa-solid fa-circle-arrow-left"></i>
+            Prev
+
+        </button>
+
+
+        <button class="next"
+                id="nextBtn"
+                disabled>
+
+            Next
+            <i class="fa-solid fa-circle-arrow-right"></i>
+
+        </button>
+
+    </div>
+
+
+</div>
+
+
+<!-- =========================================================
+     EXISTING HINT
+     ========================================================= -->
+
+<div class="hint-overlay"
+     id="hintOverlay">
+
+    <div class="hint-box">
+
+        <h3>
+            Hint
+        </h3>
+
+        <p id="hintText"></p>
+
+        <button class="hint-close"
+                id="closeHintBtn">
+
+            Got it!
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     EXISTING POPUP
+     ========================================================= -->
+
+<div id="answerPopup"
+     class="kid-popup">
+
+    <div class="kid-card">
+
+        <div class="kid-icon"
+             id="popupIcon">
+        </div>
+
+        <h3 id="popupTitle"></h3>
+
+        <p id="popupMsg"></p>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     EXISTING FINAL POPUP
+     ========================================================= -->
+
+<div id="finalPopup">
+
+    <div class="final-kid-box">
+
+        <h2>
+            🎉 Congratulations!
+        </h2>
+
+        <p id="finalScore"></p>
+
+        <div id="stars"></div>
+
+        <button class="playAgain-btn"
+                onclick="location.reload()">
+
+            Play Again
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<audio id="correctSound"
+       src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3">
+</audio>
+
+<audio id="wrongSound"
+       src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3">
+</audio>
+
+
+```javascript
+<script>
+
+/* =========================================================
+   QUESTION DATA
+   ========================================================= */
+
+const QUESTIONS = [
+
+    {
+        label:"Q1.",
+
+        hundreds:1,
+        tens:4,
+        ones:9,
+
+        answer:149,
+
+        words:[
+            "one hundred forty-nine",
+            "one hundred and forty-nine",
+            "one hundred forty nine",
+            "one hundred and forty nine"
+        ],
+
+        hint:
+            "There is 1 Hundred, 4 Tens and 9 Ones. Read the digits from left to right."
+    },
+
+
+    {
+        label:"Q2.",
+
+        hundreds:4,
+        tens:6,
+        ones:3,
+
+        answer:463,
+
+        words:[
+            "four hundred sixty-three",
+            "four hundred and sixty-three",
+            "four hundred sixty three",
+            "four hundred and sixty three"
+        ],
+
+        hint:
+            "There are 4 Hundreds, 6 Tens and 3 Ones. Read the digits from left to right."
+    }
+
+];
+
+
+const total =
+    QUESTIONS.length;
+
+let current =
+    0;
+
+let answered =
+    QUESTIONS.map(() => false);
+
+
+/* =========================================================
+   DOM
+   ========================================================= */
+
+const questionNumber =
+    document.getElementById("questionNumber");
+
+const hundredsBeads =
+    document.getElementById("hundredsBeads");
+
+const tensBeads =
+    document.getElementById("tensBeads");
+
+const onesBeads =
+    document.getElementById("onesBeads");
+
+const numberInput =
+    document.getElementById("numberInput");
+
+const wordsInput =
+    document.getElementById("wordsInput");
+
+const submitBtn =
+    document.getElementById("submitBtn");
+
+const prevBtn =
+    document.getElementById("prevBtn");
+
+const nextBtn =
+    document.getElementById("nextBtn");
+
+const homeBtn =
+    document.getElementById("homeBtn");
+
+const hintBtn =
+    document.getElementById("hintBtn");
+
+const hintOverlay =
+    document.getElementById("hintOverlay");
+
+const hintText =
+    document.getElementById("hintText");
+
+const closeHintBtn =
+    document.getElementById("closeHintBtn");
+
+const correctSound =
+    document.getElementById("correctSound");
+
+const wrongSound =
+    document.getElementById("wrongSound");
+
+
+/* =========================================================
+   SPEECH
+   ========================================================= */
+
+function speak(text){
+
+    if(!window.speechSynthesis){
+        return;
+    }
+
+    speechSynthesis.cancel();
+
+    const message =
+        new SpeechSynthesisUtterance(text);
+
+    message.lang =
+        "en-UK";
+
+    message.volume =
+        0.25;
+
+    message.rate =
+        1;
+
+    message.pitch =
+        1;
+
+    speechSynthesis.speak(message);
+}
+
+
+/* =========================================================
+   CONFETTI
+   ========================================================= */
+
+function smallConfetti(){
+
+    if(!window.confetti){
+        return;
+    }
+
+    confetti({
+        particleCount:35,
+        spread:60,
+        scalar:.8,
+        origin:{
+            y:.7
+        }
+    });
+}
+
+
+function finalConfetti(){
+
+    if(!window.confetti){
+        return;
+    }
+
+    confetti({
+        particleCount:150,
+        spread:100,
+        origin:{
+            y:.5
+        }
+    });
+
+}
+
+
+/* =========================================================
+   EXISTING POPUP
+   ========================================================= */
+
+function showPopup(isCorrect){
+
+    const popup =
+        document.getElementById("answerPopup");
+
+    const icon =
+        document.getElementById("popupIcon");
+
+    const title =
+        document.getElementById("popupTitle");
+
+    const message =
+        document.getElementById("popupMsg");
+
+
+    popup.className =
+        "kid-popup " +
+        (
+            isCorrect
+                ? "kid-correct"
+                : "kid-wrong"
+        );
+
+
+    popup.style.display =
+        "flex";
+
+
+    if(isCorrect){
+
+        icon.textContent =
+            "🎉";
+
+        title.textContent =
+            "Great Job!";
+
+        message.textContent =
+            "You got it right!";
+
+    }else{
+
+        icon.textContent =
+            "🥲";
+
+        title.textContent =
+            "Oops!";
+
+        message.textContent =
+            "Try again, you can do it!";
+
+    }
+
+
+    clearTimeout(
+        showPopup.timer
+    );
+
+
+    showPopup.timer =
+        setTimeout(() => {
+
+            popup.style.display =
+                "none";
+
+        },1400);
+
+}
+
+
+/* =========================================================
+   FINAL POPUP
+   ========================================================= */
+
+function showFinal(){
+
+    const popup =
+        document.getElementById("finalPopup");
+
+
+    document.getElementById("finalScore").textContent =
+        `Your Score: ${total} / ${total}`;
+
+
+    document.getElementById("stars").textContent =
+        "⭐".repeat(total);
+
+
+    popup.style.display =
+        "flex";
+
+
+    finalConfetti();
+
+}
+
+
+/* =========================================================
+   CREATE BEADS
+   ========================================================= */
+
+function createBeads(
+    container,
+    count,
+    type
+){
+
+    container.innerHTML = "";
+
+
+    for(
+        let i = 0;
+        i < count;
+        i++
+    ){
+
+        const bead =
+            document.createElement("div");
+
+
+        bead.className =
+            "bead " + type;
+
+
+        container.appendChild(
+            bead
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   RENDER ABACUS
+   ========================================================= */
+
+function renderAbacus(q){
+
+    createBeads(
+        hundredsBeads,
+        q.hundreds,
+        "hundred"
+    );
+
+
+    createBeads(
+        tensBeads,
+        q.tens,
+        "ten"
+    );
+
+
+    createBeads(
+        onesBeads,
+        q.ones,
+        "one"
+    );
+
+}
+
+
+/* =========================================================
+   NORMALIZE WORD ANSWER
+   ========================================================= */
+
+function normalizeWords(value){
+
+    return value
+        .toLowerCase()
+        .trim()
+        .replace(/-/g," ")
+        .replace(/\band\b/g," ")
+        .replace(/\s+/g," ")
+        .trim();
+
+}
+
+
+/* =========================================================
+   CHECK WORD ANSWER
+   ========================================================= */
+
+function isWordsCorrect(value,q){
+
+    const userAnswer =
+        normalizeWords(value);
+
+    return q.words.some(
+        answer =>
+            normalizeWords(answer) === userAnswer
+    );
+
+}
+
+
+/* =========================================================
+   INPUT STATE
+   ========================================================= */
+
+function clearInputStates(){
+
+    numberInput.classList.remove(
+        "correct-input",
+        "wrong-input",
+        "edit-input"
+    );
+
+    wordsInput.classList.remove(
+        "correct-input",
+        "wrong-input",
+        "edit-input"
+    );
+
+}
+
+
+/* =========================================================
+   SUBMIT BUTTON STATE
+
+   Submit is enabled ONLY when BOTH input boxes
+   contain something.
+
+   This function NEVER checks whether answers
+   are correct.
+   ========================================================= */
+
+function updateSubmitState(){
+
+    if(answered[current]){
+
+        submitBtn.disabled =
+            true;
+
+        return;
+    }
+
+
+    const numberHasValue =
+        numberInput.value.trim().length > 0;
+
+    const wordsHasValue =
+        wordsInput.value.trim().length > 0;
+
+
+    submitBtn.disabled =
+        !(numberHasValue && wordsHasValue);
+
+}
+
+
+/* =========================================================
+   CHECK ANSWERS
+
+   Answers are checked ONLY when Submit is clicked.
+
+   NEW BEHAVIOUR:
+
+   1. BOTH WRONG
+      → Clear BOTH inputs.
+
+   2. NUMBER CORRECT + WORDS WRONG
+      → Keep number.
+      → Clear English words.
+      → Keep English input editable.
+
+   3. WORDS CORRECT + NUMBER WRONG
+      → Keep English words.
+      → Clear number.
+      → Keep number input editable.
+
+   4. BOTH CORRECT
+      → Lock both inputs.
+   ========================================================= */
+
+function checkCompleteAnswer(){
+
+    if(answered[current]){
+        return;
+    }
+
+
+    const q =
+        QUESTIONS[current];
+
+
+    const numberValue =
+        numberInput.value.trim();
+
+    const wordsValue =
+        wordsInput.value.trim();
+
+
+    /*
+     * Both boxes must contain an answer.
+     */
+
+    if(
+        numberValue === "" ||
+        wordsValue === ""
+    ){
+
+        submitBtn.disabled =
+            true;
+
+        return;
+    }
+
+
+    const numberCorrect =
+        Number(numberValue) === q.answer;
+
+
+    const wordsCorrect =
+        isWordsCorrect(
+            wordsValue,
+            q
+        );
+
+
+    /* =====================================================
+       BOTH CORRECT
+       ===================================================== */
+
+    if(
+        numberCorrect &&
+        wordsCorrect
+    ){
+
+        answered[current] =
+            true;
+
+
+        numberInput.classList.remove(
+            "wrong-input",
+            "edit-input"
+        );
+
+        numberInput.classList.add(
+            "correct-input"
+        );
+
+
+        wordsInput.classList.remove(
+            "wrong-input",
+            "edit-input"
+        );
+
+        wordsInput.classList.add(
+            "correct-input"
+        );
+
+
+        numberInput.disabled =
+            true;
+
+        wordsInput.disabled =
+            true;
+
+        submitBtn.disabled =
+            true;
+
+
+        correctSound.currentTime =
+            0;
+
+        correctSound
+            .play()
+            .catch(() => {});
+
+
+        speak("Correct");
+
+        showPopup(true);
+
+        smallConfetti();
+
+
+        nextBtn.disabled =
+            current >= total - 1;
+
+
+        if(
+            current ===
+            total - 1
+        ){
+
+            setTimeout(
+                showFinal,
+                1300
+            );
+
+        }
+
+
+        return;
+    }
+
+
+    /* =====================================================
+       NUMBER CORRECT
+       WORDS WRONG
+
+       KEEP:
+       - Correct number
+
+       REMOVE:
+       - Wrong English answer
+
+       The English input stays editable.
+       ===================================================== */
+
+    if(
+        numberCorrect &&
+        !wordsCorrect
+    ){
+
+        /* Keep correct number */
+        numberInput.classList.remove(
+            "wrong-input",
+            "edit-input"
+        );
+
+        numberInput.classList.add(
+            "correct-input"
+        );
+
+        numberInput.disabled =
+            true;
+
+
+        /*
+         * CLEAR the wrong English answer.
+         */
+        wordsInput.value =
+            "";
+
+
+        /*
+         * Keep English input editable.
+         */
+        wordsInput.disabled =
+            false;
+
+
+        wordsInput.classList.remove(
+            "correct-input",
+            "wrong-input",
+            "edit-input"
+        );
+
+        wordsInput.classList.add(
+            "edit-input"
+        );
+
+
+        /*
+         * Submit stays disabled until
+         * the learner enters a new English answer.
+         */
+        submitBtn.disabled =
+            true;
+
+
+        wrongSound.currentTime =
+            0;
+
+        wrongSound
+            .play()
+            .catch(() => {});
+
+
+        speak("Try again");
+
+        showPopup(false);
+
+
+        wordsInput.focus();
+
+
+        return;
+    }
+
+
+    /* =====================================================
+       WORDS CORRECT
+       NUMBER WRONG
+
+       KEEP:
+       - Correct English answer
+
+       REMOVE:
+       - Wrong number
+
+       The number input stays editable.
+       ===================================================== */
+
+    if(
+        !numberCorrect &&
+        wordsCorrect
+    ){
+
+        /*
+         * Keep correct English answer.
+         */
+        wordsInput.classList.remove(
+            "wrong-input",
+            "edit-input"
+        );
+
+        wordsInput.classList.add(
+            "correct-input"
+        );
+
+        wordsInput.disabled =
+            true;
+
+
+        /*
+         * CLEAR the wrong number.
+         */
+        numberInput.value =
+            "";
+
+
+        /*
+         * Keep number input editable.
+         */
+        numberInput.disabled =
+            false;
+
+
+        numberInput.classList.remove(
+            "correct-input",
+            "wrong-input",
+            "edit-input"
+        );
+
+        numberInput.classList.add(
+            "wrong-input"
+        );
+
+
+        /*
+         * Submit stays disabled until
+         * the learner enters a new number.
+         */
+        submitBtn.disabled =
+            true;
+
+
+        wrongSound.currentTime =
+            0;
+
+        wrongSound
+            .play()
+            .catch(() => {});
+
+
+        speak("Try again");
+
+        showPopup(false);
+
+
+        numberInput.focus();
+
+
+        return;
+    }
+
+
+    /* =====================================================
+       BOTH WRONG
+
+       CLEAR:
+       - Number input
+       - English input
+
+       Then allow the learner to start again.
+       ===================================================== */
+
+    numberInput.value =
+        "";
+
+    wordsInput.value =
+        "";
+
+
+    /*
+     * Number input is the first input,
+     * so it is enabled.
+     */
+    numberInput.disabled =
+        false;
+
+
+    /*
+     * English input stays disabled until
+     * a new number is entered.
+     */
+  wordsInput.disabled =
+    false;
+
+
+    numberInput.classList.remove(
+        "correct-input",
+        "wrong-input",
+        "edit-input"
+    );
+
+    wordsInput.classList.remove(
+        "correct-input",
+        "wrong-input",
+        "edit-input"
+    );
+
+
+    submitBtn.disabled =
+        true;
+
+
+    wrongSound.currentTime =
+        0;
+
+    wrongSound
+        .play()
+        .catch(() => {});
+
+
+    speak("Try again");
+
+    showPopup(false);
+
+
+    numberInput.focus();
+
+}
+
+
+/* =========================================================
+   NUMBER INPUT
+
+   Does NOT check the answer.
+
+   It:
+   - accepts numbers
+   - enables/disables second box
+   - updates Submit button
+   ========================================================= */
+
+numberInput.addEventListener(
+    "input",
+    () => {
+
+        const value =
+            numberInput.value
+                .replace(/\D/g,"")
+                .slice(0,3);
+
+
+        numberInput.value =
+            value;
+
+
+        /*
+         * Enable English input when
+         * the number has something.
+         *
+         * IMPORTANT:
+         * If the English answer is already
+         * locked as correct, do not unlock it.
+         */
+
+
+        /*
+         * If learner edits a previously wrong
+         * number, remove wrong visual state.
+         */
+
+        numberInput.classList.remove(
+            "wrong-input"
+        );
+
+
+        /*
+         * Do NOT validate here.
+         */
+
+        updateSubmitState();
+
+    }
+);
+
+
+/* =========================================================
+   NUMBER ENTER
+
+   ENTER DOES NOT CHECK THE ANSWER.
+   ========================================================= */
+
+numberInput.addEventListener(
+    "keydown",
+    event => {
+
+        if(
+            event.key === "Enter"
+        ){
+
+            event.preventDefault();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   NUMBER BLUR
+
+   BLUR DOES NOT CHECK THE ANSWER.
+   ========================================================= */
+
+numberInput.addEventListener(
+    "blur",
+    () => {
+
+        updateSubmitState();
+
+    }
+);
+
+
+/* =========================================================
+   WORD INPUT
+
+   Does NOT check the answer.
+   ========================================================= */
+
+wordsInput.addEventListener(
+    "input",
+    () => {
+
+        /*
+         * Allow ONLY English letters and spaces.
+         * Remove numbers, hyphens and special characters.
+         */
+        let value =
+            wordsInput.value.replace(
+                /[^a-zA-Z\s]/g,
+                ""
+            );
+
+
+        /*
+         * Convert everything to lowercase.
+         */
+        value =
+            value.toLowerCase();
+
+
+        /*
+         * Remove extra spaces.
+         * Keep only single spaces between words.
+         */
+        value =
+            value.replace(
+                /\s+/g,
+                " "
+            );
+
+
+        /*
+         * Automatically capitalize ONLY
+         * the first letter of the first word.
+         *
+         * Example:
+         * "one hundred forty nine"
+         * becomes
+         * "One hundred forty nine"
+         */
+        if(value.length > 0){
+
+            value =
+                value.charAt(0).toUpperCase() +
+                value.slice(1);
+
+        }
+
+
+        /*
+         * Put the cleaned/ formatted value
+         * back into the input box.
+         */
+        wordsInput.value =
+            value;
+
+
+        /*
+         * If this input was previously wrong,
+         * remove the wrong/edit visual state.
+         */
+        wordsInput.classList.remove(
+            "wrong-input",
+            "edit-input"
+        );
+
+
+        /*
+         * Update Submit button.
+         * This does NOT check the answer.
+         */
+        updateSubmitState();
+
+    }
+);
+
+
+/* =========================================================
+   WORD ENTER
+
+   ENTER DOES NOT CHECK THE ANSWER.
+   ========================================================= */
+
+wordsInput.addEventListener(
+    "keydown",
+    event => {
+
+        if(
+            event.key === "Enter"
+        ){
+
+            event.preventDefault();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   WORD BLUR
+
+   BLUR DOES NOT CHECK THE ANSWER.
+   ========================================================= */
+
+wordsInput.addEventListener(
+    "blur",
+    () => {
+
+        updateSubmitState();
+
+    }
+);
+
+
+/* =========================================================
+   SUBMIT BUTTON
+
+   THIS IS THE ONLY PLACE WHERE
+   ANSWERS ARE CHECKED.
+   ========================================================= */
+
+submitBtn.addEventListener(
+    "click",
+    () => {
+
+        if(answered[current]){
+            return;
+        }
+
+
+        const numberValue =
+            numberInput.value.trim();
+
+        const wordsValue =
+            wordsInput.value.trim();
+
+
+        /*
+         * Submit should normally already be disabled
+         * when either box is empty.
+         */
+
+        if(
+            numberValue === "" ||
+            wordsValue === ""
+        ){
+
+            submitBtn.disabled =
+                true;
+
+            return;
+        }
+
+
+        /*
+         * ONLY HERE do we check the answers.
+         */
+
+        checkCompleteAnswer();
+
+    }
+);
+
+
+/* =========================================================
+   RENDER QUESTION
+   ========================================================= */
+
+function renderQuestion(){
+
+    const q =
+        QUESTIONS[current];
+
+
+    questionNumber.textContent =
+        q.label;
+
+
+    renderAbacus(q);
+
+
+    clearInputStates();
+
+
+    numberInput.disabled =
+    false;
+
+wordsInput.disabled =
+    false;
+
+
+    submitBtn.disabled =
+        true;
+
+
+    numberInput.value =
+        "";
+
+    wordsInput.value =
+        "";
+
+
+    /*
+     * Restore answered question
+     * when using Prev.
+     */
+
+    if(
+        answered[current]
+    ){
+
+        numberInput.value =
+            q.answer;
+
+
+        wordsInput.value =
+            q.words[0];
+
+
+        numberInput.classList.add(
+            "correct-input"
+        );
+
+        wordsInput.classList.add(
+            "correct-input"
+        );
+
+
+        numberInput.disabled =
+            true;
+
+        wordsInput.disabled =
+            true;
+
+        submitBtn.disabled =
+            true;
+
+    }
+
+
+    /*
+     * Prev is available after Q1.
+     */
+
+    prevBtn.disabled =
+        current === 0;
+
+
+    /*
+     * Next is available only after
+     * the current question is fully correct.
+     */
+
+    nextBtn.disabled =
+        !answered[current] ||
+        current === total - 1;
+
+}
+
+
+/* =========================================================
+   PREVIOUS
+   ========================================================= */
+
+prevBtn.addEventListener(
+    "click",
+    () => {
+
+        if(
+            current === 0
+        ){
+
+            return;
+        }
+
+
+        current--;
+
+        renderQuestion();
+
+    }
+);
+
+
+/* =========================================================
+   NEXT
+   ========================================================= */
+
+nextBtn.addEventListener(
+    "click",
+    () => {
+
+        /*
+         * Do not move until both
+         * answers are correct.
+         */
+
+        if(
+            !answered[current]
+        ){
+
+            return;
+        }
+
+
+        if(
+            current >= total - 1
+        ){
+
+            return;
+        }
+
+
+        current++;
+
+        renderQuestion();
+
+    }
+);
+
+
+/* =========================================================
+   HOME
+   ========================================================= */
+
+homeBtn.addEventListener(
+    "click",
+    () => {
+
+        window.location.href =
+            "../Grade2_chapter2.html";
+
+    }
+);
+
+
+/* =========================================================
+   HINT
+   ========================================================= */
+
+hintBtn.addEventListener(
+    "click",
+    () => {
+
+        hintText.textContent =
+            QUESTIONS[current].hint;
+
+
+        hintOverlay.classList.add(
+            "show"
+        );
+
+    }
+);
+
+
+closeHintBtn.addEventListener(
+    "click",
+    () => {
+
+        hintOverlay.classList.remove(
+            "show"
+        );
+
+    }
+);
+
+
+hintOverlay.addEventListener(
+    "click",
+    event => {
+
+        if(
+            event.target ===
+            hintOverlay
+        ){
+
+            hintOverlay.classList.remove(
+                "show"
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INITIAL LOAD
+   ========================================================= */
+
+renderQuestion();
+
+</script>
+
+
+</body>
+</html>

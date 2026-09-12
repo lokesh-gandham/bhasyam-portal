@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Division Truth Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+}
+
+body{
+  overflow:hidden;
+  font-family:"Livvic",sans-serif;
+  color:#2f4f4f;
+  background:#f8f3e8;
+}
+
+#game{
+  position:relative;
+  width:100%;
+  height:100vh;
+  min-height:620px;
+  overflow:hidden;
+}
+
+/* ================= TOP TITLE ================= */
+.topbar{
+  height:100px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 20px;
+}
+
+.hud{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:10px 25px;
+  background:#fffdf9;
+  border:3px solid #9274bd;
+  border-radius:25px 16px 25px 16px;
+  box-shadow:0 6px 0 rgba(83,55,126,.12);
+}
+
+.hud-icon{
+  width:45px;
+  height:45px;
+  display:grid;
+  place-items:center;
+  border-radius:14px 18px 10px 18px;
+  background:#eadcf7;
+  border:2px solid #b08bd2;
+  font-size:23px;
+}
+
+.hud h1{
+  margin:0;
+  font-size:22px;
+  font-weight:400;
+  white-space:nowrap;
+}
+
+/* ================= UNIQUE TRUTH SCANNER ================= */
+/* This design deliberately avoids the previous card/box layouts. */
+.arena{
+  position:relative;
+  width:min(1120px,90vw);
+  height:calc(100vh - 185px);
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.scanner{
+  width:min(930px,94%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+/* small mission indicator, not another heading */
+.round-line{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:20px;
+}
+
+.round-number{
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#d9eef3;
+  border:3px solid #7eb9c3;
+  color:#315d63;
+  font-size:22px;
+  box-shadow:0 5px 0 rgba(49,93,99,.13);
+}
+
+.round-text{
+  font-size:18px;
+  font-weight:600;
+  letter-spacing:1px;
+  color:#7350a8;
+}
+
+/* Open scanner stage */
+.scanner-stage{
+  position:relative;
+  width:100%;
+  padding:34px 30px 30px;
+  text-align:center;
+}
+
+/* Clean question area — no top/bottom rails */
+.scanner-stage::before,
+.scanner-stage::after{
+  display:none;
+}
+
+/* The statement itself is the focus — no card */
+.statement-wrap{
+  position:relative;
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:14px 4%;
+}
+
+.statement{
+  position:relative;
+  max-width:100%;
+  color:#303d40;
+  font-size:30px;
+  font-weight:400;
+  line-height:1.35;
+  text-align:center;
+}
+
+/* ================= TRUE / FALSE LEVERS ================= */
+.answers{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:38px;
+  margin-top:36px;
+}
+
+.answer-control{
+  position:relative;
+  width:235px;
+  height:86px;
+  border:0;
+  border-radius:43px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  font:500 22px "Livvic",sans-serif;
+  color:#2f4f4f;
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;
+}
+
+.answer-control::before{
+  content:"";
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  background:#fffdf8;
+  border:3px solid rgba(47,79,79,.18);
+  box-shadow:inset 0 3px 0 rgba(255,255,255,.7);
+}
+
+.true-control{
+  background:#dcefe7;
+  border:3px solid #7eb39e;
+  box-shadow:0 8px 0 #b5d5c5,0 14px 24px rgba(47,79,79,.10);
+}
+
+.false-control{
+  background:#f8ddd3;
+  border:3px solid #d99074;
+  box-shadow:0 8px 0 #e9b6a4,0 14px 24px rgba(47,79,79,.10);
+}
+
+.answer-control:hover:not(:disabled){
+  transform:translateY(-4px);
+  filter:saturate(1.04);
+}
+
+.answer-control:active:not(:disabled){
+  transform:translateY(5px);
+  box-shadow:0 3px 0 rgba(47,79,79,.15);
+}
+
+.answer-control.selected.true-control{
+  background:#c9e9da;
+  border-color:#16834f;
+  box-shadow:0 8px 0 #91c5aa;
+}
+
+.answer-control.selected.false-control{
+  background:#f7cfc4;
+  border-color:#c94740;
+  box-shadow:0 8px 0 #dfa093;
+}
+
+.answer-control.correct{
+  background:#dcf5e5!important;
+  border-color:#16834f!important;
+  color:#16834f;
+  box-shadow:0 8px 0 #16834f!important;
+}
+
+.answer-control.wrong{
+  background:#ffe8e4!important;
+  border-color:#c94740!important;
+  color:#c94740;
+  box-shadow:0 8px 0 #c94740!important;
+}
+
+.answer-control:disabled{
+  cursor:default;
+}
+
+/* ================= SUBMIT ================= */
+.controls{
+  display:flex;
+  justify-content:center;
+  margin-top:26px;
+}
+
+.submit-btn{
+  min-width:155px;
+  height:50px;
+  padding:0 28px;
+  border:0;
+  border-radius:18px;
+  background:#2f4f4f;
+  color:#fff;
+  font:500 20px "Livvic",sans-serif;
+  cursor:pointer;
+  box-shadow:0 8px 0 rgba(22,59,59,.18),0 13px 25px rgba(47,79,79,.20);
+}
+
+.submit-btn:hover:not(:disabled){transform:translateY(-2px)}
+.submit-btn:active:not(:disabled){transform:translateY(3px)}
+
+.submit-btn:disabled{
+  opacity:.55;
+  cursor:default;
+  transform:none;
+}
+
+.hint{
+  margin-top:11px;
+  text-align:center;
+  color:#6c7e7e;
+  font-size:16px;
+}
+
+/* ================= NAVIGATION ================= */
+.nav-btn{
+  position:fixed;
+  z-index:30;
+  bottom:22px;
+  min-width:126px;
+  height:46px;
+  padding:0 19px;
+  border-radius:15px;
+  font:500 20px "Livvic",sans-serif;
+  color:#2f4f4f;
+  border:2px solid rgba(47,79,79,.12);
+  cursor:pointer;
+  box-shadow:0 8px 18px rgba(47,79,79,.12);
+}
+
+#prevBtn{
+  left:4%;
+  background:#a9cbe2;
+  border-color:#79a9c7;
+}
+
+#nextBtn{
+  right:4%;
+  background:#efbca6;
+  border-color:#d99074;
+}
+
+.nav-btn:disabled{
+  opacity:.48;
+  cursor:default;
+  pointer-events:none;
+}
+
+.nav-btn:not(:disabled):hover{transform:translateY(-2px)}
+
+/* ================= SAME POPUP FAMILY ================= */
+.feedback{
+  position:fixed;
+  z-index:100;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) scale(.92);
+  width:min(440px,88vw);
+  min-height:215px;
+  padding:26px 30px 28px;
+  border-radius:30px;
+  text-align:center;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  box-shadow:0 20px 50px rgba(32,57,57,.22);
+}
+
+.feedback.show{
+  display:flex;
+  animation:pop .18s ease-out forwards;
+}
+
+@keyframes pop{
+  to{transform:translate(-50%,-50%) scale(1)}
+}
+
+.correct-popup{
+  background:linear-gradient(135deg,#e2f6e9,#f4fcf6);
+  border:5px solid #16834f;
+}
+
+.wrong-popup{
+  background:linear-gradient(135deg,#fde6e2,#fff7f5);
+  border:5px solid #c94740;
+}
+
+.feedback-icon{
+  width:68px;
+  height:68px;
+  border-radius:24px 24px 24px 8px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  font-size:34px;
+  box-shadow:0 8px 16px rgba(32,57,57,.14);
+}
+
+.correct-popup .feedback-icon{background:#16834f}
+.wrong-popup .feedback-icon{background:#c94740}
+
+.feedback h3{
+  margin:0;
+  font-size:28px;
+  font-weight:600;
+}
+
+.feedback p{
+  margin:0;
+  color:#607878;
+  font-size:17px;
+}
+
+/* ================= FINAL POPUP ================= */
+.final-popup{
+  position:fixed;
+  z-index:110;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) scale(.94);
+  width:min(520px,91vw);
+  padding:38px 36px 32px;
+  border-radius:34px;
+  background:linear-gradient(145deg,#eadcff,#cbb5f4 58%,#b89ae8);
+  border:5px solid #7350a8;
+  box-shadow:0 10px 0 rgba(83,55,126,.18),0 28px 70px rgba(55,38,80,.30);
+  text-align:center;
+  display:none;
+}
+
+.final-popup.show{
+  display:block;
+  animation:finalPop .25s ease-out forwards;
+}
+
+@keyframes finalPop{
+  to{transform:translate(-50%,-50%) scale(1)}
+}
+
+.final-emoji{
+  font-size:78px;
+  margin-bottom:8px;
+}
+
+.final-popup h2{
+  margin:0 0 8px;
+  font-size:36px;
+  font-weight:600;
+  color:#4e3970;
+}
+
+.final-popup p{
+  margin:0 0 22px;
+  font-size:18px;
+  color:#5e4e70;
+}
+
+.play-again-btn{
+  width:185px;
+  height:52px;
+  border:0;
+  border-radius:17px;
+  background:#68449a;
+  color:#fff;
+  font:500 20px "Livvic",sans-serif;
+  cursor:pointer;
+}
+
+/* ================= MONITOR ================= */
+@media (min-width:1400px){
+  .topbar{height:100px}
+
+  .hud{
+    padding:13px 28px;
+    border-width:4px;
+    border-radius:28px 18px 28px 18px;
+  }
+
+  .hud-icon{
+    width:54px;
+    height:54px;
+    font-size:28px;
+  }
+
+  .hud h1{font-size:30px}
+
+  .arena{
+    width:min(1240px,88vw);
+    height:calc(100vh - 185px);
+  }
+
+  .round-line{margin-bottom:34px}
+
+  .round-number{
+    width:58px;
+    height:58px;
+    font-size:26px;
+  }
+
+  .round-text{font-size:20px}
+
+  .scanner-stage{
+    padding:40px 34px 34px;
+  }
+
+  .statement{
+    font-size:40px;
+    line-height:1.4;
+  }
+
+  .answers{
+    gap:52px;
+    margin-top:44px;
+  }
+
+  .answer-control{
+    width:270px;
+    height:94px;
+    border-radius:47px;
+    font-size:30px;
+  }
+
+  .answer-control::before{
+    width:32px;
+    height:32px;
+  }
+
+  .controls{margin-top:30px}
+
+  .submit-btn{
+    min-width:175px;
+    height:56px;
+    font-size:22px;
+  }
+
+  .hint{font-size:23px;margin-top:16px}
+
+  .nav-btn{
+    min-width:155px;
+    height:56px;
+    bottom:22px;
+    font-size:30px;
+    border-width:3px;
+  }
+
+  .feedback{
+    width:min(560px,88vw);
+    min-height:270px;
+  }
+
+  .feedback-icon{
+    width:82px;
+    height:82px;
+    font-size:40px;
+  }
+
+  .feedback h3{font-size:34px}
+  .feedback p{font-size:20px}
+
+  .final-popup{
+    width:min(650px,90vw);
+    padding:44px 42px 36px;
+  }
+
+  .final-emoji{font-size:92px}
+  .final-popup h2{font-size:44px}
+  .final-popup p{font-size:21px}
+
+  .play-again-btn{
+    width:215px;
+    height:60px;
+    font-size:22px;
+  }
+}
+
+/* ================= LAPTOP / TABLET ================= */
+@media (max-width:900px){
+  #game{min-height:560px}
+
+  .arena{
+    width:94vw;
+    height:calc(100vh - 155px);
+  }
+
+  .scanner-stage{
+    padding:25px 15px;
+  }
+
+  .round-line{
+    margin-bottom:18px;
+  }
+
+  .statement{
+    font-size:30px;
+  }
+
+  .answers{
+    gap:18px;
+    margin-top:30px;
+  }
+
+  .answer-control{
+    width:190px;
+    height:70px;
+    font-size:22px;
+  }
+
+  .controls{margin-top:20px}
+}
+
+@media (max-width:650px){
+  body{overflow:auto}
+
+  #game{
+    min-height:720px;
+    height:auto;
+    overflow:hidden;
+  }
+
+  .topbar{
+    height:82px;
+  }
+
+  .hud{
+    padding:8px 16px;
+    gap:9px;
+  }
+
+  .hud-icon{
+    width:40px;
+    height:40px;
+    font-size:20px;
+  }
+
+  .hud h1{font-size:20px}
+
+  .arena{
+    width:96vw;
+    height:auto;
+    min-height:590px;
+    padding-bottom:85px;
+  }
+
+  .round-line{
+    margin-bottom:12px;
+  }
+
+  .round-number{
+    width:44px;
+    height:44px;
+    font-size:20px;
+  }
+
+  .round-text{font-size:16px}
+
+  .scanner-stage{
+    padding:25px 5px 20px;
+  }
+
+  .statement{
+    font-size:26px;
+  }
+
+  .answers{
+    flex-direction:column;
+    gap:18px;
+    margin-top:28px;
+  }
+
+  .answer-control{
+    width:min(300px,82vw);
+    height:66px;
+    font-size:21px;
+  }
+
+  .nav-btn{
+    min-width:105px;
+    height:42px;
+    bottom:14px;
+    font-size:16px;
+  }
+
+  #prevBtn{left:3%}
+  #nextBtn{right:3%}
+}
+</style>
+</head>
+
+<body>
+<div id="game">
+
+  <header class="topbar">
+    <div class="hud">
+      <div class="hud-icon">🔍</div>
+      <h1>Division Truth Scanner</h1>
+    </div>
+  </header>
+
+  <main class="arena">
+    <section class="scanner">
+
+      <div class="round-line">
+        <div class="round-number" id="qBadge">1</div>
+        <div class="round-text">TRUTH CHECK</div>
+      </div>
+
+      <div class="scanner-stage">
+        <div class="statement-wrap">
+          <div class="statement" id="statement"></div>
+        </div>
+
+        <div class="answers" id="answers"></div>
+
+        <div class="hint">Tap True or False to scan the statement.</div>
+      </div>
+
+    </section>
+  </main>
+
+  <button class="nav-btn" id="prevBtn">← Back</button>
+  <button class="nav-btn" id="nextBtn">Next →</button>
+
+  <div class="feedback correct-popup" id="correctPopup">
+    <div class="feedback-icon">✓</div>
+    <h3>Perfect!</h3>
+    <p>Great job! Your truth scan is correct.</p>
+  </div>
+
+  <div class="feedback wrong-popup" id="wrongPopup">
+    <div class="feedback-icon">×</div>
+    <h3>Try Again!</h3>
+    <p>Check the division statement carefully.</p>
+  </div>
+
+  <div class="final-popup" id="finalPopup">
+    <div class="final-emoji">🏆</div>
+    <h2>Well Done!</h2>
+    <p>You completed every question in this activity!</p>
+    <button class="play-again-btn" id="playAgainBtn">↻ Play Again</button>
+  </div>
+
+</div>
+
+<script>
+const questions=[
+  {
+    number:1,
+    statement:"567 ÷ 1 gives quotient as the number itself.",
+    answer:"True"
+  },
+  {
+    number:2,
+    statement:"0 ÷ 9999 gives remainder as 9999 and quotient as 0.",
+    answer:"False"
+  },
+  {
+    number:3,
+    statement:"7077 ÷ 7077 gives quotient as 7077 and remainder as 1.",
+    answer:"False"
+  },
+  {
+    number:4,
+    statement:"8993 divided by zero gives quotient as 0.",
+    answer:"False"
+  },
+  {
+    number:5,
+    statement:"The result in division is called the quotient.",
+    answer:"True"
+  },
+  {
+    number:6,
+    statement:"The largest number in division is the dividend.",
+    answer:"True"
+  },
+  {
+    number:7,
+    statement:"The remainder is greater than the divisor.",
+    answer:"False"
+  },
+  {
+    number:8,
+    statement:"Repeated subtraction is called division.",
+    answer:"False"
+  },
+  {
+    number:9,
+    statement:"The result of division is always a whole number.",
+    answer:"True"
+  },
+  {
+    number:10,
+    statement:"Dividend + Remainder = Divisor × Quotient.",
+    answer:"False"
+  }
+];
+
+let current=0;
+let solved=questions.map(()=>false);
+let selected=null;
+let finalShown=false;
+
+const statement=document.getElementById("statement");
+const answers=document.getElementById("answers");
+const qBadge=document.getElementById("qBadge");
+const submitBtn={};
+const prevBtn=document.getElementById("prevBtn");
+const nextBtn=document.getElementById("nextBtn");
+const correctPopup=document.getElementById("correctPopup");
+const wrongPopup=document.getElementById("wrongPopup");
+const finalPopup=document.getElementById("finalPopup");
+const playAgainBtn=document.getElementById("playAgainBtn");
+
+function speak(text){
+  if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+
+  try{
+    const synth=window.speechSynthesis;
+    synth.cancel();
+    synth.resume();
+
+    const msg=new SpeechSynthesisUtterance(text);
+    msg.volume=1;
+    msg.rate=1;
+    msg.pitch=1;
+
+    const voices=synth.getVoices();
+    const voice=
+      voices.find(v=>v.lang==="en-US")||
+      voices.find(v=>/^en[-_]/i.test(v.lang))||
+      voices.find(v=>/English/i.test(v.name));
+
+    if(voice){
+      msg.voice=voice;
+      msg.lang=voice.lang;
+    }else{
+      msg.lang="en-US";
+    }
+
+    synth.speak(msg);
+  }catch(error){
+    console.warn("Voice error:",error);
+  }
+}
+
+if("speechSynthesis" in window){
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+}
+
+function sound(type){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;
+    if(!C)return;
+
+    const ctx=new C();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+
+    o.connect(g);
+    g.connect(ctx.destination);
+
+    const now=ctx.currentTime;
+
+    if(type==="correct"){
+      o.frequency.setValueAtTime(660,now);
+      o.frequency.setValueAtTime(880,now+.09);
+    }else{
+      o.frequency.setValueAtTime(260,now);
+      o.frequency.setValueAtTime(190,now+.12);
+    }
+
+    g.gain.setValueAtTime(.0001,now);
+    g.gain.exponentialRampToValueAtTime(.12,now+.015);
+    g.gain.exponentialRampToValueAtTime(.0001,now+.22);
+
+    o.start(now);
+    o.stop(now+.23);
+  }catch(e){}
+}
+
+function showPopup(el,time=1200){
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),time);
+}
+
+function render(){
+  const q=questions[current];
+
+  qBadge.textContent=q.number;
+  statement.textContent=q.statement;
+
+  answers.innerHTML="";
+  selected=null;
+
+  ["True","False"].forEach(value=>{
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.className="answer-control "+(value==="True"?"true-control":"false-control");
+    btn.textContent=value;
+
+    btn.addEventListener("click",()=>{
+      if(solved[current]||finalShown)return;
+
+      document.querySelectorAll(".answer-control")
+        .forEach(o=>o.classList.remove("selected","wrong","correct"));
+
+      btn.classList.add("selected");
+      selected=value;
+      submitAnswer();
+    });
+
+    answers.appendChild(btn);
+  });
+
+  if(solved[current]){
+    const buttons=[...answers.querySelectorAll(".answer-control")];
+
+    buttons.forEach(btn=>{
+      btn.disabled=true;
+      if(btn.textContent===q.answer){
+        btn.classList.add("correct");
+      }
+    });
+
+    submitBtn.disabled=true;
+  }else{
+    submitBtn.disabled=true;
+  }
+
+  prevBtn.disabled=current===0;
+  nextBtn.disabled=!solved[current]||current===questions.length-1;
+}
+
+function submitAnswer(){
+  if(finalShown||solved[current]||!selected)return;
+
+  const q=questions[current];
+  const buttons=[...answers.querySelectorAll(".answer-control")];
+
+  if(selected===q.answer){
+    buttons.forEach(btn=>{
+      btn.disabled=true;
+      if(btn.textContent===q.answer){
+        btn.classList.remove("selected");
+        btn.classList.add("correct");
+      }
+    });
+
+    solved[current]=true;
+    submitBtn.disabled=true;
+
+    /* Next unlocks only after the answer is correct. */
+    nextBtn.disabled=current===questions.length-1;
+
+    sound("correct");
+    speak("Correct!");
+    showPopup(correctPopup);
+
+    if(solved.every(Boolean)){
+      setTimeout(showFinal,850);
+    }
+  }else{
+    buttons.forEach(btn=>{
+      if(btn.textContent===selected){
+        btn.classList.remove("selected");
+        btn.classList.add("wrong");
+      }
+    });
+
+    sound("wrong");
+    speak("Try Again!");
+
+    showPopup(wrongPopup);
+
+    setTimeout(()=>{
+      buttons.forEach(btn=>{
+        btn.classList.remove("wrong","selected");
+      });
+      selected=null;
+      submitBtn.disabled=true;
+    },650);
+  }
+}
+
+function go(delta){
+  if(finalShown)return;
+
+  const target=current+delta;
+
+  if(target<0||target>=questions.length)return;
+
+  /* Next is allowed only after current question is solved. */
+  if(delta>0&&!solved[current])return;
+
+  current=target;
+  render();
+}
+
+function showFinal(){
+  finalShown=true;
+  finalPopup.classList.add("show");
+  prevBtn.disabled=true;
+  nextBtn.disabled=true;
+  submitBtn.disabled=true;
+  
+}
+
+prevBtn.addEventListener("click",()=>go(-1));
+nextBtn.addEventListener("click",()=>go(1));
+
+playAgainBtn.addEventListener("click",()=>{
+  current=0;
+  solved=questions.map(()=>false);
+  selected=null;
+  finalShown=false;
+  finalPopup.classList.remove("show");
+  render();
+});
+
+render();
+</script>
+<script>
+/* ===== CONFETTI CELEBRATION (right & final popups) ===== */
+(function () {
+  let canvas, ctx, pieces = [], raf = null;
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    resize();
+    window.addEventListener("resize", resize);
+  }
+  function resize() {
+    if (!canvas) return;
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  const colors = ["#16834f", "#d99c36", "#7350a8", "#c94740", "#3a8fb7", "#e86ea4", "#ffd257"];
+  function burst(count) {
+    ensureCanvas();
+    for (let i = 0; i < count; i++) {
+      pieces.push({
+        x: innerWidth / 2 + (Math.random() - .5) * 180,
+        y: innerHeight / 2 + (Math.random() - .5) * 90,
+        vx: (Math.random() - .5) * 11,
+        vy: Math.random() * -13 - 4,
+        g: 0.30 + Math.random() * 0.14,
+        s: 6 + Math.random() * 7,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - .5) * 0.4,
+        color: colors[i % colors.length],
+        life: 0
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces = pieces.filter(p => p.life < 280 && p.y < innerHeight + 40);
+    pieces.forEach(p => {
+      p.life++;
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.99;
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6);
+      ctx.restore();
+    });
+    if (pieces.length) { raf = requestAnimationFrame(tick); }
+    else { raf = null; ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  }
+  window.fireConfetti = function (big) {
+    if (big) {
+      burst(170);
+      let n = 0;
+      const iv = setInterval(() => { burst(90); if (++n >= 4) clearInterval(iv); }, 400);
+    } else {
+      burst(90);
+    }
+  };
+  function watch(id, big) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let was = el.classList.contains("show");
+    new MutationObserver(() => {
+      const now = el.classList.contains("show");
+      if (now && !was) window.fireConfetti(big);
+      was = now;
+    }).observe(el, { attributes: true, attributeFilter: ["class"] });
+  }
+  function init() { watch("correctPopup", false); watch("finalPopup", true); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+
+</html>

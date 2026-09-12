@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find How Many Are Left</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Livvic', sans-serif;
+}
+
+body {
+   
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    overflow: hidden;
+    color: #2c3e50;
+}
+
+/* =========================
+   HEADER
+========================= */
+header {
+    text-align: center;
+    margin-top: 2px;
+}
+
+h2 {
+    font-size: 22px;
+    color: #2c3e50;
+    font-weight: 400;
+}
+
+.instruction {
+    font-size: 30px;
+    color: #2f4f4f;
+    
+    margin-top: 60px;
+}
+
+
+
+/* =========================
+   SUBHEADING
+========================= */
+.subheading {
+    font-size: 20px;
+    color: #2f4f4f;
+    font-weight: 400;
+    line-height: 1.3;
+    margin-top: 8px;
+}
+
+.instruction {
+    font-size: 30px;
+    color: #2f4f4f;
+    margin-top: 28px;
+}
+
+/* =========================
+   GAME STAGE
+========================= */
+.game-stage {
+    width: 100%;
+    max-width: 1500px;
+    height: 68vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    gap: 30px;
+}
+
+/* =========================
+   ITEMS CONTAINER
+========================= */
+.items-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(10px, 2vw, 20px);
+    max-width: 1500px;
+    padding: 20px;
+}
+
+.item-wrapper {
+    position: relative;
+    width: clamp(55px, 8vw, 85px);
+    height: clamp(70px, 10vw, 110px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    user-select: none;
+}
+
+.item-wrapper:hover {
+    transform: scale(1.08);
+}
+
+.item-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    transition: filter 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Crossed out / Eaten / Drank State */
+.item-wrapper.crossed .item-img {
+    filter: grayscale(80%) opacity(0.3);
+    transform: scale(0.9);
+}
+
+/* Cross mark overlay */
+.item-wrapper.crossed::after {
+    content: '✕';
+    position: absolute;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    color: #e74c3c;
+    font-weight: 400;
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+
+/* =========================
+   EQUATION ROW
+========================= */
+.equation-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 2vw, 25px);
+}
+
+.eq-text {
+    font-size: clamp(2.5rem, 4vw, 3.8rem);
+    font-weight: 400;
+    color: #2f4f4f;
+    text-shadow: 0 2px 0 #ffffff;
+}
+
+/* =========================
+   ANSWER INPUT
+========================= */
+input[type="text"] {
+    width: clamp(70px, 8vw, 90px);
+    height: clamp(55px, 6.5vw, 70px);
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 400;
+    text-align: center;
+    border: 4px solid #e67e22;
+    border-radius: 18px;
+    background: #ffffff;
+    color: #2f4f4f;
+    outline: none;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+input[type="text"]:focus {
+    transform: translateY(-4px);
+    border-color: #f39c12;
+    box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+}
+
+input[type="text"]:disabled {
+    background-color: #f1f2f6;
+    border-color: #00b894;
+    color: #2d3436;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* =========================
+   FOOTER & BUTTONS
+========================= */
+footer {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.nav-btn {
+    background: #e67e22;
+    color: #ffffff;
+    border: none;
+   min-width:178px;height:45px;
+    font-size: 20px;
+    font-weight: 500;
+    border-radius: 40px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #d35400;
+    transition: all 0.1s ease;
+}
+
+.nav-btn:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #d35400;
+}
+
+.nav-btn:disabled {
+    background: #b2bec3;
+    box-shadow: 0 6px 0 #636e72;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.check-btn {
+    background: #00b894;
+    box-shadow: 0 6px 0 #008f72;
+}
+
+.check-btn:active:not(:disabled) {
+    box-shadow: 0 2px 0 #008f72;
+}
+
+.replay-btn {
+    background: #0984e3;
+    box-shadow: 0 6px 0 #0975c7;
+    margin-top: 20px;
+    z-index: 5;
+}
+
+.replay-btn:active {
+    box-shadow: 0 2px 0 #0975c7;
+}
+
+@media screen and (min-width: 1600px) {
+    h2 {
+        font-size: 30px;
+    }
+    .nav-btn {
+        width: 200px;
+        min-width: 200px;
+        height: 60px;
+        padding: 0;
+        font-size: 25px;
+    }
+}
+
+/* =========================
+   POPUP
+========================= */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+   
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+}
+
+.popup-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.popup-card {
+    position: relative;
+    width: 90%;
+    max-width: 520px;
+    padding: 40px 30px;
+    border-radius: 36px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    transform: scale(0.8);
+    transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+}
+
+.popup-card::before,
+.popup-card::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.popup-card::before {
+    width: 220px;
+    height: 220px;
+    top: -60px;
+    right: -50px;
+}
+
+.popup-card::after {
+    width: 180px;
+    height: 180px;
+    bottom: -70px;
+    left: -40px;
+}
+
+.popup-card.correct {
+    background: #edfbf4;
+    border: 6px solid #00c885;
+}
+
+.popup-card.correct::before,
+.popup-card.correct::after {
+    background: rgba(162, 245, 209, 0.45);
+}
+
+.popup-card.correct .popup-title { color: #00a86b; }
+.popup-card.correct .popup-subtitle { color: #2e7d5b; }
+
+.popup-card.wrong {
+    background: #fff0f2;
+    border: 6px solid #ff6b7a;
+}
+
+.popup-card.wrong::before,
+.popup-card.wrong::after {
+    background: rgba(255, 196, 203, 0.45);
+}
+
+.popup-card.wrong .popup-title { color: #d33847; }
+.popup-card.wrong .popup-subtitle { color: #a33b45; }
+
+.popup-card.complete {
+    background: #f0f3ff;
+    border: 6px solid #6c5ce7;
+}
+
+.popup-card.complete::before,
+.popup-card.complete::after {
+    background: rgba(162, 155, 254, 0.35);
+}
+
+.popup-card.complete .popup-title { color: #6c5ce7; }
+.popup-card.complete .popup-subtitle { color: #4834d4; }
+
+.popup-overlay.active .popup-card { transform: scale(1); }
+
+.popup-icon {
+    font-size: 4.8rem;
+    margin-bottom: 12px;
+    z-index: 2;
+    line-height: 1;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1));
+}
+
+.popup-title {
+    font-size: 3rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    z-index: 2;
+    letter-spacing: -0.5px;
+}
+
+.popup-subtitle {
+    font-size: 1.4rem;
+    font-weight: 500;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+@media screen and (max-width: 768px) {
+    body { padding: 10px; }
+    h2 { font-size: 1.5rem; }
+    .eq-text { font-size: 2rem; }
+    input[type="text"] { width: 60px; height: 50px; font-size: 1.8rem; }
+    .nav-btn { font-size: 16px; padding: 10px 22px; }
+}
+
+#confettiContainer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:90}
+.confetti-piece{position:absolute;width:9px;height:14px;border-radius:2px;opacity:0;animation:pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;will-change:transform,opacity}
+.final-confetti-piece{width:10px;height:16px;animation-duration:2300ms}
+.final-confetti-piece:nth-child(3n){border-radius:50%}
+.final-confetti-piece:nth-child(4n){width:7px;height:19px;border-radius:1px}
+.final-confetti-piece:nth-child(5n){width:13px;height:8px;border-radius:2px}
+@keyframes pageConfetti{0%{opacity:1;transform:translate3d(0,0,0) rotate(0deg) scale(1)}55%{opacity:1}100%{opacity:0;transform:translate3d(var(--x),var(--y),0) rotate(var(--r)) scale(.72)}}
+.popup-card.complete{box-shadow:0 20px 45px rgba(108,92,231,.18),0 0 0 8px rgba(162,155,254,.12)}
+.popup-card.complete .replay-btn{margin-top:12px}
+.popup-card.complete .popup-icon{animation:finalTrophyBounce 1.2s ease-in-out infinite}
+@keyframes finalTrophyBounce{0%,100%{transform:translateY(0) rotate(0deg) scale(1)}50%{transform:translateY(-5px) rotate(-4deg) scale(1.06)}}
+
+
+/* Monitor-size responsive scaling */
+@media screen and (min-width: 1600px) {
+    .game-stage {
+        max-width: 1800px;
+        height: 72vh;
+        gap: 38px;
+    }
+
+    .items-container {
+        max-width: 1800px;
+        gap: 22px;
+        padding: 24px;
+    }
+
+    .item-wrapper {
+        width: 100px;
+        height: 125px;
+    }
+
+    .equation-row {
+        gap: 28px;
+    }
+
+    .eq-text {
+        font-size: 40px;
+    }
+
+    input[type="text"] {
+        width: 100px;
+        height: 72px;
+        font-size: 40px;
+    }
+
+    .subheading {
+        font-size: 25px;
+        margin-top: 10px;
+    }
+
+    .instruction {
+        font-size: 34px;
+        margin-top: 45px;
+    }
+
+    footer {
+        max-width: 1400px;
+    }
+}
+
+/* Laptop: equation stays at 30px */
+@media screen and (min-width: 769px) and (max-width: 1599px) {
+    .eq-text {
+        font-size: 30px;
+    }
+
+    input[type="text"] {
+        font-size: 30px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>Find how many are left</h2>
+    <p class="subheading">Tap the pictures to cross them out, then count the ones left</p>
+    <p class="instruction" id="subInstruction"></p>
+</header>
+
+<main class="game-stage" id="stage">
+    </main>
+
+<footer>
+    <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+    <button class="nav-btn check-btn" id="submitBtn" onclick="checkAnswers()" disabled>SUBMIT</button>
+    <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+</footer>
+
+<div id="confettiContainer"></div>
+
+<div class="popup-overlay" id="popup">
+    <div class="popup-card" id="popupCard">
+        <div class="popup-icon" id="popupIcon">⭐</div>
+        <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+        <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+        <button class="nav-btn replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play Again</button>
+    </div>
+</div>
+
+<script>
+/* ==========================================
+   QUIZ DATA
+========================================== */
+const quizData = [
+    {
+        id: 1,
+        title: "Q1. Sonu drank 5 glasses of milk",
+        image: "../images/glass.png", // Single image path for glasses
+        total: 9,
+        sub: 5,
+        targetAns: 4
+    },
+    {
+        id: 2,
+        title: "Q2. Priya ate 7 apples",
+        image: "../images/apple.png", // Single image path for apples
+        total: 10,
+        sub: 7,
+        targetAns: 3
+    }
+];
+
+let quizState = Array.from({ length: quizData.length }, () => ({
+    isSolved: false,
+    userAns: "",
+    crossedIndexes: [] // Tracks crossed out items
+}));
+
+let currentIndex = 0;
+let popupTimer = null;
+let audioCtx = null;
+
+const stageEl = document.getElementById("stage");
+const subInstruction = document.getElementById("subInstruction");
+const submitBtn = document.getElementById("submitBtn");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const playAgainBtn = document.getElementById("playAgainBtn");
+
+/* ==========================================
+   SOUND ENGINE
+========================================== */
+function playTone(type) {
+    try {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === "suspended") {
+            audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === "correct") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === "wrong") {
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === "cross") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        }
+    } catch (error) {
+        console.log("Audio error:", error);
+    }
+}
+
+/* ==========================================
+   VOICE ENGINE
+========================================== */
+function speak(text) {
+    if ("speechSynthesis" in window) {
+        speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = "en-US";
+        msg.volume = 0.8;
+        msg.rate = 1;
+        msg.pitch = 1.2;
+        speechSynthesis.speak(msg);
+    }
+}
+
+
+function showSmallConfetti(isFinal = false) {
+    const confettiContainer = document.getElementById('confettiContainer');
+    if (!confettiContainer) return;
+    confettiContainer.innerHTML = '';
+    const count = isFinal ? 95 : 42;
+    const colors = ['#00b894','#e67e22','#6c5ce7','#0984e3','#fdcb6e','#ff6b7a','#00cec9','#a29bfe'];
+    for (let i = 0; i < count; i++) {
+        const piece = document.createElement('span');
+        piece.className = isFinal ? 'confetti-piece final-confetti-piece' : 'confetti-piece';
+        const startX = Math.random() * 100;
+        const startY = -8 + Math.random() * 10;
+        const drift = (Math.random() * 520 - 260) * (isFinal ? 1.15 : 0.9);
+        const fall = window.innerHeight * (0.82 + Math.random() * 0.48);
+        const rotation = Math.random() * 1400 - 700;
+        piece.style.left = startX + '%';
+        piece.style.top = startY + '%';
+        piece.style.setProperty('--x', drift + 'px');
+        piece.style.setProperty('--y', fall + 'px');
+        piece.style.setProperty('--r', rotation + 'deg');
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+        confettiContainer.appendChild(piece);
+        setTimeout(() => piece.remove(), isFinal ? 2900 : 2050);
+    }
+}
+
+/* ==========================================
+   LOAD QUESTION
+========================================== */
+function loadQuestion() {
+    const q = quizData[currentIndex];
+    const state = quizState[currentIndex];
+
+    // Set Sub-Instruction Title
+    subInstruction.innerHTML = `<span>${q.title}</span>`;
+
+    // Build Items Container
+    let itemsHTML = '<div class="items-container">';
+    for (let i = 0; i < q.total; i++) {
+        const isCrossed = state.crossedIndexes.includes(i) || (state.isSolved && i < q.sub);
+        itemsHTML += `
+            <div class="item-wrapper ${isCrossed ? 'crossed' : ''}" data-idx="${i}">
+                <img src="${q.image}" class="item-img" alt="Item">
+            </div>
+        `;
+    }
+    itemsHTML += '</div>';
+
+    // Build Equation Row
+    const eqHTML = `
+        <div class="equation-row">
+            <span class="eq-text">${q.total}</span>
+            <span class="eq-text">−</span>
+            <span class="eq-text">${q.sub}</span>
+            <span class="eq-text">=</span>
+            <input type="text" id="finalInput" inputmode="numeric" maxlength="2" value="${state.userAns}">
+        </div>
+    `;
+
+    stageEl.innerHTML = itemsHTML + eqHTML;
+
+    const inputEl = document.getElementById("finalInput");
+
+    // Bind Item Click Logic for Crossing Out
+    document.querySelectorAll('.item-wrapper').forEach(item => {
+        item.addEventListener('click', function() {
+            if (state.isSolved) return;
+
+            const idx = parseInt(this.dataset.idx);
+
+            if (state.crossedIndexes.includes(idx)) {
+                // Allow the user to undo any of the items already crossed.
+                state.crossedIndexes = state.crossedIndexes.filter(i => i !== idx);
+                this.classList.remove('crossed');
+                playTone("cross");
+            } else {
+                // Do not allow more than the exact amount that must be crossed out.
+                // For Q1 this means a maximum of 5 crossed items.
+                if (state.crossedIndexes.length >= q.sub) {
+                    return;
+                }
+
+                state.crossedIndexes.push(idx);
+                this.classList.add('crossed');
+                playTone("cross");
+            }
+        });
+    });
+
+    // Input Event Listener
+    inputEl.addEventListener("input", function(e) {
+        e.target.value = e.target.value.replace(/[^0-9]/g, "");
+        state.userAns = e.target.value;
+        checkSubmitState();
+    });
+
+    if (state.isSolved) {
+        inputEl.disabled = true;
+    }
+
+    checkSubmitState();
+
+    // Navigation Buttons State
+    prevBtn.disabled = (currentIndex === 0);
+    nextBtn.disabled = (!state.isSolved || currentIndex === quizData.length - 1);
+}
+
+/* ==========================================
+   SUBMIT BUTTON STATE
+========================================== */
+function checkSubmitState() {
+    const state = quizState[currentIndex];
+    submitBtn.disabled = state.isSolved || state.userAns.trim() === "";
+}
+
+/* ==========================================
+   NAVIGATION
+========================================== */
+function navigate(direction) {
+    const state = quizState[currentIndex];
+
+    if (direction === 1 && !state.isSolved) {
+        return;
+    }
+
+    currentIndex += direction;
+
+    if (currentIndex < 0) currentIndex = 0;
+    if (currentIndex > quizData.length - 1) currentIndex = quizData.length - 1;
+
+    loadQuestion();
+}
+
+/* ==========================================
+   CHECK ANSWER
+========================================== */
+function checkAnswers() {
+    const q = quizData[currentIndex];
+    const state = quizState[currentIndex];
+    const userAnsVal = parseInt(state.userAns);
+
+    /* WRONG ANSWER */
+    if (userAnsVal !== q.targetAns) {
+        showPopup("wrong", "😟", "Keep Going!", "Try again, you can do it! 🌈", false);
+        playTone("wrong");
+        speak("Try again");
+
+        // Clear input & items reset
+        state.userAns = "";
+        state.crossedIndexes = [];
+
+        const inputEl = document.getElementById("finalInput");
+        if (inputEl) inputEl.value = "";
+
+        document.querySelectorAll('.item-wrapper').forEach(item => {
+            item.classList.remove('crossed');
+        });
+
+        checkSubmitState();
+        return;
+    }
+
+    /* CORRECT ANSWER */
+    state.isSolved = true;
+
+    // Cross out exact subtracted amount
+    document.querySelectorAll('.item-wrapper').forEach((item, idx) => {
+        if (idx < q.sub) {
+            item.classList.add('crossed');
+        } else {
+            item.classList.remove('crossed');
+        }
+    });
+
+    const inputEl = document.getElementById("finalInput");
+    inputEl.disabled = true;
+    submitBtn.disabled = true;
+
+    playTone("correct");
+
+    if (currentIndex === quizData.length - 1) {
+        nextBtn.disabled = true;
+        showPopup("correct", "🌟", "Amazing!", "You got it right! ✨", false);
+        showSmallConfetti(false);
+        speak("Correct");
+        clearTimeout(popupTimer);
+        popupTimer = setTimeout(() => {
+            closePopup();
+            showSmallConfetti(true);
+            showPopup("complete", "🏆", "Congratulations!", "Fantastic job! You solved all questions! 🎉", true);
+            
+        }, 1800);
+    } else {
+        nextBtn.disabled = false;
+        showPopup("correct", "🌟", "Amazing!", "You got it right! ✨", false);
+        showSmallConfetti(false);
+        speak("Correct");
+    }
+}
+
+/* ==========================================
+   POPUP MANAGEMENT
+========================================== */
+function showPopup(status, icon, title, subtitle, isFinal = false) {
+    const popup = document.getElementById("popup");
+    const card = document.getElementById("popupCard");
+
+    card.className = `popup-card ${status}${isFinal ? ' complete' : ''}`;
+    document.getElementById("popupIcon").innerText = icon;
+    document.getElementById("popupTitle").innerText = title;
+    document.getElementById("popupSubtitle").innerText = subtitle;
+
+    playAgainBtn.style.display = isFinal ? "inline-block" : "none";
+    popup.classList.add("active");
+
+    clearTimeout(popupTimer);
+    if (!isFinal) {
+        popupTimer = setTimeout(closePopup, 1800);
+    }
+}
+
+function closePopup() {
+    document.getElementById("popup").classList.remove("active");
+}
+
+/* ==========================================
+   RESTART GAME
+========================================== */
+function restartGame() {
+    closePopup();
+    const confettiContainer = document.getElementById("confettiContainer");
+    if (confettiContainer) confettiContainer.innerHTML = "";
+    quizState = Array.from({ length: quizData.length }, () => ({
+        isSolved: false,
+        userAns: "",
+        crossedIndexes: []
+    }));
+    currentIndex = 0;
+    loadQuestion();
+}
+
+window.onload = function() {
+    loadQuestion();
+};
+</script>
+
+</body>
+</html>

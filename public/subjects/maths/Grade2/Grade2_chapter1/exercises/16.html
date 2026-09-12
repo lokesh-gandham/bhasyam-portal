@@ -1,0 +1,2416 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Odd Numbers → Slates</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link rel="stylesheet" href="../assets/css/reuse.css">
+
+<style>
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+*{
+  box-sizing:border-box;
+  font-family:"Livvic",sans-serif;
+}
+html,
+body,
+.quiz-card,
+.quiz-card *{
+  cursor:default !important;
+}
+
+html,
+body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#F8F4FF;
+  touch-action:none;
+  overscroll-behavior:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+html,
+body,
+.quiz-card,
+.quiz-card *{
+  cursor:default !important;
+}
+
+/* =========================================================
+   QUIZ CARD
+   ========================================================= */
+
+.quiz-card{
+  width:100%;
+  height:100vh;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:
+    clamp(18px,3vh,35px)
+    clamp(15px,4vw,60px);
+  overflow:hidden;
+}
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
+.heading{
+  margin:0;
+  width:100%;
+  text-align:center;
+  font-size:30px;
+  line-height:1.25;
+  color:#2f2f2f;
+  margin-top: -20px;
+}
+
+/* =========================================================
+   TOPBAR
+   ========================================================= */
+
+.topbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 0 6px 8px 6px;
+}
+
+.icon-flat {
+  background: transparent;
+  border: none;
+  font-size: 32px;
+  line-height: 1;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: transform .2s ease;
+  color: #2f2f2f;
+}
+.icon-flat:hover {
+  transform: scale(1.15);
+}
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+.content-row{
+  width:100%;
+  max-width:900px;
+  flex:1;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  gap:clamp(4px,1vh,12px);
+  min-height:0;
+  padding:clamp(2px,0.8vh,10px) 0 0;
+}
+
+/* =========================================================
+   QUESTION HEADER
+   ========================================================= */
+
+.question-heading{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  margin:0;
+  font-size:30px;
+  flex:0 0 auto;
+  padding-left: clamp(4px, 0.6vw, 8px);
+}
+
+.qlabel{
+  margin:0;
+  font-size:clamp(30px,3.3vw,46px);
+  line-height:1.1;
+  color:#2f2f2f;
+  text-align:left;
+}
+
+/* =========================================================
+   QUESTION TEXT
+   ========================================================= */
+
+.question-text{
+  display:none;
+  font-size:clamp(24px,3vw,38px);
+  font-weight:600;
+  color:#2f2f2f;
+  text-align:center;
+  margin:0;
+  padding:0 10px;
+  flex:0 0 auto;
+}
+
+/* =========================================================
+   OPTIONS — 4 BALLOONS
+   ========================================================= */
+
+.archery-area{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  flex:0 0 auto;
+}
+
+.options-row{
+  width:100%;
+  max-width:760px;
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  align-items:end;
+  justify-items:center;
+  gap:clamp(26px,2.8vw,44px);
+  cursor: pointer !important;
+}
+
+.arrow-option{
+  position:relative;
+
+  width:clamp(120px,17vw,190px);
+  height:clamp(150px,22vw,240px);
+
+  padding:0;
+  margin:0;
+  cursor: pointer !important;
+
+  border:0;
+  border-radius:0;
+
+  background:transparent;
+  box-shadow:none;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  transition:
+    transform .2s ease,
+    filter .2s ease,
+    opacity .25s ease;
+
+  animation:balloonFloat 2.8s ease-in-out infinite;
+}
+
+.arrow-option:nth-child(1){ animation-delay:0s; }
+.arrow-option:nth-child(2){ animation-delay:.25s; }
+.arrow-option:nth-child(3){ animation-delay:.5s; }
+.arrow-option:nth-child(4){ animation-delay:.75s; }
+
+.arrow-option::before{
+  content:"";
+  position:absolute;
+  inset:0;
+
+  -webkit-mask-image:url('/assets/images/balloon.png');
+  mask-image:url('/assets/images/balloon.png');
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+  -webkit-mask-size:100% 100%;
+  mask-size:100% 100%;
+
+  background-color:#BEEFC9;
+
+  z-index:0;
+
+  transition:
+    background-color .2s ease,
+    transform .2s ease;
+}
+
+/* 4 different pastel colors */
+.arrow-option:nth-child(1)::before{
+  background-color:#BEEFC9; /* mint */
+}
+.arrow-option:nth-child(2)::before{
+  background-color:#F9C9DE; /* pink */
+}
+.arrow-option:nth-child(3)::before{
+  background-color:#FCEAAE; /* yellow */
+}
+.arrow-option:nth-child(4)::before{
+  background-color:#C9D9F8; /* periwinkle */
+}
+
+.arrow-option .arrow-number{
+  position:relative;
+  z-index:2;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  width:64%;
+  min-height:40%;
+
+  border-radius:0;
+
+  background:transparent;
+
+  color:#4a3f6b;
+
+  font-size:clamp(24px,3vw,34px);
+  font-weight:700;
+  line-height:1;
+
+  transform:translateY(-20%);
+
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.55),
+    0 2px 6px rgba(0,0,0,.10);
+
+  transition:
+    transform .2s ease,
+    color .2s ease;
+}
+
+.arrow-option img{
+  display:none;
+}
+
+.arrow-option:hover:not(:disabled){
+  transform:translateY(-9px) scale(1.05);
+}
+
+.arrow-option:hover:not(:disabled)::before{
+  transform:scale(1.035);
+}
+
+.arrow-option:hover:not(:disabled) .arrow-number{
+  transform:translateY(-20%) scale(1.08);
+  color:#6d4ca3;
+}
+
+.arrow-option:active:not(:disabled){
+  transform:translateY(2px) scale(.97);
+}
+
+.arrow-option.correct-hit{
+  animation:correctBalloon .65s ease forwards;
+  pointer-events:none;
+  z-index:5;
+}
+
+.arrow-option.correct-hit::after{
+  content:"✓";
+  position:absolute;
+  right:5%;
+  top:5%;
+  width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#55c878;
+  color:#fff;
+  font-size:23px;
+  font-weight:800;
+  box-shadow:0 3px 8px rgba(50,130,80,.28);
+  z-index:5;
+  animation:checkPop .35s ease;
+}
+
+@keyframes correctBalloon{
+  0%{transform:scale(1);}
+  45%{transform:scale(1.12) translateY(-8px);}
+  100%{transform:scale(1.06) translateY(-5px);}
+}
+
+@keyframes checkPop{
+  0%{transform:scale(0);}
+  75%{transform:scale(1.15);}
+  100%{transform:scale(1);}
+}
+
+.arrow-option.faded{
+  opacity:0;
+  pointer-events:none;
+  animation:wrongDisappear .35s ease forwards;
+}
+
+@keyframes wrongDisappear{
+  0%{
+    opacity:1;
+    transform:scale(1);
+  }
+  100%{
+    opacity:0;
+    transform:scale(.55) translateY(-14px);
+  }
+}
+
+.arrow-option.shot{
+  animation:wrongDisappear .35s ease forwards;
+}
+
+@keyframes balloonFloat{
+  0%,100%{
+    transform:translateY(0) rotate(-1deg);
+  }
+  50%{
+    transform:translateY(-9px) rotate(1deg);
+  }
+}
+
+/* =========================================================
+   FLYING ARROW
+   ========================================================= */
+
+.flying-arrow{
+  position:absolute;
+  left:0;
+  top:0;
+  width:0;
+  height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  z-index:50;
+  opacity:0;
+  transform:translate(0,0) rotate(0deg);
+}
+
+.flying-arrow.active{
+  opacity:1;
+  transition:transform .32s cubic-bezier(.35,.9,.4,1);
+}
+
+.flying-arrow img{
+  width:40px;
+  height:40px;
+  object-fit:contain;
+  transform:translate(-50%,-50%);
+}
+
+.flying-arrow .flying-number{
+  position:absolute;
+  transform:translate(-50%,-140%);
+  font-size:16px;
+  font-weight:700;
+  color:#302b3b;
+  background:#ffffff;
+  border-radius:8px;
+  padding:1px 6px;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);
+}
+
+/* =========================================================
+   NAV
+   ========================================================= */
+
+.nav {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  position: relative;
+  top: -20px;
+  flex: 0 0 auto;
+  gap:420px;
+}
+
+.nav button {
+  min-width: 120px;
+  height: 44px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (min-width:1024px) and (max-width:1365px){
+  .quiz-card{ padding:22px 35px; }
+  .heading{ font-size:27px; }
+  .qlabel{ font-size:34px; }
+  .content-row{
+    max-width:620px;
+    gap:6px;
+    padding-top:6px;
+  }
+  .options-row{ gap:18px; max-width:620px; }
+  .arrow-option{ width:clamp(120px,15vw,155px); height:clamp(160px,20vw,205px); }
+  .arrow-option .arrow-number{ font-size:22px; }
+}
+
+@media (min-width:1366px){
+  .quiz-card{ padding:28px 50px; }
+  .heading{ font-size:30px; }
+  .content-row{
+    max-width:760px;
+    gap:8px;
+    padding-top:8px;
+  }
+  .qlabel{ font-size:42px; }
+  .options-row{ gap:28px; max-width:720px; }
+  .arrow-option{ width:clamp(150px,16vw,185px); height:clamp(190px,22vw,240px); }
+  .arrow-option .arrow-number{ font-size:26px; }
+}
+
+@media (max-width:768px){
+
+  html,
+  body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+  }
+
+  .quiz-card{
+    width:100%;
+    height:100vh;
+    min-height:100vh;
+    padding:14px 12px 10px;
+    overflow:hidden;
+  }
+
+  .heading{
+    font-size:19px;
+    margin:0;
+  }
+
+  .content-row{
+    max-width:340px;
+    gap:8px;
+    padding:6px 0 0;
+    flex:1;
+  }
+
+  .question-heading{
+    justify-content:flex-start;
+    padding-left: 6px;
+  }
+
+  .qlabel{
+    font-size:24px;
+  }
+
+  .question-text{
+    font-size:20px;
+  }
+
+  .options-row{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    grid-template-rows:repeat(2, auto);
+    justify-items:center;
+    align-items:center;
+    column-gap:12px;
+    row-gap:12px;
+    width:100%;
+    max-width:300px;
+  }
+
+  .arrow-option{
+    width:90px;
+    height:110px;
+    animation-duration:3s;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:18px;
+  }
+
+  .arrow-option:hover:not(:disabled){
+    transform:translateY(-5px) scale(1.04);
+  }
+
+  .nav{
+    display:flex !important;
+    visibility:visible !important;
+    pointer-events:auto !important;
+    width:100%;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+    position:static;
+    margin-top:8px;
+    flex:0 0 auto;
+  }
+
+  .nav button{
+    min-width:90px;
+    height:38px;
+    font-size:13px;
+    padding:0 10px;
+  }
+}
+
+@media (max-width:480px){
+
+  .heading{
+    font-size:16px;
+  }
+
+  .content-row{
+    max-width:300px;
+    gap:6px;
+    padding:4px 0;
+  }
+
+  .qlabel{
+    font-size:21px;
+  }
+
+  .question-text{
+    font-size:17px;
+  }
+
+  .options-row{
+    max-width:260px;
+    column-gap:8px;
+    row-gap:8px;
+  }
+
+  .arrow-option{
+    width:72px;
+    height:88px;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:15px;
+  }
+
+  .arrow-option.correct-hit::after{
+    width:22px;
+    height:22px;
+    font-size:15px;
+  }
+
+  .nav{
+    gap:10px;
+    margin-top:4px;
+  }
+
+  .nav button{
+    min-width:72px;
+    height:34px;
+    font-size:12px;
+  }
+}
+
+
+
+/* =========================================================
+   HINT OVERLAY
+   ========================================================= */
+
+
+
+/* =========================================================
+   BALLOON-ONLY NUMBERS
+   ========================================================= */
+
+.arrow-option{
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+
+.arrow-option .arrow-number{
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  color:#4a3f6b !important;
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.55),
+    0 2px 6px rgba(0,0,0,.10);
+}
+
+/* Clickable elements */
+button,
+button *,
+.arrow-option,
+.arrow-option *{
+  cursor:pointer !important;
+}
+
+button:disabled,
+button:disabled *,
+.arrow-option:disabled,
+.arrow-option:disabled *{
+  cursor:default !important;
+}
+
+
+
+/* =========================================================
+   FINAL LAYOUT / CURSOR OVERRIDES
+   ========================================================= */
+
+html,
+body{
+  width:100%;
+  height:100%;
+  min-height:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden !important;
+  overscroll-behavior:none;
+}
+
+.quiz-card{
+  width:100%;
+  height:100dvh;
+  min-height:0;
+  overflow:hidden !important;
+  padding:clamp(18px,3vh,35px) clamp(15px,4vw,60px);
+}
+
+/* Needle clip-art cursor everywhere. */
+html, body, .quiz-card, .quiz-card *,
+button, button *, a, input, select, textarea, [role="button"]{
+  cursor:default !important;
+}
+
+button:disabled,
+button:disabled *,
+.arrow-option:disabled,
+.arrow-option:disabled *{
+  cursor:default !important; }
+
+/* Question + balloons centered in the available screen. */
+.content-row{
+  width:100%;
+  max-width:1400px;
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(8px,2vh,20px);
+  padding:0;
+  transform:none !important;
+}
+
+.question-heading{
+  width:100%;
+  margin:0;
+  flex:0 0 auto;
+}
+
+.archery-area{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0;
+  flex:0 0 auto;
+}
+
+/* Exactly ONE row with 7 balloons. */
+.options-row{
+  width:min(96vw,1400px);
+  max-width:1400px;
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  grid-template-rows:1fr;
+  align-items:center;
+  justify-items:center;
+  column-gap:0;
+  row-gap:0;
+  padding:0;
+  margin:0;
+}
+
+/* Original balloon size retained on desktop/medium screens. */
+.arrow-option{
+  width:150px;
+  height:190px;
+  max-width:none;
+  max-height:none;
+  flex:0 0 150px;
+  animation-duration:2.8s;
+}
+
+.arrow-option .arrow-number{
+  font-size:26px;
+}
+
+/* Large desktop: original large size from the existing design. */
+@media (min-width:1366px){
+  .options-row{
+    width:min(96vw,1400px);
+  }
+
+  .arrow-option{
+    width:185px;
+    height:240px;
+    flex-basis:185px;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:26px;
+  }
+}
+
+/* Medium desktop/tablet landscape. */
+@media (min-width:769px) and (max-width:1365px){
+  .quiz-card{
+    padding:22px 20px;
+  }
+
+  .options-row{
+    width:100%;
+  }
+
+  .arrow-option{
+    width:150px;
+    height:190px;
+  }
+}
+
+/*
+  Smaller screens still use one row and no scrolling.
+  The balloon box is allowed to occupy each of the 7 equal columns,
+  rather than creating a second row.
+*/
+@media (max-width:768px){
+  .quiz-card{
+    padding:12px 4px 8px;
+  }
+
+  .content-row{
+    width:100%;
+    max-width:none;
+    gap:clamp(6px,1.5vh,12px);
+  }
+
+  .options-row{
+    width:100%;
+    max-width:none;
+    grid-template-columns:repeat(7,minmax(0,1fr));
+  }
+
+  .arrow-option{
+    width:100%;
+    max-width:150px;
+    height:auto;
+    aspect-ratio:150 / 190;
+    flex-basis:auto;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:clamp(14px,3vw,26px);
+  }
+}
+
+@media (max-width:480px){
+  .quiz-card{
+    padding:8px 2px 6px;
+  }
+
+  .content-row{
+    gap:6px;
+  }
+
+  .options-row{
+    width:100%;
+  }
+
+  .arrow-option{
+    width:100%;
+    max-width:150px;
+    aspect-ratio:150 / 190;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:clamp(12px,3.8vw,22px);
+  }
+
+  .arrow-option.correct-hit::after{
+    width:22px;
+    height:22px;
+    font-size:14px;
+    right:0;
+    top:2%;
+  }
+}
+
+@media (max-height:650px){
+  .quiz-card{
+    padding-top:5px;
+    padding-bottom:3px;
+  }
+
+  .content-row{
+    gap:4px;
+  }
+}
+@media (min-width:1400px){
+
+  .quiz-card{
+    padding:30px 70px 5px;
+  }
+
+  .heading{
+    font-size:42px;
+    margin-top:-18px;
+  }
+
+  .content-row{
+    width:100%;
+    max-width:1500px;
+    flex:1;
+    justify-content:center;
+    gap:5px;
+    padding:0;
+  }
+
+  .question-text{
+    font-size:40px;
+  }
+
+  .qlabel{
+    transform:translateX(-70px);
+  }
+
+  .options-row{
+    width:100%;
+    max-width:1500px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:25px;
+  }
+
+ .arrow-option{
+  width:200px !important;
+  height:350px !important;
+  /* flex:0 0 200px !important; */
+  min-width:200px !important;
+  max-width:200px !important;
+}
+
+  .arrow-option .arrow-number{
+    font-size:40px !important;
+  }
+
+  .nav{
+    gap:80px;
+    top:-20px;
+  }
+
+  .nav button{
+    min-width:175px;
+    height:60px;
+    font-size:22px;
+    border-radius:19px;
+  }
+}
+
+/* =========================================================
+   ODD NUMBERS — WOODEN SLATE OVERRIDES
+   ========================================================= */
+
+/* Never scroll on any screen. */
+html,
+body{
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden !important;
+  overscroll-behavior:none;
+}
+
+.quiz-card{
+  width:100%;
+  height:100dvh;
+  min-height:0;
+  overflow:hidden !important;
+}
+
+/* Pencil clip-art cursor for the entire template. */
+html, body, .quiz-card, .quiz-card *,
+button, button *, a, input, select, textarea, [role="button"]{
+  cursor:default !important;
+}
+
+/* Content stays compact and centered rather than leaving large empty areas. */
+.content-row{
+  width:100%;
+  max-width:1500px;
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(8px,1.5vh,18px);
+  padding:0;
+  transform:none !important;
+}
+
+.question-heading{
+  width:100%;
+  margin:0;
+  flex:0 0 auto;
+}
+
+.archery-area{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0;
+  flex:0 0 auto;
+}
+
+/* Seven slates in ONE horizontal row. */
+.options-row{
+  width:100%;
+  max-width:1500px;
+  display:flex !important;
+  flex-direction:row;
+  flex-wrap:nowrap !important;
+  justify-content:center;
+  align-items:center;
+  gap:clamp(8px,1.5vw,28px);
+  padding:0;
+  margin:0;
+  overflow:visible;
+}
+
+/* Wooden-framed chalkboard/slate. Fixed size on desktop; never flex-shrinks. */
+.arrow-option{
+  position:relative;
+  box-sizing:border-box;
+  width:190px !important;
+  height:145px !important;
+  min-width:190px !important;
+  max-width:190px !important;
+  min-height:145px !important;
+  max-height:145px !important;
+  flex:0 0 190px !important;
+
+  padding:10px !important;
+  margin:0;
+  border:0 !important;
+  border-radius:2px !important;
+
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #8d5438 0px,
+      #b87855 3px,
+      #9b5f42 6px,
+      #c18462 9px,
+      #8f563b 12px
+    ) !important;
+
+  box-shadow:
+    0 5px 10px rgba(55,35,20,.22),
+    inset 0 0 0 2px rgba(232,178,143,.65),
+    inset 0 0 0 5px rgba(105,58,38,.55) !important;
+
+  display:flex !important;
+  align-items:center;
+  justify-content:center;
+  overflow:visible;
+  transition:transform .2s ease, filter .2s ease;
+  animation:none;
+}
+
+/* Inner black/green chalkboard surface. */
+.arrow-option::before{
+  content:"";
+  position:absolute;
+  inset:9px;
+
+  background:
+    radial-gradient(
+      ellipse at 35% 25%,
+      rgba(255,255,255,.035),
+      transparent 42%
+    ),
+    linear-gradient(
+      145deg,
+      #151a11 0%,
+      #10140d 55%,
+      #0b0e09 100%
+    );
+
+  border:2px solid #68412f;
+  border-radius:1px;
+
+  box-shadow:
+    inset 4px 4px 8px rgba(0,0,0,.55),
+    inset -2px -2px 5px rgba(0,0,0,.45);
+
+  z-index:0;
+  transform:none !important;
+  mask-image:none !important;
+  -webkit-mask-image:none !important;
+}
+
+/* Remove the old balloon image completely. */
+.arrow-option img{
+  display:none !important;
+}
+
+/* Number on the slate. */
+.arrow-option .arrow-number{
+  position:relative;
+  z-index:2;
+
+  width:auto;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+
+  color:#fff !important;
+  font-size:34px !important;
+  font-weight:700;
+  line-height:1;
+
+  transform:none !important;
+  text-shadow:
+    0 2px 2px rgba(0,0,0,.65),
+    0 0 4px rgba(255,255,255,.08);
+}
+
+/* Hover/tap feedback. */
+.arrow-option:hover:not(:disabled){
+  transform:translateY(-5px) scale(1.03);
+  filter:brightness(1.05);
+}
+
+/* Correct answer: circle/outline the WHOLE slate — no tick mark. */
+.arrow-option.correct-hit{
+  animation:slateCorrect .55s ease forwards !important;
+  pointer-events:none;
+  z-index:5;
+}
+
+.arrow-option.correct-hit::after{
+  content:"";
+  position:absolute;
+
+  inset:-9px;
+
+  border:5px solid #48e36f;
+  border-radius:24px;
+
+  background:transparent;
+  box-shadow:
+    0 0 7px rgba(72,227,111,.95),
+    0 0 16px rgba(72,227,111,.75),
+    0 0 28px rgba(72,227,111,.42);
+
+  z-index:6;
+  pointer-events:none;
+
+  animation:slateCircle .4s ease-out;
+}
+
+@keyframes slateCorrect{
+  0%{transform:scale(1);}
+  45%{transform:scale(1.055);}
+  100%{transform:scale(1.025);}
+}
+
+@keyframes slateCircle{
+  0%{opacity:0;transform:scale(.84);}
+  70%{opacity:1;transform:scale(1.04);}
+  100%{opacity:1;transform:scale(1);}
+}
+
+/* Wrong options disappear exactly as before. */
+.arrow-option.faded{
+  opacity:0;
+  pointer-events:none;
+}
+
+/* Keep the existing nav visible and centered. */
+.nav{
+  flex:0 0 auto;
+}
+
+/* =========================================================
+   RESPONSIVE — ALWAYS ONE ROW, NO SCROLL
+   ========================================================= */
+
+/* 1400px and above: large, fixed slates. */
+@media (min-width:1400px){
+  .quiz-card{
+    padding:30px 50px 5px !important;
+  }
+
+  .heading{
+    font-size:42px;
+    margin-top:-18px;
+  }
+
+  .content-row{
+    max-width:1500px;
+    gap:8px;
+  }
+
+  .qlabel{
+    font-size:42px;
+    transform:translateX(-70px);
+  }
+
+  .options-row{
+    max-width:1500px;
+    gap:22px;
+  }
+
+  .arrow-option{
+    width:190px !important;
+    height:145px !important;
+    min-width:190px !important;
+    max-width:190px !important;
+    min-height:145px !important;
+    max-height:145px !important;
+    flex:0 0 190px !important;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:40px !important;
+  }
+
+  .nav{
+    gap:80px;
+    top:-20px;
+  }
+
+  .nav button{
+    min-width:175px;
+    height:60px;
+    font-size:22px;
+    border-radius:19px;
+  }
+}
+
+/* 1000–1399px: still fixed, but fit 7 slates. */
+@media (min-width:769px) and (max-width:1399px){
+  .options-row{
+    width:100%;
+    gap:12px;
+  }
+
+  .arrow-option{
+    width:150px !important;
+    height:115px !important;
+    min-width:150px !important;
+    max-width:150px !important;
+    min-height:115px !important;
+    max-height:115px !important;
+    flex:0 0 150px !important;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:28px !important;
+  }
+}
+
+/* Tablet/phone: seven columns remain in ONE row, sized to the viewport. */
+@media (max-width:768px){
+  .quiz-card{
+    height:100dvh;
+    padding:10px 4px 6px !important;
+  }
+
+  .heading{
+    font-size:19px;
+    margin:0;
+  }
+
+  .content-row{
+    width:100%;
+    max-width:none;
+    gap:6px;
+  }
+
+  .question-heading{
+    padding-left:4px;
+  }
+
+  .qlabel{
+    font-size:24px;
+  }
+
+  .options-row{
+    width:100%;
+    max-width:none;
+    gap:4px;
+  }
+
+  .arrow-option{
+    width:calc((100vw - 32px - 24px) / 7) !important;
+    height:calc((100vw - 32px - 24px) / 9.2) !important;
+    min-width:0 !important;
+    max-width:none !important;
+    min-height:0 !important;
+    max-height:none !important;
+    flex:1 1 0 !important;
+    padding:5px !important;
+  }
+
+  .arrow-option::before{
+    inset:5px;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:clamp(12px,3.4vw,22px) !important;
+  }
+
+  .arrow-option.correct-hit::after{
+    inset:-4px;
+    border-width:3px;
+    border-radius:12px;
+  }
+
+  .nav{
+    gap:10px !important;
+    position:static !important;
+    margin-top:4px;
+  }
+
+  .nav button{
+    min-width:80px;
+    height:36px;
+    font-size:12px;
+    padding:0 8px;
+  }
+}
+
+/* Very short screens: compact vertically, never scroll. */
+@media (max-height:650px){
+  .quiz-card{
+    padding-top:4px !important;
+    padding-bottom:3px !important;
+  }
+
+  .content-row{
+    gap:3px;
+  }
+
+  .nav{
+    margin-top:2px;
+  }
+}
+
+
+/* =========================================================
+   FINAL SLATE + RESPONSIVE OVERRIDES
+   ========================================================= */
+
+/* Pencil points toward the actual click hotspot (upper-left tip). */
+html, body, .quiz-card, .quiz-card *,
+button, button *, a, input, select, textarea, [role="button"]{
+  cursor:default !important; }
+
+/* Never let the page itself scroll. */
+html, body{
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden !important;
+  overscroll-behavior:none;
+}
+
+.quiz-card{
+  width:100%;
+  height:100dvh;
+  min-height:0;
+  overflow:hidden !important;
+}
+
+/* Keep the question and options together instead of huge vertical gaps. */
+.content-row{
+  width:100%;
+  max-width:1500px;
+  flex:1 1 auto;
+  min-height:0;
+  justify-content:center;
+  gap:clamp(6px,1.2vh,14px);
+  padding:0;
+}
+
+/* =========================================================
+   SLATE SELECTION
+   The green outline surrounds the ENTIRE slate.
+   No tick is displayed.
+   ========================================================= */
+
+.arrow-option.correct-hit{
+  position:relative;
+  z-index:5;
+  animation:slateCorrectFinal .45s ease forwards !important;
+}
+
+/* Override the old tick completely. */
+.arrow-option.correct-hit::after{
+  content:"" !important;
+  position:absolute !important;
+  inset:-10px !important;
+
+  width:auto !important;
+  height:auto !important;
+
+  display:block !important;
+  border:5px solid #43e86d !important;
+  border-radius:14px !important;
+
+  background:transparent !important;
+  color:transparent !important;
+  font-size:0 !important;
+
+  box-shadow:
+    0 0 6px rgba(67,232,109,.95),
+    0 0 14px rgba(67,232,109,.8),
+    0 0 26px rgba(67,232,109,.5) !important;
+
+  z-index:10 !important;
+  pointer-events:none !important;
+  animation:slateOutlineFinal .35s ease-out !important;
+}
+
+@keyframes slateCorrectFinal{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.035);}
+  100%{transform:scale(1.02);}
+}
+
+@keyframes slateOutlineFinal{
+  0%{opacity:0;transform:scale(.94);}
+  70%{opacity:1;transform:scale(1.025);}
+  100%{opacity:1;transform:scale(1);}
+}
+
+/* =========================================================
+   LARGE DESKTOP
+   7 slates in ONE row when the screen has enough width.
+   Fixed size: they do NOT shrink.
+   ========================================================= */
+
+@media (min-width:1500px){
+  .quiz-card{
+    padding:28px 40px 5px !important;
+  }
+
+  .content-row{
+    max-width:1500px;
+    gap:8px;
+  }
+
+  .options-row{
+    width:100%;
+    max-width:1500px;
+    display:grid !important;
+    grid-template-columns:repeat(7, 190px);
+    grid-template-rows:1fr;
+    justify-content:center;
+    align-items:center;
+    justify-items:center;
+    column-gap:20px;
+    row-gap:20px;
+  }
+
+  .arrow-option{
+    width:190px !important;
+    height:145px !important;
+    min-width:190px !important;
+    max-width:190px !important;
+    min-height:145px !important;
+    max-height:145px !important;
+    flex:0 0 190px !important;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:40px !important;
+  }
+}
+
+/* =========================================================
+   LAPTOP / SMALL DESKTOP
+   7 slates become TWO ROWS: 4 + 3.
+   This prevents clipping instead of shrinking them.
+   ========================================================= */
+
+@media (min-width:769px) and (max-width:1499px){
+  .quiz-card{
+    padding:18px 25px 5px !important;
+  }
+
+  .content-row{
+    max-width:1000px;
+    gap:8px;
+  }
+
+  .options-row{
+    width:100%;
+    max-width:760px;
+    display:grid !important;
+    grid-template-columns:repeat(4, 150px);
+    grid-auto-rows:115px;
+    justify-content:center;
+    align-items:center;
+    justify-items:center;
+    column-gap:20px;
+    row-gap:16px;
+  }
+
+  .arrow-option{
+    width:150px !important;
+    height:115px !important;
+    min-width:150px !important;
+    max-width:150px !important;
+    min-height:115px !important;
+    max-height:115px !important;
+    flex:0 0 150px !important;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:28px !important;
+  }
+}
+
+/* =========================================================
+   MOBILE / TABLET
+   Two-column responsive layout.
+   Everything stays inside the viewport.
+   ========================================================= */
+
+@media (max-width:768px){
+  .quiz-card{
+    height:100dvh !important;
+    min-height:0 !important;
+    padding:8px 5px 5px !important;
+  }
+
+  .heading{
+    font-size:clamp(16px,5vw,21px) !important;
+    margin:0 !important;
+  }
+
+  .content-row{
+    width:100%;
+    max-width:none;
+    gap:5px;
+    padding:0;
+  }
+
+  .question-heading{
+    width:100%;
+    padding-left:4px;
+  }
+
+  .qlabel{
+    font-size:clamp(20px,6vw,28px) !important;
+  }
+
+  .options-row{
+    width:100%;
+    max-width:360px;
+    display:grid !important;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    grid-auto-rows:auto;
+    justify-content:center;
+    align-items:center;
+    justify-items:center;
+    column-gap:8px;
+    row-gap:7px;
+  }
+
+  .arrow-option{
+    width:min(140px, 42vw) !important;
+    height:auto !important;
+    aspect-ratio:190 / 145;
+    min-width:0 !important;
+    max-width:140px !important;
+    min-height:0 !important;
+    max-height:none !important;
+    flex:0 1 auto !important;
+  }
+
+  .arrow-option::before{
+    inset:5px;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:clamp(17px,5vw,24px) !important;
+  }
+
+  .arrow-option.correct-hit::after{
+    inset:-5px !important;
+    border-width:3px !important;
+    border-radius:9px !important;
+  }
+
+  .nav{
+    width:100%;
+    gap:10px !important;
+    position:static !important;
+    margin-top:2px;
+    flex:0 0 auto;
+  }
+
+  .nav button{
+    min-width:82px !important;
+    height:36px !important;
+    font-size:12px !important;
+    padding:0 8px !important;
+  }
+}
+
+/* =========================================================
+   SMALL PHONES
+   2 columns, 7th slate on the final row.
+   ========================================================= */
+
+@media (max-width:480px){
+  .quiz-card{
+    padding:5px 3px 3px !important;
+  }
+
+  .content-row{
+    gap:3px;
+  }
+
+  .options-row{
+    max-width:300px;
+    column-gap:6px;
+    row-gap:5px;
+  }
+
+  .arrow-option{
+    width:min(125px, 43vw) !important;
+    max-width:125px !important;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:clamp(15px,5vw,21px) !important;
+  }
+
+  .nav{
+    gap:8px !important;
+  }
+
+  .nav button{
+    min-width:74px !important;
+    height:34px !important;
+    font-size:11px !important;
+  }
+}
+
+/* Very short phones: reduce only the layout spacing, not the slate proportions. */
+@media (max-width:480px) and (max-height:650px){
+  .heading{
+    font-size:16px !important;
+  }
+
+  .qlabel{
+    font-size:20px !important;
+  }
+
+  .options-row{
+    row-gap:3px;
+  }
+
+  .nav button{
+    height:32px !important;
+  }
+}
+
+
+/* =========================================================
+   FINAL REQUESTED LAYOUT
+   Desktop = ONE ROW
+   Laptop = TWO ROWS (4 + 3)
+   Mobile = responsive, NO SCROLL
+   No custom/needle/pencil cursor
+   ========================================================= */
+
+html, body{
+  width:100%;
+  height:100%;
+  overflow:hidden !important;
+  cursor:default !important;
+}
+
+.quiz-card,
+.quiz-card *{
+  cursor:default !important;
+}
+
+/* Correct slate: circle the complete slate, never a tick. */
+.arrow-option.correct-hit::after{
+  content:"" !important;
+  position:absolute !important;
+  inset:-10px !important;
+  width:auto !important;
+  height:auto !important;
+  display:block !important;
+  border:5px solid #43e86d !important;
+  border-radius:14px !important;
+  background:transparent !important;
+  color:transparent !important;
+  font-size:0 !important;
+  box-shadow:
+    0 0 7px rgba(67,232,109,.95),
+    0 0 16px rgba(67,232,109,.8),
+    0 0 28px rgba(67,232,109,.5) !important;
+  z-index:10 !important;
+  pointer-events:none !important;
+}
+
+/* =========================================================
+   DESKTOP: 7 SLATES IN ONE ROW ONLY
+   ========================================================= */
+
+
+/* =========================================================
+   LAPTOP / SMALL DESKTOP: TWO ROWS = 4 + 3
+   ========================================================= */
+@media (min-width:769px) and (max-width:1499px){
+  .quiz-card{
+    height:100dvh;
+    padding:15px 20px 5px !important;
+    /* background-color: #68412f; */
+  }
+
+  .content-row{
+    width:100%;
+    max-width:1000px;
+    gap:7px;
+    justify-content:center;
+  }
+
+  .options-row{
+    width:100%;
+    max-width:720px;
+    display:grid !important;
+    grid-template-columns:repeat(4, 150px) !important;
+    grid-template-rows:repeat(2, 115px) !important;
+    grid-auto-flow:row;
+    justify-content:center !important;
+    align-items:center !important;
+    justify-items:center !important;
+    column-gap:18px !important;
+    row-gap:12px !important;
+  }
+
+  .arrow-option{
+    width:150px !important;
+    height:115px !important;
+    min-width:150px !important;
+    max-width:150px !important;
+    min-height:115px !important;
+    max-height:115px !important;
+    flex:none !important;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:28px !important;
+  }
+}
+
+/* =========================================================
+   TABLET / MOBILE: RESPONSIVE TWO-ROW-FRIENDLY GRID
+   ========================================================= */
+@media (max-width:768px){
+  .quiz-card{
+    height:100dvh !important;
+    min-height:0 !important;
+    padding:7px 4px 4px !important;
+    overflow:hidden !important;
+    /* background-color: #4a3f6b; */
+  }
+
+  .heading{
+    font-size:clamp(16px,5vw,21px) !important;
+    margin:0 !important;
+  }
+
+  .content-row{
+    width:100%;
+    max-width:none;
+    gap:4px;
+    padding:0;
+  }
+
+  .question-heading{
+    padding-left:4px;
+  }
+
+  .qlabel{
+    font-size:clamp(20px,6vw,28px) !important;
+  }
+
+  .options-row{
+    width:100%;
+    max-width:360px;
+    display:grid !important;
+    grid-template-columns:repeat(2, minmax(0,1fr)) !important;
+    grid-template-rows:repeat(4, auto) !important;
+    justify-content:center !important;
+    align-items:center !important;
+    justify-items:center !important;
+    column-gap:8px !important;
+    row-gap:5px !important;
+  }
+
+  .arrow-option{
+    width:min(140px,42vw) !important;
+    height:auto !important;
+    aspect-ratio:190 / 145;
+    min-width:0 !important;
+    max-width:140px !important;
+    min-height:0 !important;
+    max-height:none !important;
+    flex:none !important;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:clamp(17px,5vw,24px) !important;
+  }
+
+  .arrow-option.correct-hit::after{
+    inset:-5px !important;
+    border-width:3px !important;
+    border-radius:10px !important;
+  }
+
+  .nav{
+    position:static !important;
+    width:100%;
+    margin-top:2px;
+    gap:10px !important;
+  }
+
+  .nav button{
+    min-width:80px !important;
+    height:35px !important;
+    font-size:12px !important;
+    padding:0 8px !important;
+  }
+}
+
+@media (max-width:480px){
+  .quiz-card{
+    padding:4px 2px 3px !important;
+  }
+
+  .content-row{
+    gap:3px;
+  }
+
+  .options-row{
+    max-width:300px;
+    column-gap:6px !important;
+    row-gap:4px !important;
+  }
+
+  .arrow-option{
+    width:min(125px,43vw) !important;
+    max-width:125px !important;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:clamp(15px,5vw,21px) !important;
+  }
+
+  .nav{
+    gap:7px !important;
+  }
+
+  .nav button{
+    min-width:74px !important;
+    height:33px !important;
+    font-size:11px !important;
+  }
+}
+
+@media (max-width:480px) and (max-height:650px){
+  .heading{
+    font-size:15px !important;
+  }
+
+  .qlabel{
+    font-size:19px !important;
+  }
+
+  .options-row{
+    row-gap:2px !important;
+  }
+}
+
+/* =========================================================
+   USER REQUEST: BIGGER SLATE HEIGHT + BIGGER GAPS
+   (kept last so it wins the cascade over the blocks above;
+   nothing else in the file was touched)
+   ========================================================= */
+
+@media (min-width:1400px){
+  .quiz-card{
+    padding:14px 30px 5px !important;
+    /* background-color: #43e86d; */
+  }
+  .content-row{
+    gap:6px !important;
+  }
+  .options-row{
+    gap:44px !important;
+  }
+  .arrow-option{
+    height:200px !important;
+    min-height:200px !important;
+    max-height:200px !important;
+  }
+}
+
+@media (min-width:769px) and (max-width:1499px){
+  .quiz-card{
+    padding:10px 20px 5px !important;
+  }
+  .content-row{
+    gap:6px !important;
+  }
+  .options-row{
+    grid-template-rows:repeat(2, 150px) !important;
+    column-gap:26px !important;
+    row-gap:24px !important;
+  }
+  .arrow-option{
+    height:150px !important;
+    min-height:150px !important;
+    max-height:150px !important;
+  }
+}
+
+@media (max-width:768px){
+  .quiz-card{
+    padding:5px 4px 4px !important;
+  }
+  .content-row{
+    gap:3px !important;
+  }
+  .options-row{
+    column-gap:12px !important;
+    row-gap:12px !important;
+  }
+  .arrow-option{
+    aspect-ratio:190 / 162 !important;
+  }
+}
+
+@media (max-width:480px){
+  .options-row{
+    column-gap:9px !important;
+    row-gap:9px !important;
+  }
+}
+
+@media (max-height:650px){
+  .quiz-card{
+    padding-top:3px !important;
+    padding-bottom:2px !important;
+  }
+  .content-row{
+    gap:2px !important;
+  }
+  .options-row{
+    row-gap:6px !important;
+    column-gap:8px !important;
+  }
+  .arrow-option{
+    aspect-ratio:190 / 140 !important;
+  }
+}
+
+/* =========================================================
+   USER REQUEST: BIG PENCIL CLIP-ART CURSOR, EVERYWHERE
+   (kept last so it wins the cascade over every earlier
+   "cursor:default" rule; nothing else was touched)
+   ========================================================= */
+
+html, body, .quiz-card, .quiz-card *,
+button, button *, a, input, select, textarea, [role="button"],
+button:disabled, button:disabled *,
+.arrow-option:disabled, .arrow-option:disabled *{
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg transform='rotate(45 40 40)'%3E%3Crect x='33' y='3' width='15' height='13' rx='3' fill='%23F2A6C4'/%3E%3Crect x='33' y='13' width='15' height='5' fill='%23D9D9D9'/%3E%3Crect x='34' y='18' width='13' height='43' fill='%23F4C542'/%3E%3Crect x='34' y='18' width='4' height='43' fill='%23D9A821'/%3E%3Cpolygon points='34,61 47,61 40,75' fill='%23E8B77D'/%3E%3Cpolygon points='38,70 43,70 40,78' fill='%233A2E2E'/%3E%3C/g%3E%3C/svg%3E") 14 67, pointer !important;
+}
+
+/* The Q label sat right on the top edge of the first slate — only a
+   few pixels clear, so it read as overlapping the board. Lift it up
+   off the boards without moving the boards themselves. */
+.question-heading{
+  position:relative;
+  top:-22px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="quiz-card" id="quizCard">
+
+  <div class="topbar">
+    <button class="icon-flat" id="homeBtn" style="display: none;" title="Home" aria-label="Home">🏠</button>
+
+    <p class="heading" id="heading">
+      Circle the odd numbers.
+    </p>
+
+    <button class="icon-flat" id="hintBtn" title="Hint" aria-label="Hint">💡</button>
+  </div>
+
+  <div class="content-row">
+
+    <div class="question-heading">
+      <span class="qlabel" id="qLabel">Q1.</span>
+    </div>
+
+    <div class="question-text" id="questionText">
+      Circle the odd numbers.
+    </div>
+
+    <div class="archery-area">
+      <div class="options-row" id="optionsRow">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nav">
+    <button class="prev" id="prevBtn" disabled>← Prev</button>
+    <button class="next" id="nextBtn" disabled>Next →</button>
+  </div>
+
+  <div class="flying-arrow" id="flyingArrow" aria-hidden="true" style="display:none;"></div>
+
+</div>
+
+<div class="hint-overlay" id="hintOverlay" aria-live="polite">
+  <div class="hint-box">
+    <h3>Hint</h3>
+    <p id="hintText">Look at all the numbers and pick the largest one.</p>
+    <button class="popup-btn" id="closeHintBtn">Got it!</button>
+  </div>
+</div>
+
+<!-- POPUPS -->
+<div id="answerPopup" class="popup">
+  <div class="popup-content">
+    <div class="popup-icon" id="popupIcon"></div>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMsg"></p>
+  </div>
+</div>
+
+<div id="finalPopup">
+  <div class="finalpopup-box">
+    <h2 class="final-heading">🎉 Amazing Job!</h2>
+    <p id="finalScore"></p>
+    <div id="stars">⭐⭐⭐</div>
+    <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+  </div>
+</div>
+
+<!-- SOUNDS -->
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+
+/* =========================================================
+   QUESTION DATA — from image
+   ========================================================= */
+
+const QUESTIONS = [
+  {
+    label: "Q1.",
+    text: "Circle the odd numbers.",
+    options: [8, 55, 21, 36, 49, 70, 27],
+    answer: [55, 21, 49, 27]
+  },
+  {
+    label: "Q2.",
+    text: "Circle the odd numbers.",
+    options: [19, 72, 87, 51, 63, 44, 38],
+    answer: [19, 87, 51, 63]
+  },
+  {
+    label: "Q3.",
+    text: "Circle the odd numbers.",
+    options: [25, 66, 99, 88, 35, 22, 40],
+    answer: [25, 99, 35]
+  }
+];
+
+const LABELS = ["Q1.", "Q2.", "Q3."];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+const total = QUESTIONS.length;
+let current = 0;
+let shooting = false;
+const state = QUESTIONS.map(() => ({
+  answered: false,
+  wrongPicks: [],
+  selected: []
+}));
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const quizCard     = document.getElementById("quizCard");
+const qLabel       = document.getElementById("qLabel");
+const questionText = document.getElementById("questionText");
+const optionsRow   = document.getElementById("optionsRow");
+const flyingArrow  = document.getElementById("flyingArrow");
+const flyingNumber = document.getElementById("flyingNumber");
+const prevBtn      = document.getElementById("prevBtn");
+const nextBtn      = document.getElementById("nextBtn");
+
+const correctSound = document.getElementById("correctSound");
+const wrongSound   = document.getElementById("wrongSound");
+const homeBtn      = document.getElementById("homeBtn");
+const hintBtn      = document.getElementById("hintBtn");
+const hintOverlay  = document.getElementById("hintOverlay");
+const closeHintBtn = document.getElementById("closeHintBtn");
+const hintText     = document.getElementById("hintText");
+
+/* =========================================================
+   RENDER QUESTION
+   ========================================================= */
+   function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-UK";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+function renderQuestion(){
+
+  const q  = QUESTIONS[current];
+  const st = state[current];
+  const answers = Array.isArray(q.answer) ? q.answer : [q.answer];
+
+  qLabel.textContent = LABELS[current] || `Q${current + 1}.`;
+  questionText.textContent = q.text;
+
+  optionsRow.innerHTML = "";
+
+  q.options.forEach((value) => {
+
+    const btn = document.createElement("button");
+    btn.className = "arrow-option";
+    btn.type = "button";
+    btn.dataset.value = String(value);
+
+    const img = document.createElement("img");
+    img.src = "";
+    img.alt = "";
+    btn.appendChild(img);
+
+    const label = document.createElement("span");
+    label.className = "arrow-number";
+    label.textContent = value;
+    btn.appendChild(label);
+
+    if(st.answered){
+      btn.disabled = true;
+      if(answers.includes(value)){
+        btn.classList.add("correct-hit");
+      }else{
+        btn.classList.add("faded");
+      }
+    }else if(st.wrongPicks.includes(value)){
+      btn.disabled = true;
+      btn.classList.add("faded");
+    }else if(st.selected.includes(value)){
+      btn.disabled = true;
+      btn.classList.add("correct-hit");
+    }else{
+      btn.addEventListener("click", () => handleShoot(btn, value));
+    }
+
+    optionsRow.appendChild(btn);
+  });
+
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = !st.answered || current === total - 1;
+}
+
+function localCenter(el){
+  const stageRect = quizCard.getBoundingClientRect();
+  const scale = stageRect.width / quizCard.offsetWidth || 1;
+  const rect  = el.getBoundingClientRect();
+  return {
+    x: (rect.left - stageRect.left + rect.width / 2) / scale,
+    y: (rect.top  - stageRect.top  + rect.height / 2) / scale
+  };
+}
+
+function fireArrowAt(optionEl, targetEl, value, onDone){
+  const from = localCenter(optionEl);
+  const to   = localCenter(targetEl);
+  const angle = Math.atan2(to.y - from.y, to.x - from.x) * (180 / Math.PI) + 90;
+
+  flyingNumber.textContent = value;
+
+  flyingArrow.style.display = "flex";
+  flyingArrow.style.transition = "none";
+  flyingArrow.style.transform  = `translate(${from.x}px, ${from.y}px) rotate(${angle}deg)`;
+  flyingArrow.classList.add("active");
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      flyingArrow.style.transition = "transform .32s cubic-bezier(.35,.9,.4,1)";
+      flyingArrow.style.transform  = `translate(${to.x}px, ${to.y}px) rotate(${angle}deg)`;
+    });
+  });
+
+  setTimeout(() => {
+    flyingArrow.classList.remove("active");
+    flyingArrow.style.display = "none";
+    onDone();
+  },340);
+}
+
+function handleShoot(optionEl, value){
+
+  const st = state[current];
+  if(st.answered || shooting) return;
+
+  const q = QUESTIONS[current];
+  const answers = Array.isArray(q.answer) ? q.answer : [q.answer];
+  shooting = true;
+
+  optionsRow.querySelectorAll(".arrow-option").forEach((b) => {
+    b.disabled = true;
+  });
+
+  if(answers.includes(value)){
+
+    st.selected.push(value);
+
+    optionEl.classList.remove("shot");
+    optionEl.classList.add("correct-hit");
+
+    correctSound.currentTime = 0;
+    correctSound.play().catch(() => {});
+    speak("correct");
+    showPopup(true);
+    fireConfetti();
+
+    const allAnswered = answers.every((answer) => st.selected.includes(answer));
+
+    if(allAnswered){
+      st.answered = true;
+
+      optionsRow.querySelectorAll(".arrow-option").forEach((b) => {
+        const num = Number(b.dataset.value);
+        if(!answers.includes(num) || !st.selected.includes(num)){
+          b.disabled = true;
+          b.classList.add("faded");
+        }
+      });
+
+      nextBtn.disabled = current === total - 1;
+      shooting = false;
+
+      if(current === total - 1){
+        setTimeout(() => {
+          fireBigConfetti();
+          showFinal();
+        },1100);
+      }
+    }else{
+      setTimeout(() => {
+        optionsRow.querySelectorAll(".arrow-option").forEach((b) => {
+          const num = Number(b.dataset.value);
+          if(!st.selected.includes(num) && !st.wrongPicks.includes(num)){
+            b.disabled = false;
+          }
+        });
+        shooting = false;
+      },500);
+    }
+
+  }else{
+
+    st.wrongPicks.push(value);
+
+    wrongSound.currentTime = 0;
+    wrongSound.play().catch(() => {});
+    speak("wrong");
+    showPopup(false);
+
+    setTimeout(() => {
+
+      optionEl.classList.add("faded");
+      optionEl.disabled = true;
+
+      optionsRow.querySelectorAll(".arrow-option").forEach((b) => {
+        const num = Number(b.dataset.value);
+        if(!st.wrongPicks.includes(num) && !st.selected.includes(num) && !st.answered){
+          b.disabled = false;
+        }
+      });
+
+      shooting = false;
+
+    },500);
+  }
+}
+
+/* =========================================================
+   POPUP
+   ========================================================= */
+
+function showPopup(isCorrect){
+  const popup = document.getElementById("answerPopup");
+  const icon  = document.getElementById("popupIcon");
+  const title = document.getElementById("popupTitle");
+  const msg   = document.getElementById("popupMsg");
+
+  popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+  popup.style.display = "flex";
+
+  if(isCorrect){
+    icon.textContent = "🎉";
+    title.textContent = "Correct!";
+    msg.textContent = "Great job!";
+  }else{
+    icon.textContent = "❌";
+    title.textContent = "Try Again!";
+    msg.textContent = "That's not an odd number. Try again!";
+  }
+
+  clearTimeout(showPopup._t);
+  showPopup._t = setTimeout(() => {
+    popup.style.display = "none";
+  },1100);
+}
+
+/* =========================================================
+   FINAL
+   ========================================================= */
+
+function showFinal(){
+  const finalPopup = document.getElementById("finalPopup");
+  finalPopup.style.display = "flex";
+  document.getElementById("finalScore").textContent = `${total} / ${total} Completed`;
+  document.getElementById("stars").textContent = "⭐⭐⭐";
+}
+
+/* =========================================================
+   CONFETTI
+   ========================================================= */
+
+function fireConfetti(){
+  if(!window.confetti) return;
+  confetti({
+    particleCount:24,
+    spread:55,
+    startVelocity:26,
+    origin:{ x:.5, y:.4 },
+    colors:["#e6473f","#3a6fd8","#f7b733","#8bba8a","#c9a8e0"]
+  });
+}
+
+function fireBigConfetti(){
+  if(!window.confetti) return;
+  const end = Date.now() + 1800;
+  (function frame(){
+    confetti({ particleCount:6, angle:60,  spread:55, origin:{ x:0 } });
+    confetti({ particleCount:6, angle:120, spread:55, origin:{ x:1 } });
+    if(Date.now() < end){ requestAnimationFrame(frame); }
+  })();
+}
+
+/* =========================================================
+   NAV
+   ========================================================= */
+
+prevBtn.addEventListener("click", () => {
+  if(current === 0) return;
+  current--;
+  renderQuestion();
+});
+
+nextBtn.addEventListener("click", () => {
+  if(nextBtn.disabled) return;
+  if(current < total - 1){
+    current++;
+    renderQuestion();
+  }
+});
+
+homeBtn.addEventListener("click", () => {
+  window.location.href = "../Grade2_chapter1.html";
+});
+
+hintBtn.addEventListener("click", () => {
+  hintText.textContent = `Look at all the numbers. Odd numbers end in 1, 3, 5, 7, or 9.`;
+  hintOverlay.classList.add("show");
+});
+
+closeHintBtn.addEventListener("click", () => {
+  hintOverlay.classList.remove("show");
+});
+
+hintOverlay.addEventListener("click", (event) => {
+  if(event.target === hintOverlay) {
+    hintOverlay.classList.remove("show");
+  }
+});
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+renderQuestion();
+
+</script>
+
+</body>
+</html>

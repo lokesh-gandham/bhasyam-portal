@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Big and Small Quiz</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap"
+          rel="stylesheet">
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+        }
+
+        body {
+            background-color: #fbf8eb;
+            height: 100vh;
+            width: 100vw;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            padding: 10px 15px;
+            overflow: hidden;
+        }
+
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        header {
+            width: 100%;
+            text-align: center;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        h2 {
+            font-size: 22px;
+            color: #2f4f4f;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .instruction {
+            font-size: 20px;
+            color: #555;
+            font-weight: 600;
+        }
+
+
+        /* =========================
+           MAIN GAME AREA
+        ========================= */
+
+        .game-stage {
+            width: 100%;
+            max-width: 1200px;
+
+            flex: 1;
+
+            margin: 0 auto;
+
+            display: flex;
+            flex-direction: column;
+
+            justify-content: center;
+            align-items: center;
+
+            min-height: 0;
+        }
+
+
+        /* =========================
+           TWO COLUMN GAME BOARD
+        ========================= */
+
+        .game-board {
+
+            width: 100%;
+            height: 100%;
+
+            display: grid;
+
+            grid-template-columns: repeat(2, 1fr);
+
+            gap: 80px;
+
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .game-column {
+
+            height: 100%;
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+            justify-content: center;
+
+            position: relative;
+        }
+
+
+
+        /* Swap selected questions so Big is on the left and Small is on the right. */
+        .game-board.swap-positions .game-column:first-child {
+            order: 2;
+        }
+
+        .game-board.swap-positions .game-column:last-child {
+            order: 1;
+        }
+
+        /* =========================
+           APPLE AREA
+        ========================= */
+
+        .item-area {
+
+            height: 34%;
+
+            width: 100%;
+
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+
+            position: relative;
+
+            margin-bottom: -8px;
+        }
+
+
+        .slide-item {
+
+            display: none;
+
+            width: 100%;
+            height: 100%;
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+
+        .slide-item.active {
+            display: flex;
+        }
+
+
+        .item-image {
+
+            object-fit: contain;
+
+            -webkit-user-drag: none;
+            user-select: none;
+
+            filter:
+                drop-shadow(0 8px 10px rgba(0,0,0,0.15));
+
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+
+        /* Small item */
+
+        .small-item-image {
+
+            max-height: 145px;
+            max-width: 220px;
+
+            transform: translateY(4px);
+        }
+
+
+        /* Big item */
+
+        .big-item-image {
+
+            max-height: 135px;
+            max-width: 250px;
+
+            transform: translateY(4px);
+        }
+
+
+        /* =========================
+           POT AREA
+        ========================= */
+
+        .pot-area {
+
+            height: 56%;
+
+            width: 100%;
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+            justify-content: flex-start;
+
+            padding-top: 10px;
+        }
+
+
+        .basket-image-container {
+
+            position: relative;
+
+            width: 100%;
+            max-width: 330px;
+
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+
+        .hoop-img {
+
+            width: 100%;
+
+            max-height: 200px;
+
+            object-fit: contain;
+
+            display: block;
+
+            filter:
+                drop-shadow(0 8px 10px rgba(0,0,0,0.10));
+        }
+
+
+        /* =========================
+           DROP PREVIEW ZONES
+        ========================= */
+
+        .basket-net-zone {
+
+            position: absolute;
+
+            left: 50%;
+
+            transform: translate(-50%, -50%);
+
+            z-index: 2;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            pointer-events: none;
+        }
+
+
+        #zoneSmall {
+
+            width: 50%;
+            height: 60px;
+
+            top: 11%;
+        }
+
+
+        #zoneBig {
+
+            width: 50%;
+            height: 65px;
+
+            top: 11%;
+        }
+
+
+        .dropped-preview {
+
+            object-fit: contain;
+
+            display: none;
+
+            animation:
+                dropIn 0.35s cubic-bezier(
+                    0.175,
+                    0.885,
+                    0.32,
+                    1.275
+                );
+        }
+
+
+        #zoneSmall .dropped-preview {
+
+            max-height: 50px;
+            max-width: 50px;
+        }
+
+
+        #zoneBig .dropped-preview {
+
+            max-height: 60px;
+            max-width: 60px;
+        }
+
+
+        @keyframes dropIn {
+
+            0% {
+                transform:
+                    scale(0)
+                    translateY(-40px);
+
+                opacity: 0;
+            }
+
+            100% {
+                transform:
+                    scale(1)
+                    translateY(0);
+
+                opacity: 1;
+            }
+        }
+
+
+        /* =========================
+           INPUT
+        ========================= */
+
+        input[type="text"] {
+
+            width: 88px;
+            height: 68px;
+
+            font-size: 2.2rem;
+            font-weight: 600;
+
+            text-align: center;
+
+            text-transform: uppercase;
+
+            border:
+                4px solid #e67e22;
+
+            border-radius: 18px;
+
+            background: #ffffff;
+
+            color: #2d3436;
+
+            outline: none;
+
+            box-shadow:
+                0 6px 12px rgba(0,0,0,0.15);
+
+            margin-top: 4px;
+
+            z-index: 3;
+
+            position: relative;
+
+            transition: all 0.2s ease;
+        }
+
+
+        input[type="text"]:focus {
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 9px 16px rgba(0,0,0,0.18);
+        }
+
+
+        input[type="text"]:disabled {
+
+            background-color: #f1f2f6;
+
+            border-color: #00b894;
+
+            color: #2d3436;
+
+            cursor: not-allowed;
+        }
+
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        footer {
+
+            width: 100%;
+            max-width: 1100px;
+
+            margin: 0 auto;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            padding: 5px 0;
+
+            flex-shrink: 0;
+        }
+
+
+        .nav-btn {
+
+            background: #e67e22;
+
+            color: #ffffff;
+
+            border: none;
+
+            padding: 10px 35px;
+
+            width: 178px;
+            min-width: 178px;
+            height: 45px;
+
+            font-size: 20px;
+
+            font-weight: 600;
+
+            border-radius: 40px;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 6px 0 #d35400;
+
+            transition:
+                all 0.1s ease;
+        }
+
+
+        .nav-btn:active:not(:disabled) {
+
+            transform:
+                translateY(4px);
+
+            box-shadow:
+                0 2px 0 #d35400;
+        }
+
+
+        .nav-btn:disabled {
+
+            background: #b2bec3;
+
+            box-shadow:
+                0 6px 0 #636e72;
+
+            cursor: not-allowed;
+
+            opacity: 0.7;
+        }
+
+
+        .check-btn {
+
+            background: #00b894;
+
+            box-shadow:
+                0 6px 0 #008f72;
+        }
+
+
+        .check-btn:active:not(:disabled) {
+
+            box-shadow:
+                0 2px 0 #008f72;
+        }
+
+
+        .replay-btn {
+
+            background: #0984e3;
+
+            box-shadow:
+                0 6px 0 #0975c7;
+
+            margin-top: 20px;
+
+            z-index: 5;
+        }
+
+
+        .replay-btn:active {
+
+            box-shadow:
+                0 2px 0 #0975c7;
+        }
+
+
+        /* =========================
+           LARGE SCREEN
+        ========================= */
+
+        @media screen and (min-width: 1600px) {
+
+            h2 {
+                font-size: 30px;
+            }
+
+            .instruction {
+                font-size: 25px;
+            }
+
+            .nav-btn {
+                width: 178px;
+                min-width: 178px;
+                height: 45px;
+                padding: 0;
+                font-size: 20px;
+            }
+
+            .small-item-image {
+                max-height: 155px;
+            }
+
+            .big-item-image {
+                max-height: 195px;
+            }
+
+            .hoop-img {
+                max-height: 245px;
+            }
+        }
+
+
+        /* =========================
+           TABLET / SMALL LAPTOP
+        ========================= */
+
+        @media screen and (max-width: 900px) {
+
+            .game-board {
+                gap: 30px;
+            }
+
+            .small-item-image {
+                max-height: 120px;
+            }
+
+            .big-item-image {
+                max-height: 150px;
+            }
+
+            .hoop-img {
+                max-height: 190px;
+            }
+
+            .nav-btn {
+                min-width: 140px;
+            }
+        }
+
+
+        /* =========================
+           SMALL CORRECT CONFETTI
+        ========================= */
+
+        #confettiContainer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 90;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 9px;
+            height: 14px;
+            border-radius: 2px;
+            opacity: 0;
+            animation: pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+            will-change: transform, opacity;
+        }
+
+        .final-confetti-piece {
+            width: 10px;
+            height: 16px;
+            animation-duration: 2300ms;
+        }
+
+        .final-confetti-piece:nth-child(3n) {
+            border-radius: 50%;
+        }
+
+        .final-confetti-piece:nth-child(4n) {
+            width: 7px;
+            height: 19px;
+            border-radius: 1px;
+        }
+
+        .final-confetti-piece:nth-child(5n) {
+            width: 13px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        @keyframes pageConfetti {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+            }
+            55% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+            }
+        }
+
+        /* Extra festive final celebration */
+        .final-confetti-piece::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: inherit;
+        }
+
+        /* =========================
+           POPUP OVERLAY
+        ========================= */
+
+        .popup-overlay {
+
+            position: fixed;
+
+            top: 0;
+            left: 0;
+
+            width: 100vw;
+            height: 100vh;
+
+           
+
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition:
+                opacity 0.3s ease;
+
+            z-index: 100;
+        }
+
+
+        .popup-overlay.active {
+
+            opacity: 1;
+
+            pointer-events: auto;
+        }
+
+
+        .popup-card {
+
+            position: relative;
+
+            width: 90%;
+            max-width: 520px;
+
+            padding:
+                40px 30px;
+
+            border-radius: 36px;
+
+            text-align: center;
+
+            box-shadow:
+                0 20px 40px rgba(0,0,0,0.1);
+
+            transform:
+                scale(0.8);
+
+            transition:
+                transform 0.35s cubic-bezier(
+                    0.175,
+                    0.885,
+                    0.32,
+                    1.275
+                );
+
+            overflow: hidden;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+        }
+@keyframes finalTrophyBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+        .popup-card::before,
+        .popup-card::after {
+
+            content: '';
+
+            position: absolute;
+
+            border-radius: 50%;
+
+            pointer-events: none;
+        }
+
+
+        .popup-card::before {
+
+            width: 220px;
+            height: 220px;
+
+            top: -60px;
+            right: -50px;
+        }
+
+
+        .popup-card::after {
+
+            width: 180px;
+            height: 180px;
+
+            bottom: -70px;
+            left: -40px;
+        }
+
+
+        /* Correct */
+
+        .popup-card.correct {
+
+            background: #edfbf4;
+
+            border:
+                6px solid #00c885;
+        }
+
+
+        .popup-card.correct::before,
+        .popup-card.correct::after {
+
+            background:
+                rgba(162, 245, 209, 0.45);
+        }
+
+
+        .popup-card.correct .popup-title {
+
+            color: #00a86b;
+        }
+
+
+        .popup-card.correct .popup-subtitle {
+
+            color: #2e7d5b;
+        }
+
+
+        /* Wrong */
+
+        .popup-card.wrong {
+
+            background: #fff0f2;
+
+            border:
+                6px solid #ff6b7a;
+        }
+
+
+        .popup-card.wrong::before,
+        .popup-card.wrong::after {
+
+            background:
+                rgba(255, 196, 203, 0.45);
+        }
+
+
+        .popup-card.wrong .popup-title {
+
+            color: #d33847;
+        }
+
+
+        .popup-card.wrong .popup-subtitle {
+
+            color: #a33b45;
+        }
+
+
+        /* Complete */
+
+        .popup-card.complete {
+
+            background: #f0f3ff;
+
+            border:
+                6px solid #6c5ce7;
+        }
+
+
+        .popup-card.complete::before,
+        .popup-card.complete::after {
+
+            background:
+                rgba(162, 155, 254, 0.35);
+        }
+
+
+        .popup-card.complete .popup-title {
+
+            color: #6c5ce7;
+        }
+
+
+        .popup-card.complete .popup-subtitle {
+
+            color: #4834d4;
+        }
+
+
+        .popup-overlay.active .popup-card {
+
+            transform:
+                scale(1);
+        }
+
+
+        .popup-card.complete{
+    background:#f0f3ff;
+    border:6px solid #6c5ce7;
+}
+
+
+.popup-icon {
+
+            font-size: 4.8rem;
+
+            margin-bottom: 12px;
+
+            z-index: 2;
+
+            line-height: 1;
+
+            filter:
+                drop-shadow(
+                    0 6px 10px rgba(0,0,0,0.1)
+                );
+        }
+
+
+        .popup-title {
+
+            font-size: 3rem;
+
+            font-weight: 600;
+
+            margin-bottom: 8px;
+
+            z-index: 2;
+
+            letter-spacing: -0.5px;
+        }
+
+
+        .popup-subtitle {
+
+            font-size: 1.4rem;
+
+            font-weight: 500;
+
+            z-index: 2;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+        }
+
+    
+        .popup-card.complete .popup-icon {
+            animation: finalTrophyBounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes finalTrophyBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+
+/* ===== LESSON 1 QUIZ HEADINGS: title large, subheading smaller ===== */
+header h1,
+header h2,
+header .instruction-title,
+header .distance-title,
+.game-header h1,
+.game-header h2,
+.game-header .instruction-title,
+#questionHeading {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+    margin-bottom: 2px;
+}
+.game-header:not(:has(h1, h2)) .instruction,
+.game-header:not(:has(h1, h2)) p.instruction {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+    color: #2f4f4f;
+}
+header:has(h1, h2, .instruction-title) .instruction,
+header:has(h1, h2) .instruction-text,
+header:has(h1, h2, .instruction-title) p.instruction,
+header:has(h1, h2) p.instruction-text,
+.game-header:has(h1, h2) .instruction,
+.game-header:has(h1, h2) p.instruction,
+#instruction,
+.distance-header .instruction-text,
+.distance-header p.instruction-text {
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    color: #666;
+    line-height: 1.3;
+}
+header .instruction span,
+header .instruction-text span,
+header p.instruction span,
+header p.instruction-text span,
+.game-header .instruction span,
+#instruction span {
+    font-weight: 700 !important;
+    font-size: inherit !important;
+}
+@media screen and (min-width: 1600px) {
+    header h1,
+    header h2,
+    header .instruction-title,
+    header .distance-title,
+    .game-header h1,
+    .game-header h2,
+    .game-header .instruction-title,
+    #questionHeading {
+        font-size: 40px !important;
+    }
+    .game-header:not(:has(h1, h2)) .instruction,
+    .game-header:not(:has(h1, h2)) p.instruction {
+        font-size: 40px !important;
+    }
+    header:has(h1, h2, .instruction-title) .instruction,
+    header:has(h1, h2) .instruction-text,
+    header:has(h1, h2, .instruction-title) p.instruction,
+    header:has(h1, h2) p.instruction-text,
+    .game-header:has(h1, h2) .instruction,
+    .game-header:has(h1, h2) p.instruction,
+    #instruction,
+    .distance-header .instruction-text,
+    .distance-header p.instruction-text {
+        font-size: 18px !important;
+    }
+}
+
+/* ===== LAYOUT FIT: the heading always keeps its own space =====
+   The header is a fixed-size flex item and the play area takes exactly
+   the height that is left over, so artwork can never ride up into the
+   title on shorter laptop screens. */
+header,
+.game-header,
+.distance-header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 5;
+}
+main.game-stage,
+main.game-area,
+.game-stage,
+.game-area {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+footer,
+.navigation {
+    flex: 0 0 auto;
+}
+
+/* Artwork stays inside its own row.
+   The two rows use flex ratios rather than percentage heights: the play
+   area's height comes from flex, so a percentage height here would have no
+   definite parent to resolve against — which is what let the pictures spill
+   over their row and pushed the pot's drop zone out of line with the pot. */
+.game-board { min-height: 0; }
+.game-column { min-height: 0; display: flex; flex-direction: column; }
+.item-area { flex: 34 1 0; height: auto; min-height: 0; padding-bottom: 4px; align-items: flex-end; }
+.pot-area  { flex: 56 1 0; height: auto; min-height: 0; }
+.item-image {
+    margin-bottom: 0 !important;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+/* Fill the row instead of stopping at a fixed 145/135px. The two caps keep
+   their old 145:135 ratio, so the small item still reads as smaller than
+   the big one - both simply use the space that is there. */
+.small-item-image { max-height: min(90%, 240px) !important; }
+.big-item-image   { max-height: min(84%, 224px) !important; }
+/* The pot fills its container exactly, so the basket drop zone (positioned
+   at 11% of the container) always lands on the mouth of the pot. */
+.basket-image-container { flex: 1 1 auto; min-height: 0; }
+.hoop-img {
+    height: 100% !important;
+    width: auto !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain;
+}
+input[type="text"] { flex: 0 0 auto; font-weight: 400 !important; }
+@media screen and (min-width: 1600px) {
+    .small-item-image { max-height: min(100%, 300px) !important; }
+    .big-item-image   { max-height: min(93%, 279px) !important; }
+    .hoop-img         { max-height: 100% !important; }
+}
+@media screen and (max-width: 900px) {
+    .small-item-image { max-height: min(100%, 200px) !important; }
+    .big-item-image   { max-height: min(93%, 186px) !important; }
+    .hoop-img         { max-height: 100% !important; }
+}
+
+/* ===== Sub-heading stays on a single line ===== */
+header .instruction {
+    white-space: nowrap;
+    max-width: 100%;
+}
+@media screen and (max-width: 1100px) {
+    header .instruction {
+        white-space: normal;
+    }
+}
+
+/* Drop zone sits on the rim of the pot */
+#zoneSmall, #zoneBig { top: 10%; }
+
+/* Heading sits closer to the top so the artwork gets the space. */
+body { padding-top: 2px !important; }
+header { margin-top: 0 !important; padding-bottom: 2px; }
+
+/* After answering: hide floating items, expand pots, show scored items on rim */
+.game-board.question-answered .item-area {
+    opacity: 0;
+    visibility: hidden;
+    flex: 0 0 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden;
+    transition: opacity 0.35s ease, flex 0.35s ease;
+}
+
+.game-board.question-answered .pot-area {
+    flex: 1 1 auto;
+    justify-content: center;
+}
+
+.game-board.question-answered #zoneSmall .dropped-preview {
+    max-height: 72px;
+    max-width: 72px;
+}
+
+.game-board.question-answered #zoneBig .dropped-preview {
+    max-height: 95px;
+    max-width: 95px;
+}
+
+body.question-answered header .instruction {
+    font-size: 13px !important;
+}
+@media screen and (min-width: 1600px) {
+    body.question-answered header .instruction {
+        font-size: 16px !important;
+    }
+}
+</style>
+</head>
+
+
+<body>
+
+
+    <!-- =========================
+         HEADER
+    ========================= -->
+
+    <header>
+
+        <h2>Big and Small Quiz</h2>
+
+        <p class="instruction">
+
+            Type
+            '<span style="color:#e67e22;font-weight:900;">S</span>'
+            for Small and
+
+            '<span style="color:#d35400;font-weight:900;">B</span>'
+            for Big to score in the hoops!
+
+        </p>
+
+    </header>
+
+
+
+    <!-- =========================
+         GAME AREA
+    ========================= -->
+
+    <main class="game-stage">
+
+        <div class="game-board">
+
+
+            <!-- =========================
+                 SMALL COLUMN
+            ========================= -->
+
+            <div class="game-column">
+
+
+                <!-- SMALL ITEM -->
+
+                <div class="item-area">
+
+                    <div class="slide-item active" data-q="0">
+                        <img
+                            src="../images/smallApple.png"
+                            id="img-small-0"
+                            alt="Small Apple"
+                            class="item-image small-item-image">
+                    </div>
+
+
+                    <div class="slide-item" data-q="1">
+                        <img
+                            src="../images/smallFish.png"
+                            id="img-small-1"
+                            alt="Small Fish"
+                            class="item-image small-item-image">
+                    </div>
+
+
+                    <div class="slide-item" data-q="2">
+                        <img
+                            src="../images/smallBall.png"
+                            id="img-small-2"
+                            alt="Small Ball"
+                            class="item-image small-item-image">
+                    </div>
+
+
+                    <div class="slide-item" data-q="3">
+                        <img
+                            src="../images/smallBox.png"
+                            id="img-small-3"
+                            alt="Small Box"
+                            class="item-image small-item-image">
+                    </div>
+
+
+                    <div class="slide-item" data-q="4">
+                        <img
+                            src="../images/smallFly.png"
+                            id="img-small-4"
+                            alt="Small Fly"
+                            class="item-image small-item-image">
+                    </div>
+
+
+                    <div class="slide-item" data-q="5">
+                        <img
+                            src="../images/smallMonkey.png"
+                            id="img-small-5"
+                            alt="Small Monkey"
+                            class="item-image small-item-image">
+                    </div>
+
+                </div>
+
+
+
+                <!-- SMALL POT -->
+
+                <div class="pot-area">
+
+                    <div class="basket-image-container">
+
+                        <img
+                            src="../images/hoop_small.png"
+                            alt="Small Pot"
+                            class="hoop-img">
+
+
+                        <div
+                            class="basket-net-zone"
+                            id="zoneSmall">
+
+                            <img
+                                id="previewSmall"
+                                class="dropped-preview"
+                                alt="Dropped Small Item">
+
+                        </div>
+
+                    </div>
+
+
+                    <input
+                        type="text"
+                        id="inputSmall"
+                        maxlength="1"
+                        placeholder="?"
+                        aria-label="Small Answer">
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =========================
+                 BIG COLUMN
+            ========================= -->
+
+            <div class="game-column">
+
+
+                <!-- BIG ITEM -->
+
+                <div class="item-area">
+
+                    <div class="slide-item active" data-q="0">
+                        <img
+                            src="../images/bigApple.png"
+                            id="img-big-0"
+                            alt="Big Apple"
+                            class="item-image big-item-image">
+                    </div>
+
+
+                    <div class="slide-item" data-q="1">
+                        <img
+                            src="../images/bigFish.png"
+                            id="img-big-1"
+                            alt="Big Fish"
+                            class="item-image big-item-image">
+                    </div>
+
+
+                    <div class="slide-item" data-q="2">
+                        <img
+                            src="../images/bigBall.png"
+                            id="img-big-2"
+                            alt="Big Ball"
+                            class="item-image big-item-image">
+                    </div>
+
+
+                    <div class="slide-item" data-q="3">
+                        <img
+                            src="../images/bigBox.png"
+                            id="img-big-3"
+                            alt="Big Box"
+                            class="item-image big-item-image">
+                    </div>
+
+
+                    <div class="slide-item" data-q="4">
+                        <img
+                            src="../images/bigFly.png"
+                            id="img-big-4"
+                            alt="Big Fly"
+                            class="item-image big-item-image">
+                    </div>
+
+
+                    <div class="slide-item" data-q="5">
+                        <img
+                            src="../images/bigMonkey.png"
+                            id="img-big-5"
+                            alt="Big Monkey"
+                            class="item-image big-item-image">
+                    </div>
+
+                </div>
+
+
+
+                <!-- BIG POT -->
+
+                <div class="pot-area">
+
+                    <div class="basket-image-container">
+
+                        <img
+                            src="../images/hoop_big.png"
+                            alt="Big Pot"
+                            class="hoop-img">
+
+
+                        <div
+                            class="basket-net-zone"
+                            id="zoneBig">
+
+                            <img
+                                id="previewBig"
+                                class="dropped-preview"
+                                alt="Dropped Big Item">
+
+                        </div>
+
+                    </div>
+
+
+                    <input
+                        type="text"
+                        id="inputBig"
+                        maxlength="1"
+                        placeholder="?"
+                        aria-label="Big Answer">
+
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+
+
+    <!-- =========================
+         FOOTER
+    ========================= -->
+
+    <footer>
+
+        <button
+            class="nav-btn"
+            id="prevBtn"
+            onclick="navigate(-1)"
+            disabled>
+
+            PREV
+
+        </button>
+<button
+            class="nav-btn"
+            id="nextBtn"
+            onclick="navigate(1)"
+            disabled>
+
+            NEXT
+
+        </button>
+
+    </footer>
+
+
+
+    <!-- =========================
+         POPUP
+    ========================= -->
+
+    <div id="confettiContainer" aria-hidden="true"></div>
+
+    <div
+        class="popup-overlay"
+        id="popup">
+
+        <div
+            class="popup-card"
+            id="popupCard">
+
+            <div
+                class="popup-icon"
+                id="popupIcon">
+
+                ⭐
+
+            </div>
+
+
+            <h2
+                class="popup-title"
+                id="popupTitle">
+
+                Amazing!
+
+            </h2>
+
+
+            <p
+                class="popup-subtitle"
+                id="popupSubtitle">
+
+                You got it right! ✨
+
+            </p>
+
+
+            <button
+                class="nav-btn replay-btn"
+                id="playAgainBtn"
+                style="display:none;"
+                onclick="restartGame()">
+
+                Play Again
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================= -->
+
+    <script>
+
+        let quizState =
+            Array.from(
+                { length: 6 },
+                () => ({
+                    smallInput: '',
+                    bigInput: '',
+                    isUnlocked: false
+                })
+            );
+
+
+        let currentIndex = 0;
+
+        let popupTimer = null;
+
+
+        const smallSlides =
+            document.querySelectorAll(
+                '.game-column:first-child .slide-item'
+            );
+
+
+        const bigSlides =
+            document.querySelectorAll(
+                '.game-column:last-child .slide-item'
+            );
+
+
+        const gameBoard =
+            document.querySelector('.game-board');
+
+
+
+        const prevBtn =
+            document.getElementById('prevBtn');
+
+
+        const nextBtn =
+            document.getElementById('nextBtn');
+const inputSmall =
+            document.getElementById('inputSmall');
+
+
+        const inputBig =
+            document.getElementById('inputBig');
+
+
+        const previewSmall =
+            document.getElementById('previewSmall');
+
+
+        const previewBig =
+            document.getElementById('previewBig');
+
+
+        const playAgainBtn =
+            document.getElementById('playAgainBtn');
+
+        const confettiContainer =
+            document.getElementById('confettiContainer');
+
+
+
+        /* =========================
+           DISABLE IMAGE DRAGGING
+        ========================= */
+
+        document.querySelectorAll('img').forEach((img) => {
+            img.draggable = false;
+            img.addEventListener('dragstart', (e) => e.preventDefault());
+        });
+
+
+        /* =========================
+           VOICE
+        ========================= */
+
+        function speak(t) {
+
+            speechSynthesis.cancel();
+
+            const msg =
+                new SpeechSynthesisUtterance(t);
+
+            msg.lang = "en-US";
+
+            msg.volume = 0.8;
+
+            msg.rate = 1;
+
+            msg.pitch = 1;
+
+            speechSynthesis.speak(msg);
+        }
+
+
+
+        /* =========================
+           SOUND
+        ========================= */
+
+        const audioCtx =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+
+        function playAudioTone(isCorrect) {
+
+            if (
+                audioCtx.state === 'suspended'
+            ) {
+
+                audioCtx.resume();
+            }
+
+
+            const osc =
+                audioCtx.createOscillator();
+
+
+            const gain =
+                audioCtx.createGain();
+
+
+            osc.connect(gain);
+
+            gain.connect(
+                audioCtx.destination
+            );
+
+
+            if (isCorrect) {
+
+                osc.type = 'sine';
+
+                osc.frequency.setValueAtTime(
+                    587.33,
+                    audioCtx.currentTime
+                );
+
+
+                osc.frequency.exponentialRampToValueAtTime(
+                    880,
+                    audioCtx.currentTime + 0.2
+                );
+
+
+                gain.gain.setValueAtTime(
+                    0.2,
+                    audioCtx.currentTime
+                );
+
+
+                gain.gain.exponentialRampToValueAtTime(
+                    0.01,
+                    audioCtx.currentTime + 0.3
+                );
+
+            } else {
+
+                osc.type = 'sawtooth';
+
+
+                osc.frequency.setValueAtTime(
+                    200,
+                    audioCtx.currentTime
+                );
+
+
+                osc.frequency.linearRampToValueAtTime(
+                    120,
+                    audioCtx.currentTime + 0.2
+                );
+
+
+                gain.gain.setValueAtTime(
+                    0.2,
+                    audioCtx.currentTime
+                );
+
+
+                gain.gain.exponentialRampToValueAtTime(
+                    0.01,
+                    audioCtx.currentTime + 0.25
+                );
+            }
+
+
+            osc.start();
+
+
+            osc.stop(
+                audioCtx.currentTime + 0.3
+            );
+        }
+
+function setupInputListeners(
+    inputEl,
+    previewEl,
+    typeTarget,
+    stateKey
+) {
+
+    inputEl.addEventListener(
+        'input',
+        (e) => {
+
+            let val = e.target.value.toUpperCase();
+
+            // Only allow one letter
+            val = val.charAt(0);
+
+            // If the entered letter is wrong,
+            // automatically remove it
+            if (val && val !== typeTarget) {
+
+                e.target.value = '';
+
+                quizState[currentIndex][stateKey] = '';
+
+                previewEl.style.display = 'none';
+
+                playAudioTone(false);
+                speak("Wrong");
+
+                showPopup(
+                    'wrong',
+                    '😟',
+                    'Keep Going!',
+                    'Try again, you can do it! 🌈',
+                    false
+                );
+
+                updateNavButtons();
+
+                return;
+            }
+
+            // Correct answer
+            e.target.value = val;
+
+            quizState[currentIndex][stateKey] = val;
+
+            if (val === typeTarget) {
+
+                const currentImg =
+                    document.getElementById(
+                        `img-${
+                            typeTarget === 'S'
+                                ? 'small'
+                                : 'big'
+                        }-${currentIndex}`
+                    );
+
+                if (currentImg) {
+
+                    previewEl.src =
+                        currentImg.src;
+
+                    previewEl.style.display =
+                        'block';
+
+                    currentImg.style.opacity = '0';
+                    currentImg.style.visibility = 'hidden';
+                }
+
+            } else {
+
+                previewEl.style.display =
+                    'none';
+
+                const currentImg =
+                    document.getElementById(
+                        `img-${
+                            typeTarget === 'S'
+                                ? 'small'
+                                : 'big'
+                        }-${currentIndex}`
+                    );
+
+                if (currentImg) {
+                    currentImg.style.opacity = '1';
+                    currentImg.style.visibility = 'visible';
+                }
+            }
+
+            updateNavButtons();
+
+            // Automatically check as soon as both answers are correct.
+            // No Submit button is required.
+            if (
+                inputSmall.value.trim() === 'S' &&
+                inputBig.value.trim() === 'B'
+            ) {
+                checkAnswers();
+            }
+        }
+    );
+}
+
+
+        setupInputListeners(
+            inputSmall,
+            previewSmall,
+            'S',
+            'smallInput'
+        );
+
+
+        setupInputListeners(
+            inputBig,
+            previewBig,
+            'B',
+            'bigInput'
+        );
+
+
+
+        /* =========================
+           POSITIONING
+        ========================= */
+
+        function updateQuestionPosition() {
+            /* Questions 2, 3 and 6: Big left, Small right. */
+            const shouldSwap =
+                currentIndex === 1 ||
+                currentIndex === 2 ||
+                currentIndex === 5;
+
+            gameBoard.classList.toggle(
+                'swap-positions',
+                shouldSwap
+            );
+        }
+
+
+        function updateAnsweredVisuals() {
+            const isAnswered =
+                quizState[currentIndex].isUnlocked;
+
+            gameBoard.classList.toggle(
+                'question-answered',
+                isAnswered
+            );
+
+            document.body.classList.toggle(
+                'question-answered',
+                isAnswered
+            );
+
+            if (isAnswered) {
+                if (quizState[currentIndex].smallInput === 'S') {
+                    previewSmall.style.display = 'block';
+                }
+                if (quizState[currentIndex].bigInput === 'B') {
+                    previewBig.style.display = 'block';
+                }
+            }
+        }
+
+
+        /* =========================
+           NAVIGATION
+        ========================= */
+
+        function navigate(dir) {
+
+
+            smallSlides[currentIndex]
+                .classList
+                .remove('active');
+
+
+            bigSlides[currentIndex]
+                .classList
+                .remove('active');
+
+
+            currentIndex += dir;
+
+
+            smallSlides[currentIndex]
+                .classList
+                .add('active');
+
+
+            bigSlides[currentIndex]
+                .classList
+                .add('active');
+
+            updateQuestionPosition();
+
+
+
+            const savedState =
+                quizState[currentIndex];
+
+
+
+            inputSmall.value =
+                savedState.smallInput;
+
+
+            inputBig.value =
+                savedState.bigInput;
+
+
+
+            inputSmall.disabled =
+                savedState.isUnlocked;
+
+
+            inputBig.disabled =
+                savedState.isUnlocked;
+
+
+
+            const imgS =
+                document.getElementById(
+                    `img-small-${currentIndex}`
+                );
+
+            const imgB =
+                document.getElementById(
+                    `img-big-${currentIndex}`
+                );
+
+            if (
+                savedState.smallInput === 'S' &&
+                imgS
+            ) {
+
+                previewSmall.src =
+                    imgS.src;
+
+                previewSmall.style.display =
+                    'block';
+
+                imgS.style.opacity = '0';
+                imgS.style.visibility = 'hidden';
+
+            } else {
+
+                previewSmall.style.display =
+                    'none';
+
+                if (imgS) {
+                    imgS.style.opacity = '1';
+                    imgS.style.visibility = 'visible';
+                }
+            }
+
+
+
+            if (
+                savedState.bigInput === 'B' &&
+                imgB
+            ) {
+
+                previewBig.src =
+                    imgB.src;
+
+                previewBig.style.display =
+                    'block';
+
+                imgB.style.opacity = '0';
+                imgB.style.visibility = 'hidden';
+
+            } else {
+
+                previewBig.style.display =
+                    'none';
+
+                if (imgB) {
+                    imgB.style.opacity = '1';
+                    imgB.style.visibility = 'visible';
+                }
+            }
+
+
+
+            updateAnsweredVisuals();
+            updateNavButtons();
+        }
+
+
+
+        /* =========================
+           BUTTON STATE
+        ========================= */
+
+        function updateNavButtons() {
+
+
+            prevBtn.disabled =
+                currentIndex === 0;
+
+
+
+            const isLastQuestion =
+                currentIndex ===
+                smallSlides.length - 1;
+
+
+            const isUnlocked =
+                quizState[currentIndex]
+                    .isUnlocked;
+
+
+
+            nextBtn.disabled =
+                isLastQuestion ||
+                !isUnlocked;
+}
+
+
+
+        /* =========================
+           SMALL CORRECT CONFETTI
+        ========================= */
+
+        function showSmallConfetti(isFinal = false) {
+            confettiContainer.innerHTML = '';
+
+            // Final completion gets a fuller, more playful celebration.
+            const count = isFinal ? 95 : 42;
+
+            const colors = [
+                '#00b894',
+                '#e67e22',
+                '#6c5ce7',
+                '#0984e3',
+                '#fdcb6e',
+                '#ff6b7a',
+                '#00cec9',
+                '#a29bfe'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('span');
+
+                piece.className =
+                    isFinal
+                        ? 'confetti-piece final-confetti-piece'
+                        : 'confetti-piece';
+
+                // Start all across the top, then drift naturally down.
+                const startX = Math.random() * 100;
+                const startY = -8 + Math.random() * 10;
+
+                // Larger horizontal drift makes the pieces visibly spread
+                // across the whole screen instead of staying around the popup.
+                const drift =
+                    (Math.random() * 520 - 260) *
+                    (isFinal ? 1.15 : 0.9);
+
+                const fall =
+                    window.innerHeight *
+                    (0.82 + Math.random() * 0.48);
+
+                const rotation =
+                    Math.random() * 1400 - 700;
+
+                piece.style.left = startX + '%';
+                piece.style.top = startY + '%';
+
+                piece.style.setProperty('--x', drift + 'px');
+                piece.style.setProperty('--y', fall + 'px');
+                piece.style.setProperty('--r', rotation + 'deg');
+
+                piece.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+
+                piece.style.animationDelay =
+                    (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(
+                    () => piece.remove(),
+                    isFinal ? 2900 : 2050
+                );
+            }
+        }
+
+
+        /* =========================
+           CHECK ANSWER
+        ========================= */
+
+        function checkAnswers() {
+
+
+            const smallVal =
+                inputSmall.value.trim();
+
+
+            const bigVal =
+                inputBig.value.trim();
+
+
+
+            if (
+                !smallVal ||
+                !bigVal
+            ) {
+
+                showPopup(
+                    'wrong',
+                    '😟',
+                    'Keep Going!',
+                    'Try again, you can do it! 🌈',
+                    false
+                );
+
+
+                playAudioTone(false);
+
+
+                speak("Try again");
+
+
+                return;
+            }
+
+
+
+            if (
+                smallVal === 'S' &&
+                bigVal === 'B'
+            ) {
+
+
+                quizState[currentIndex]
+                    .isUnlocked = true;
+
+
+
+                inputSmall.disabled = true;
+
+                inputBig.disabled = true;
+
+                updateAnsweredVisuals();
+
+                if (
+                    currentIndex ===
+                    smallSlides.length - 1
+                ) {
+
+                    // Last question: show the normal Correct popup first,
+                    // then show the Final popup after the Correct popup closes.
+                    showSmallConfetti();
+
+                    showPopup(
+                        'correct',
+                        '🌟',
+                        'Amazing!',
+                        'You got it right! ✨',
+                        false
+                    );
+
+                    playAudioTone(true);
+                    speak("Correct");
+
+                    clearTimeout(popupTimer);
+
+                    popupTimer = setTimeout(() => {
+
+                        showSmallConfetti(true);
+
+                        showPopup(
+                            'complete',
+                            '🏆',
+                            'Congratulations!',
+                            'Fantastic job! You solved all questions! 🎉',
+                            true
+                        );
+
+                        playAudioTone(true);
+                       
+                    }, 1800);
+
+                } else {
+
+                    showSmallConfetti();
+
+                    showPopup(
+                        'correct',
+                        '🌟',
+                        'Amazing!',
+                        'You got it right! ✨',
+                        false
+                    );
+
+                    playAudioTone(true);
+                    speak("Correct");
+                }
+
+updateNavButtons();
+
+
+            } else {
+
+
+                showPopup(
+                    'wrong',
+                    '😟',
+                    'Keep Going!',
+                    'Try again, you can do it! 🌈',
+                    false
+                );
+
+
+                playAudioTone(false);
+
+
+                speak("Wrong");
+            }
+        }
+
+
+
+        /* =========================
+           POPUP
+        ========================= */
+
+        function showPopup(
+            status,
+            icon,
+            title,
+            subtitle,
+            isFinal = false
+        ) {
+
+
+            const popup =
+                document.getElementById(
+                    'popup'
+                );
+
+
+            const card =
+                document.getElementById(
+                    'popupCard'
+                );
+
+
+
+            card.className =
+                `popup-card ${status}`;
+
+
+
+            document.getElementById(
+                'popupIcon'
+            ).innerText = icon;
+
+
+
+            document.getElementById(
+                'popupTitle'
+            ).innerText = title;
+
+
+
+            document.getElementById(
+                'popupSubtitle'
+            ).innerText = subtitle;
+
+
+
+            if (isFinal) {
+
+                playAgainBtn.style.display =
+                    'inline-block';
+
+            } else {
+
+                playAgainBtn.style.display =
+                    'none';
+            }
+
+
+
+            popup.classList.add('active');
+
+
+
+            clearTimeout(popupTimer);
+
+
+
+            if (!isFinal) {
+
+                popupTimer =
+                    setTimeout(
+                        () => {
+
+                            closePopup();
+
+                        },
+                        1800
+                    );
+            }
+        }
+
+
+
+        function closePopup() {
+
+            document
+                .getElementById('popup')
+                .classList
+                .remove('active');
+        }
+
+
+
+        /* =========================
+           RESTART
+        ========================= */
+
+        function restartGame() {
+
+
+            closePopup();
+
+
+
+            quizState =
+                Array.from(
+                    { length: 6 },
+                    () => ({
+                        smallInput: '',
+                        bigInput: '',
+                        isUnlocked: false
+                    })
+                );
+
+
+
+            smallSlides[currentIndex]
+                .classList
+                .remove('active');
+
+
+            bigSlides[currentIndex]
+                .classList
+                .remove('active');
+
+
+
+            currentIndex = 0;
+
+
+
+            smallSlides[currentIndex]
+                .classList
+                .add('active');
+
+
+            bigSlides[currentIndex]
+                .classList
+                .add('active');
+
+            updateQuestionPosition();
+
+
+
+            inputSmall.value = '';
+
+            inputBig.value = '';
+
+
+
+            inputSmall.disabled = false;
+
+            inputBig.disabled = false;
+
+
+
+            previewSmall.style.display =
+                'none';
+
+
+            previewBig.style.display =
+                'none';
+
+            document.querySelectorAll('.item-image').forEach((img) => {
+                img.style.opacity = '1';
+                img.style.visibility = 'visible';
+            });
+
+            document.body.classList.remove('question-answered');
+            gameBoard.classList.remove('question-answered');
+
+            updateNavButtons();
+        }
+
+
+        updateQuestionPosition();
+        updateAnsweredVisuals();
+        updateNavButtons();
+
+    </script>
+
+</body>
+</html>

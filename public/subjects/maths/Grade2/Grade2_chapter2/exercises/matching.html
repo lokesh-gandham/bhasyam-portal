@@ -1,0 +1,2313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Match the numbers and their number names</title>
+<link
+    href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<link rel="stylesheet" href="../assets/css/reuse.css">
+
+
+    <style>
+
+        /* =========================================================
+           BASE RESET
+           ========================================================= */
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+
+            margin: 0;
+            padding: 0;
+
+            overflow: hidden;
+        }
+
+
+        body {
+            font-family: "Livvic", sans-serif;
+
+            /* background: #fffdf5; */
+
+            color: #303030;
+        }
+
+
+        button {
+            font-family: "Livvic", sans-serif;
+        }
+
+
+        /* =========================================================
+           MAIN PAGE
+           ========================================================= */
+
+        .quiz {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+
+            display: flex;
+            flex-direction: column;
+
+            overflow: hidden;
+
+            padding:
+                clamp(8px, 1.5vh, 16px)
+                clamp(14px, 4vw, 55px)
+                clamp(6px, 1vh, 12px);
+        }
+
+
+        /* =========================================================
+           TOP BAR
+           ========================================================= */
+
+        .topbar {
+            width: 100%;
+
+            display: grid;
+
+            grid-template-columns:
+                70px
+                minmax(0, 1fr)
+                70px;
+
+            align-items: start;
+
+            flex: 0 0 auto;
+        }
+
+
+        .icon-btn {
+            border: 0;
+
+            background: transparent;
+
+            padding: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+        }
+
+
+        .icon-circle {
+            width: clamp(40px, 4vw, 58px);
+            height: clamp(40px, 4vw, 58px);
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #fff;
+
+            font-size: clamp(17px, 1.7vw, 25px);
+
+            transition:
+                transform .2s ease;
+        }
+
+
+        .icon-circle.home {
+            background:
+                linear-gradient(
+                    145deg,
+                    #8b6fe0,
+                    #6f42c1
+                );
+
+            box-shadow:
+                0 4px 0 #4f2e93;
+        }
+
+
+        .icon-circle.hint {
+            background:
+                linear-gradient(
+                    145deg,
+                    #ffc94d,
+                    #f7a800
+                );
+
+            box-shadow:
+                0 4px 0 #c17e00;
+        }
+
+
+        .icon-btn:hover .icon-circle {
+            transform: scale(1.05);
+        }
+
+
+        /* =========================================================
+           TITLE
+           ========================================================= */
+
+        .title-block {
+            min-width: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .title {
+            width: 100%;
+
+            margin: 0;
+
+            text-align: center;
+
+            font-size:
+                clamp(21px, 2.5vw, 36px);
+
+            line-height: 1.15;
+
+            font-weight: 400;
+
+            color: #303030;
+        }
+
+
+        /* =========================================================
+           MATCHING AREA
+           ========================================================= */
+
+        .matching-area {
+            flex: 1 1 auto;
+
+            min-height: 0;
+
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+        }
+
+
+        .matching-board {
+            position: relative;
+
+            width: min(1120px, 100%);
+
+            height: min(78vh, 700px);
+
+            overflow: hidden;
+        }
+
+
+        /* =========================================================
+           SVG CONNECTION LAYER
+           ========================================================= */
+
+        #lineCanvas {
+            position: absolute;
+
+            inset: 0;
+
+            width: 100%;
+            height: 100%;
+
+            pointer-events: none;
+
+            z-index: 10;
+
+            overflow: visible;
+        }
+
+
+        /* =========================================================
+           MATCHING ROWS
+           ========================================================= */
+
+        .matching-rows {
+            position: relative;
+
+            width: 100%;
+            height: 100%;
+
+            display: flex;
+            flex-direction: column;
+
+            justify-content: space-between;
+
+            padding:
+                clamp(5px, 1vh, 12px)
+                0;
+        }
+
+
+        /* =========================================================
+           EACH MATCHING ROW
+           ========================================================= */
+
+        .match-row {
+            position: relative;
+
+            width: 100%;
+
+            height:
+                clamp(55px, 9vh, 78px);
+
+            flex: 0 0 auto;
+
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1fr)
+                clamp(55px, 8vw, 100px)
+                minmax(0, 1fr);
+
+            align-items: center;
+        }
+
+
+        /* =========================================================
+           NUMBER / WORD CARD
+           ========================================================= */
+
+        .match-item {
+            position: relative;
+
+            width: min(410px, 94%);
+
+            height: 100%;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding:
+                7px
+                clamp(18px, 2vw, 30px);
+
+            border:
+                2px solid #e7b78e;
+
+            border-radius: 50%;
+
+            background: #fff;
+
+            color: #303030;
+
+            font-size:
+                clamp(16px, 1.6vw, 22px);
+
+            line-height: 1.15;
+
+            font-weight: 500;
+
+            text-align: center;
+
+            cursor: pointer;
+
+            user-select: none;
+
+            box-shadow:
+                0 3px 0 rgba(213, 151, 91, .12),
+                0 5px 12px rgba(0, 0, 0, .04);
+
+            transition:
+                transform .2s ease,
+                border-color .2s ease,
+                background .2s ease,
+                box-shadow .2s ease;
+        }
+
+
+        .number-item {
+            justify-self: end;
+        }
+
+
+        .word-item {
+            justify-self: start;
+        }
+
+
+        /* =========================================================
+           HOVER
+           ========================================================= */
+
+        .match-item:hover {
+            transform: scale(1.025);
+
+            border-color: #d9955c;
+
+            box-shadow:
+                0 5px 16px rgba(0, 0, 0, .08);
+        }
+
+
+        /* =========================================================
+           SELECTED
+           ========================================================= */
+
+        .match-item.selected {
+            background: #fff5d9;
+
+            border-color: #e6a02f;
+
+            transform: scale(1.04);
+
+            box-shadow:
+                0 0 0 4px rgba(230, 160, 47, .13);
+        }
+
+
+        /* =========================================================
+           CORRECT / MATCHED
+           ========================================================= */
+
+        .match-item.matched {
+            background: #effbea;
+
+            border-color: #73b56f;
+
+            color: #39783b;
+
+            cursor: default;
+
+            transform: scale(.99);
+
+            opacity: .94;
+        }
+
+
+        /* =========================================================
+           WRONG
+           ========================================================= */
+
+        .match-item.wrong {
+            border-color: #e86b63;
+
+            background: #fff0ee;
+
+            animation:
+                shakeItem .4s ease;
+        }
+
+
+        @keyframes shakeItem {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-7px);
+            }
+
+            50% {
+                transform: translateX(7px);
+            }
+
+            75% {
+                transform: translateX(-5px);
+            }
+        }
+
+
+        /* =========================================================
+           CONNECTION DOT
+           ========================================================= */
+
+        .match-dot {
+            position: absolute;
+
+            top: 50%;
+
+            width:
+                clamp(15px, 1.5vw, 21px);
+
+            height:
+                clamp(15px, 1.5vw, 21px);
+
+            border-radius: 50%;
+
+            background: #f39a58;
+
+            border: 3px solid #fff;
+
+            box-shadow:
+                0 1px 5px rgba(0, 0, 0, .15);
+
+            transform:
+                translateY(-50%);
+
+            z-index: 12;
+        }
+
+
+        .number-item .match-dot {
+            right:
+                clamp(-11px, -1vw, -8px);
+        }
+
+
+        .word-item .match-dot {
+            left:
+                clamp(-11px, -1vw, -8px);
+        }
+
+
+        .match-item.selected .match-dot {
+            background: #e3a42c;
+
+            box-shadow:
+                0 0 0 5px rgba(227, 164, 44, .15);
+        }
+
+
+        .match-item.matched .match-dot {
+            background: #69a967;
+        }
+
+
+        /* =========================================================
+           HINT OVERLAY
+           ========================================================= */
+
+        .hint-overlay {
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 3500;
+
+            display: none ;
+
+            align-items: center;
+            justify-content: center;
+
+            background:
+                rgba(0, 0, 0, .22);
+
+            padding: 20px;
+        }
+
+
+        .hint-overlay.show {
+            display: flex;
+        }
+
+
+        .hint-box {
+            /* display: none; */
+            width:
+                min(420px, 100%);
+
+            padding: 26px;
+
+            border-radius: 24px;
+
+            background: #fff;
+
+            text-align: center;
+
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, .18);
+        }
+
+
+        .hint-box h3 {
+            margin:
+                0 0 10px;
+
+            font-size: 28px;
+
+            color: #d99114;
+        }
+
+
+        .hint-box p {
+            margin: 0;
+
+            font-size: 18px;
+
+            line-height: 1.45;
+        }
+
+
+        .hint-close {
+            margin-top: 18px;
+
+            min-width: 110px;
+            min-height: 44px;
+
+            border: 0;
+
+            border-radius: 24px;
+
+            background: #f5ae2f;
+
+            color: #fff;
+
+            font-size: 16px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+
+        /* =========================================================
+           MEDIA QUERY 1
+           LARGE TABLET
+           ========================================================= */
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+
+            .quiz {
+                padding:
+                    7px
+                    18px
+                    7px;
+            }
+
+
+            .topbar {
+                grid-template-columns:
+                    60px
+                    minmax(0, 1fr)
+                    60px;
+            }
+
+
+            .matching-board {
+                width: 100%;
+
+                height:
+                    min(76vh, 620px);
+            }
+
+
+            .match-row {
+                height:
+                    clamp(48px, 9vh, 66px);
+
+                grid-template-columns:
+                    minmax(0, 1fr)
+                    55px
+                    minmax(0, 1fr);
+            }
+
+
+            .match-item {
+                width: 92%;
+
+                font-size: 18px;
+            }
+
+        }
+
+
+        /* =========================================================
+           MEDIA QUERY 2
+           TABLET / MOBILE LANDSCAPE
+           ========================================================= */
+
+        @media (min-width: 481px) and (max-width: 768px) {
+
+            .quiz {
+                padding:
+                    6px
+                    10px
+                    5px;
+            }
+
+
+            .topbar {
+                grid-template-columns:
+                    48px
+                    minmax(0, 1fr)
+                    48px;
+            }
+
+
+            .icon-circle {
+                width: 38px;
+                height: 38px;
+
+                font-size: 16px;
+            }
+
+
+            .title {
+                font-size: 20px;
+            }
+
+
+            .matching-board {
+                height:
+                    min(76vh, 510px);
+            }
+
+
+            .matching-rows {
+                padding:
+                    3px 0;
+            }
+
+
+            .match-row {
+                height:
+                    clamp(43px, 10vh, 58px);
+
+                grid-template-columns:
+                    minmax(0, 1fr)
+                    38px
+                    minmax(0, 1fr);
+            }
+
+
+            .match-item {
+                width: 94%;
+
+                padding:
+                    5px 12px;
+
+                border-width: 1.5px;
+
+                font-size: 15px;
+            }
+
+
+            .match-dot {
+                width: 14px;
+                height: 14px;
+
+                border-width: 2px;
+            }
+
+        }
+
+
+        /* =========================================================
+           MEDIA QUERY 3
+           SMALL MOBILE
+           ========================================================= */
+
+        @media (min-width: 361px) and (max-width: 480px) {
+
+            .quiz {
+                padding:
+                    5px
+                    7px
+                    4px;
+            }
+
+
+            .topbar {
+                grid-template-columns:
+                    40px
+                    minmax(0, 1fr)
+                    40px;
+            }
+
+
+            .icon-circle {
+                width: 34px;
+                height: 34px;
+
+                font-size: 14px;
+            }
+
+
+            .title {
+                font-size: 16px;
+            }
+
+
+            .matching-board {
+                height:
+                    min(78vh, 470px);
+            }
+
+
+            .matching-rows {
+                padding:
+                    2px 0;
+            }
+
+
+            .match-row {
+                height:
+                    clamp(38px, 11vh, 52px);
+
+                grid-template-columns:
+                    minmax(0, 1fr)
+                    28px
+                    minmax(0, 1fr);
+            }
+
+
+            .match-item {
+                width: 96%;
+
+                padding:
+                    4px 8px;
+
+                border-width: 1.5px;
+
+                font-size: 13px;
+            }
+
+
+            .match-dot {
+                width: 12px;
+                height: 12px;
+
+                border-width: 2px;
+            }
+
+
+            .number-item .match-dot {
+                right: -6px;
+            }
+
+
+            .word-item .match-dot {
+                left: -6px;
+            }
+
+        }
+
+
+        /* =========================================================
+           MEDIA QUERY 4
+           VERY SMALL MOBILE
+           ========================================================= */
+
+        @media (max-width: 360px) {
+
+            .quiz {
+                padding:
+                    4px
+                    5px
+                    3px;
+            }
+
+
+            .topbar {
+                grid-template-columns:
+                    34px
+                    minmax(0, 1fr)
+                    34px;
+            }
+
+
+            .icon-circle {
+                width: 30px;
+                height: 30px;
+
+                font-size: 12px;
+            }
+
+
+            .title {
+                font-size: 14px;
+            }
+
+
+            .matching-board {
+                height:
+                    min(78vh, 420px);
+            }
+
+
+            .matching-rows {
+                padding:
+                    2px 0;
+            }
+
+
+            .match-row {
+                height:
+                    clamp(34px, 12vh, 45px);
+
+                grid-template-columns:
+                    minmax(0, 1fr)
+                    22px
+                    minmax(0, 1fr);
+            }
+
+
+            .match-item {
+                width: 98%;
+
+                padding:
+                    3px 6px;
+
+                border-width: 1px;
+
+                font-size: 11px;
+            }
+
+
+            .match-dot {
+                width: 10px;
+                height: 10px;
+
+                border-width: 1.5px;
+            }
+
+
+            .number-item .match-dot {
+                right: -5px;
+            }
+
+
+            .word-item .match-dot {
+                left: -5px;
+            }
+
+        }
+
+
+        /* =========================================================
+           MEDIA QUERY 5
+           SHORT SCREENS
+           ========================================================= */
+
+        @media (max-height: 520px) {
+
+            .quiz {
+                padding-top: 4px;
+                padding-bottom: 3px;
+            }
+
+
+            .matching-board {
+                height:
+                    calc(100dvh - 65px);
+            }
+
+
+            .matching-rows {
+                padding:
+                    1px 0;
+            }
+
+
+            .match-row {
+                height:
+                    clamp(34px, 12vh, 50px);
+            }
+
+
+            .match-item {
+                font-size:
+                    clamp(11px, 1.5vw, 16px);
+            }
+
+        }
+
+
+        /* =========================================================
+           MEDIA QUERY 6
+           LARGE DESKTOP
+           ========================================================= */
+
+        @media (min-width: 1200px) {
+
+            .matching-board {
+                width:
+                    min(1180px, 100%);
+
+                height:
+                    min(79vh, 730px);
+            }
+
+
+            .match-row {
+                height:
+                    clamp(60px, 8vh, 82px);
+
+                grid-template-columns:
+                    minmax(0, 1fr)
+                    90px
+                    minmax(0, 1fr);
+            }
+
+
+            .match-item {
+                width:
+                    min(440px, 94%);
+
+                font-size: 22px;
+            }
+
+        }
+
+
+        /* =========================================================
+           MEDIA QUERY 7
+           EXTRA LARGE DESKTOP
+           ========================================================= */
+
+        @media (min-width: 1440px) {
+
+            .matching-board {
+                width:
+                    min(1250px, 100%);
+
+                height:
+                    min(80vh, 780px);
+            }
+
+
+            .match-row {
+                height: 86px;
+
+                grid-template-columns:
+                    minmax(0, 1fr)
+                    100px
+                    minmax(0, 1fr);
+            }
+
+
+            .match-item {
+                width:
+                    min(470px, 94%);
+
+                font-size: 24px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="quiz" id="quizCard">
+
+
+    <!-- =====================================================
+         TOP BAR
+         ===================================================== -->
+
+    <div class="topbar">
+
+
+        <button
+            class="icon-btn"
+            id="homeBtn"
+            aria-label="Home">
+
+            <span class="icon-circle home">
+
+                <i class="fa-solid fa-house"></i>
+
+            </span>
+
+        </button>
+
+
+        <div class="title-block">
+
+            <h1 class="title">
+                Match the numbers and their number names.
+            </h1>
+
+        </div>
+
+
+        <button
+            class="icon-btn"
+            id="hintBtn"
+            aria-label="Hint">
+
+            <span class="icon-circle hint">
+
+                <i class="fa-solid fa-lightbulb"></i>
+
+            </span>
+
+        </button>
+
+
+    </div>
+
+
+    <!-- =====================================================
+         MATCHING AREA
+         ===================================================== -->
+
+    <main class="matching-area">
+
+
+        <div
+            class="matching-board"
+            id="matchingBoard">
+
+
+            <svg
+                id="lineCanvas"
+                aria-hidden="true">
+            </svg>
+
+
+            <div
+                class="matching-rows"
+                id="matchingRows">
+            </div>
+
+
+        </div>
+
+
+    </main>
+
+
+</div>
+
+
+<!-- =========================================================
+     HINT
+     ========================================================= -->
+
+<div
+    class="hint-overlay"
+    id="hintOverlay">
+
+
+    <div class="hint-box">
+
+
+        <h3>
+            Hint
+        </h3>
+
+
+        <p id="hintText">
+            Match each number with the number name
+            that represents the same value.
+        </p>
+
+
+        <button
+            type="button"
+            class="hint-close"
+            id="closeHintBtn">
+
+            Got it!
+
+        </button>
+
+
+    </div>
+
+
+</div>
+
+
+<!-- =========================================================
+     EXISTING CORRECT / WRONG POPUP
+     ========================================================= -->
+
+<div
+    id="answerPopup"
+    class="kid-popup">
+
+
+    <div class="kid-card">
+
+
+        <div
+            class="kid-icon"
+            id="popupIcon">
+        </div>
+
+
+        <h3 id="popupTitle"></h3>
+
+
+        <p id="popupMsg"></p>
+
+
+    </div>
+
+
+</div>
+
+
+<!-- =========================================================
+     EXISTING FINAL POPUP
+     ========================================================= -->
+
+<div id="finalPopup">
+
+
+    <div class="final-kid-box">
+
+
+        <h2>
+            🎉
+            <span>Congratulations!</span>
+        </h2>
+
+
+        <p id="finalScore"></p>
+
+
+        <div id="stars"></div>
+
+
+        <button
+            class="playAgain-btn"
+            onclick="location.reload()">
+
+            Play Again
+
+        </button>
+
+
+    </div>
+
+
+</div>
+
+
+<audio
+    id="correctSound"
+    src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3">
+</audio>
+
+
+<audio
+    id="wrongSound"
+    src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3">
+</audio>
+
+
+<script>
+
+
+/* =========================================================
+   DATA FROM THE IMAGE
+
+   314  -> Three hundred fourteen
+   970  -> Nine hundred seventy
+   537  -> Five hundred thirty seven
+   241  -> Two hundred forty one
+   486  -> Four hundred eighty six
+   619  -> Six hundred nineteen
+   ========================================================= */
+
+const pairs = [
+
+    {
+        id: "p1",
+        number: "314",
+        words: "Three hundred fourteen"
+    },
+
+    {
+        id: "p2",
+        number: "970",
+        words: "Nine hundred seventy"
+    },
+
+    {
+        id: "p3",
+        number: "537",
+        words: "Five hundred thirty seven"
+    },
+
+    {
+        id: "p4",
+        number: "241",
+        words: "Two hundred forty one"
+    },
+
+    {
+        id: "p5",
+        number: "486",
+        words: "Four hundred eighty six"
+    },
+
+    {
+        id: "p6",
+        number: "619",
+        words: "Six hundred nineteen"
+    }
+
+];
+
+
+/* =========================================================
+   DOM
+   ========================================================= */
+
+const matchingRows =
+    document.getElementById(
+        "matchingRows"
+    );
+
+
+const board =
+    document.getElementById(
+        "matchingBoard"
+    );
+
+
+const lineCanvas =
+    document.getElementById(
+        "lineCanvas"
+    );
+
+
+const homeBtn =
+    document.getElementById(
+        "homeBtn"
+    );
+
+
+const hintBtn =
+    document.getElementById(
+        "hintBtn"
+    );
+
+
+const hintOverlay =
+    document.getElementById(
+        "hintOverlay"
+    );
+
+
+const closeHintBtn =
+    document.getElementById(
+        "closeHintBtn"
+    );
+
+
+const correctSound =
+    document.getElementById(
+        "correctSound"
+    );
+
+
+const wrongSound =
+    document.getElementById(
+        "wrongSound"
+    );
+
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+let selectedNumber = null;
+
+let matchesFound = 0;
+
+let score = 0;
+
+let connections = [];
+
+
+/* =========================================================
+   SOUND
+   ========================================================= */
+
+function playSound(audio) {
+
+    audio.currentTime = 0;
+
+    audio.play().catch(() => {});
+
+}
+
+
+/* =========================================================
+   SPEECH
+   ========================================================= */
+
+function speak(text) {
+
+    if (!window.speechSynthesis) {
+        return;
+    }
+
+
+    speechSynthesis.cancel();
+
+
+    const message =
+        new SpeechSynthesisUtterance(
+            text
+        );
+
+
+    message.lang = "en-UK";
+
+    message.volume = 0.25;
+
+    message.rate = 1;
+
+    message.pitch = 1;
+
+
+    speechSynthesis.speak(
+        message
+    );
+
+}
+
+
+/* =========================================================
+   CONFETTI
+   ========================================================= */
+
+function smallConfetti() {
+
+    if (!window.confetti) {
+        return;
+    }
+
+
+    confetti({
+
+        particleCount: 35,
+
+        spread: 70,
+
+        origin: {
+            y: 0.7
+        },
+
+        scalar: 0.8
+
+    });
+
+}
+
+
+/* =========================================================
+   CORRECT / WRONG POPUP
+   ========================================================= */
+
+function showPopup(correct) {
+
+    const popup =
+        document.getElementById(
+            "answerPopup"
+        );
+
+
+    const icon =
+        document.getElementById(
+            "popupIcon"
+        );
+
+
+    const title =
+        document.getElementById(
+            "popupTitle"
+        );
+
+
+    const message =
+        document.getElementById(
+            "popupMsg"
+        );
+
+
+    popup.style.display =
+        "flex";
+
+
+    if (correct) {
+
+        popup.className =
+            "kid-popup kid-correct";
+
+
+        icon.textContent =
+            "🎉";
+
+
+        title.textContent =
+            "Great Job!";
+
+
+        message.textContent =
+            "You matched it correctly!";
+
+    }
+
+    else {
+
+        popup.className =
+            "kid-popup kid-wrong";
+
+
+        icon.textContent =
+            "🥲";
+
+
+        title.textContent =
+            "Oops!";
+
+
+        message.textContent =
+            "Try again!";
+
+    }
+
+
+    clearTimeout(
+        showPopup.timer
+    );
+
+
+    showPopup.timer =
+        setTimeout(
+            () => {
+
+                popup.style.display =
+                    "none";
+
+            },
+            1200
+        );
+
+}
+
+
+/* =========================================================
+   SHUFFLE
+   ========================================================= */
+
+function shuffle(array) {
+
+    const result =
+        [...array];
+
+
+    for (
+        let i = result.length - 1;
+        i > 0;
+        i--
+    ) {
+
+        const j =
+            Math.floor(
+                Math.random() * (i + 1)
+            );
+
+
+        [
+            result[i],
+            result[j]
+        ] =
+        [
+            result[j],
+            result[i]
+        ];
+
+    }
+
+
+    return result;
+
+}
+
+
+/* =========================================================
+   CREATE MATCH ITEM
+   ========================================================= */
+
+function createMatchItem(
+    text,
+    pairId,
+    type
+) {
+
+    const item =
+        document.createElement(
+            "div"
+        );
+
+
+    item.className =
+        "match-item";
+
+
+    item.dataset.pair =
+        pairId;
+
+
+    item.dataset.type =
+        type;
+
+
+    if (type === "number") {
+
+        item.classList.add(
+            "number-item"
+        );
+
+    }
+
+    else {
+
+        item.classList.add(
+            "word-item"
+        );
+
+    }
+
+
+    const textSpan =
+        document.createElement(
+            "span"
+        );
+
+
+    textSpan.textContent =
+        text;
+
+
+    const dot =
+        document.createElement(
+            "span"
+        );
+
+
+    dot.className =
+        "match-dot";
+
+
+    item.appendChild(
+        textSpan
+    );
+
+
+    item.appendChild(
+        dot
+    );
+
+
+    return item;
+
+}
+
+
+/* =========================================================
+   INITIALIZE GAME
+   ========================================================= */
+
+function init() {
+
+    matchingRows.innerHTML =
+        "";
+
+
+    lineCanvas.innerHTML =
+        "";
+
+
+    selectedNumber =
+        null;
+
+
+    matchesFound =
+        0;
+
+
+    score =
+        0;
+
+
+    connections =
+        [];
+
+
+    const shuffledNumbers =
+        shuffle(pairs);
+
+
+    const shuffledWords =
+        shuffle(pairs);
+
+
+    /*
+     * Six rows.
+     *
+     * Each row contains:
+     *
+     * number     center space     number name
+     *
+     * The items themselves are independently shuffled,
+     * so the child must actually match them.
+     */
+
+    for (
+        let i = 0;
+        i < pairs.length;
+        i++
+    ) {
+
+        const row =
+            document.createElement(
+                "div"
+            );
+
+
+        row.className =
+            "match-row";
+
+
+        const numberPair =
+            shuffledNumbers[i];
+
+
+        const wordPair =
+            shuffledWords[i];
+
+
+        const numberItem =
+            createMatchItem(
+                numberPair.number,
+                numberPair.id,
+                "number"
+            );
+
+
+        const wordItem =
+            createMatchItem(
+                wordPair.words,
+                wordPair.id,
+                "word"
+            );
+
+
+        numberItem.addEventListener(
+            "click",
+            () => {
+
+                selectNumber(
+                    numberItem
+                );
+
+            }
+        );
+
+
+        wordItem.addEventListener(
+            "click",
+            () => {
+
+                selectWord(
+                    wordItem
+                );
+
+            }
+        );
+
+
+        row.appendChild(
+            numberItem
+        );
+
+
+        /*
+         * Empty center grid cell.
+         * This keeps both cards on the same row
+         * and leaves space for the matching line.
+         */
+
+
+        const center =
+            document.createElement(
+                "div"
+            );
+
+
+        row.appendChild(
+            center
+        );
+
+
+        row.appendChild(
+            wordItem
+        );
+
+
+        matchingRows.appendChild(
+            row
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   SELECT NUMBER
+   ========================================================= */
+
+function selectNumber(item) {
+
+    if (
+        item.classList.contains(
+            "matched"
+        )
+    ) {
+        return;
+    }
+
+
+    document
+        .querySelectorAll(
+            ".number-item"
+        )
+        .forEach(
+            element => {
+
+                element.classList.remove(
+                    "selected"
+                );
+
+            }
+        );
+
+
+    item.classList.add(
+        "selected"
+    );
+
+
+    selectedNumber =
+        item;
+
+}
+
+
+/* =========================================================
+   SELECT WORD
+   ========================================================= */
+
+function selectWord(item) {
+
+    if (
+        item.classList.contains(
+            "matched"
+        )
+    ) {
+        return;
+    }
+
+
+    if (!selectedNumber) {
+        return;
+    }
+
+
+    const numberPair =
+        selectedNumber.dataset.pair;
+
+
+    const wordPair =
+        item.dataset.pair;
+
+
+    if (
+        numberPair === wordPair
+    ) {
+
+        handleCorrectMatch(
+            selectedNumber,
+            item
+        );
+
+    }
+
+    else {
+
+        handleWrongMatch(
+            item
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CORRECT MATCH
+   ========================================================= */
+
+function handleCorrectMatch(
+    numberItem,
+    wordItem
+) {
+
+    numberItem.classList.remove(
+        "selected"
+    );
+
+
+    numberItem.classList.add(
+        "matched"
+    );
+
+
+    wordItem.classList.add(
+        "matched"
+    );
+
+
+    drawConnection(
+        numberItem,
+        wordItem
+    );
+
+
+    connections.push({
+
+        number:
+            numberItem,
+
+        word:
+            wordItem
+
+    });
+
+
+    selectedNumber =
+        null;
+
+
+    matchesFound++;
+
+
+    score++;
+
+
+   
+
+
+    speak(
+        "Correct"
+    );
+
+
+    showPopup(
+        true
+    );
+
+
+    smallConfetti();
+
+
+    /*
+     * Final popup appears automatically.
+     * There is no Next button.
+     */
+
+    if (
+        matchesFound ===
+        pairs.length
+    ) {
+
+        setTimeout(
+            showFinal,
+            900
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   WRONG MATCH
+   ========================================================= */
+
+function handleWrongMatch(item) {
+
+    item.classList.remove(
+        "wrong"
+    );
+
+
+    void item.offsetWidth;
+
+
+    item.classList.add(
+        "wrong"
+    );
+
+
+    playSound(
+        wrongSound
+    );
+
+
+    speak(
+        "Try again"
+    );
+
+
+    showPopup(
+        false
+    );
+
+
+    setTimeout(
+        () => {
+
+            item.classList.remove(
+                "wrong"
+            );
+
+        },
+        500
+    );
+
+}
+
+
+/* =========================================================
+   DRAW MATCHING LINE
+   ========================================================= */
+
+function drawConnection(
+    numberItem,
+    wordItem
+) {
+
+    const numberDot =
+        numberItem.querySelector(
+            ".match-dot"
+        );
+
+
+    const wordDot =
+        wordItem.querySelector(
+            ".match-dot"
+        );
+
+
+    const boardRect =
+        board.getBoundingClientRect();
+
+
+    const numberRect =
+        numberDot.getBoundingClientRect();
+
+
+    const wordRect =
+        wordDot.getBoundingClientRect();
+
+
+    const x1 =
+        numberRect.left +
+        numberRect.width / 2 -
+        boardRect.left;
+
+
+    const y1 =
+        numberRect.top +
+        numberRect.height / 2 -
+        boardRect.top;
+
+
+    const x2 =
+        wordRect.left +
+        wordRect.width / 2 -
+        boardRect.left;
+
+
+    const y2 =
+        wordRect.top +
+        wordRect.height / 2 -
+        boardRect.top;
+
+
+    const middleX =
+        (x1 + x2) / 2;
+
+
+    const path =
+        document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "path"
+        );
+
+
+    const pathData =
+        `M ${x1} ${y1}
+         C ${middleX} ${y1},
+           ${middleX} ${y2},
+           ${x2} ${y2}`;
+
+
+    path.setAttribute(
+        "d",
+        pathData
+    );
+
+
+    path.setAttribute(
+        "fill",
+        "none"
+    );
+
+
+    path.setAttribute(
+        "stroke",
+        "#6c6258"
+    );
+
+
+    path.setAttribute(
+        "stroke-width",
+        "3"
+    );
+
+
+    path.setAttribute(
+        "stroke-linecap",
+        "round"
+    );
+
+
+    path.setAttribute(
+        "opacity",
+        ".9"
+    );
+
+
+    lineCanvas.appendChild(
+        path
+    );
+
+}
+
+
+/* =========================================================
+   REDRAW LINES AFTER RESIZE
+   ========================================================= */
+
+function redrawConnections() {
+
+    lineCanvas.innerHTML =
+        "";
+
+
+    connections.forEach(
+        connection => {
+
+            drawConnection(
+                connection.number,
+                connection.word
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   HOME
+   ========================================================= */
+
+homeBtn.addEventListener(
+    "click",
+    () => {
+
+        window.location.href =
+            "../Grade2_chapter2.html";
+
+    }
+);
+
+
+/* =========================================================
+   HINT
+   ========================================================= */
+
+hintBtn.addEventListener(
+    "click",
+    () => {
+
+        hintText.textContent =
+            "Match each number with the number name that represents the same value.";
+
+
+        hintOverlay.classList.add(
+            "show"
+        );
+
+    }
+);
+
+
+closeHintBtn.addEventListener(
+    "click",
+    () => {
+
+        hintOverlay.classList.remove(
+            "show"
+        );
+
+    }
+);
+
+
+hintOverlay.addEventListener(
+    "click",
+    event => {
+
+        if (
+            event.target ===
+            hintOverlay
+        ) {
+
+            hintOverlay.classList.remove(
+                "show"
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   FINAL POPUP
+   ========================================================= */
+
+function showFinal() {
+
+    const finalPopup =
+        document.getElementById(
+            "finalPopup"
+        );
+
+
+    document.getElementById(
+        "finalScore"
+    ).textContent =
+        `Your Score: ${score} / ${pairs.length}`;
+
+
+    document.getElementById(
+        "stars"
+    ).textContent =
+        "⭐⭐⭐";
+
+
+    finalPopup.style.display =
+        "flex";
+
+
+    if (window.confetti) {
+
+        confetti({
+
+            particleCount: 150,
+
+            spread: 100,
+
+            origin: {
+                y: 0.5
+            }
+
+        });
+
+
+        setTimeout(
+            () => {
+
+                confetti({
+
+                    particleCount: 100,
+
+                    spread: 70,
+
+                    origin: {
+                        y: 0.6
+                    }
+
+                });
+
+            },
+            300
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   RESIZE
+   ========================================================= */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        requestAnimationFrame(
+            redrawConnections
+        );
+
+    }
+);
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+init();
+
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reflection, Rotation or Translation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/quiz-popup.css">
+<script src="../assets/js/quiz-popup.js"></script>
+<style>
+  :root{
+    --ink:#2b2b2b;
+    --orange:#F2802C;
+    --orange-soft:#FDF1E7;
+    --green:#2E9E5B;
+    --green-soft:#E8F6EE;
+    --red:#D94B3E;
+    --red-soft:#FBEAE8;
+    --line:#3a3a3a;
+    --card:#ffffff;
+    --bg:#FAF8F5;
+    --fs:26px;
+  }
+  @media (min-width:1600px){ :root{ --fs:40px; } }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;}
+  body{
+    font-family:'Livvic', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size:var(--fs);
+    line-height:1.4;
+    color:var(--ink);
+    background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+  }
+
+  .sheet{
+    width:100%;
+    max-width:1600px;
+    margin:0 auto;
+    padding:.5em clamp(14px, 6.5vw, 84px) .4em;
+    display:flex;
+    flex-direction:column;
+    flex:1;
+    min-height:0;
+    overflow:hidden;
+  }
+
+  .question{
+    font-weight:400;
+    margin-bottom:.4em;
+    flex-shrink:0;
+    text-align:center;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:1fr 1fr;
+    gap:.4em;
+    flex:1;
+    min-height:0;
+  }
+  @media (max-width:1000px){ .grid{grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(3,1fr);} }
+
+  .card{
+    background:var(--card);
+    border:2px solid #ECE6DF;
+    border-radius:.6em;
+    padding:.3em .4em .5em;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:space-between;
+    gap:.2em;
+    min-height:0;
+    transition:border-color .25s, background .25s;
+  }
+  .card.correct{border-color:var(--green); background:var(--green-soft);}
+
+  .label{align-self:flex-start; font-weight:400; font-size:.75em; line-height:1;}
+
+  .figure{
+    width:100%;
+    flex:1;
+    min-height:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .figure svg{max-height:100%; max-width:100%; height:100%; width:auto;}
+  .cellbox{fill:#fff; stroke:var(--line); stroke-width:2;}
+  .dot{fill:var(--ink);}
+  .arrow{stroke:#D9D2CA; stroke-width:2.5; fill:none;}
+
+  .answer{
+    width:100%;
+    display:flex;
+    gap:.35em;
+    justify-content:center;
+    flex-wrap:nowrap;
+    margin-top:auto;
+    padding-top:.15em;
+  }
+  .opt{
+    font-family:inherit;
+    font-size:clamp(14px, 1.35vw, 20px);
+    font-weight:400;
+    color:#fff;
+    background:var(--orange);
+    border:none;
+    border-radius:2em;
+    padding:.45em .7em;
+    cursor:pointer;
+    transition:all .18s ease;
+    box-shadow:0 2px 6px rgba(242,128,44,.3);
+    white-space:nowrap;
+    min-width:0;
+    flex:0 1 auto;
+  }
+  .opt[data-value="Reflection"]{background:#6DA8E0; box-shadow:0 2px 6px rgba(109,168,224,.3);}
+  .opt[data-value="Rotation"]{background:#F49D5C; box-shadow:0 2px 6px rgba(244,157,92,.3);}
+  .opt[data-value="Translation"]{background:#5BBF7E; box-shadow:0 2px 6px rgba(91,191,126,.3);}
+  .opt:hover:not(:disabled){filter:brightness(1.08); transform:translateY(-1px);}
+  .opt:active:not(:disabled){transform:translateY(0);}
+  .opt.selected{box-shadow:0 2px 6px rgba(0,0,0,.2);}
+  .opt:disabled{cursor:default; opacity:.35;}
+  .opt.selected:disabled{opacity:1;}
+  .card.correct .opt.selected{box-shadow:0 2px 6px rgba(46,158,91,.3);}
+
+  .mark{height:.9em; font-size:.5em; font-weight:400; line-height:1;}
+  .card.correct .mark{color:var(--green);}
+
+  #confetti{position:fixed; inset:0; pointer-events:none; z-index:60;}
+  .pop{position:fixed; inset:0; z-index:70; display:none; align-items:center; justify-content:center; background:transparent; pointer-events:none;}
+  .pop.show{display:flex;}
+  .pop-box{
+    background:#fff; border-radius:.5em; padding:1em 1.6em 1.1em;
+    text-align:center; max-width:14em;
+    border-top:.28em solid var(--orange);
+    box-shadow:0 0.4em 2em rgba(0,0,0,.18);
+    animation:pop .35s cubic-bezier(.2,1.4,.5,1);
+    pointer-events:auto;
+  }
+  .pop-box.good{border-top-color:var(--green);}
+  .pop-box.bad{border-top-color:var(--red);}
+  .pop-icon{font-size:1.6em; line-height:1;}
+  .pop-title{font-weight:400; margin:.25em 0 .1em;}
+  .pop-box.good .pop-title{color:var(--green);}
+  .pop-box.bad .pop-title{color:var(--red);}
+  .pop-msg{font-size:.6em; color:#6d6d6d; line-height:1.5;}
+  @keyframes pop{from{opacity:0; transform:scale(.7) translateY(1em);} to{opacity:1; transform:none;}}
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <div class="question">Identify how each figure was moved: Reflection, Rotation or Translation.</div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<div class="pop" id="pop">
+  <div class="pop-box" id="popBox">
+    <div class="pop-icon" id="popIcon">&#127881;</div>
+    <div class="pop-title" id="popTitle">Correct!</div>
+    <div class="pop-msg" id="popMsg"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ITEMS = [
+    { key:'a', cells:[[1,0],[1,1],[1,2],[1,3],[0,1]], dot:4, move:'Reflection',
+      why:'The figure is flipped over a vertical line — it faces the other way, like a mirror image.' },
+    { key:'b', cells:[[1,0],[2,0],[0,1],[1,1],[0,2]], dot:1, move:'Translation',
+      why:'The figure just slides across. It is not flipped or turned — it points the same way.' },
+    { key:'c', cells:[[0,0],[1,0],[0,1],[1,1],[1,2]], dot:4, move:'Rotation',
+      why:'The figure is turned a quarter turn about a point, so the marked square swings round.' },
+    { key:'d', cells:[[0,0],[1,0],[1,1],[0,2],[1,2]], dot:3, move:'Rotation',
+      why:'The figure is turned about a point, so the whole shape ends up lying a different way.' },
+    { key:'e', cells:[[1,0],[0,1],[1,1],[2,1],[0,2]], dot:2, move:'Reflection',
+      why:'The figure is flipped over a vertical line, so the dot moves to the opposite side.' },
+    { key:'f', cells:[[0,0],[1,0],[0,1],[1,1],[0,2]], dot:2, move:'Translation',
+      why:'The figure slides sideways with no turning and no flipping — it looks exactly the same.' }
+  ];
+
+  var MOVE = {
+    Reflection : function(c,r){ return [-c, r]; },
+    Rotation   : function(c,r){ return [-r, c]; },
+    Translation: function(c,r){ return [c, r]; }
+  };
+
+  function normalise(pts){
+    var minC = Math.min.apply(null, pts.map(function(p){return p[0];}));
+    var minR = Math.min.apply(null, pts.map(function(p){return p[1];}));
+    return pts.map(function(p){ return [p[0]-minC, p[1]-minR]; });
+  }
+
+  var S = 38;
+  var GAP = 1.2;
+  var PAD = 6;
+
+  function squares(pts, dotIdx, offC, offR){
+    var s = '';
+    pts.forEach(function(p, i){
+      var x = PAD + (p[0] + offC) * S, y = PAD + (p[1] + offR) * S;
+      s += '<rect class="cellbox" x="' + x + '" y="' + y + '" width="' + S + '" height="' + S + '"/>';
+    });
+    var d = pts[dotIdx];
+    s += '<circle class="dot" cx="' + (PAD + (d[0] + offC) * S + S/2) +
+         '" cy="' + (PAD + (d[1] + offR) * S + S/2) + '" r="' + (S * 0.17) + '"/>';
+    return s;
+  }
+
+  function buildSvg(item){
+    var A = normalise(item.cells);
+    var B = normalise(item.cells.map(function(p){ return MOVE[item.move](p[0], p[1]); }));
+
+    var wA = Math.max.apply(null, A.map(function(p){return p[0];})) + 1;
+    var wB = Math.max.apply(null, B.map(function(p){return p[0];})) + 1;
+    var hA = Math.max.apply(null, A.map(function(p){return p[1];})) + 1;
+    var hB = Math.max.apply(null, B.map(function(p){return p[1];})) + 1;
+    var H  = Math.max(hA, hB);
+
+    var offA = (H - hA) / 2, offB = (H - hB) / 2;
+    var bx   = wA + GAP;
+
+    var W = (wA + GAP + wB) * S + PAD * 2;
+    var Ht = H * S + PAD * 2;
+
+    var mid = PAD + H * S / 2;
+    var ax1 = PAD + (wA + 0.28) * S, ax2 = PAD + (wA + GAP - 0.28) * S;
+    var arrow = '<path class="arrow" d="M' + ax1 + ' ' + mid + ' H' + ax2 +
+                ' M' + (ax2 - 7) + ' ' + (mid - 6) + ' L' + ax2 + ' ' + mid +
+                ' L' + (ax2 - 7) + ' ' + (mid + 6) + '"/>';
+
+    return '<svg viewBox="0 0 ' + W + ' ' + Ht + '" role="img" aria-label="figure ' +
+           item.key + ' before and after the move">' +
+           squares(A, item.dot, 0, offA) + arrow + squares(B, item.dot, bx, offB) +
+           '</svg>';
+  }
+
+  var grid = document.getElementById('grid');
+  ITEMS.forEach(function(item){
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.setAttribute('data-answer', item.move);
+    card.setAttribute('data-why', item.why);
+    card.innerHTML =
+      '<div class="label">' + item.key + ')</div>' +
+      '<div class="figure">' + buildSvg(item) + '</div>' +
+      '<div class="answer">' +
+        '<button class="opt" data-value="Reflection">Reflection</button>' +
+        '<button class="opt" data-value="Rotation">Rotation</button>' +
+        '<button class="opt" data-value="Translation">Translation</button>' +
+      '</div>' +
+      '<div class="mark"></div>';
+    grid.appendChild(card);
+  });
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+
+  var soundOn = true;
+
+  function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-US";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+  if('speechSynthesis' in window){ window.speechSynthesis.getVoices(); }
+
+  var pop = document.getElementById('pop'), popBox = document.getElementById('popBox');
+  var popIcon = document.getElementById('popIcon'), popTitle = document.getElementById('popTitle');
+  var popMsg = document.getElementById('popMsg'), popTimer = null;
+
+  function showPop(ok, title, msg, ms){
+    QuizPopup.answer(ok, title, msg, ms);
+  }
+
+  var cv = document.getElementById('confetti'), ctx = cv.getContext('2d');
+  var bits = [], running = false;
+  var colors = ['#F2802C','#2E9E5B','#F5C542','#4A90D9','#D94B3E','#8E5BD9'];
+
+  function sizeCanvas(){ cv.width = window.innerWidth; cv.height = window.innerHeight; }
+  sizeCanvas();
+  window.addEventListener('resize', sizeCanvas);
+
+  function burst(n){
+    var cx = cv.width / 2, cy = cv.height / 2;
+    for(var i = 0; i < n; i++){
+      var a = Math.random() * Math.PI * 2, s = 4 + Math.random() * 11;
+      bits.push({ x:cx, y:cy, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 4,
+                  w:6+Math.random()*8, h:8+Math.random()*10,
+                  rot:Math.random()*Math.PI, vr:(Math.random()-0.5)*0.35,
+                  c:colors[(Math.random()*colors.length)|0], life:1 });
+    }
+    if(!running){ running = true; requestAnimationFrame(tick); }
+  }
+  function tick(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    for(var i = bits.length - 1; i >= 0; i--){
+      var b = bits[i];
+      b.vy += 0.32; b.vx *= 0.995; b.x += b.vx; b.y += b.vy; b.rot += b.vr; b.life -= 0.006;
+      if(b.life <= 0 || b.y > cv.height + 60){ bits.splice(i,1); continue; }
+      ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, b.life));
+      ctx.translate(b.x, b.y); ctx.rotate(b.rot); ctx.fillStyle = b.c;
+      ctx.fillRect(-b.w/2, -b.h/2, b.w, b.h); ctx.restore();
+    }
+    if(bits.length){ requestAnimationFrame(tick); }
+    else { running = false; ctx.clearRect(0,0,cv.width,cv.height); }
+  }
+
+  var score = 0;
+
+  grid.addEventListener('click', function(e){
+    var btn = e.target.closest ? e.target.closest('.opt') : null;
+    if(!btn) return;
+    var card = btn.parentNode.parentNode;
+    if(card.getAttribute('data-done') === '1') return;
+
+    var ok = btn.getAttribute('data-value') === card.getAttribute('data-answer');
+
+    if(ok){
+      card.setAttribute('data-done', '1');
+      btn.classList.add('selected');
+      Array.prototype.forEach.call(card.querySelectorAll('.opt'), function(b){ b.disabled = true; });
+      card.classList.add('correct');
+      card.querySelector('.mark').innerHTML = '&#10004; Correct';
+      score++; burst(120);
+      showPop(true, 'Correct!', '', 2200);
+      speak('Correct!');
+    }else{
+      btn.disabled = true;
+      btn.style.opacity = '0.35';
+      showPop(false, 'Try Again', '', 1800);
+      speak('Try again');
+      setTimeout(function(){
+        btn.disabled = false;
+        btn.style.opacity = '';
+      }, 1800);
+    }
+
+    if(cards.every(function(c){ return c.getAttribute('data-done') === '1'; })){
+      setTimeout(function(){
+        if(score === cards.length) burst(240);
+        QuizPopup.final(score, cards.length);
+      }, 2400);
+    }
+  });
+})();
+</script>
+</body>
+</html>

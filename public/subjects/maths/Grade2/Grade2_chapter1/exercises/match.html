@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Match the Following</title>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+  :root{
+    --pink:#ff8fb3; --pink-d:#f0447c;
+    --orange:#ffc79a; --orange-d:#f5924a;
+    --green:#a9e8bd; --green-d:#4fbf74;
+    --purple:#d3b8f5; --purple-d:#9b6fd9;
+    --blue:#a9d8f7; --blue-d:#4fa3e0;
+    --rose:#ffc2d1; --rose-d:#e8607f;
+    --neutral:#f4efe4; --neutral-d:#d9cfba;
+    --vh: 1vh;
+  }
+
+  *{ box-sizing:border-box; font-family:"Livvic","Segoe UI",sans-serif; -webkit-tap-highlight-color:transparent; }
+
+  html, body{
+    margin:0; padding:0;
+    width:100%; height:100%;
+    height:calc(var(--vh, 1vh) * 100);
+    overflow:hidden;
+    position:fixed;
+    inset:0;
+    background:#F8F4FF;
+    touch-action:none;
+    overscroll-behavior:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+
+  .game-wrap{
+    position:relative;
+    width:100%; height:100%;
+    max-height:calc(var(--vh, 1vh) * 100);
+   overflow:visible;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: clamp(6px, 1.4vh, 18px) clamp(10px, 2vw, 26px);
+    gap: clamp(3px, 1vh, 10px);
+  }
+
+  .top-row{
+    width:100%;
+    display:flex; align-items:center; justify-content:center;
+    position:relative; flex: 0 0 auto;
+  }
+  .main-title{
+    margin:0; text-align:center;
+    font-size: 30px;
+     color: #2f2f2f;; letter-spacing:0.2px;
+  }
+  /* ===== HOME / HINT BUTTONS ===== */
+  .home-btn,
+  .hint-btn{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:44px;
+    height:44px;
+    border:3px solid #ffffff;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:all .15s ease;
+    z-index:5;
+  }
+
+  .home-btn{
+    left:0;
+    background:linear-gradient(145deg,#8b6fe0,#6f42c1);
+    color:#ffffff;
+    box-shadow:0 4px 0 #4f2e93,0 6px 10px rgba(79,46,147,0.22);
+    display: none;
+  }
+
+  .hint-btn{
+    right:0;
+    background:linear-gradient(145deg,#ffc94d,#f7a800);
+    color:#ffffff;
+    box-shadow:0 4px 0 #c17e00,0 6px 10px rgba(193,126,0,0.20);
+  }
+
+  .home-btn:hover{
+    transform:translateY(-53%) scale(1.06);
+  }
+
+  .hint-btn:hover{
+    transform:translateY(-53%) scale(1.06);
+  }
+
+  .home-btn:active{
+    transform:translateY(-48%) scale(.96);
+    box-shadow:0 2px 0 #4f2e93;
+  }
+
+  .hint-btn:active{
+    transform:translateY(-48%) scale(.96);
+    box-shadow:0 2px 0 #c17e00;
+  }
+
+  .home-btn i{ font-size:20px; line-height:1; }
+  .hint-btn i{ font-size:19px; line-height:1; }
+
+  /* active target effect - no white border */
+  .candy.right-candy.hover-target{
+    transform:scale(1.08);
+    box-shadow:
+      0 0 0 4px rgba(255,201,77,0.55),
+      0 0 18px rgba(255,169,0,0.55),
+      0 9px 18px rgba(0,0,0,0.18);
+    filter:brightness(1.08) saturate(1.15);
+    animation:activeTargetPulse .65s ease-in-out infinite alternate;
+  }
+
+  @keyframes activeTargetPulse{
+    from{ transform:scale(1.06) translateY(0); }
+    to{ transform:scale(1.11) translateY(-2px); }
+  }
+
+  /* ===== HINT POPUP ===== */
+  #hintPopup{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(30,35,70,0.35);
+    backdrop-filter:blur(7px);
+    z-index:2500;
+  }
+
+  .hint-popup-content{
+    position:relative;
+    width:min(440px,88%);
+    padding:30px 32px 28px;
+    text-align:center;
+    background:linear-gradient(180deg,#fff1b8 0%,#ffd86a 100%);
+    border:5px solid #ffffff;
+    border-radius:28px;
+    box-shadow:0 8px 0 #c99519,0 18px 35px rgba(120,85,10,0.22);
+    animation:gamingPopup .45s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .hint-popup-icon{
+    font-size:58px;
+    line-height:1;
+    margin-bottom:10px;
+    color:#f5a900;
+    filter:drop-shadow(0 5px 4px rgba(120,80,20,0.18));
+  }
+
+  .hint-popup-content h3{
+    margin:4px 0 12px;
+    font-family:"Livvic",sans-serif;
+    font-size:31px;
+    font-weight:700;
+    color:#805500;
+    text-shadow:0 2px 0 rgba(255,255,255,0.7);
+  }
+
+  .hint-popup-content p{
+    margin:0 auto 18px;
+    padding:13px 18px;
+    border-radius:20px;
+    background:rgba(255,255,255,0.78);
+    font-family:"Livvic",sans-serif;
+    font-size:18px;
+    font-weight:600;
+    line-height:1.45;
+    color:#4d4330;
+    box-shadow:0 3px 0 rgba(0,0,0,0.08);
+  }
+
+  .hint-close-btn{
+    border:3px solid #ffffff;
+    border-radius:15px;
+    padding:9px 24px;
+    background:linear-gradient(180deg,#ffc94d 0%,#f7a800 100%);
+    color:#ffffff;
+    font-family:"Livvic",sans-serif;
+    font-size:17px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 5px 0 #c17e00,0 8px 14px rgba(193,126,0,0.20);
+    transition:all .15s ease;
+  }
+
+  .hint-close-btn:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 0 #c17e00,0 12px 18px rgba(193,126,0,0.24);
+  }
+
+  .hint-close-btn:active{
+    transform:translateY(3px);
+    box-shadow:0 2px 0 #c17e00;
+  }
+
+  .reset-btn{
+    position:absolute; right:0; top:50%; transform: translateY(-50%);
+    display:flex; align-items:center; gap:6px;
+    background:#ffffff; color:#7b3fd1; border: 2px solid #e2d4f7;
+    border-radius: 14px; padding: 7px 16px;
+    font-family:"Livvic",sans-serif; font-weight:700;
+    font-size: clamp(10px, 1vw, 15px); cursor:pointer;
+    box-shadow: 0 4px 0 #e2d4f7, 0 6px 10px rgba(123,63,209,0.12);
+    transition: all .15s ease; white-space:nowrap;
+  }
+  .reset-btn:hover{ transform: translateY(-53%); }
+  .reset-btn:active{ transform: translateY(-48%); box-shadow:0 2px 0 #e2d4f7; }
+  .reset-icon{ font-size:1.1em; display:inline-block; }
+
+  /* ===== MATCH AREA ===== */
+  /* .match-area{
+    position:relative;
+    width:100%; max-width: 1100px;
+    flex: 1 1 auto; min-height:0;
+    display:flex; align-items:stretch; justify-content:space-between;
+    gap: clamp(10px, 6vw, 90px);
+    padding: clamp(2px, 0.8vh, 10px) 0;
+    overflow:visible;
+  } */
+   .match-area{
+  position:relative;
+  width:100%;
+  max-width:1100px;
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  align-items:stretch;
+  justify-content:space-between;
+  gap:clamp(10px, 6vw, 90px);
+  padding:clamp(2px, 0.8vh, 10px) 0;
+  overflow:visible;
+}
+  .match-col{
+  flex: 1 1 0;
+  max-width:44%;
+  min-width:0;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:clamp(3px, 0.8vh, 8px);
+    overflow:visible;
+}
+
+/* Prevent candy twists from touching/cutting at screen edges */
+.left-col{
+  padding-left:12px;
+}
+
+.right-col{
+  padding-right:12px;
+  align-items:flex-end;
+}
+
+  .thread-svg{
+    position:absolute; inset:0; width:100%; height:100%;
+    pointer-events:none; z-index:1; overflow:visible;
+  }
+  .markers-layer{
+    position:absolute; inset:0; width:100%; height:100%;
+    pointer-events:none; z-index:5;
+  }
+
+  .match-row-slot{
+    flex: 1 1 0; min-height:0; width:100%;
+    display:flex; align-items:center;
+    overflow:visible;
+  }
+
+  /* ===== CANDY ITEMS ===== */
+  .candy{
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    width:100%; max-width: 340px;
+    height: 60px !important;
+    border-radius: 999px;
+    padding: 0 clamp(14px, 2vw, 22px);
+    cursor: grab;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.10), 0 6px 10px rgba(0,0,0,0.08);
+    transition: transform .12s ease, box-shadow .12s ease, filter .25s ease, background .3s ease;
+    z-index:3;
+  }
+  .candy.right-candy{ margin-left:auto; }
+
+ .candy-twist{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+
+  width: clamp(16px, 2.2vw, 26px);
+  height: clamp(48px, 4.5vh, 45px);
+
+  filter:brightness(0.86);
+  background:inherit;
+}
+  .candy-twist.tw-left{
+  left:-13px;
+  clip-path:polygon(100% 5%, 10% 50%, 100% 95%);
+}
+
+.candy-twist.tw-right{
+  right:-13px;
+  clip-path:polygon(0% 5%, 90% 50%, 0% 95%);
+}
+  .candy-twist::after{
+    content:""; position:absolute; inset:0; margin:auto;
+    width:2px; height:70%;
+    background: rgba(255,255,255,0.45);
+  }
+
+  .candy-shine{
+    position:absolute; top:10%; left:12%;
+    width:60%; height:38%;
+    border-radius:50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0));
+    pointer-events:none;
+  }
+
+  .candy-text{
+    position:relative; z-index:2;
+    /* font-weight:800; */
+    font-size: 24px;
+    color:#33302f;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+
+  .candy.p0{ background: linear-gradient(180deg, var(--pink), var(--pink-d)); }
+  .candy.p1{ background: linear-gradient(180deg, var(--orange), var(--orange-d)); }
+  .candy.p2{ background: linear-gradient(180deg, var(--green), var(--green-d)); }
+  .candy.p3{ background: linear-gradient(180deg, var(--purple), var(--purple-d)); }
+  .candy.p4{ background: linear-gradient(180deg, var(--blue), var(--blue-d)); }
+  .candy.p5{ background: linear-gradient(180deg, var(--rose), var(--rose-d)); }
+  .candy.neutral{ background: linear-gradient(180deg, #fffdf8, var(--neutral)); border: 2px solid var(--neutral-d); }
+  .candy.neutral .candy-text{ color:#6b6455; }
+
+  .candy.right-candy{ cursor: default; }
+  .candy.right-candy.hover-target{
+    transform: scale(1.08);
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.9), 0 8px 16px rgba(0,0,0,0.18);
+  }
+  .candy:hover:not(.matched):not(.right-candy){
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 6px 0 rgba(0,0,0,0.12), 0 9px 14px rgba(0,0,0,0.10);
+  }
+
+  .candy.matched{ cursor:default; filter: saturate(1.05); box-shadow: 0 2px 0 rgba(0,0,0,0.08), 0 3px 6px rgba(0,0,0,0.06); }
+
+  .candy.wrong-shake{ animation: shakeCard .45s ease; }
+  @keyframes shakeCard{
+    20%{ transform: translateX(-8px);} 40%{ transform: translateX(8px);}
+    60%{ transform: translateX(-6px);} 80%{ transform: translateX(6px);}
+    100%{ transform: translateX(0);}
+  }
+  .candy.match-pop{ animation: candyPop .5s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes candyPop{
+    0%{ transform: scale(1); } 50%{ transform: scale(1.12); } 100%{ transform: scale(1); }
+  }
+
+  /* ===== LETTER SWIRL MARKER (appears only after a correct match) ===== */
+.candy-marker{
+  position:absolute;
+  top:0;
+  left:0;
+
+  width:clamp(32px, 3.5vw, 46px);
+  height:clamp(32px, 3.5vw, 46px);
+
+  border-radius:50%;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-weight:800;
+  font-size:clamp(14px, 1.5vw, 18px);
+  color:#ffffff;
+
+  /* clean white outline */
+  border:3px solid #ffffff;
+
+  /* white glow so it stands clearly over the line */
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,0.9),
+    0 4px 8px rgba(0,0,0,0.18);
+
+  transform:translate(-50%,-50%) scale(0);
+  animation:markerPop .45s .25s cubic-bezier(.34,1.56,.64,1) forwards;
+
+  z-index:10;
+}
+  @keyframes markerPop{
+    0%{ transform: translate(-50%,-50%) scale(0) rotate(-30deg); }
+    70%{ transform: translate(-50%,-50%) scale(1.18) rotate(6deg); }
+    100%{ transform: translate(-50%,-50%) scale(1) rotate(0deg); }
+  }
+
+  /* sparkles on correct match */
+  .sparkle{
+    position:absolute; font-size:16px; pointer-events:none; z-index:600;
+    animation: sparklePop .7s ease forwards;
+  }
+  @keyframes sparklePop{
+    0%{ opacity:0; transform: scale(0) translateY(0); }
+    30%{ opacity:1; transform: scale(1) translateY(-6px); }
+    100%{ opacity:0; transform: scale(.6) translateY(-26px); }
+  }
+
+  /* ================= POPUP (correct / wrong) ================= */
+  .popup{
+    position: fixed; inset: 0; display: none;
+    align-items: center; justify-content: center;
+    /* background: rgba(30, 35, 70, 0.35); */
+    /* backdrop-filter: blur(7px); */
+    z-index: 2000;
+  }
+  .popup-content{
+    position: relative; width: min(400px, 88%);
+    padding: 32px 35px 28px; text-align: center;
+    border: 5px solid #ffffff; border-radius: 28px;
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.15), 0 18px 35px rgba(0, 0, 0, 0.20);
+    animation: gamingPopup 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  }
+  .popup.correct .popup-content{
+    background: linear-gradient(180deg, #bff7d0 0%, #72d995 100%);
+    border-color: #ffffff;
+    box-shadow: 0 8px 0 #48ae6d, 0 18px 35px rgba(40, 130, 75, 0.25);
+  }
+  .popup.wrong .popup-content{
+    background: linear-gradient(180deg, #ffd0d8 0%, #ff8296 100%);
+    border-color: #ffffff;
+    box-shadow: 0 8px 0 #df526b, 0 18px 35px rgba(180, 60, 80, 0.25);
+  }
+  .popup-icon{
+    font-size: 68px; line-height: 1; margin-bottom: 12px;
+    filter: drop-shadow(0 5px 4px rgba(0, 0, 0, 0.15));
+    animation: gamingIcon 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .popup-content h3{
+    margin: 5px 0 10px; font-family: "Livvic", sans-serif;
+    font-size: 34px; font-weight: 700; color: #176b3c;
+    text-shadow: 0 2px 0 rgba(255, 255, 255, 0.65);
+  }
+  .popup.wrong .popup-content h3{ color: #a8324b; }
+  .popup-content p{
+    display: inline-block; margin: 0; padding: 8px 18px; border-radius: 30px;
+    background: rgba(255, 255, 255, 0.65);
+    font-family: "Livvic", sans-serif; font-size: 20px; font-weight: 600; color: #234052;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+  }
+  @keyframes gamingPopup{
+    0%{ opacity: 0; transform: scale(0.55) rotate(-5deg); }
+    60%{ opacity: 1; transform: scale(1.08) rotate(2deg); }
+    100%{ opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @keyframes gamingIcon{
+    0%{ transform: scale(0) rotate(-20deg); }
+    50%{ transform: scale(1.25) rotate(10deg); }
+    75%{ transform: scale(0.9) rotate(-5deg); }
+    100%{ transform: scale(1) rotate(0deg); }
+  }
+
+  /* ================= FINAL POPUP ================= */
+  #finalPopup{
+    position: fixed; inset: 0; display: none;
+    justify-content: center; align-items: center;
+    /* background: rgba(30, 35, 70, 0.40); */
+    /* backdrop-filter: blur(8px); */
+    z-index: 3000;
+  }
+  .finalpopup-box{
+    position: relative; width: min(470px, 90%);
+    padding: 34px 38px 32px; text-align: center;
+    background: linear-gradient(180deg, #d8c7ff 0%, #a88bea 100%);
+    border: 5px solid #ffffff; border-radius: 30px;
+    box-shadow: 0 9px 0 #7655b5, 0 22px 45px rgba(50, 35, 100, 0.30);
+    animation: finalGamingPopup 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    max-height:calc(var(--vh, 1vh) * 92);
+  }
+  .finalpopup-box::before{
+    content: "✨"; position: absolute; top: 18px; left: 22px; font-size: 28px;
+    animation: sparkleFloat 1.5s ease-in-out infinite;
+  }
+  .finalpopup-box::after{
+    content: "⭐"; position: absolute; top: 24px; right: 22px; font-size: 25px;
+    animation: sparkleFloat 1.8s ease-in-out infinite;
+  }
+  .final-heading{
+    position: relative; z-index: 2; margin: 4px 0 14px;
+    font-family: "Livvic", sans-serif; font-size: 38px; font-weight: 500; color: #000000;
+   ;
+  }
+  #finalScore{
+    display: inline-block; margin: 5px 0 12px; padding: 10px 28px; border-radius: 25px;
+    background: rgba(255, 255, 255, 0.85); border: 3px solid #ffffff;
+    font-family: "Livvic", sans-serif; font-size: 27px; font-weight: 500; color: #57368e;
+    box-shadow: 0 5px 0 rgba(90, 60, 140, 0.20);
+  }
+  #stars{
+    margin: 8px 0 18px; font-size: 48px; line-height: 1; letter-spacing: 8px;
+    filter: drop-shadow(0 5px 4px rgba(120, 80, 20, 0.25));
+    animation: starsBounce 0.7s 0.25s both cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .playAgain-btn{
+    position: relative; min-width: 190px; padding: 13px 32px;
+    border: 4px solid #ffffff; border-radius: 18px;
+    background: linear-gradient(180deg, #7bea91 0%, #35b957 100%);
+    font-family: "Livvic", sans-serif; font-size: 21px; font-weight: 700; color: #000;
+    cursor: pointer;
+    /* box-shadow: 0 6px 0 #299044, 0 10px 18px rgba(35, 130, 65, 0.25);
+    text-shadow: 0 2px 0 rgba(30, 120, 50, 0.5); */
+    transition: all 0.15s ease;
+  }
+  .playAgain-btn:hover{ transform: translateY(-4px); box-shadow: 0 10px 0 #299044, 0 15px 22px rgba(35, 130, 65, 0.30); }
+  .playAgain-btn:active{ transform: translateY(4px); box-shadow: 0 2px 0 #299044, 0 5px 10px rgba(35, 130, 65, 0.20); }
+  @keyframes finalGamingPopup{
+    0%{ opacity: 0; transform: scale(0.55) rotate(-6deg); }
+    55%{ opacity: 1; transform: scale(1.08) rotate(2deg); }
+    75%{ transform: scale(0.97) rotate(-1deg); }
+    100%{ opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @keyframes starsBounce{
+    0%{ opacity: 0; transform: scale(0); }
+    60%{ opacity: 1; transform: scale(1.25) rotate(5deg); }
+    80%{ transform: scale(0.92); }
+    100%{ transform: scale(1); }
+  }
+  @keyframes sparkleFloat{
+    0%, 100%{ transform: translateY(0) rotate(0deg); }
+    50%{ transform: translateY(-7px) rotate(12deg); }
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (min-width:1024px) and (max-width:1399px){ .main-title{ font-size:24px; } }
+  @media (max-width:1023px){ .main-title{ font-size:19px; } }
+
+  @media (max-width:768px){
+    .game-wrap{ padding:6px 10px; gap:5px; }
+    .main-title{ font-size:14px; }
+    .reset-btn{ font-size:10.5px; padding:5px 10px; }
+    .match-area{ gap: clamp(8px, 8vw, 40px); }
+    .candy{ padding: 0 10px; }
+    .candy-text{ font-size: 24px; }
+    .popup-content{ padding: 18px 22px; max-width: 280px; }
+    .popup-icon{ font-size: 44px; margin-bottom:8px; }
+    .popup-content h3{ font-size: 22px; margin:4px 0 8px; }
+    .popup-content p{ font-size: 15px; padding:6px 14px; }
+    .finalpopup-box{ padding: 18px 16px; max-width: 320px; }
+    .final-heading{ font-size: 24px; margin:2px 0 10px; }
+    #finalScore{ font-size: 18px; padding:8px 20px; margin:4px 0 10px; }
+    #stars{ font-size: 30px; letter-spacing: 5px; margin:6px 0 14px; }
+    .playAgain-btn{ font-size: 15px; padding: 9px 22px; min-width:150px; }
+
+    .home-btn,
+    .hint-btn{
+      width:38px;
+      height:38px;
+      border-width:2px;
+    }
+
+    .home-btn i{ font-size:17px; }
+    .hint-btn i{ font-size:16px; }
+
+    .hint-popup-content{
+      padding:20px 20px 18px;
+      max-width:320px;
+    }
+
+    .hint-popup-icon{ font-size:42px; margin-bottom:7px; }
+    .hint-popup-content h3{ font-size:23px; margin:3px 0 8px; }
+    .hint-popup-content p{ font-size:15px; padding:9px 13px; margin-bottom:12px; }
+    .hint-close-btn{ font-size:14px; padding:7px 18px; }
+  }
+
+  @media (max-width:480px){
+    .main-title{ font-size:11.5px; }
+    .candy{ padding: 0 7px; }
+    .candy-text{ font-size: clamp(8px, 3.2vw, 11px); }
+    .popup-content{ padding: 14px 16px; max-width: 250px; }
+    .popup-icon{ font-size: 34px; margin-bottom:6px; }
+    .popup-content h3{ font-size: 18px; margin:2px 0 6px; }
+    .popup-content p{ font-size: 13px; padding:5px 12px; }
+    .finalpopup-box{ padding: 14px 12px; max-width: 270px; }
+    .final-heading{ font-size: 19px; margin:2px 0 8px; }
+    #finalScore{ font-size: 15px; padding:6px 16px; margin:3px 0 8px; }
+    #stars{ font-size: 24px; letter-spacing: 3px; margin:4px 0 10px; }
+    .playAgain-btn{ font-size: 13px; padding: 7px 18px; min-width:130px; }
+  }
+
+  @media (max-width:360px){
+    .main-title{ font-size:10px; }
+    .candy-text{ font-size:7.5px; }
+    .reset-btn{ padding:4px 7px; font-size:9px; }
+  }
+
+  @media (max-height:700px){ .candy{ height: clamp(24px, 5.6vh, 54px); } }
+  @media (max-height:560px){
+    .game-wrap{ padding:4px 10px; gap:3px; }
+    .candy{ height: clamp(20px, 5vh, 40px); }
+    .candy-text{ font-size:16px; }
+    .main-title{ font-size:12px; }
+    .reset-btn{ padding:3px 8px; font-size:9px; }
+    .popup-content{ padding:12px 16px; }
+    .popup-icon{ font-size:30px; margin-bottom:4px; }
+    .popup-content h3{ font-size:17px; margin:2px 0 5px; }
+    .popup-content p{ font-size:12px; padding:4px 10px; }
+    .finalpopup-box{ padding:12px 14px; }
+    .final-heading{ font-size:17px; margin:2px 0 6px; }
+    #finalScore{ font-size:13px; padding:5px 14px; }
+    #stars{ font-size:20px; letter-spacing:3px; margin:3px 0 8px; }
+    .playAgain-btn{ font-size:12px; padding:6px 16px; min-width:120px; }
+  }
+  @media (max-height:420px){
+    .candy{ height: clamp(16px, 4.4vh, 30px); }
+    .candy-text{ font-size:8.5px; }
+    .main-title{ font-size:10px; }
+  }
+
+  @media (min-width:1600px){
+    .game-wrap{ padding:20px 40px; gap:10px; }
+    .main-title{ font: size 40px; }
+    .reset-btn{ font-size:17px; padding:10px 22px; border-radius:16px; }
+    .candy-text{font-size: 26px;}
+  }
+  @media (min-width:1921px){ .game-wrap{ transform: scale(1.08); transform-origin: center; } }
+</style>
+</head>
+<body>
+
+  <div class="game-wrap">
+    <div class="top-row">
+      <button class="home-btn" id="homeBtn" aria-label="Home" title="Home" onclick="window.location.href='../Grade2_chapter1.html'">
+        <i class="fa-solid fa-house"></i>
+      </button>
+      <button class="hint-btn" id="hintBtn" aria-label="Hint" title="How to play">
+        <i class="fa-solid fa-lightbulb"></i>
+      </button>
+      <p class="main-title">Match the following <br> <span style="font-size:clamp(10px, 1.3vw, 26px);">Drag and match each number with the correct number name.</span></p>
+      <!-- <button class="reset-btn" id="resetBtn"><span class="reset-icon">↻</span> Reset</button> -->
+    </div>
+
+    <div class="match-area" id="matchArea">
+      <svg class="thread-svg" id="threadSvg"></svg>
+      <div class="markers-layer" id="markersLayer"></div>
+      <div class="match-col left-col" id="leftCol"></div>
+      <div class="match-col right-col" id="rightCol"></div>
+    </div>
+  </div>
+
+  <div id="hintPopup">
+    <div class="hint-popup-content">
+      <div class="hint-popup-icon"><i class="fa-solid fa-lightbulb"></i></div>
+      <h3>How to Play</h3>
+      <p>Drag a number from the left side and connect it to the matching answer on the right side. Match all the pairs correctly to complete the game!</p>
+      <button class="hint-close-btn" id="hintCloseBtn" type="button">Got it!</button>
+    </div>
+  </div>
+
+  <div id="answerPopup" class="popup">
+    <div class="popup-content">
+      <div class="popup-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <div id="finalPopup">
+    <div class="finalpopup-box">
+      <h2 class="final-heading">🎉 Amazing Job!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div><br>
+      <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+    </div>
+  </div>
+
+<script>
+/* real viewport height fix, so mobile chrome never causes a scrollbar */
+function setRealVH(){ document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px'); }
+setRealVH();
+window.addEventListener('resize', setRealVH);
+window.addEventListener('orientationchange', setRealVH);
+
+const PAIRS = [
+  { left: "1 ten 1 one",   right: "11" },
+  { left: "46",            right: "4 tens 6 ones" },
+  { left: "31",            right: "3 tens 1 one" },
+  { left: "9 tens 9 ones", right: "99" },
+  { left: "1 ten 9 ones",  right: "19" },
+  { left: "6 tens 7 ones", right: "67" },
+];
+const LETTERS = ["a","b","c","d","e","f"];
+const PCLASS  = ["p0","p1","p2","p3","p4","p5"];
+const PCOLOR  = { p0:"#f0447c", p1:"#f5924a", p2:"#4fbf74", p3:"#9b6fd9", p4:"#4fa3e0", p5:"#e8607f" };
+
+const total = PAIRS.length;
+let matchedCount = 0;
+let busy = false;
+
+const matchArea    = document.getElementById("matchArea");
+const leftCol       = document.getElementById("leftCol");
+const rightCol      = document.getElementById("rightCol");
+const svg            = document.getElementById("threadSvg");
+const markersLayer  = document.getElementById("markersLayer");
+
+/* ---------- tiny synthesized audio, no files needed ---------- */
+let audioCtx = null;
+function getCtx(){
+  if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audioCtx=null; } }
+  return audioCtx;
+}
+function playCorrectSound(){
+  const ctx = getCtx(); if(!ctx) return;
+  [523.25,659.25,783.99].forEach((freq,i)=>{
+    const osc=ctx.createOscillator(), gain=ctx.createGain();
+    osc.type="sine"; osc.frequency.value=freq;
+    const start=ctx.currentTime+i*0.09;
+    gain.gain.setValueAtTime(0.0001,start);
+    gain.gain.exponentialRampToValueAtTime(0.22,start+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001,start+0.28);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(start); osc.stop(start+0.3);
+  });
+}
+function speak(t) {
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-UK";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+function playWrongSound(){
+  const ctx = getCtx(); if(!ctx) return;
+  const osc=ctx.createOscillator(), gain=ctx.createGain();
+  osc.type="sawtooth";
+  const start=ctx.currentTime;
+  osc.frequency.setValueAtTime(220,start);
+  osc.frequency.exponentialRampToValueAtTime(110,start+0.28);
+  gain.gain.setValueAtTime(0.0001,start);
+  gain.gain.exponentialRampToValueAtTime(0.18,start+0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001,start+0.32);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(start); osc.stop(start+0.34);
+}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+function buildCandy({text, pairIndex, side, neutral}){
+  const candy = document.createElement("div");
+  candy.className = "candy " + side + "-candy " + (neutral ? "neutral" : PCLASS[pairIndex]);
+  candy.dataset.pair = pairIndex;
+
+  const twL = document.createElement("span"); twL.className = "candy-twist tw-left";
+  const shine = document.createElement("span"); shine.className = "candy-shine";
+  const txt = document.createElement("span"); txt.className = "candy-text"; txt.textContent = text;
+  const twR = document.createElement("span"); twR.className = "candy-twist tw-right";
+
+  candy.append(twL, shine, txt, twR);
+  return candy;
+}
+
+/* LEFT column: fixed a-f order, fully colored from the start */
+PAIRS.forEach((pair, i) => {
+  const slot = document.createElement("div");
+  slot.className = "match-row-slot";
+  const candy = buildCandy({ text: pair.left, pairIndex: i, side:"left", neutral:false });
+  slot.appendChild(candy);
+  leftCol.appendChild(slot);
+  attachDrag(candy);
+});
+
+/* RIGHT column: shuffled order, NO color yet (neutral) until correctly matched */
+const shuffledPairIdx = shuffle(PAIRS.map((_, i) => i));
+shuffledPairIdx.forEach(pairIndex => {
+  const slot = document.createElement("div");
+  slot.className = "match-row-slot";
+  slot.style.justifyContent = "flex-end";
+  const candy = buildCandy({ text: PAIRS[pairIndex].right, pairIndex, side:"right", neutral:true });
+  slot.appendChild(candy);
+  rightCol.appendChild(slot);
+});
+
+/* ---------- geometry helpers ---------- */
+function localPoint(el, side){
+  const areaRect = matchArea.getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  const x = side === "right" ? r.right - areaRect.left : r.left - areaRect.left;
+  const y = r.top + r.height/2 - areaRect.top;
+  return { x, y };
+}
+function curvePath(p1, p2){
+  const midX = (p1.x + p2.x) / 2;
+  return `M ${p1.x} ${p1.y} C ${midX} ${p1.y}, ${midX} ${p2.y}, ${p2.x} ${p2.y}`;
+}
+function cubicMidpoint(p1, p2){
+  const midX = (p1.x + p2.x) / 2;
+  const c1 = {x: midX, y: p1.y}, c2 = {x: midX, y: p2.y};
+  const x = 0.125*p1.x + 0.375*c1.x + 0.375*c2.x + 0.125*p2.x;
+  const y = 0.125*p1.y + 0.375*c1.y + 0.375*c2.y + 0.125*p2.y;
+  return {x, y};
+}
+function makePathEl(colorVar, extraClass){
+  const ns = "http://www.w3.org/2000/svg";
+  const path = document.createElementNS(ns, "path");
+  path.setAttribute("fill", "none");
+  path.setAttribute("stroke", colorVar);
+  path.setAttribute("stroke-width", "5");
+  path.setAttribute("stroke-linecap", "round");
+  if(extraClass) path.setAttribute("class", extraClass);
+  svg.appendChild(path);
+  return path;
+}
+
+function curvePoint(p1, p2, t){
+  const midX = (p1.x + p2.x) / 2;
+  const c1 = { x: midX, y: p1.y };
+  const c2 = { x: midX, y: p2.y };
+  const inverse = 1 - t;
+
+  return {
+    x: inverse ** 3 * p1.x + 3 * inverse ** 2 * t * c1.x + 3 * inverse * t ** 2 * c2.x + t ** 3 * p2.x,
+    y: inverse ** 3 * p1.y + 3 * inverse ** 2 * t * c1.y + 3 * inverse * t ** 2 * c2.y + t ** 3 * p2.y
+  };
+}
+
+function getMarkerPosition(p1, p2, ignoredMarker = null){
+  const markerGap = 64;
+  const markerRadius = 23;
+  const positions = [0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8];
+
+  for(const t of positions){
+    const position = curvePoint(p1, p2, t);
+    const overlaps = matchedLines.some(m => m.markerEl !== ignoredMarker && (() => {
+      const x = Number.parseFloat(m.markerEl.style.left);
+      const y = Number.parseFloat(m.markerEl.style.top);
+      return Math.hypot(position.x - x, position.y - y) < markerGap;
+    })());
+
+    if(!overlaps) return position;
+  }
+
+  return curvePoint(p1, p2, 0.5);
+}
+
+function estimateLength(p1, p2){
+  const dx=p2.x-p1.x, dy=p2.y-p1.y;
+  return Math.sqrt(dx*dx+dy*dy)*1.15 + 20;
+}
+
+const matchedLines = []; // { leftEl, rightEl, pathEl, markerEl }
+
+function drawMatchedLine(leftEl, rightEl, pairIndex){
+  const color = PCOLOR[PCLASS[pairIndex]];
+  const p1 = localPoint(leftEl, "right");
+  const p2 = localPoint(rightEl, "left");
+  const path = makePathEl(color);
+  const d = curvePath(p1, p2);
+  const len = estimateLength(p1, p2);
+
+  path.setAttribute("d", d);
+  path.style.strokeDasharray = len;
+  path.style.strokeDashoffset = len;
+  path.style.transition = "stroke-dashoffset .6s cubic-bezier(.34,1.2,.64,1)";
+  requestAnimationFrame(() => { path.style.strokeDashoffset = 0; });
+
+  const markerPosition = getMarkerPosition(p1, p2);
+  const marker = document.createElement("div");
+  marker.className = "candy-marker";
+  marker.style.left = markerPosition.x + "px";
+  marker.style.top = markerPosition.y + "px";
+  marker.style.background = color;
+  marker.textContent = LETTERS[pairIndex];
+  markersLayer.appendChild(marker);
+
+  matchedLines.push({ leftEl, rightEl, pathEl: path, markerEl: marker });
+}
+
+function redrawMatchedLines(){
+  matchedLines.forEach(m => {
+    const p1 = localPoint(m.leftEl, "right");
+    const p2 = localPoint(m.rightEl, "left");
+    m.pathEl.setAttribute("d", curvePath(p1, p2));
+    m.pathEl.style.transition = "none";
+    m.pathEl.style.strokeDasharray = "";
+    m.pathEl.style.strokeDashoffset = "";
+    const markerPosition = getMarkerPosition(p1, p2, m.markerEl);
+    m.markerEl.style.left = markerPosition.x + "px";
+    m.markerEl.style.top = markerPosition.y + "px";
+  });
+}
+let resizeTimer;
+window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(redrawMatchedLines, 120); });
+
+/* ---------- drag to connect ---------- */
+let dragEl = null, dragPath = null;
+
+function attachDrag(candy){ candy.addEventListener("pointerdown", onPointerDown); }
+
+function onPointerDown(e){
+  const candy = e.currentTarget;
+  if(candy.classList.contains("matched") || busy) return;
+
+  getCtx();
+  if(audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+
+  dragEl = candy;
+  candy.setPointerCapture(e.pointerId);
+  dragPath = makePathEl(candyColor(candy), "drag-path");
+
+  candy.addEventListener("pointermove", onPointerMove);
+  candy.addEventListener("pointerup", onPointerUp);
+  candy.addEventListener("pointercancel", onPointerCancel);
+
+  updateDragPath(e.clientX, e.clientY);
+}
+function candyColor(candy){
+  const pClass = PCLASS.find(c => candy.classList.contains(c));
+  return pClass ? PCOLOR[pClass] : "#b9ac95";
+}
+function updateDragPath(clientX, clientY){
+  const areaRect = matchArea.getBoundingClientRect();
+  const p1 = localPoint(dragEl, "right");
+  const p2 = { x: clientX - areaRect.left, y: clientY - areaRect.top };
+  dragPath.setAttribute("d", curvePath(p1, p2));
+}
+function onPointerMove(e){
+  if(!dragEl) return;
+  updateDragPath(e.clientX, e.clientY);
+  const target = findRightCandyAt(e.clientX, e.clientY);
+  document.querySelectorAll(".right-candy.hover-target").forEach(el => el.classList.remove("hover-target"));
+  if(target) target.classList.add("hover-target");
+}
+function findRightCandyAt(x, y, pad=18){
+  const candies = rightCol.querySelectorAll(".candy.right-candy:not(.matched)");
+  for(const c of candies){
+    const r = c.getBoundingClientRect();
+    if(x >= r.left-pad && x <= r.right+pad && y >= r.top-pad && y <= r.bottom+pad) return c;
+  }
+  return null;
+}
+function endDrag(){
+  if(dragEl){
+    dragEl.removeEventListener("pointermove", onPointerMove);
+    dragEl.removeEventListener("pointerup", onPointerUp);
+    dragEl.removeEventListener("pointercancel", onPointerCancel);
+  }
+  if(dragPath){ dragPath.remove(); dragPath = null; }
+  document.querySelectorAll(".right-candy.hover-target").forEach(el => el.classList.remove("hover-target"));
+  dragEl = null;
+}
+function onPointerCancel(){ endDrag(); }
+
+function onPointerUp(e){
+  const leftCandy = dragEl;
+  if(!leftCandy) return;
+  const target = findRightCandyAt(e.clientX, e.clientY);
+  endDrag();
+  if(!target) return;
+
+  busy = true;
+  const pairIndex = Number(leftCandy.dataset.pair);
+  const isCorrect = pairIndex === Number(target.dataset.pair);
+
+  if(isCorrect){
+    playCorrectSound();
+    speak("correct");
+    playPop(true);
+
+    leftCandy.classList.add("matched", "match-pop");
+    target.classList.remove("neutral");
+    target.classList.add(PCLASS[pairIndex], "matched", "match-pop");
+    setTimeout(() => { leftCandy.classList.remove("match-pop"); target.classList.remove("match-pop"); }, 500);
+
+    drawMatchedLine(leftCandy, target, pairIndex);
+    spawnSparkles(target);
+    fireConfettiAt(target);
+
+    matchedCount++;
+    busy = false;
+
+    if(matchedCount >= total){
+      setTimeout(() => { fireBigConfetti(); showFinal(); }, 700);
+    }
+  } else {
+    playWrongSound();
+    speak("wrong");
+    playPop(false);
+    leftCandy.classList.add("wrong-shake");
+    target.classList.add("wrong-shake");
+    setTimeout(() => {
+      leftCandy.classList.remove("wrong-shake");
+      target.classList.remove("wrong-shake");
+      busy = false;
+    }, 450);
+  }
+}
+
+/* ---------- sparkles / confetti / popups ---------- */
+function spawnSparkles(el){
+  const icons = ["✨","⭐","🌟"];
+  for(let i=0;i<3;i++){
+    const s = document.createElement("span");
+    s.className = "sparkle";
+    s.textContent = icons[Math.floor(Math.random()*icons.length)];
+    const angle = (i/3) * Math.PI * 2, radius = 26;
+    s.style.left = `calc(50% + ${Math.cos(angle)*radius}px)`;
+    s.style.top = `calc(50% + ${Math.sin(angle)*radius}px)`;
+    s.style.animationDelay = `${i*0.04}s`;
+    el.appendChild(s);
+    setTimeout(()=> s.remove(), 750);
+  }
+}
+function fireConfettiAt(el){
+  if(!window.confetti) return;
+  const rect = el.getBoundingClientRect();
+  confetti({
+    particleCount: 22, spread: 55, startVelocity: 26,
+    origin: { x:(rect.left+rect.width/2)/window.innerWidth, y:(rect.top+rect.height/2)/window.innerHeight },
+    colors: ["#e6473f","#3a6fd8","#f7b733","#8bba8a","#c9a8e0"],
+  });
+}
+function fireBigConfetti(){
+  if(!window.confetti) return;
+  const end = Date.now() + 1800;
+  (function frame(){
+    confetti({ particleCount:6, angle:60, spread:55, origin:{x:0} });
+    confetti({ particleCount:6, angle:120, spread:55, origin:{x:1} });
+    if(Date.now() < end) requestAnimationFrame(frame);
+  })();
+}
+function playPop(isCorrect){
+  const popup = document.getElementById("answerPopup");
+  const icon = document.getElementById("popupIcon");
+  const title = document.getElementById("popupTitle");
+  const msg = document.getElementById("popupMsg");
+
+  popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+  popup.style.display = "flex";
+
+  if(isCorrect){ icon.textContent="🎉"; title.textContent="Correct!"; msg.textContent="Great match!"; }
+  else{ icon.textContent="❌"; title.textContent="Try Again!"; msg.textContent="That's not the right pair."; }
+
+  clearTimeout(playPop._t);
+  playPop._t = setTimeout(()=>{ popup.style.display = "none"; }, 1100);
+}
+function showFinal(){
+  const finalPopup = document.getElementById("finalPopup");
+  finalPopup.style.display = "flex";
+  document.getElementById("finalScore").textContent = `${matchedCount} / ${total} Correct`;
+  const starCount = Math.max(1, Math.round((matchedCount/total)*3));
+  document.getElementById("stars").textContent = "⭐".repeat(starCount);
+}
+
+const hintPopup = document.getElementById("hintPopup");
+const hintBtn = document.getElementById("hintBtn");
+const hintCloseBtn = document.getElementById("hintCloseBtn");
+
+hintBtn.addEventListener("click", () => {
+  hintPopup.style.display = "flex";
+});
+
+hintCloseBtn.addEventListener("click", () => {
+  hintPopup.style.display = "none";
+});
+
+hintPopup.addEventListener("click", (e) => {
+  if(e.target === hintPopup) hintPopup.style.display = "none";
+});
+
+document.getElementById("resetBtn").addEventListener("click", ()=> location.reload());
+</script>
+</body>
+</html>

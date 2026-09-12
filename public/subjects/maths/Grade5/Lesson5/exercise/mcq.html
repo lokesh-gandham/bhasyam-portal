@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mcq</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden
+    }
+
+    body {
+      font-family: "Livvic", sans-serif;
+      color: #2f4f4f;
+      background: #e8f6ed;
+      position: relative;
+    }
+
+    /* jungle atmosphere */
+    body:before {
+      display: none
+    }
+
+    .leaf-cluster {
+      display: none
+    }
+
+    .vine:after {
+      left: -21px;
+      top: 65px;
+      transform: rotate(-30deg)
+    }
+
+    .vine:before {
+      right: -20px;
+      top: 125px;
+      transform: rotate(30deg)
+    }
+
+    .game-shell {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 22px 6.5% 76px;
+    }
+
+    .topbar {
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      flex: none;
+    }
+
+    .heading {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 400;
+      color: #2f4f4f;
+      padding: 9px 27px 10px;
+      border-radius: 18px;
+
+    }
+
+    .home-btn:hover {
+      transform: translateY(-2px)
+    }
+
+    .home-btn:active {
+      transform: translateY(2px)
+    }
+
+    /* game board: intentionally unlike previous card/grid layouts */
+    .playfield {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      position: relative;
+    }
+
+    .question-zone {
+      width: min(1120px, 92vw);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .question {
+      margin: 0;
+      max-width: 1100px;
+      font-size: 30px;
+      line-height: 1.25;
+      font-weight: 400;
+      color: #2f4f4f;
+    }
+
+    /* unique mini game answer tiles */
+    .answers {
+      width: min(620px, 70vw);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 30px;
+      margin: 5px auto 20px;
+      padding: 0;
+    }
+
+    .answer-btn {
+      position: relative;
+      min-height: 72px;
+      padding: 10px 18px 10px 54px;
+      border: 0;
+      border-radius: 14px 24px 14px 24px;
+      background: #fffdf6;
+      color: #2f4f4f;
+      font: 400 22px "Livvic", sans-serif;
+      cursor: pointer;
+      box-shadow: 0 5px 0 rgba(47, 79, 79, .14);
+      transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .answer-btn:before {
+      content: "";
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%) rotate(-8deg);
+      width: 34px;
+      height: 34px;
+      border-radius: 10px 14px 10px 14px;
+      background: #7ebf91;
+      box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .08);
+      z-index: -1;
+    }
+
+    .answer-btn:after {
+      content: "";
+      position: absolute;
+      left: 26px;
+      top: 50%;
+      width: 10px;
+      height: 10px;
+      transform: translateY(-50%) rotate(45deg);
+      border-right: 3px solid #fff;
+      border-top: 3px solid #fff;
+      z-index: 0;
+    }
+
+    .answer-btn:nth-child(1) {
+      background: #f4fff1;
+      box-shadow: 0 5px 0 #b9d9b7;
+    }
+
+    .answer-btn:nth-child(1):before {
+      background: #69b77d
+    }
+
+    .answer-btn:nth-child(2) {
+      background: #fff8e9;
+      box-shadow: 0 5px 0 #e0c58c;
+      border-radius: 24px 14px 24px 14px;
+    }
+
+    .answer-btn:nth-child(2):before {
+      background: #e0a449
+    }
+
+    .answer-btn:nth-child(3) {
+      background: #f8f4ff;
+      box-shadow: 0 5px 0 #c9bee4;
+    }
+
+    .answer-btn:nth-child(3):before {
+      background: #9a87c5
+    }
+
+    .answer-btn:nth-child(4) {
+      background: #fff4f1;
+      box-shadow: 0 5px 0 #dfb0a5;
+      border-radius: 24px 14px 24px 14px;
+    }
+
+    .answer-btn:nth-child(4):before {
+      background: #d88376
+    }
+
+    .answer-btn:hover {
+      transform: translateY(-4px) rotate(-1deg);
+      filter: saturate(1.04);
+      box-shadow: 0 8px 0 rgba(47, 79, 79, .16), 0 10px 18px rgba(47, 79, 79, .10);
+    }
+
+    .answer-btn:nth-child(even):hover {
+      transform: translateY(-4px) rotate(1deg);
+    }
+
+    .answer-btn:active {
+      transform: translateY(2px) scale(.985);
+      box-shadow: 0 2px 0 rgba(47, 79, 79, .13);
+    }
+
+    .answer-btn.selected {
+      background: #dff2df;
+      color: #2f4f4f;
+      box-shadow: 0 5px 0 #9bc4a1, 0 9px 17px rgba(54, 105, 64, .16);
+      transform: translateY(-2px) scale(1.015);
+    }
+
+    .answer-btn.selected:before {
+      background: #4e9863;
+    }
+
+    .answer-btn.selected:after {
+      transform: translateY(-50%) rotate(45deg) scale(1.05);
+    }
+
+    .answer-btn:disabled {
+      cursor: default;
+      opacity: 1;
+    }
+
+    .answer-row {
+      width: min(1020px, 86vw);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 0;
+    }
+
+    .boxes-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      /* flex: 1; */
+      min-width: 0;
+    }
+
+    /* smaller, fixed, equal-size boxes regardless of how many are shown */
+    .boxes-wrapper .answer-box {
+      width: 300px;
+      height: 70px;
+      flex: none;
+    }
+
+    .answer-box {
+      position: relative;
+      width: min(330px, 48vw);
+      height: 46px;
+      padding: 0 18px;
+      border: 3px dashed #e99b62;
+      border-radius: 16px;
+      background: #fffdf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2f4f4f;
+      font-size: 22px;
+      box-shadow: 0 5px 0 rgba(192, 124, 72, .12);
+      overflow: hidden;
+      transition: border-color .16s ease, background .16s ease, color .16s ease;
+    }
+
+    .answer-box:before {
+      content: "★";
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%) rotate(-12deg);
+      font-size: 15px;
+      color: #e99b62;
+    }
+
+    .answer-box:after {
+      content: "✦";
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%) rotate(12deg);
+      font-size: 14px;
+      color: #e99b62;
+    }
+
+    .answer-box.filled {
+      cursor: pointer;
+    }
+
+    .answer-box.locked {
+      border-color: #16834f;
+      border-style: solid;
+      background: #eafbf1;
+      color: #16834f;
+      font-weight: 400;
+      cursor: default;
+    }
+
+    .answer-box.locked:before,
+    .answer-box.locked:after {
+      color: #16834f;
+    }
+
+    .submit-btn {
+      min-width: 155px;
+      height: 50px;
+      padding: 0 28px;
+      border: 0;
+      border-radius: 18px;
+      background: #2f4f4f;
+      color: #fff;
+      font: 500 20px "Livvic", sans-serif;
+      cursor: pointer;
+      box-shadow: 0 8px 0 rgba(22, 59, 59, .18), 0 13px 25px rgba(47, 79, 79, .20);
+      transition: .16s ease;
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px)
+    }
+
+    .submit-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 4px 0 rgba(22, 59, 59, .18)
+    }
+
+    .submit-btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      transform: none
+    }
+
+    .hint-ribbon {
+      position: absolute;
+      left: 50%;
+      bottom: -20px;
+      transform: translateX(-50%);
+      font-size: 18px;
+      font-weight: 400;
+      color: #55715e;
+      background: #e6f2df;
+      border: 2px dashed #8eb28e;
+      padding: 5px 15px;
+      border-radius: 20px;
+    }
+
+    /* exact project navigation */
+    .nav-btn {
+      position: fixed;
+      z-index: 30;
+      bottom: 22px;
+      min-width: 126px;
+      height: 46px;
+      padding: 0 19px;
+      border-radius: 15px;
+      font: 500 20px "Livvic", sans-serif;
+      color: #2f4f4f;
+      border: 2px solid rgba(47, 79, 79, .12);
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(47, 79, 79, .12);
+      transition: .16s ease;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-2px)
+    }
+
+    .nav-btn:active {
+      transform: translateY(2px)
+    }
+
+    #prevBtn {
+      left: 4%;
+      background: #a9cbe2;
+      border-color: #79a9c7
+    }
+
+    #nextBtn {
+      right: 4%;
+      background: #efbca6;
+      border-color: #d99074
+    }
+
+    .nav-btn:disabled {
+      opacity: .48;
+      cursor: not-allowed;
+      transform: none
+    }
+
+    /* exact project popup sizing/styling */
+    .feedback {
+      position: fixed;
+      z-index: 100;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(.92);
+      width: min(440px, 88vw);
+      min-height: 215px;
+      padding: 26px 30px 28px;
+      border-radius: 30px;
+      text-align: center;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 20px 50px rgba(32, 57, 57, .22);
+    }
+
+    .correct-popup {
+      background: linear-gradient(135deg, #e2f6e9, #f4fcf6);
+      border: 5px solid #16834f
+    }
+
+    .wrong-popup {
+      background: linear-gradient(135deg, #fde6e2, #fff7f5);
+      border: 5px solid #c94740
+    }
+
+    .feedback-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 24px 24px 24px 8px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 34px;
+      box-shadow: 0 8px 16px rgba(32, 57, 57, .14)
+    }
+
+    .correct-popup .feedback-icon {
+      background: #16834f
+    }
+
+    .wrong-popup .feedback-icon {
+      background: #c94740
+    }
+
+    .feedback h3 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 600;
+      color: #2f4f4f
+    }
+
+    .feedback p {
+      margin: 0;
+      font-size: 17px;
+      color: #516766
+    }
+
+    .feedback.show {
+      display: flex;
+      animation: popIn .22s ease forwards
+    }
+
+    @keyframes popIn {
+      to {
+        transform: translate(-50%, -50%) scale(1)
+      }
+    }
+
+    /* exact final popup */
+    .final-popup {
+      position: fixed;
+      z-index: 110;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(.94);
+      width: min(520px, 91vw);
+      padding: 38px 36px 32px;
+      border-radius: 34px;
+      background: radial-gradient(circle at 20% 15%, rgba(255, 255, 255, .45), transparent 25%),
+        linear-gradient(145deg, #eadcff, #cbb5f4 58%, #b89ae8);
+      border: 5px solid #7350a8;
+      box-shadow: 0 10px 0 rgba(83, 55, 126, .18), 0 28px 70px rgba(55, 38, 80, .30);
+      text-align: center;
+      display: none;
+    }
+
+    .final-popup.show {
+      display: block;
+      animation: finalIn .28s ease forwards
+    }
+
+    @keyframes finalIn {
+      to {
+        transform: translate(-50%, -50%) scale(1)
+      }
+    }
+
+    .final-emoji {
+      font-size: 78px;
+      margin-bottom: 8px
+    }
+
+    .final-popup h2 {
+      margin: 0 0 8px;
+      font-size: 36px;
+      font-weight: 600;
+      color: #4e3970
+    }
+
+    .final-popup p {
+      margin: 0 0 20px;
+      font-size: 18px;
+      color: #5e4e70
+    }
+
+    .play-again-btn {
+      width: 185px;
+      height: 52px;
+      border: 0;
+      border-radius: 17px;
+      background: #68449a;
+      color: #fff;
+      font: 500 20px "Livvic", sans-serif;
+      cursor: pointer;
+    }
+
+    /* medium screens */
+    @media(max-width:900px) {
+      .game-shell {
+        padding: 14px 4.5% 72px
+      }
+
+      .answers {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding-left: 0
+      }
+
+      .answer-row {
+        padding-left: 0
+      }
+    }
+
+    @media(max-width:600px) {
+
+      html,
+      body {
+        overflow: auto;
+        min-height: 100%
+      }
+
+      body {
+        min-height: 100vh
+      }
+
+      .game-shell {
+        min-height: 100vh;
+        height: auto;
+        padding: 12px 15px 82px
+      }
+
+      .topbar {
+        height: 54px
+      }
+
+      .heading {
+        font-size: 20px;
+        padding: 8px 18px
+      }
+
+      .playfield {
+        justify-content: flex-start;
+        padding-top: 24px;
+        gap: 18px
+      }
+
+      .question-zone {
+        width: 100%;
+        grid-template-columns: 42px minmax(0, 1fr);
+        gap: 9px
+      }
+
+      .answers {
+        width: min(94vw, 520px);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 14px
+      }
+
+      .answer-btn {
+        min-height: 64px;
+        font-size: 22px;
+        border-radius: 12px 20px 12px 20px;
+        padding: 8px 10px 8px 46px
+      }
+
+      .answer-row {
+        width: 100%;
+        gap: 8px;
+        flex-wrap: wrap
+      }
+
+      .answer-box {
+        width: 100%;
+        height: 46px
+      }
+
+      .boxes-wrapper .answer-box {
+        width: 300px;
+      }
+
+      .submit-btn {
+        width: 155px;
+        height: 50px
+      }
+
+      .hint-ribbon {
+        position: static;
+        transform: none;
+        margin-top: 2px
+      }
+
+      .nav-btn {
+        bottom: 14px
+      }
+    }
+
+    @media(max-width:430px) {
+      .answers {
+        grid-template-columns: repeat(2, minmax(0, 1fr))
+      }
+
+      .question {
+        font-size: 24px
+      }
+
+      .answer-btn {
+        min-height: 58px
+      }
+
+      .nav-btn {
+        min-width: 110px
+      }
+    }
+
+    /* exact monitor sizing requested */
+    @media(min-width:1400px) {
+      .game-shell {
+        padding-left: 8%;
+        padding-right: 8%
+      }
+
+      .heading {
+        font-size: 30px
+      }
+
+      .question-zone,
+      .answers,
+      .answer-row {
+        width: min(1320px, 88vw)
+      }
+
+      .question-zone {
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 20px
+      }
+
+      .question {
+        font-size: 40px
+      }
+
+      .answers {
+        padding-left: 0;
+        gap: 14px 20px;
+        width: min(700px, 76vw)
+      }
+
+      .answer-btn {
+        min-height: 76px;
+        font-size: 30px;
+        border-radius: 16px 26px 16px 26px;
+        padding: 10px 20px 10px 66px
+      }
+
+      .answer-row {
+        padding-left: 0;
+        gap: 14px;
+        width: min(900px, 84vw)
+      }
+
+      .answer-box {
+        height: 48px;
+        width: min(600px, 42vw);
+        font-size: 30px
+      }
+
+      .boxes-wrapper .answer-box {
+        width: 300px;
+        height: 80px;
+      }
+
+      .submit-btn {
+        min-width: 180px;
+        width: 180px;
+        height: 60px;
+        font-size: 25px
+      }
+
+      .nav-btn {
+        min-width: 180px;
+        width: 180px;
+        height: 50px;
+        font-size: 25px
+      }
+
+      .hint-ribbon {
+        font-size: 15px
+      }
+    }
+
+    /* short large monitors */
+    @media(min-width:1400px) and (max-height:850px) {
+      .game-shell {
+        padding-top: 10px;
+        padding-bottom: 68px
+      }
+
+      .topbar {
+        height: 48px
+      }
+
+      .question-zone {
+        grid-template-columns: 58px minmax(0, 1fr)
+      }
+
+      .answers {
+        gap: 9px 14px
+      }
+
+      .answer-btn {
+        min-height: 64px
+      }
+
+      .playfield {
+        gap: 20px
+      }
+    }
+
+    /* prevent accidental image drag */
+    img {
+      -webkit-user-drag: none;
+      user-select: none
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="leaf-cluster leaves-left"><span></span><span></span><span></span></div>
+  <div class="leaf-cluster leaves-right"><span></span><span></span><span></span></div>
+  <div class="vine one"></div>
+  <div class="vine two"></div>
+
+  <main class="game-shell">
+    <header class="topbar">
+      <h1 class="heading">Choose the correct answer</h1>
+    </header>
+
+    <section class="playfield">
+
+      <div class="question-zone">
+        <p class="question" id="questionText"></p>
+      </div>
+
+      <div class="answers" id="answers"></div>
+
+      <div class="answer-row" id="answerRow">
+        <div class="boxes-wrapper" id="boxesWrapper"></div>
+        <button class="submit-btn" id="submitBtn" disabled>Submit</button>
+      </div>
+
+      <div class="hint-ribbon" id="trailHint">Choose one answer</div>
+    </section>
+  </main>
+
+  <button class="nav-btn" id="prevBtn">Back</button>
+  <button class="nav-btn" id="nextBtn">Next</button>
+
+  <div class="feedback correct-popup" id="correctPopup">
+    <div class="feedback-icon">✓</div>
+    <h3>Correct!</h3>
+    <p>Great job!</p>
+  </div>
+
+  <div class="feedback wrong-popup" id="wrongPopup">
+    <div class="feedback-icon">×</div>
+    <h3>Try again!</h3>
+    <p>Choose another answer.</p>
+  </div>
+
+  <div class="final-popup" id="finalPopup">
+    <div class="final-emoji">🏆</div>
+    <h2>Excellent!</h2>
+    <p>You completed all the questions</p>
+    <button class="play-again-btn" id="playAgainBtn">Play Again</button>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        question: "Q1. Which of the following numbers are divisible by 3?",
+        options: ["1245", "20403", "5160", "All of these"],
+        answer: "All of these"
+      },
+      {
+        question: "Q2. Which of the following numbers are divisible by 4?",
+        options: ["93852", "10626", "7000", "82345"],
+        answer: ["93852", "7000"]
+      },
+      {
+        question: "Q3. Which of the following numbers are not divisible by 8?",
+        options: ["3480", "56082", "13224", "98112"],
+        answer: "56082"
+      },
+      {
+        question: "Q4. Which of the following numbers are divisible by 3, 6, 9, 12, 15 and 18?",
+        options: ["73110", "84326", "56104", "63540"],
+        answer: "63540"
+      }
+    ];
+
+    let current = 0;
+
+    function isMultiAnswer(q) {
+      return Array.isArray(q.answer);
+    }
+
+    function requiredBoxCount(q) {
+      return isMultiAnswer(q) ? q.answer.length : 1;
+    }
+
+    function makeBoxes(q) {
+      return Array.from({ length: requiredBoxCount(q) }, () => ({ value: "", locked: false }));
+    }
+
+    const questionState = quizData.map((q) => ({
+      boxes: makeBoxes(q),
+      answered: false
+    }));
+
+    const questionText = document.getElementById("questionText");
+    const answers = document.getElementById("answers");
+    const boxesWrapper = document.getElementById("boxesWrapper");
+    const submitBtn = document.getElementById("submitBtn");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const trailHint = document.getElementById("trailHint");
+    const correctPopup = document.getElementById("correctPopup");
+    const wrongPopup = document.getElementById("wrongPopup");
+    const finalPopup = document.getElementById("finalPopup");
+    const playAgainBtn = document.getElementById("playAgainBtn");
+
+    let btnRefs = {};
+
+    function speak(t) {
+      speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance(t);
+      msg.lang = "en-US";
+      msg.volume = 0.25;
+      msg.rate = 1;
+      msg.pitch = 1;
+      speechSynthesis.speak(msg);
+    }
+
+    const correctSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3");
+    const wrongSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3");
+    const clickSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3");
+    const completeSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-winning-an-extra-bonus-2060.mp3");
+
+    function playSound(audio) {
+      try { audio.currentTime = 0; audio.play().catch(() => { }); } catch (e) { }
+    }
+
+    function hidePopups() {
+      correctPopup.classList.remove("show");
+      wrongPopup.classList.remove("show");
+      finalPopup.classList.remove("show");
+    }
+
+    function smallConfetti() {
+      confetti({ particleCount: 40, spread: 70, origin: { y: 0.7 } });
+    }
+
+    function bigConfetti() {
+      confetti({ particleCount: 60, spread: 90, origin: { y: 0.7 } });
+    }
+
+    function renderBoxes(state) {
+      boxesWrapper.innerHTML = "";
+      boxesWrapper.classList.toggle("multi", state.boxes.length > 1);
+      state.boxes.forEach((box) => {
+        const div = document.createElement("div");
+        div.className = "answer-box";
+        if (box.locked) div.classList.add("locked");
+
+        const canClear = box.value !== "" && !box.locked && !state.answered;
+        if (canClear) {
+          div.classList.add("filled");
+          div.addEventListener("click", () => {
+            box.value = "";
+            renderBoxes(state);
+            refreshButtons(state);
+            updateSubmitState(state);
+          });
+        }
+
+        div.textContent = box.value || "Select an answer";
+        boxesWrapper.appendChild(div);
+      });
+    }
+
+    function refreshButtons(state) {
+      Object.entries(btnRefs).forEach(([option, btn]) => {
+        const box = state.boxes.find(b => b.value === option);
+        btn.classList.toggle("selected", !!box);
+        btn.disabled = state.answered || (!!box && box.locked);
+      });
+    }
+
+    function updateSubmitState(state) {
+      const filled = state.boxes.every(b => b.value !== "");
+      submitBtn.disabled = state.answered || !filled;
+    }
+
+    function loadQuestion() {
+      hidePopups();
+      const q = quizData[current];
+      const state = questionState[current];
+
+      questionText.textContent = q.question;
+      answers.innerHTML = "";
+      btnRefs = {};
+
+      q.options.forEach((option) => {
+        const btn = document.createElement("button");
+        btn.className = "answer-btn";
+        btn.textContent = option;
+        btn.type = "button";
+        btnRefs[option] = btn;
+        btn.addEventListener("click", () => {
+          if (state.answered) return;
+          selectOption(option, state);
+        });
+        answers.appendChild(btn);
+      });
+
+      renderBoxes(state);
+      refreshButtons(state);
+      updateSubmitState(state);
+
+      nextBtn.disabled = !state.answered;
+      prevBtn.disabled = current === 0;
+      trailHint.textContent = state.answered
+        ? "Match complete"
+        : (isMultiAnswer(q) ? "Fill in every box" : "Choose one answer");
+    }
+
+    function selectOption(option, state) {
+      const existingIndex = state.boxes.findIndex(b => b.value === option && !b.locked);
+
+      if (existingIndex !== -1) {
+        state.boxes[existingIndex].value = "";
+      } else {
+        const emptyIndex = state.boxes.findIndex(b => b.value === "" && !b.locked);
+        if (emptyIndex === -1) return;
+        playSound(clickSound);
+        state.boxes[emptyIndex].value = option;
+      }
+
+      renderBoxes(state);
+      refreshButtons(state);
+      updateSubmitState(state);
+    }
+
+    function checkAnswer() {
+      const q = quizData[current];
+      const state = questionState[current];
+
+      if (state.answered) return;
+      if (!state.boxes.every(b => b.value !== "")) return;
+
+      if (isMultiAnswer(q)) {
+        const correctSet = q.answer.map(a => a.toLowerCase());
+        let allCorrectNow = true;
+
+        state.boxes.forEach((box) => {
+          if (box.locked) return;
+          if (correctSet.includes(box.value.toLowerCase())) {
+            box.locked = true;
+          } else {
+            box.value = "";
+            allCorrectNow = false;
+          }
+        });
+
+        const fullyCorrect = state.boxes.every(b => b.locked);
+
+        if (fullyCorrect) {
+          finishCorrect(state);
+        } else {
+          renderBoxes(state);
+          refreshButtons(state);
+          updateSubmitState(state);
+          playSound(wrongSound);
+          speak("Try again");
+          wrongPopup.classList.add("show");
+          setTimeout(() => {
+            wrongPopup.classList.remove("show");
+          }, 1400);
+        }
+      } else {
+        const box = state.boxes[0];
+        if (box.value.toLowerCase() === q.answer.toLowerCase()) {
+          box.locked = true;
+          finishCorrect(state);
+        } else {
+          playSound(wrongSound);
+          speak("Try again");
+          wrongPopup.classList.add("show");
+          setTimeout(() => {
+            wrongPopup.classList.remove("show");
+            if (!state.answered) {
+              box.value = "";
+              renderBoxes(state);
+              refreshButtons(state);
+              updateSubmitState(state);
+            }
+          }, 1400);
+        }
+      }
+    }
+
+    function finishCorrect(state) {
+      state.answered = true;
+      renderBoxes(state);
+      refreshButtons(state);
+      submitBtn.disabled = true;
+      nextBtn.disabled = false;
+      trailHint.textContent = "Match complete";
+      playSound(correctSound);
+      speak("Correct!");
+      smallConfetti();
+      correctPopup.classList.add("show");
+
+      setTimeout(() => {
+        correctPopup.classList.remove("show");
+        if (current === quizData.length - 1) {
+          playSound(completeSound);
+          finalPopup.classList.add("show");
+          bigConfetti();
+        }
+      }, 1400);
+    }
+
+    submitBtn.addEventListener("click", checkAnswer);
+
+    prevBtn.addEventListener("click", () => {
+      if (current === 0) return;
+      current--;
+      loadQuestion();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (!questionState[current].answered) return;
+      if (current < quizData.length - 1) {
+        current++;
+        loadQuestion();
+      } else {
+        finalPopup.classList.add("show");
+      }
+    });
+
+    playAgainBtn.addEventListener("click", () => {
+      questionState.forEach((s, i) => {
+        s.boxes = makeBoxes(quizData[i]);
+        s.answered = false;
+      });
+      current = 0;
+      finalPopup.classList.remove("show");
+      loadQuestion();
+    });
+
+    loadQuestion();
+  </script>
+</body>
+
+</html>

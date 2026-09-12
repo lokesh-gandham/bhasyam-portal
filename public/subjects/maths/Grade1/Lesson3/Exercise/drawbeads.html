@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abacus Addition Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+   <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+        }
+
+        body {
+          
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2vh 2vw;
+            overflow: hidden; 
+            color: #1e293b;
+        }
+
+        header {
+            text-align: center;
+            z-index: 10;
+            flex-shrink: 0;
+            margin-bottom: 2vh;
+        }
+
+        h1 {
+            color: #334155;
+            font-weight: 600;
+            text-shadow: 0 2px 0 #ffffff;
+            margin-bottom: 8px;
+            font-size: 22px;
+        }
+
+        @media screen and (max-width: 1599px) { h1 { font-size: 22px; } }
+        @media screen and (min-width: 1600px) { h1 { font-size: 30px; } }
+
+        .instruction {
+            font-size: clamp(14px, 1.5vw, 18px);
+            color: #64748b;
+            font-weight: 500;
+            font-size: 20px;
+        }
+        
+      
+        /* Main Playground */
+        .game-stage {
+            width: 100%;
+            max-width: 1100px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+            min-height: 0;
+            position: relative;
+        }
+
+        /* Question Label a), b), c), d) */
+        .q-label {
+            position: absolute;
+            top: 0;
+            left: 20px;
+            font-size: clamp(2rem, 3vw, 2.5rem);
+            font-weight: 400;
+            color: #475569;
+        }
+
+        /* Equation Layout */
+        .equation-board {
+            display: flex;
+            align-items: flex-end; /* Keeps all bases aligned */
+            justify-content: center;
+            gap: clamp(20px, 4vw, 50px);
+            width: 100%;
+            height: 100%;
+            max-height: 55vh;
+            padding-bottom: 3vh;
+        }
+
+        .abacus-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            justify-content: flex-end;
+            height: 100%;
+        }
+
+        /* Floating Holographic Abacus */
+        .hologram-abacus {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .rods-area {
+            display: flex;
+            gap: clamp(20px, 3vw, 35px);
+            align-items: flex-end;
+            height: clamp(180px, 30vh, 260px);
+            padding: 0 10px;
+            border-bottom: 4px solid #cbd5e1; /* Simple, clean ground line */
+            position: relative;
+        }
+
+        /* Interactive Rods */
+        .rod-station {
+            display: flex;
+            flex-direction: column-reverse; /* Stacks beads from bottom up */
+            align-items: center;
+            height: 100%;
+            width: 30px; /* Interaction hit-box width */
+            position: relative;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* The visual metal wire */
+        .rod-station::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to right, #94a3b8, #f8fafc, #64748b);
+            border-radius: 3px;
+            z-index: -1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Hover effect indicating it's clickable */
+        .rod-station:hover::before {
+            background: linear-gradient(to right, #fbbf24, #fef3c7, #f59e0b);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .rod-station.locked { pointer-events: none; }
+        .rod-station.locked:hover::before { background: linear-gradient(to right, #94a3b8, #f8fafc, #64748b); box-shadow: none; }
+
+        /* Exact Bead Colors & 3D Spheres */
+        .bead {
+            width: clamp(24px, 2.5vw, 32px);
+            height: clamp(16px, 1.8vw, 22px);
+            border-radius: 20px;
+            margin-bottom: 2px;
+            cursor: crosshair; /* Clicking pops it */
+            box-shadow: inset -3px -4px 6px rgba(0,0,0,0.25), inset 3px 4px 6px rgba(255,255,255,0.7), 0 3px 5px rgba(0,0,0,0.15);
+            animation: gravityDrop 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            z-index: 5;
+        }
+
+        .bead:hover { filter: brightness(1.2); transform: scale(1.05); }
+
+        .tens-bead { background: #22c55e; } /* Exact Green */
+        .ones-bead { background: #3b82f6; } /* Exact Blue */
+
+        @keyframes gravityDrop {
+            0% { transform: translateY(-150px); opacity: 0; }
+            60% { transform: translateY(5px); opacity: 1; }
+            80% { transform: translateY(-2px); opacity: 1; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* T and O Base Labels */
+        .labels-area {
+            display: flex;
+            gap: clamp(20px, 3vw, 35px);
+            margin-top: 10px;
+        }
+
+        .rod-label {
+            font-size: clamp(1rem, 1.2vw, 1.2rem);
+            font-weight: 600;
+            color: #475569;
+            background: #e2e8f0;
+            width: 32px;
+            height: 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            border: 2px solid #cbd5e1;
+        }
+
+        /* The Display Numbers (Operands) */
+        .number-display {
+            width: clamp(70px, 8vw, 90px);
+            height: clamp(45px, 5.5vw, 55px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            background: transparent;
+            border: 3px solid #f59e0b;
+            border-radius: 12px;
+            letter-spacing: 2px;
+        }
+
+        /* Operators */
+        .operator {
+            font-size: clamp(3rem, 5vw, 4.5rem);
+            font-weight: 400;
+            color: #94a3b8;
+            flex-shrink: 0;
+            padding-bottom: clamp(55px, 7vh, 80px); /* Align with numbers visually */
+        }
+
+        /* The Input Box (Result) */
+        input[type="text"] {
+            width: clamp(70px, 8vw, 90px);
+            height: clamp(45px, 5.5vw, 55px);
+            font-size: 30px;
+            font-weight: 400;
+            text-align: center;
+            border: 4px solid #f59e0b;
+            border-radius: 12px;
+            background: #ffffff;
+            color: #2f4f4f;
+            outline: none;
+            box-shadow: 0 6px 0 #d97706, 0 10px 15px rgba(0,0,0,0.05);
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        input[type="text"]:focus {
+            transform: translateY(-4px);
+            border-color: #fbbf24;
+            box-shadow: 0 10px 0 #d97706;
+        }
+
+        input[type="text"]:disabled {
+            background-color: #f1f2f6;
+            border-color: #10b981;
+            color: #059669;
+            box-shadow: 0 6px 0 #059669;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* CORNER NAVIGATION LAYOUT EXACTLY AS REQUESTED */
+        .bottom-controls {
+            width: 100%;
+            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            padding: 1vh 2vw 2vh 2vw;
+            z-index: 20;
+            flex-shrink: 0;
+        }
+
+        .left-control { justify-self: start; }
+        .center-control { justify-self: center; }
+        .right-control { justify-self: end; }
+        
+        /* Strict Button Sizing Rules */
+        .nav-btn, .submit-btn, .replay-btn {
+            font-weight: 500; border: none; cursor: pointer; transition: all 0.1s ease;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            font-size: 20px;  min-width:178px;height:45px; border-radius: 40px;
+        }
+
+        @media screen and (min-width: 1600px) {
+            .nav-btn, .submit-btn {
+                font-size: 30px; padding: 15px 45px; border-radius: 50px;
+            }
+        }
+
+        /* Specific Button Colors & 3D Shadows */
+        .nav-btn.prev { background: #64748b; color: #ffffff; box-shadow: 0 8px 0 #475569; }
+        .nav-btn.prev:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 2px 0 #475569; }
+        
+        .nav-btn.next { background: #f97316; color: #ffffff; box-shadow: 0 8px 0 #c2410c; }
+        .nav-btn.next:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 2px 0 #c2410c; }
+        
+        .submit-btn { background: #10b981; color: #ffffff; box-shadow: 0 8px 0 #059669; }
+        .submit-btn:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 2px 0 #059669; }
+
+        .replay-btn { background: #0ea5e9; color: white; box-shadow: 0 8px 0 #0284c7; margin-top: 20px; }
+        .replay-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #0284c7; }
+
+        /* Disabled states */
+        .nav-btn:disabled, .submit-btn:disabled { 
+            background: #cbd5e1; box-shadow: 0 8px 0 #94a3b8; color: #f8fafc; cursor: not-allowed; 
+        }
+
+        /* EXACT Modal Overlay & Custom Popup Design */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 100;
+        }
+        .popup-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .popup-card {
+            position: relative; width: 90%; max-width: 520px; padding: 40px 30px;
+            border-radius: 36px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            transform: scale(0.8); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #ffffff;
+        }
+
+        .popup-card::before, .popup-card::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; }
+        .popup-card::before { width: 220px; height: 220px; top: -60px; right: -50px; }
+        .popup-card::after { width: 180px; height: 180px; bottom: -70px; left: -40px; }
+
+        .popup-card.correct { background: #edfbf4; border: 6px solid #00c885; }
+        .popup-card.correct::before, .popup-card.correct::after { background: rgba(162, 245, 209, 0.45); }
+        .popup-card.correct .popup-title { color: #00a86b; }
+        .popup-card.correct .popup-subtitle { color: #2e7d5b; }
+
+        .popup-card.wrong { background: #fff0f2; border: 6px solid #ff6b7a; }
+        .popup-card.wrong::before, .popup-card.wrong::after { background: rgba(255, 196, 203, 0.45); }
+        .popup-card.wrong .popup-title { color: #d33847; }
+        .popup-card.wrong .popup-subtitle { color: #a33b45; }
+
+        .popup-card.complete { background: #f0f3ff; border: 6px solid #6c5ce7; }
+        .popup-card.complete::before, .popup-card.complete::after { background: rgba(162, 155, 254, 0.35); }
+        .popup-card.complete .popup-title { color: #6c5ce7; }
+        .popup-card.complete .popup-subtitle { color: #4834d4; }
+
+        .popup-overlay.active .popup-card { transform: scale(1); }
+        .popup-icon { font-size: 4.8rem; margin-bottom: 12px; z-index: 2; line-height: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1)); }
+        .popup-title { font-size: 3rem; font-weight: 600; margin-bottom: 8px; z-index: 2; letter-spacing: -0.5px; }
+        .popup-subtitle { font-size: 1.4rem; font-weight: 500; z-index: 2; display: flex; align-items: center; gap: 8px; color: #333; }
+
+        /* Large monitor layout: more page space and larger game */
+        @media screen and (min-width: 1600px) {
+            body { padding: 3vh 3vw; }
+            header { margin-bottom: 3vh; }
+            .game-stage { max-width: 1400px; }
+            .equation-board { max-height: 68vh; gap: clamp(35px, 5vw, 75px); }
+            .rods-area { height: clamp(240px, 38vh, 360px); }
+            .bead { width: 42px; height: 29px; }
+            .rod-station { width: 42px; }
+            .rods-area { gap: 35px; }
+            .labels-area { gap: 35px; }
+            .rod-label { width: 42px; height: 34px; font-size: 22px; }
+            .number-display, input[type="text"] {
+                width: 110px;
+                height: 70px;
+                font-size: 40px;
+            }
+            .number-display,
+            input[type="text"] {
+                color: #2f4f4f;
+            }
+            input[type="text"] { border-width: 4px; }
+        }
+
+        @media screen and (max-width: 768px) {
+            .operator { font-size: 2.5rem; transform: rotate(90deg); padding-bottom: 0; }
+            .equation-board { flex-direction: column; gap: 10px; max-height: none; padding-bottom: 0; }
+            .rods-area { height: 100px; }
+            .bead { height: 12px; }
+            .q-label { font-size: 1.5rem; top: -10px; left: 10px; }
+            .bottom-controls { padding-bottom: 10px; }
+        }
+
+        /* Exact same confetti effect */
+        #confettiContainer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 90;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 9px;
+            height: 14px;
+            border-radius: 2px;
+            opacity: 0;
+            animation: pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+            will-change: transform, opacity;
+        }
+
+        .final-confetti-piece {
+            width: 10px;
+            height: 16px;
+            animation-duration: 2300ms;
+        }
+
+        .final-confetti-piece:nth-child(3n) { border-radius: 50%; }
+        .final-confetti-piece:nth-child(4n) {
+            width: 7px;
+            height: 19px;
+            border-radius: 1px;
+        }
+        .final-confetti-piece:nth-child(5n) {
+            width: 13px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        @keyframes pageConfetti {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+            }
+            55% { opacity: 1; }
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+            }
+        }
+
+        .popup-card.complete {
+            box-shadow:
+                0 20px 45px rgba(108, 92, 231, 0.18),
+                0 0 0 8px rgba(162, 155, 254, 0.12);
+        }
+
+        .popup-card.complete .replay-btn { margin-top: 12px; }
+
+        .popup-card.complete .popup-icon {
+            animation: finalTrophyBounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes finalTrophyBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+    
+/* ===== LESSON 3 HEADINGS: normal weight (400), no bold ===== */
+header h1,
+header h2,
+header h3,
+header p,
+header .instruction,
+header .instruction-text,
+.heading h1,
+.heading h2,
+.heading p {
+    font-weight: 400 !important;
+}
+header h1 *,
+header h2 *,
+header h3 *,
+header p *,
+header .instruction *,
+header .instruction-text *,
+.heading h1 *,
+.heading h2 *,
+.heading p * {
+    font-weight: 400 !important;
+}
+
+/* ===== LESSON 3: Play Again only on final popup (20px) ===== */
+.popup-card .replay-btn,
+.popup-card #playAgainBtn {
+    display: none !important;
+}
+.popup-card.complete .replay-btn,
+.popup-card.complete #playAgainBtn {
+    display: inline-flex !important;
+    margin-top: 12px !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 40px !important;
+    background: #0984e3 !important;
+    color: #ffffff !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #0975c7 !important;
+    z-index: 5;
+    min-width: 178px !important;
+    width: 178px !important;
+    height: 45px !important;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s ease;
+}
+.popup-card.complete .replay-btn:active,
+.popup-card.complete #playAgainBtn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #0975c7 !important;
+}
+</style>
+</head>
+<body>
+    <div id="confettiContainer"></div>
+
+    <header>
+        <h1>Draw and count the beads accordingly</h1>
+        <p class="instruction">Tap the empty rods to drop <span class="tens">Tens</span> and <span class="ones">Ones</span>, then type the sum!</p>
+    </header>
+
+    <main class="game-stage" id="board">
+        </main>
+
+    <div class="bottom-controls">
+        <div class="left-control">
+            <button class="nav-btn prev" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+        </div>
+        <div class="center-control">
+            <button class="submit-btn" id="submitBtn" onclick="checkAnswers()" disabled>SUBMIT</button>
+        </div>
+        <div class="right-control">
+            <button class="nav-btn next" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="popup">
+        <div class="popup-card" id="popupCard">
+            <div class="popup-icon" id="popupIcon">⭐</div>
+            <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+            <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+            <button class="replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Data strictly following the EXACT rods shown in the worksheet image:
+        // a) 2 + 3 = 5 (All only Ones rods)
+        // b) 16 + 2 = 18 (First has T&O, second has only O, result has T&O)
+        // c) 7 + 12 = 19 (First has only O, second has T&O, result has T&O)
+        // d) 10 + 10 = 20 (All have T&O rods)
+        const quizData = [
+            { 
+                label: '', 
+                groups: [ 
+                    { t: 0, o: 2, showT: false, isInput: false }, 
+                    { t: 0, o: 3, showT: false, isInput: false }, 
+                    { t: 0, o: 5, showT: false, isInput: true } 
+                ], targetSum: "5"
+            },
+            { 
+                label: '', 
+                groups: [ 
+                    { t: 1, o: 6, showT: true, isInput: false }, 
+                    { t: 0, o: 2, showT: false, isInput: false }, 
+                    { t: 1, o: 8, showT: true, isInput: true } 
+                ], targetSum: "18"
+            },
+            { 
+                label: '', 
+                groups: [ 
+                    { t: 0, o: 7, showT: false, isInput: false }, 
+                    { t: 1, o: 2, showT: true, isInput: false }, 
+                    { t: 1, o: 9, showT: true, isInput: true } 
+                ], targetSum: "19"
+            },
+            { 
+                label: '', 
+                groups: [ 
+                    { t: 1, o: 0, showT: true, isInput: false }, 
+                    { t: 1, o: 0, showT: true, isInput: false }, 
+                    { t: 2, o: 0, showT: true, isInput: true } 
+                ], targetSum: "20"
+            }
+        ];
+
+        // Track state
+        let quizState = Array.from({ length: quizData.length }, () => ({
+            isSolved: false,
+            inputVal: '',
+            drawnBeads: [ { t: 0, o: 0 }, { t: 0, o: 0 } ]
+        }));
+
+        let currentIndex = 0;
+        let popupTimer = null;
+        let audioCtx = null;
+
+        const boardEl = document.getElementById('board');
+        const submitBtn = document.getElementById('submitBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        // Robust Audio Engine for Interactive Gaming Sounds
+        function playTone(type) {
+            try {
+                if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2); 
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'dropTens') {
+                    osc.type = 'square'; osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+                } else if (type === 'dropOnes') {
+                    osc.type = 'square'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+                } else if (type === 'pop') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+                }
+            } catch(e) { console.log('Audio error:', e); }
+        }
+
+        function speak(t) {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(t);
+                msg.lang = "en-US"; msg.volume = 0.8; msg.rate = 1; msg.pitch = 1.2;
+                speechSynthesis.speak(msg);
+            }
+        }
+
+        // HTML Generator dynamically showing ONLY the rods defined in groupData
+        function buildAbacusHTML(groupData, groupIdx) {
+            let html = `<div class="abacus-group">`;
+            html += `<div class="hologram-abacus">`;
+            html += `<div class="rods-area">`;
+            
+            // Tens Rod (Only created if showT is true!)
+            if (groupData.showT) {
+                html += `<div class="rod-station" data-type="t" data-group="${groupIdx}" id="rod-t-${groupIdx}"></div>`;
+            }
+            // Ones Rod (Always present)
+            html += `<div class="rod-station" data-type="o" data-group="${groupIdx}" id="rod-o-${groupIdx}"></div>`;
+            
+            html += `</div>`; // close rods-area
+            
+            // Labels (Matches rods above)
+            html += `<div class="labels-area">`;
+            if (groupData.showT) {
+                html += `<div class="rod-label">T</div>`;
+            }
+            html += `<div class="rod-label">O</div>`;
+            html += `</div>`; // close labels-area
+
+            html += `</div>`; // close hologram-abacus
+
+            // Bottom UI (Values or Input)
+            if (groupData.isInput) {
+                html += `<input type="text" id="final-input" inputmode="numeric" maxlength="2">`;
+            } else {
+                let tStr = groupData.showT ? (groupData.t > 0 ? groupData.t : '&nbsp;&nbsp;') : ''; 
+                html += `<div class="number-display">`;
+                if (groupData.showT) html += `<span>${tStr}</span>`;
+                html += `<span>${groupData.o}</span></div>`;
+            }
+
+            html += `</div>`;
+            return html;
+        }
+
+        function loadQuestion() {
+            const q = quizData[currentIndex];
+            const state = quizState[currentIndex];
+            
+            boardEl.innerHTML = `
+                <div class="q-label">${q.label}</div>
+                <div class="equation-board">
+                    ${buildAbacusHTML(q.groups[0], 0)}
+                    <div class="operator">+</div>
+                    ${buildAbacusHTML(q.groups[1], 1)}
+                    <div class="operator">=</div>
+                    ${buildAbacusHTML(q.groups[2], 2)}
+                </div>
+            `;
+
+            const inputEl = document.getElementById('final-input');
+            
+            // Bind Interactive Rod Tapping
+            const rods = document.querySelectorAll('.rod-station');
+            rods.forEach(rod => {
+                rod.addEventListener('click', function(e) {
+                    if (state.isSolved) return;
+                    
+                    const groupIdx = this.dataset.group;
+                    const type = this.dataset.type;
+
+                    // Group 2 is the result abacus, user shouldn't draw here manually
+                    if (groupIdx == 2) return; 
+
+                    // Check if clicked exactly on an existing bead -> Pop it
+                    if (e.target.classList.contains('bead')) {
+                        e.target.remove();
+                        state.drawnBeads[groupIdx][type]--;
+                        playTone('pop');
+                        checkSubmitState();
+                        return;
+                    }
+
+                    // Otherwise, drop a new bead (Max 9)
+                    if (state.drawnBeads[groupIdx][type] < 9) {
+                        const bead = document.createElement('div');
+                        bead.className = `bead ${type === 't' ? 'tens-bead' : 'ones-bead'}`;
+                        this.appendChild(bead);
+                        state.drawnBeads[groupIdx][type]++;
+                        playTone(type === 't' ? 'dropTens' : 'dropOnes');
+                        checkSubmitState();
+                    }
+                });
+            });
+
+            // Restore State
+            if (state.isSolved) {
+                if(q.groups[0].showT) autoFillRod(0, 't', q.groups[0].t);
+                autoFillRod(0, 'o', q.groups[0].o);
+                
+                if(q.groups[1].showT) autoFillRod(1, 't', q.groups[1].t);
+                autoFillRod(1, 'o', q.groups[1].o);
+                
+                if(q.groups[2].showT) autoFillRod(2, 't', q.groups[2].t);
+                autoFillRod(2, 'o', q.groups[2].o);
+                
+                // Lock interaction
+                rods.forEach(r => r.classList.add('locked'));
+                
+                inputEl.value = state.inputVal;
+                inputEl.disabled = true;
+                submitBtn.disabled = true;
+            } else {
+                if(q.groups[0].showT) autoFillRod(0, 't', state.drawnBeads[0].t);
+                autoFillRod(0, 'o', state.drawnBeads[0].o);
+                
+                if(q.groups[1].showT) autoFillRod(1, 't', state.drawnBeads[1].t);
+                autoFillRod(1, 'o', state.drawnBeads[1].o);
+                
+                // Ensure result is locked for manual clicks
+                const resT = document.getElementById('rod-t-2');
+                if(resT) resT.classList.add('locked');
+                document.getElementById('rod-o-2').classList.add('locked');
+
+                inputEl.value = state.inputVal;
+                inputEl.disabled = false;
+                
+                inputEl.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, ''); 
+                    state.inputVal = e.target.value;
+                    checkSubmitState();
+                });
+                checkSubmitState();
+            }
+
+            document.getElementById('prevBtn').disabled = (currentIndex === 0);
+            // NEXT stays locked until the current question is answered correctly.
+            // The final question does not need NEXT because it opens the final popup automatically.
+            document.getElementById('nextBtn').disabled =
+                !state.isSolved || currentIndex === quizData.length - 1;
+        }
+
+        function autoFillRod(groupIdx, type, count) {
+            const rod = document.getElementById(`rod-${type}-${groupIdx}`);
+            if (!rod) return;
+            rod.innerHTML = ''; 
+
+            for(let i=0; i<count; i++) {
+                const bead = document.createElement('div');
+                bead.className = `bead ${type === 't' ? 'tens-bead' : 'ones-bead'}`;
+                bead.style.animation = 'none'; // Instant fill
+                rod.appendChild(bead);
+            }
+        }
+
+        function checkSubmitState() {
+            const state = quizState[currentIndex];
+            submitBtn.disabled = state.inputVal.trim() === '';
+        }
+
+        function navigate(dir) {
+            // Never allow moving forward until the current question is solved.
+            if (dir > 0 && !quizState[currentIndex].isSolved) return;
+
+            const nextIndex = currentIndex + dir;
+            if (nextIndex < 0 || nextIndex >= quizData.length) return;
+
+            currentIndex = nextIndex;
+            loadQuestion();
+        }
+
+        function checkAnswers() {
+            const q = quizData[currentIndex];
+            const state = quizState[currentIndex];
+            
+            const t1Drawn = state.drawnBeads[0].t;
+            const o1Drawn = state.drawnBeads[0].o;
+            const t2Drawn = state.drawnBeads[1].t;
+            const o2Drawn = state.drawnBeads[1].o;
+
+            if (t1Drawn !== q.groups[0].t || o1Drawn !== q.groups[0].o || 
+                t2Drawn !== q.groups[1].t || o2Drawn !== q.groups[1].o) {
+                showPopup('wrong', '😟', 'Oops!', 'Make sure you tap the rods to drop the exact number of beads!', false);
+                playTone('wrong');
+                speak("Try again.");
+                return;
+            }
+
+            if (state.inputVal !== q.targetSum) {
+                showPopup('wrong', '😟', 'Keep Going!', 'Your beads are perfect, but check your sum!', false);
+                playTone('wrong');
+                speak("Try again.");
+                document.getElementById('final-input').value = '';
+                state.inputVal = '';
+                checkSubmitState();
+                return;
+            }
+
+            // SUCCESS! Lock state permanently.
+            state.isSolved = true;
+            document.getElementById('final-input').disabled = true;
+            submitBtn.disabled = true;
+            document.querySelectorAll('.rod-station').forEach(r => r.classList.add('locked'));
+            
+            // THE INNOVATION: Magic Rain Animation for the Result Abacus!
+            let delayCounter = 0;
+            
+            const resRodT = document.getElementById(`rod-t-2`);
+            if (resRodT && q.groups[2].showT) {
+                for(let i=0; i<q.groups[2].t; i++) {
+                    setTimeout(() => {
+                        const b = document.createElement('div');
+                        b.className = 'bead tens-bead';
+                        resRodT.appendChild(b);
+                        playTone('dropTens');
+                    }, delayCounter * 150);
+                    delayCounter++;
+                }
+            }
+
+            const resRodO = document.getElementById(`rod-o-2`);
+            for(let i=0; i<q.groups[2].o; i++) {
+                setTimeout(() => {
+                    const b = document.createElement('div');
+                    b.className = 'bead ones-bead';
+                    resRodO.appendChild(b);
+                    playTone('dropOnes');
+                }, delayCounter * 150);
+                delayCounter++;
+            }
+            
+            const animDuration = (delayCounter * 150) + 500;
+            
+            setTimeout(() => {
+                // Exact same Correct popup + small confetti for every correct answer.
+                showPopup('correct', '🌟', 'Amazing!', 'You got it exactly right! ✨', false);
+                showSmallConfetti(false);
+                playTone('correct');
+                speak("Correct");
+
+                if (currentIndex === quizData.length - 1) {
+                    // Final question: normal Correct popup first, then final popup + large confetti.
+                    setTimeout(() => {
+                        closePopup();
+                        showSmallConfetti(true);
+                        showPopup('complete', '🏆', "Congratulations!", "Fantastic job! You solved all questions! 🎉", true);
+                        playTone('correct');
+                        
+                    }, 1800);
+                } else {
+                    // Enable NEXT and wait for the child to click it - the quiz
+                    // no longer moves on by itself.
+                    document.getElementById('nextBtn').disabled = false;
+                }
+            }, animDuration);
+        }
+
+
+        function showSmallConfetti(isFinal = false) {
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (!confettiContainer) return;
+
+            confettiContainer.innerHTML = '';
+
+            const count = isFinal ? 95 : 42;
+
+            const colors = [
+                '#00b894', '#e67e22', '#6c5ce7', '#0984e3',
+                '#fdcb6e', '#ff6b7a', '#00cec9', '#a29bfe'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('span');
+
+                piece.className =
+                    isFinal
+                        ? 'confetti-piece final-confetti-piece'
+                        : 'confetti-piece';
+
+                const startX = Math.random() * 100;
+                const startY = -8 + Math.random() * 10;
+                const drift =
+                    (Math.random() * 520 - 260) *
+                    (isFinal ? 1.15 : 0.9);
+                const fall =
+                    window.innerHeight *
+                    (0.82 + Math.random() * 0.48);
+                const rotation =
+                    Math.random() * 1400 - 700;
+
+                piece.style.left = startX + '%';
+                piece.style.top = startY + '%';
+                piece.style.setProperty('--x', drift + 'px');
+                piece.style.setProperty('--y', fall + 'px');
+                piece.style.setProperty('--r', rotation + 'deg');
+                piece.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+                piece.style.animationDelay =
+                    (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(
+                    () => piece.remove(),
+                    isFinal ? 2900 : 2050
+                );
+            }
+        }
+
+        function showPopup(status, icon, title, subtitle, isFinal = false) {
+            const popup = document.getElementById('popup');
+            const card = document.getElementById('popupCard');
+
+            card.className = `popup-card ${status}${isFinal ? ' complete' : ''}`;
+            document.getElementById('popupIcon').innerText = icon;
+            document.getElementById('popupTitle').innerText = title;
+            document.getElementById('popupSubtitle').innerText = subtitle;
+
+            playAgainBtn.style.display = isFinal ? 'inline-block' : 'none';
+            popup.classList.add('active');
+
+            clearTimeout(popupTimer);
+            if (!isFinal) {
+                popupTimer = setTimeout(() => closePopup(), 2000);
+            }
+        }
+
+        function closePopup() { document.getElementById('popup').classList.remove('active'); }
+
+        function restartGame() {
+            closePopup();
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (confettiContainer) confettiContainer.innerHTML = '';
+            quizState = Array.from({ length: quizData.length }, () => ({
+                isSolved: false,
+                inputVal: '',
+                drawnBeads: [ { t: 0, o: 0 }, { t: 0, o: 0 } ]
+            }));
+            currentIndex = 0;
+            loadQuestion();
+        }
+
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>

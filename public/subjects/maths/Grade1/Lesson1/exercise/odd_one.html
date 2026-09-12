@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odd One Out - Catch & Basket Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+        }
+
+        body {
+           
+            color: #2c3e50;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            overflow: hidden;
+        }
+
+        /* Header Instruction Banner */
+        header {
+            text-align: center;
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .instruction-box {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 10px 24px;
+            max-width: 750px;
+            box-shadow: none;
+        }
+
+        .instruction-title {
+            color: #2f4f4f;
+            font-size: 22px;
+            font-weight: 600;
+           
+            margin-bottom: 2px;
+        }
+
+        .instruction {
+            font-size: 20px;
+            color: #555555;
+            font-weight: 400;
+        }
+
+        /* Arena Stage */
+        .game-stage {
+            width: 100%;
+            max-width: 900px;
+            height: 65vh;
+            background: linear-gradient(180deg, #ffffff 0%, #fff9eb 100%);
+            border: 6px solid #fce3a4;
+            border-radius: 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 8px 20px rgba(0,0,0,0.03), 0 12px 28px rgba(0,0,0,0.06);
+        }
+
+        /* Floating Bouncing Items */
+        .floating-item {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 5;
+        }
+
+        .floating-item img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
+        }
+
+        .floating-item:hover {
+            transform: scale(1.1);
+        }
+
+        /* Perfectly Centered Basket Item State */
+        .floating-item.in-basket {
+            transition: left 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
+                        top 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
+                        transform 0.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
+            z-index: 9 !important;
+            transform: scale(0.40) !important;
+            animation: basketBounce 0.4s ease-in-out 0.6s 1;
+        }
+
+        @keyframes basketBounce {
+            0% { transform: scale(0.40) translateY(0); }
+            50% { transform: scale(0.40) translateY(6px); }
+            100% { transform: scale(0.40) translateY(0); }
+        }
+
+        /* Center Basket Collector Target */
+        .target-basket {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 190px;
+            height: 135px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .basket-rim {
+            width: 180px;
+            height: 26px;
+            border: 6px solid #e67e22;
+            border-radius: 50%;
+            background: rgba(230, 126, 34, 0.1);
+            position: relative;
+            z-index: 12;
+        }
+
+        .basket-net {
+            width: 140px;
+            height: 100px;
+            background: repeating-linear-gradient(45deg, rgba(211, 84, 0, 0.2), rgba(211, 84, 0, 0.2) 10px, transparent 10px, transparent 20px),
+                        repeating-linear-gradient(-45deg, rgba(211, 84, 0, 0.2), rgba(211, 84, 0, 0.2) 10px, transparent 10px, transparent 20px);
+            border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px;
+            border: 3px solid #d35400;
+            margin-top: -12px;
+            z-index: 10;
+        }
+
+        /* Footer Navigation Controls */
+        footer {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .nav-btn {
+            background: #e67e22;
+            color: #ffffff;
+            border: none;
+            width: 178px;
+            height: 45px;
+            padding: 0;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #d35400;
+            transition: all 0.1s ease;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #d35400;
+        }
+
+        .nav-btn:disabled {
+            background: #b2bec3;
+            box-shadow: 0 6px 0 #636e72;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .check-btn {
+            background: #00b894;
+            box-shadow: 0 6px 0 #008f72;
+        }
+
+        .check-btn:active:not(:disabled) {
+            box-shadow: 0 2px 0 #008f72;
+        }
+
+        .replay-btn {
+            background: #0984e3;
+            box-shadow: 0 6px 0 #0975c7;
+            margin-top: 20px;
+            z-index: 5;
+        }
+
+        /* =========================
+           POPUP OVERLAY
+        ========================= */
+
+        .popup-overlay {
+
+            position: fixed;
+
+            top: 0;
+            left: 0;
+
+            width: 100vw;
+            height: 100vh;
+
+           
+
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition:
+                opacity 0.3s ease;
+
+            z-index: 100;
+        }
+
+
+        .popup-overlay.active {
+
+            opacity: 1;
+
+            pointer-events: auto;
+        }
+
+
+        .popup-card {
+
+            position: relative;
+
+            width: 90%;
+            max-width: 520px;
+
+            padding:
+                40px 30px;
+
+            border-radius: 36px;
+
+            text-align: center;
+
+            box-shadow:
+                0 20px 40px rgba(0,0,0,0.1);
+
+            transform:
+                scale(0.8);
+
+            transition:
+                transform 0.35s cubic-bezier(
+                    0.175,
+                    0.885,
+                    0.32,
+                    1.275
+                );
+
+            overflow: hidden;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+        }
+@keyframes finalTrophyBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+        .popup-card::before,
+        .popup-card::after {
+
+            content: '';
+
+            position: absolute;
+
+            border-radius: 50%;
+
+            pointer-events: none;
+        }
+
+
+        .popup-card::before {
+
+            width: 220px;
+            height: 220px;
+
+            top: -60px;
+            right: -50px;
+        }
+
+
+        .popup-card::after {
+
+            width: 180px;
+            height: 180px;
+
+            bottom: -70px;
+            left: -40px;
+        }
+
+
+        /* Correct */
+
+        .popup-card.correct {
+
+            background: #edfbf4;
+
+            border:
+                6px solid #00c885;
+        }
+
+
+        .popup-card.correct::before,
+        .popup-card.correct::after {
+
+            background:
+                rgba(162, 245, 209, 0.45);
+        }
+
+
+        .popup-card.correct .popup-title {
+
+            color: #00a86b;
+        }
+
+
+        .popup-card.correct .popup-subtitle {
+
+            color: #2e7d5b;
+        }
+
+
+        /* Wrong */
+
+        .popup-card.wrong {
+
+            background: #fff0f2;
+
+            border:
+                6px solid #ff6b7a;
+        }
+
+
+        .popup-card.wrong::before,
+        .popup-card.wrong::after {
+
+            background:
+                rgba(255, 196, 203, 0.45);
+        }
+
+
+        .popup-card.wrong .popup-title {
+
+            color: #d33847;
+        }
+
+
+        .popup-card.wrong .popup-subtitle {
+
+            color: #a33b45;
+        }
+
+
+        /* Complete */
+
+        .popup-card.complete {
+
+            background: #f0f3ff;
+
+            border:
+                6px solid #6c5ce7;
+        }
+
+
+        .popup-card.complete::before,
+        .popup-card.complete::after {
+
+            background:
+                rgba(162, 155, 254, 0.35);
+        }
+
+
+        .popup-card.complete .popup-title {
+
+            color: #6c5ce7;
+        }
+
+
+        .popup-card.complete .popup-subtitle {
+
+            color: #4834d4;
+        }
+
+
+        .popup-overlay.active .popup-card {
+
+            transform:
+                scale(1);
+        }
+
+
+        .popup-card.complete{
+    background:#f0f3ff;
+    border:6px solid #6c5ce7;
+}
+
+
+.popup-icon {
+
+            font-size: 4.8rem;
+
+            margin-bottom: 12px;
+
+            z-index: 2;
+
+            line-height: 1;
+
+            filter:
+                drop-shadow(
+                    0 6px 10px rgba(0,0,0,0.1)
+                );
+        }
+
+
+        .popup-title {
+
+            font-size: 3rem;
+
+            font-weight: 600;
+
+            margin-bottom: 8px;
+
+            z-index: 2;
+
+            letter-spacing: -0.5px;
+        }
+
+
+        .popup-subtitle {
+
+            font-size: 1.4rem;
+
+            font-weight: 500;
+
+            z-index: 2;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+        }
+
+    
+        .popup-card.complete .popup-icon {
+            animation: finalTrophyBounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes finalTrophyBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+
+
+/* ===== LESSON 1 QUIZ HEADINGS: title large, subheading smaller ===== */
+header h1,
+header h2,
+header .instruction-title,
+header .distance-title,
+.game-header h1,
+.game-header h2,
+.game-header .instruction-title,
+#questionHeading {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+}
+.game-header:not(:has(h1, h2)) .instruction,
+.game-header:not(:has(h1, h2)) p.instruction {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+    color: #2f4f4f;
+}
+header:has(h1, h2, .instruction-title) .instruction,
+header:has(h1, h2) .instruction-text,
+header:has(h1, h2, .instruction-title) p.instruction,
+header:has(h1, h2) p.instruction-text,
+.game-header:has(h1, h2) .instruction,
+.game-header:has(h1, h2) p.instruction,
+#instruction,
+.distance-header .instruction-text,
+.distance-header p.instruction-text {
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    color: #666;
+    line-height: 1.3;
+}
+header .instruction span,
+header .instruction-text span,
+header p.instruction span,
+header p.instruction-text span,
+.game-header .instruction span,
+#instruction span {
+    font-weight: 700 !important;
+    font-size: inherit !important;
+}
+@media screen and (min-width: 1600px) {
+    header h1,
+    header h2,
+    header .instruction-title,
+    header .distance-title,
+    .game-header h1,
+    .game-header h2,
+    .game-header .instruction-title,
+    #questionHeading {
+        font-size: 40px !important;
+    }
+    .game-header:not(:has(h1, h2)) .instruction,
+    .game-header:not(:has(h1, h2)) p.instruction {
+        font-size: 40px !important;
+    }
+    header:has(h1, h2, .instruction-title) .instruction,
+    header:has(h1, h2) .instruction-text,
+    header:has(h1, h2, .instruction-title) p.instruction,
+    header:has(h1, h2) p.instruction-text,
+    .game-header:has(h1, h2) .instruction,
+    .game-header:has(h1, h2) p.instruction,
+    #instruction,
+    .distance-header .instruction-text,
+    .distance-header p.instruction-text {
+        font-size: 18px !important;
+    }
+}
+
+/* ===== CONFETTI (same as other lessons) ===== */
+#confettiContainer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:200}
+.confetti-piece{position:absolute;width:9px;height:14px;border-radius:2px;opacity:0;animation:pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;will-change:transform,opacity}
+.final-confetti-piece{width:10px;height:16px;animation-duration:2300ms}
+.final-confetti-piece:nth-child(3n){border-radius:50%}
+.final-confetti-piece:nth-child(4n){width:7px;height:19px;border-radius:1px}
+.final-confetti-piece:nth-child(5n){width:13px;height:8px;border-radius:2px}
+@keyframes pageConfetti{0%{opacity:1;transform:translate3d(0,0,0) rotate(0deg) scale(1)}55%{opacity:1}100%{opacity:0;transform:translate3d(var(--x),var(--y),0) rotate(var(--r)) scale(.72)}}
+
+/* ===== LAYOUT FIT: the heading always keeps its own space =====
+   The header is a fixed-size flex item and the play area takes exactly
+   the height that is left over, so artwork can never ride up into the
+   title on shorter laptop screens. */
+header,
+.game-header,
+.distance-header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 5;
+}
+main.game-stage,
+main.game-area,
+.game-stage,
+.game-area {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+footer,
+.navigation {
+    flex: 0 0 auto;
+}
+
+.game-stage { min-height: 0; }
+
+/* Items and basket scale down on short laptop screens so the arena
+   still has room for both. */
+@media screen and (max-height: 760px) {
+    .floating-item { width: 130px; height: 130px; }
+    .target-basket { width: 155px; height: 110px; bottom: 12px; }
+    .basket-rim { width: 146px; height: 22px; }
+    .basket-net { width: 114px; height: 82px; }
+}
+@media screen and (max-height: 620px) {
+    .floating-item { width: 108px; height: 108px; }
+    .target-basket { width: 132px; height: 92px; bottom: 10px; }
+    .basket-rim { width: 124px; height: 19px; }
+    .basket-net { width: 97px; height: 68px; }
+}
+
+/* ===== Sub-heading stays on a single line ===== */
+.instruction-box,
+.distance-title { max-width: none !important; }
+header .instruction,
+header .instruction-text,
+header p.instruction,
+header p.instruction-text,
+.game-header .instruction,
+#instruction,
+.distance-header .instruction-text {
+    white-space: nowrap;
+    max-width: 100%;
+}
+@media screen and (max-width: 1100px) {
+    header .instruction, header .instruction-text,
+    header p.instruction, header p.instruction-text,
+    .game-header .instruction,
+    #instruction,
+    .distance-header .instruction-text {
+        white-space: normal;
+    }
+}
+</style>
+</head>
+<body>
+
+    <header>
+        <div class="instruction-box">
+            <div class="instruction-title">🏀 Catch The Odd One Out!</div>
+            <p class="instruction">Tap the moving item that does not belong to score it into the basket!</p>
+        </div>
+    </header>
+
+    <main class="game-stage" id="gameStage">
+        <div class="target-basket" id="basketTarget">
+            <div class="basket-rim"></div>
+            <div class="basket-net"></div>
+        </div>
+    </main>
+
+    <footer>
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+        <button class="nav-btn check-btn" id="submitBtn" onclick="checkAnswers()" disabled>SUBMIT</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+    </footer>
+
+    <div id="confettiContainer"></div>
+
+    <div class="popup-overlay" id="popup">
+        <div class="popup-card" id="popupCard">
+            <div class="popup-icon" id="popupIcon">⭐</div>
+            <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+            <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+            <button class="nav-btn replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const quizQuestions = [
+            {
+                correctIndex: 0,
+                items: [
+                    "../images/sad.png",
+                    "../images/smily.png",
+                    "../images/smily.png",
+                    "../images/smily.png"
+                ]
+            },
+            {
+                correctIndex: 2,
+                items: [
+                    "../images/taxi.png",
+                    "../images/policecar.png",
+                    "../images/tracktor.png",
+                    "../images/car.png"
+                ]
+            },
+            {
+                correctIndex: 3,
+                items: [
+                    "../images/kiwiCake.png",
+                    "../images/strawberryCake.png",
+                    "../images/chocoCake.png",
+                    "../images/donut.png"
+                ]
+            },
+            {
+                correctIndex: 3,
+                items: [
+                    "../images/carrot.png",
+                    "../images/brinjal.png",
+                    "../images/cucumber.png",
+                    "../images/banana.png"
+                ]
+            }
+        ];
+
+        let quizState = Array.from({ length: quizQuestions.length }, () => ({
+            selectedIndex: null,
+            isUnlocked: false
+        }));
+
+        let currentIndex = 0;
+        let animationFrameId = null;
+        let physicsObjects = [];
+        let popupTimer = null;
+
+        const stage = document.getElementById('gameStage');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        function speak(t) {
+            if (!('speechSynthesis' in window)) return;
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.8;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playAudioTone(isCorrect) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2); 
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            }
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        /* Travel area for the bouncing items: the basket zone at the bottom
+           is reserved so an item can never come to rest on top of it. */
+        function getStageBounds() {
+            const sample = stage.querySelector('.floating-item');
+            const itemW = sample ? sample.offsetWidth  : 160;
+            const itemH = sample ? sample.offsetHeight : 160;
+            const basket = stage.querySelector('.target-basket');
+            const basketH = basket ? basket.offsetHeight + 20 : 155;
+            return {
+                w: Math.max(10, stage.clientWidth  - itemW - 10),
+                h: Math.max(10, stage.clientHeight - itemH - basketH)
+            };
+        }
+
+        function loadStage(qIndex) {
+            cancelAnimationFrame(animationFrameId);
+            
+            const oldItems = stage.querySelectorAll('.floating-item');
+            oldItems.forEach(el => el.remove());
+
+            physicsObjects = [];
+            const data = quizQuestions[qIndex];
+            const bounds = getStageBounds();
+            const stageWidth = bounds.w;
+            const stageHeight = bounds.h;
+
+            data.items.forEach((src, idx) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'floating-item';
+                
+                const img = document.createElement('img');
+                img.src = src;
+                img.onerror = function() {
+                    this.src = `https://via.placeholder.com/160/ffffff/ff7675?text=Item+${idx+1}`;
+                };
+                itemDiv.appendChild(img);
+
+                const isAlreadySelected = quizState[qIndex].selectedIndex === idx;
+
+                itemDiv.onclick = () => selectItem(idx);
+                stage.appendChild(itemDiv);
+
+                /* Each item owns a horizontal lane, so two of them can never
+                   drift on top of each other. Measured after the element is in
+                   the DOM because the item size is responsive. */
+                const itemW = itemDiv.offsetWidth || 160;
+                const laneW = stage.clientWidth / data.items.length;
+                const laneMin = Math.round(idx * laneW + 8);
+                const laneMax = Math.round(Math.max(laneMin, (idx + 1) * laneW - itemW - 8));
+
+                const initialX = laneMin + Math.random() * Math.max(0, laneMax - laneMin);
+                const initialY = Math.random() * (stageHeight * 0.4) + 10;
+
+                const obj = {
+                    element: itemDiv,
+                    x: initialX,
+                    y: initialY,
+                    minX: laneMin,
+                    maxX: laneMax,
+                    vx: (Math.random() > 0.5 ? 1 : -1) * (0.6 + Math.random() * 0.4),
+                    vy: (Math.random() > 0.5 ? 1 : -1) * (0.6 + Math.random() * 0.4),
+                    isFrozen: isAlreadySelected
+                };
+
+                if (isAlreadySelected) {
+                    positionInBasket(itemDiv);
+                }
+
+                physicsObjects.push(obj);
+            });
+
+            updatePhysics();
+            updateNavButtons();
+        }
+
+        function updatePhysics() {
+            const bounds = getStageBounds();
+            const stageWidth = bounds.w;
+            const stageHeight = bounds.h;
+
+            physicsObjects.forEach(obj => {
+                if (obj.isFrozen) return;
+
+                obj.x += obj.vx;
+                obj.y += obj.vy;
+
+                const loX = (obj.minX !== undefined) ? obj.minX : 10;
+                const hiX = (obj.maxX !== undefined) ? Math.min(obj.maxX, stageWidth) : stageWidth;
+
+                if (obj.x <= loX) { obj.x = loX; obj.vx = Math.abs(obj.vx); }
+                else if (obj.x >= hiX) { obj.x = hiX; obj.vx = -Math.abs(obj.vx); }
+
+                if (obj.y <= 10) { obj.y = 10; obj.vy = Math.abs(obj.vy); }
+                else if (obj.y >= stageHeight) { obj.y = stageHeight; obj.vy = -Math.abs(obj.vy); }
+
+                obj.element.style.left = `${obj.x}px`;
+                obj.element.style.top = `${obj.y}px`;
+            });
+
+            animationFrameId = requestAnimationFrame(updatePhysics);
+        }
+
+        function positionInBasket(element) {
+            const basket = document.getElementById('basketTarget');
+            const basketRect = basket.getBoundingClientRect();
+            const stageRect = stage.getBoundingClientRect();
+
+            // Centre the item on the basket. The item size is responsive, so
+            // measure it instead of assuming the old fixed 160px box.
+            const itemW = element.offsetWidth  || 160;
+            const itemH = element.offsetHeight || 160;
+            const targetLeft = (basketRect.left - stageRect.left) + (basketRect.width / 2) - (itemW / 2);
+            const targetTop  = (basketRect.top  - stageRect.top)  + (basketRect.height * 0.63) - (itemH / 2);
+
+            element.style.left = `${targetLeft}px`;
+            element.style.top = `${targetTop}px`;
+            element.classList.add('in-basket');
+        }
+
+        function selectItem(idx) {
+            if (quizState[currentIndex].isUnlocked) return;
+
+            physicsObjects.forEach((obj, itemIdx) => {
+                if (itemIdx === idx) {
+                    obj.isFrozen = true;
+                    positionInBasket(obj.element);
+                    quizState[currentIndex].selectedIndex = idx;
+                } else {
+                    if (obj.isFrozen) {
+                        obj.isFrozen = false;
+                        obj.element.classList.remove('in-basket');
+                        const b = getStageBounds();
+                        const lo = (obj.minX !== undefined) ? obj.minX : 10;
+                        const hi = (obj.maxX !== undefined) ? Math.min(obj.maxX, b.w) : b.w;
+                        obj.x = lo + Math.random() * Math.max(0, hi - lo);
+                        obj.y = Math.random() * b.h;
+                    }
+                }
+            });
+
+            updateNavButtons();
+        }
+
+        window.addEventListener('resize', () => loadStage(currentIndex));
+
+        function navigate(dir) {
+            currentIndex += dir;
+            loadStage(currentIndex);
+        }
+
+        function updateNavButtons() {
+            prevBtn.disabled = currentIndex === 0;
+            
+            const isLastQuestion = currentIndex === quizQuestions.length - 1;
+            const isUnlocked = quizState[currentIndex].isUnlocked;
+            const hasSelection = quizState[currentIndex].selectedIndex !== null;
+
+            nextBtn.disabled = isLastQuestion || !isUnlocked;
+            submitBtn.disabled = isUnlocked || !hasSelection;
+        }
+
+        function checkAnswers() {
+            const selected = quizState[currentIndex].selectedIndex;
+            const correct = quizQuestions[currentIndex].correctIndex;
+
+            if (selected === null) return;
+
+            if (selected === correct) {
+                quizState[currentIndex].isUnlocked = true;
+
+                if (currentIndex === quizQuestions.length - 1) {
+                    showSmallConfetti(false);
+                    showPopup('correct', '🌟', 'Amazing!', 'You got it right! ✨', false);
+                    playAudioTone(true);
+                    speak("Correct");
+
+                    setTimeout(() => {
+                        showSmallConfetti(true);
+                        showPopup('complete', '🏆', 'Congratulations!', 'Fantastic job! You solved all questions! 🎉', true);
+                    }, 1900);
+
+                } else {
+                    showSmallConfetti(false);
+                    showPopup('correct', '🌟', 'Amazing!', 'You got it right! ✨', false);
+                    playAudioTone(true);
+                    speak("Correct");
+                }
+
+                updateNavButtons();
+            } else {
+                showPopup('wrong', '😟', 'Keep Going!', 'Try again, you can do it! 🌈', false);
+                playAudioTone(false);
+                speak("Try again");
+            }
+        }
+
+
+        // EXACT SAME CONFETTI
+        function showSmallConfetti(isFinal = false) {
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (!confettiContainer) return;
+
+            confettiContainer.innerHTML = '';
+
+            const count = isFinal ? 95 : 42;
+
+            const colors = [
+                '#00b894',
+                '#e67e22',
+                '#6c5ce7',
+                '#0984e3',
+                '#fdcb6e',
+                '#ff6b7a',
+                '#00cec9',
+                '#a29bfe'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('span');
+
+                piece.className =
+                    isFinal
+                        ? 'confetti-piece final-confetti-piece'
+                        : 'confetti-piece';
+
+                const startX = Math.random() * 100;
+                const startY = -8 + Math.random() * 10;
+
+                const drift =
+                    (Math.random() * 520 - 260) *
+                    (isFinal ? 1.15 : 0.9);
+
+                const fall =
+                    window.innerHeight *
+                    (0.82 + Math.random() * 0.48);
+
+                const rotation =
+                    Math.random() * 1400 - 700;
+
+                piece.style.left = startX + '%';
+                piece.style.top = startY + '%';
+
+                piece.style.setProperty('--x', drift + 'px');
+                piece.style.setProperty('--y', fall + 'px');
+                piece.style.setProperty('--r', rotation + 'deg');
+
+                piece.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+
+                piece.style.animationDelay =
+                    (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(
+                    () => piece.remove(),
+                    isFinal ? 2900 : 2050
+                );
+            }
+        }
+
+        function showPopup(
+            status,
+            icon,
+            title,
+            subtitle,
+            isFinal = false
+        ) {
+
+
+            const popup =
+                document.getElementById(
+                    'popup'
+                );
+
+
+            const card =
+                document.getElementById(
+                    'popupCard'
+                );
+
+
+
+            card.className =
+                `popup-card ${status}`;
+
+
+
+            document.getElementById(
+                'popupIcon'
+            ).innerText = icon;
+
+
+
+            document.getElementById(
+                'popupTitle'
+            ).innerText = title;
+
+
+
+            document.getElementById(
+                'popupSubtitle'
+            ).innerText = subtitle;
+
+
+
+            if (isFinal) {
+
+                playAgainBtn.style.display =
+                    'inline-block';
+
+            } else {
+
+                playAgainBtn.style.display =
+                    'none';
+            }
+
+
+
+            popup.classList.add('active');
+
+
+
+            clearTimeout(popupTimer);
+
+
+
+            if (!isFinal) {
+
+                popupTimer =
+                    setTimeout(
+                        () => {
+
+                            closePopup();
+
+                        },
+                        1800
+                    );
+            }
+        }
+
+
+
+        function closePopup() {
+            document.getElementById('popup').classList.remove('active');
+        }
+
+        function restartGame() {
+            closePopup();
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (confettiContainer) confettiContainer.innerHTML = '';
+            quizState = Array.from({ length: quizQuestions.length }, () => ({
+                selectedIndex: null,
+                isUnlocked: false
+            }));
+
+            currentIndex = 0;
+            loadStage(currentIndex);
+        }
+
+        loadStage(0);
+    </script>
+</body>
+</html>

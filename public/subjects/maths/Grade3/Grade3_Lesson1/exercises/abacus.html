@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>Draw the beads · Abacus</title>
+    <!-- Font Awesome & Canvas Confetti -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/shared/quiz-ui.css">
+    <link rel="stylesheet" href="../assets/shared/grade3-chapter1.css">
+    <script src="../assets/shared/quiz-ui.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+            font-weight: 400;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            color: #222;
+            padding: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 1180px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 8px;
+        }
+
+        .top {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            text-align: center;
+        }
+
+        .page-title {
+            font-weight: 400;
+            font-size: 30px;
+            color: #2f4f4f;
+            letter-spacing: 0.3px;
+        }
+
+        .meta {
+            color: #2f4f4f;
+            font-weight: 400;
+            font-size: 30px;
+            letter-spacing: 0.3px;
+            display: none;
+        }
+
+        .questions {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 22px;
+            align-items: start;
+            justify-items: center;
+            padding-top: 6px;
+        }
+
+        .qcard {
+            width: 100%;
+            max-width: 360px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 22px rgba(22, 30, 60, 0.06);
+            border: 1px solid rgba(20, 20, 30, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            overflow: visible;
+        }
+
+        .qcard.solved {
+            border-color: rgba(46, 139, 87, 0.12);
+            opacity: 0.98;
+        }
+
+        .qhead {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .qlabel {
+            font-weight: 400;
+            color: #2f4f4f;
+            font-size: 28px;
+        }
+
+        .qnum {
+            font-weight: 400;
+            color: #2f4f4f;
+            font-size: 28px;
+            letter-spacing: 1px;
+        }
+
+        .qsub {
+            margin-left: auto;
+            color: #2f4f4f;
+            font-weight: 400;
+            font-size: 18px;
+            background: #f0edf5;
+            padding: 0 12px;
+            border-radius: 40px;
+            line-height: 1.8;
+        }
+
+        .abacus {
+            display: flex;
+            justify-content: center;
+        }
+
+        .poles {
+            width: 100%;
+            display: flex;
+            gap: 18px;
+            align-items: flex-end;
+            padding: 8px 10px 12px;
+            position: relative;
+        }
+
+        .pole-col {
+            width: 100%;
+            max-width: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .track {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            background: transparent;
+        }
+
+        .wire {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: #e9e9e9;
+            top: 0;
+        }
+
+        .beads {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 8px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            pointer-events: auto;
+            gap: 0;
+            height: 100%;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .bead {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            box-shadow: inset -3px -3px 5px rgba(0, 0, 0, 0.15), inset 2px 2px 3px rgba(255, 255, 255, 0.6), 0 6px 14px rgba(0, 0, 0, 0.06);
+            animation: dropIn .18s ease;
+            flex: 0 0 auto;
+        }
+
+        @keyframes dropIn {
+            from {
+                transform: translateY(-14px) scale(.85);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .bead.h {
+            background: #ffbf13;
+        }
+
+        .bead.t {
+            background: #3cd060;
+        }
+
+        .bead.o {
+            background: #31bdf2;
+        }
+
+        .pole-btn {
+            width: 100%;
+            max-width: 110px;
+            height: 44px;
+            border-radius: 999px;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+            transition: transform .12s ease, box-shadow .14s ease;
+            position: relative;
+        }
+
+        .pole-btn:active {
+            transform: translateY(2px);
+        }
+
+        .pole-btn.h {
+            background: linear-gradient(180deg, #fcd56c, #ffcf60);
+            color: #5c3f00;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .pole-btn.t {
+            background: linear-gradient(180deg, #81fca6, #64ee90);
+            color: #5c3f00;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .pole-btn.o {
+            background: linear-gradient(180deg, #ffc9e2, #ffc9e2);
+            color: #5c3f00;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .count-badge {
+            position: absolute;
+            top: -10px;
+            right: -12px;
+            min-width: 26px;
+            height: 26px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: #111;
+            color: #fff;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+            transform: scale(1);
+            transition: transform .12s ease;
+            font-size: 13px;
+        }
+
+        .count-badge.show {
+            transform: scale(1.06);
+        }
+
+        .qfoot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .btn-check {
+            border: none;
+            cursor: pointer;
+            padding: 10px 24px;
+            border-radius: 999px;
+            font-weight: 500;
+            font-size: 16px;
+            background: linear-gradient(180deg, #a178ff, #7d5cff);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(125, 92, 255, 0.14);
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s;
+        }
+
+        .btn-check:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .feedback {
+            font-weight: 400;
+            font-size: 16px;
+            color: #e23a6a;
+            opacity: 0;
+            transition: opacity .14s ease;
+            text-align: center;
+            min-height: 1.6em;
+        }
+
+        .feedback.show {
+            opacity: 1;
+        }
+
+        .feedback.good {
+            color: #2f9e44;
+        }
+
+        /* ---- emoji popup (correct / wrong) ---- */
+        .emoji-pop {
+            position: fixed;
+            left: 50%;
+            top: 42%;
+            font-size: 80px;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%) scale(.35) rotate(-12deg);
+            animation: emojiPop 1.8s cubic-bezier(.2, .8, .2, 1) forwards;
+            filter: drop-shadow(0 10px 14px rgba(45, 50, 80, .18));
+        }
+
+        @keyframes emojiPop {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(.35) rotate(-12deg);
+            }
+
+            28% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.18) rotate(8deg);
+            }
+
+            68% {
+                opacity: 1;
+                transform: translate(-50%, -54%) scale(1) rotate(-4deg);
+            }
+
+            to {
+                opacity: 0;
+                transform: translate(-50%, -68%) scale(.9) rotate(0);
+            }
+        }
+
+        .celebration-piece {
+            position: fixed;
+            left: 50%;
+            top: 42%;
+            width: 10px;
+            height: 18px;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 9998;
+            animation: confettiBurst 1.4s cubic-bezier(.2, .8, .2, 1) forwards;
+        }
+
+        @keyframes confettiBurst {
+            from {
+                opacity: 1;
+                transform: translate(-50%, -50%) rotate(0) scale(.7);
+            }
+
+            to {
+                opacity: 0;
+                transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(520deg) scale(1);
+            }
+        }
+
+        /* final popup */
+        .final-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .final-modal {
+            background: #ffffff;
+            max-width: 420px;
+            width: 90%;
+            padding: 40px 28px 32px;
+            border-radius: 56px 20px 56px 20px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popUp {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .final-modal h2 {
+            font-size: 34px;
+            font-weight: 800;
+            color: #1e1e2a;
+            margin-bottom: 8px;
+        }
+
+        .final-modal p {
+            font-size: 18px;
+            color: #3d3d4a;
+            margin-bottom: 24px;
+        }
+
+        .final-modal .btn-playagain {
+            border: none;
+            background: linear-gradient(180deg, #ffb347, #f58a2e);
+            padding: 14px 40px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 20px;
+            color: #2d1f00;
+            box-shadow: 0 12px 24px rgba(245, 138, 46, 0.3);
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .final-modal .btn-playagain:active {
+            transform: scale(0.95);
+        }
+
+        .final-modal .icon-big {
+            font-size: 56px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        /* ---- media queries (exactly as second code) ---- */
+        @media (max-width: 900px) {
+            body {
+                align-items: center;
+                padding: 20px;
+                overflow: auto;
+            }
+
+            .page {
+                padding: 16px;
+                gap: 16px;
+            }
+
+            .page-title,
+            .meta {
+                font-size: 30px;
+            }
+
+            .bead {
+                width: 22px;
+                height: 22px;
+            }
+
+            .track {
+                height: 180px;
+            }
+
+            .pole-btn {
+                height: 40px;
+                font-size: 14px;
+            }
+
+            .qnum {
+                font-size: 30px;
+            }
+
+            .qsub {
+                font-size: 14px;
+            }
+
+            .pole-btn.h,
+            .pole-btn.t,
+            .pole-btn.o {
+                font-size: 18px;
+            }
+
+            .feedback {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+                align-items: flex-start;
+            }
+
+            .page {
+                padding: 12px;
+                gap: 14px;
+            }
+
+            .page-title,
+            .meta {
+                font-size: 30px;
+            }
+
+            .bead {
+                width: 24px;
+                height: 24px;
+            }
+
+            .track {
+                height: 160px;
+            }
+
+            .pole-btn {
+                height: 38px;
+                font-size: 13px;
+            }
+
+            .qnum {
+                font-size: 30px;
+            }
+
+            .qsub {
+                font-size: 14px;
+            }
+
+            .questions {
+                gap: 18px;
+            }
+
+            .pole-btn.h,
+            .pole-btn.t,
+            .pole-btn.o {
+                font-size: 18px;
+            }
+
+            .feedback {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 16px 6px;
+                align-items: flex-start;
+            }
+
+            .page {
+                padding: 8px;
+                gap: 12px;
+            }
+
+            .bead {
+                width: 22px;
+                height: 22px;
+            }
+
+            .track {
+                height: 140px;
+            }
+
+            .pole-btn {
+                height: 34px;
+                font-size: 12px;
+            }
+
+            .pole-btn.h,
+            .pole-btn.t,
+            .pole-btn.o {
+                font-size: 18px;
+            }
+
+            .qnum {
+                font-size: 22px;
+            }
+
+            .qsub {
+                font-size: 22px;
+            }
+
+            .page-title,
+            .meta {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .bead {
+                width: 20px;
+                height: 20px;
+            }
+
+            .track {
+                height: 120px;
+            }
+
+            .pole-btn {
+                height: 30px;
+                font-size: 11px;
+            }
+
+            .qnum {
+                font-size: 20px;
+            }
+
+            .qsub {
+                font-size: 14px;
+            }
+        }
+
+        @media screen and (min-width:1025px) and (max-width:1440px) {
+            .page {
+                max-width: 1100px;
+            }
+
+            .page-title,
+            .meta {
+                font-size: 30px;
+            }
+
+            .bead {
+                width: 22px;
+                height: 22px;
+            }
+
+            .track {
+                height: 210px;
+            }
+
+            .qnum {
+                font-size: 30px;
+            }
+
+            .qsub {
+                font-size: 18px;
+            }
+
+            .pole-btn.h,
+            .pole-btn.t,
+            .pole-btn.o {
+                font-size: 18px;
+            }
+
+            .feedback {
+                font-size: 16px;
+            }
+        }
+
+        @media screen and (min-width:1441px) and (max-width:1920px) {
+            .page {
+                max-width: 1200px;
+            }
+
+            .page-title,
+            .meta {
+                font-size: 40px;
+            }
+
+            .bead {
+                width: 24px;
+                height: 24px;
+            }
+
+            .track {
+                height: 230px;
+            }
+
+            .pole-btn {
+                height: 48px;
+                font-size: 16px;
+            }
+
+            .qnum {
+                font-size: 40px;
+            }
+
+            .qsub {
+                font-size: 20px;
+            }
+
+            .pole-btn.h,
+            .pole-btn.t,
+            .pole-btn.o {
+                font-size: 22px;
+            }
+
+            .feedback {
+                font-size: 18px;
+            }
+        }
+
+        @media screen and (min-width:1921px) {
+            .page {
+                max-width: 1300px;
+            }
+
+            .page-title,
+            .meta {
+                font-size: 40px;
+            }
+
+            .bead {
+                width: 25px;
+                height: 25px;
+            }
+
+            .track {
+                height: 250px;
+            }
+
+            .pole-btn {
+                height: 52px;
+                font-size: 18px;
+            }
+
+            .qnum {
+                font-size: 40px;
+            }
+
+            .qsub {
+                font-size: 20px;
+            }
+
+            .pole-btn.h,
+            .pole-btn.t,
+            .pole-btn.o {
+                font-size: 22px;
+            }
+
+            .feedback {
+                font-size: 18px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../shared/quiz-ui.css">
+    <link rel="stylesheet" href="../../shared/grade3-chapter1.css">
+</head>
+
+<body>
+    <div class="page" role="main">
+        <div class="top">
+            <div class="page-title">Draw the beads for the given numbers.</div>
+            <div class="meta">a) 378 &nbsp;&nbsp; b) 409 &nbsp;&nbsp; c) 217</div>
+        </div>
+        <div class="questions" id="questions" aria-live="polite"></div>
+    </div>
+
+    <script>
+        (function () {
+            // audio
+            let audioCtx = null;
+            function getCtx() {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                return audioCtx;
+            }
+            function beep(freq, dur, type = 'sine') {
+                try {
+                    const ctx = getCtx();
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.type = type;
+                    o.frequency.value = freq;
+                    o.connect(g);
+                    g.connect(ctx.destination);
+                    g.gain.setValueAtTime(0.14, ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur / 1000);
+                    o.start();
+                    o.stop(ctx.currentTime + dur / 1000);
+                } catch (e) { }
+            }
+            const sfx = {
+                add: () => beep(720, 90, 'triangle'),
+                remove: () => beep(340, 90, 'triangle'),
+                maxed: () => beep(200, 120, 'sawtooth'),
+                good: () => { beep(660, 110, 'sine'); setTimeout(() => beep(880, 160, 'sine'), 110); },
+                bad: () => beep(180, 220, 'sawtooth'),
+                finish: () => { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 150, 'sine'), i * 130)); }
+            };
+
+            // confetti + emoji pop (correct/wrong)
+            function burstConfetti(fromEl, color) {
+                const rect = fromEl.getBoundingClientRect();
+                const x = (rect.left + rect.width / 2) / window.innerWidth;
+                const y = (rect.top + rect.height / 2) / window.innerHeight;
+                confetti({
+                    particleCount: 30,
+                    spread: 70,
+                    origin: { x, y },
+                    startVelocity: 20,
+                    colors: [color, '#ffd54f', '#ff9f45', '#7ed957', '#ff6b6b', '#4ecdc4']
+                });
+            }
+
+            function showCorrectEmoji() {
+                const colors = ['#ff6fb5', '#ffd54f', '#7ed957', '#4fc3f7', '#b388ff'];
+                for (let i = 0; i < 18; i++) {
+                    const piece = document.createElement('span');
+                    const angle = (Math.PI * 2 * i) / 18;
+                    const distance = 90 + Math.random() * 100;
+                    piece.className = 'celebration-piece';
+                    piece.style.setProperty('--x', `${Math.cos(angle) * distance}px`);
+                    piece.style.setProperty('--y', `${Math.sin(angle) * distance}px`);
+                    piece.style.background = colors[i % colors.length];
+                    piece.style.animationDelay = `${Math.random() * .12}s`;
+                    document.body.appendChild(piece);
+                    setTimeout(() => piece.remove(), 1600);
+                }
+                const emoji = document.createElement('div');
+                emoji.className = 'emoji-pop';
+                emoji.textContent = '🥳';
+                document.body.appendChild(emoji);
+                setTimeout(() => emoji.remove(), 1850);
+            }
+
+            function showWrongEmoji() {
+                const emoji = document.createElement('div');
+                emoji.className = 'emoji-pop';
+                emoji.textContent = '😔';
+                emoji.style.fontSize = '70px';
+                document.body.appendChild(emoji);
+                setTimeout(() => emoji.remove(), 1500);
+            }
+
+            // final popup
+            function showFinalPopup() {
+                const old = document.querySelector('.final-overlay');
+                if (old) old.remove();
+                sfx.finish();
+                const overlay = document.createElement('div');
+                overlay.className = 'final-overlay';
+                overlay.innerHTML = `
+        <div class="final-modal">
+          <span class="icon-big">🎉</span>
+          <h2>All correct!</h2>
+          <p>Amazing! You got them all right!</p>
+          <button class="btn-playagain" id="playAgainBtn"><i class="fa-solid fa-rotate-right"></i> Play again</button>
+        </div>
+      `;
+                document.body.appendChild(overlay);
+                setTimeout(() => {
+                    const modal = overlay.querySelector('.final-modal');
+                    if (modal) burstConfetti(modal, '#ffd54f');
+                    setTimeout(() => { if (modal) burstConfetti(modal, '#4ecdc4'); }, 400);
+                    setTimeout(() => { if (modal) burstConfetti(modal, '#ff9f45'); }, 800);
+                }, 100);
+                overlay.querySelector('#playAgainBtn').addEventListener('click', function () {
+                    overlay.remove();
+                    resetGame();
+                });
+            }
+
+            // state
+            const COLS = [{ key: 'h', label: 'H' }, { key: 't', label: 'T' }, { key: 'o', label: 'O' }];
+            const MAX_BEADS = 9;
+            const NUMBERS = [378, 409, 217];
+            let questions = [];
+
+            function initQuestions() {
+                questions = NUMBERS.map(n => ({
+                    num: n,
+                    digits: { h: Math.floor(n / 100), t: Math.floor((n % 100) / 10), o: n % 10 },
+                    beads: { h: 0, t: 0, o: 0 },
+                    touched: { h: false, t: false, o: false },
+                    solved: false
+                }));
+            }
+            initQuestions();
+
+            const container = document.getElementById('questions');
+
+            function resetGame() {
+                const ov = document.querySelector('.final-overlay');
+                if (ov) ov.remove();
+                initQuestions();
+                renderAll();
+            }
+
+            function renderAll() {
+                container.innerHTML = '';
+                questions.forEach((q, idx) => {
+                    const card = document.createElement('article');
+                    card.className = 'qcard';
+                    card.setAttribute('data-index', idx);
+
+                    card.innerHTML = `
+          <div class="qhead">
+            <div class="qlabel">${String.fromCharCode(97 + idx)}.</div>
+            <div class="qnum">${q.num}</div>
+            <div class="qsub">Draw beads</div>
+          </div>
+          <div class="abacus">
+            <div class="poles">
+              ${COLS.map(c => `
+                <div class="pole-col">
+                  <div class="track" aria-hidden="true">
+                    <div class="wire"></div>
+                    <div class="beads" data-col="${c.key}" aria-label="${c.label} beads"></div>
+                  </div>
+                  <button class="pole-btn ${c.key}" data-col="${c.key}" type="button" aria-pressed="false">
+                    ${c.label}
+                    <span class="count-badge" data-badge="${c.key}">0</span>
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div class="qfoot">
+            <button class="btn-check" type="button">Check <i class="fa-solid fa-check"></i></button>
+            <div class="feedback" aria-live="polite"></div>
+          </div>
+        `;
+                    container.appendChild(card);
+
+                    const checkBtn = card.querySelector('.btn-check');
+                    const feedback = card.querySelector('.feedback');
+
+                    function renderColumn(key) {
+                        const beadsWrap = card.querySelector(`.beads[data-col="${key}"]`);
+                        beadsWrap.innerHTML = '';
+                        for (let i = 0; i < q.beads[key]; i++) {
+                            const b = document.createElement('div');
+                            b.className = `bead ${key}`;
+                            b.title = key.toUpperCase() + ' bead';
+                            beadsWrap.appendChild(b);
+                        }
+                        const badge = card.querySelector(`.count-badge[data-badge="${key}"]`);
+                        badge.textContent = q.beads[key];
+                        badge.classList.toggle('show', q.beads[key] > 0);
+                        const btn = card.querySelector(`.pole-btn.${key}`);
+                        btn.classList.toggle('touched', q.touched[key]);
+                        btn.setAttribute('aria-pressed', String(!!q.touched[key]));
+                    }
+
+                    function updateCheckEnabled() {
+                        const anyBead = COLS.some(c => q.beads[c.key] > 0);
+                        const anyTouched = COLS.some(c => q.touched[c.key]);
+                        const enabled = !q.solved && (anyBead || anyTouched);
+                        checkBtn.disabled = !enabled;
+                    }
+
+                    function addBead(key) {
+                        if (q.solved) return;
+                        const btn = card.querySelector(`.pole-btn.${key}`);
+                        if (q.beads[key] >= MAX_BEADS) {
+                            sfx.maxed();
+                            btn.classList.remove('maxed'); void btn.offsetWidth; btn.classList.add('maxed');
+                            return;
+                        }
+                        q.beads[key]++;
+                        q.touched[key] = true;
+                        sfx.add();
+                        renderColumn(key);
+                        updateCheckEnabled();
+                    }
+
+                    function removeBead(key) {
+                        if (q.solved || q.beads[key] <= 0) return;
+                        q.beads[key]--;
+                        sfx.remove();
+                        renderColumn(key);
+                        updateCheckEnabled();
+                    }
+
+                    function resetAll() {
+                        COLS.forEach(c => { q.beads[c.key] = 0; q.touched[c.key] = false; renderColumn(c.key); });
+                        feedback.classList.remove('show', 'good', 'bad');
+                        updateCheckEnabled();
+                    }
+
+                    COLS.forEach(c => {
+                        const btn = card.querySelector(`.pole-btn.${c.key}`);
+                        const beadsWrap = card.querySelector(`.beads[data-col="${c.key}"]`);
+                        btn.addEventListener('click', () => addBead(c.key));
+                        beadsWrap.addEventListener('click', () => removeBead(c.key));
+                        renderColumn(c.key);
+                    });
+
+                    checkBtn.addEventListener('click', () => {
+                        const beadsOk = COLS.every(c => q.beads[c.key] === q.digits[c.key]);
+                        feedback.classList.remove('good', 'bad', 'show');
+                        if (beadsOk) {
+                            feedback.textContent = 'Correct! ⭐';
+                            feedback.classList.add('show', 'good');
+                            card.classList.add('solved');
+                            q.solved = true;
+                            checkBtn.disabled = true;
+                            COLS.forEach(c => {
+                                const btn = card.querySelector(`.pole-btn.${c.key}`);
+                                btn.disabled = true;
+                                const beadsWrap = card.querySelector(`.beads[data-col="${c.key}"]`);
+                                beadsWrap.style.pointerEvents = 'none';
+                            });
+                            sfx.good();
+                            burstConfetti(card, '#ffd54f');
+                            showCorrectEmoji();  // 🥳 popup
+
+                            const allSolvedNow = questions.every(qq => qq.solved === true);
+                            if (allSolvedNow) {
+                                setTimeout(showFinalPopup, 1000);
+                            }
+                        } else {
+                            feedback.textContent = 'Not quite — beads reset, try again!';
+                            feedback.classList.add('show', 'bad');
+                            sfx.bad();
+                            showWrongEmoji();   // 😅 popup
+                            setTimeout(resetAll, 500);
+                        }
+                    });
+
+                    updateCheckEnabled();
+                    if (q.solved) {
+                        COLS.forEach(c => {
+                            const btn = card.querySelector(`.pole-btn.${c.key}`);
+                            btn.disabled = true;
+                            const beadsWrap = card.querySelector(`.beads[data-col="${c.key}"]`);
+                            beadsWrap.style.pointerEvents = 'none';
+                        });
+                        checkBtn.disabled = true;
+                    }
+                });
+            }
+
+            renderAll();
+        })();
+    </script>
+    <script src="../../shared/quiz-ui.js"></script>
+</body>
+
+</html>

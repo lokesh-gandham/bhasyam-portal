@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thick and Thin Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+            -webkit-user-drag: none; /* Disables dragging in WebKit browsers */
+            user-select: none; /* Prevents text and image selection */
+        }
+
+        body {
+          
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            overflow: hidden;
+        }
+
+        /* Header Box */
+        header {
+           
+            padding: 12px 40px;
+            border-radius: 25px;
+          
+            text-align: center;
+            margin-top: 10px;
+           
+        }
+
+    
+        header h2 {
+            font-size: 22px;
+            color: #2f4f4f;
+            margin-top: -30px;
+            font-weight: 600;
+        }
+
+        .instruction-text {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.25;
+            margin-top: 4px;
+        }
+/* Main Game Stage Layout */
+        .game-stage {
+            width: 100%;
+            max-width: 1100px;
+            height: 68vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+           
+        }
+
+        .slide-item {
+            display: none;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide-item.active {
+            display: flex;
+        }
+
+        /* Ruler Stage Design (NO CARDS) */
+        .ruler-workbench {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            width: 100%;
+            max-width: 950px;
+            height: 400px;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        /* Yellow Measuring Tape Floor Bar */
+        .ruler-floor {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            height: 26px;
+            background: #f1c40f;
+            border-radius: 13px;
+            border: 3px solid #d35400;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+            background-image: repeating-linear-gradient(
+                90deg,
+                #d35400,
+                #d35400 2px,
+                transparent 2px,
+                transparent 20px
+            );
+        }
+
+        .object-station {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 5;
+            width: 320px;
+        }
+
+        /* Floating Image Display (No Container Box) */
+        .item-image-wrapper {
+            height: 240px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .item-image {
+            max-height: 220px;
+            max-width: 90%;
+            object-fit: contain;
+            filter: drop-shadow(0 12px 15px rgba(0,0,0,0.15));
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none; /* Prevents direct mouse dragging on images */
+        }
+
+        /* Measurement Caliper Brackets that appear when typing */
+        .caliper-guide {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            border-left: 4px dashed transparent;
+            border-right: 4px dashed transparent;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            border-radius: 20px;
+        }
+
+        .object-station.thick .caliper-guide {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.05);
+        }
+
+        .object-station.thin .caliper-guide {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.05);
+        }
+/* Stand Base */
+        .pedestal-base {
+            width: 200px;
+            height: 16px;
+            background: #8e44ad;
+            border-radius: 8px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 6;
+        }
+
+        .object-station.thick .pedestal-base { background: #27ae60; }
+        .object-station.thin .pedestal-base { background: #e74c3c; }
+        /* Drag-and-drop answer controls */
+        .answer-dropzone {
+            width: 82px;
+            height: 68px;
+            margin-top: 4px;
+            border: 4px dashed #e67e22;
+            border-radius: 16px;
+            background: #ffffff;
+            color: #8a9494;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+            transition: all 0.2s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .answer-dropzone.drag-over {
+            transform: scale(1.04);
+            border-style: solid;
+            background: #fff8e8;
+        }
+
+        .answer-dropzone.filled {
+            border-style: solid;
+            border-color: #00b894;
+            color: #2d3436;
+            font-size: 38px;
+            font-weight: 600;
+        }
+
+        .answer-dropzone.correct-answer {
+            border-color: #00b894;
+            background: #edfbf4;
+        }
+
+        .choice-options {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin-top: 12px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .drag-option {
+            width: 58px;
+            height: 54px;
+            border-radius: 14px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            font-weight: 600;
+            cursor: grab;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.18);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            touch-action: none;
+        }
+
+        .drag-option.dragging {
+            opacity: 0.65;
+            transform: scale(1.05);
+        }
+
+        .drag-option:active {
+            cursor: grabbing;
+            transform: translateY(3px) scale(0.98);
+            box-shadow: 0 2px 0 rgba(0,0,0,0.18);
+        }
+
+        .tick-option {
+            border: 4px solid #00b894;
+            color: #00b894;
+        }
+
+        .cross-option {
+            border: 4px solid #e74c3c;
+            color: #e74c3c;
+        }
+
+        /* Prevent the old typed-input / badge behavior from affecting the game */
+        .status-badge {
+            display: none !important;
+        }
+
+        /* EXACT ORIGINAL FOOTER & BUTTONS */
+
+        footer {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .nav-btn {
+            background: #e67e22;
+            color: #ffffff;
+            border: none;
+            width: 178px;
+            height: 45px;
+            padding: 0;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #d35400;
+            transition: all 0.1s ease;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #d35400;
+        }
+
+        .nav-btn:disabled {
+            background: #b2bec3;
+            box-shadow: 0 6px 0 #636e72;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .check-btn {
+            background: #00b894;
+            box-shadow: 0 6px 0 #008f72;
+        }
+
+        .check-btn:active:not(:disabled) {
+            box-shadow: 0 2px 0 #008f72;
+        }
+
+        .replay-btn {
+            background: #0984e3;
+            box-shadow: 0 6px 0 #0975c7;
+            margin-top: 20px;
+            z-index: 5;
+        }
+
+        .replay-btn:active {
+            box-shadow: 0 2px 0 #0975c7;
+        }
+
+        @media screen and (min-width: 1600px) {
+            header h2 {
+                font-size: 30px;
+            }
+
+            .instruction-text {
+                font-size: 18px;
+            }
+.nav-btn {
+                width: 178px;
+                height: 45px;
+                padding: 0;
+                font-size: 20px;
+            }
+        }
+
+
+        /* EXACT SAME CONFETTI EFFECT */
+        #confettiContainer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 90;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 9px;
+            height: 14px;
+            border-radius: 2px;
+            opacity: 0;
+            animation: pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+            will-change: transform, opacity;
+        }
+
+        .final-confetti-piece {
+            width: 10px;
+            height: 16px;
+            animation-duration: 2300ms;
+        }
+
+        .final-confetti-piece:nth-child(3n) {
+            border-radius: 50%;
+        }
+
+        .final-confetti-piece:nth-child(4n) {
+            width: 7px;
+            height: 19px;
+            border-radius: 1px;
+        }
+
+        .final-confetti-piece:nth-child(5n) {
+            width: 13px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        @keyframes pageConfetti {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+            }
+            55% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+            }
+        }
+
+        .final-confetti-piece::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: inherit;
+        }
+
+        .popup-card.complete .replay-btn {
+            margin-top: 12px;
+        }
+
+        .popup-card.complete {
+            box-shadow:
+                0 20px 45px rgba(108, 92, 231, 0.18),
+                0 0 0 8px rgba(162, 155, 254, 0.12);
+        }
+
+        .popup-card.complete .popup-icon {
+            animation: finalTrophyBounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes finalTrophyBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+        /* EXACT ORIGINAL POPUP OVERLAY & CARD */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-card {
+            position: relative;
+            width: 90%;
+            max-width: 520px;
+            padding: 40px 30px;
+            border-radius: 36px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transform: scale(0.8);
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-card::before,
+        .popup-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .popup-card::before {
+            width: 220px;
+            height: 220px;
+            top: -60px;
+            right: -50px;
+        }
+
+        .popup-card::after {
+            width: 180px;
+            height: 180px;
+            bottom: -70px;
+            left: -40px;
+        }
+
+        .popup-card.correct {
+            background: #edfbf4;
+            border: 6px solid #00c885;
+        }
+
+        .popup-card.correct::before,
+        .popup-card.correct::after {
+            background: rgba(162, 245, 209, 0.45);
+        }
+
+        .popup-card.correct .popup-title { color: #00a86b; }
+        .popup-card.correct .popup-subtitle { color: #2e7d5b; }
+
+        .popup-card.wrong {
+            background: #fff0f2;
+            border: 6px solid #ff6b7a;
+        }
+
+        .popup-card.wrong::before,
+        .popup-card.wrong::after {
+            background: rgba(255, 196, 203, 0.45);
+        }
+
+        .popup-card.wrong .popup-title { color: #d33847; }
+        .popup-card.wrong .popup-subtitle { color: #a33b45; }
+
+        .popup-card.complete {
+            background: #f0f3ff;
+            border: 6px solid #6c5ce7;
+        }
+
+        .popup-card.complete::before,
+        .popup-card.complete::after {
+            background: rgba(162, 155, 254, 0.35);
+        }
+
+        .popup-card.complete .popup-title { color: #6c5ce7; }
+        .popup-card.complete .popup-subtitle { color: #4834d4; }
+
+        .popup-overlay.active .popup-card { transform: scale(1); }
+
+        .popup-icon {
+            font-size: 4.8rem;
+            margin-bottom: 12px;
+            z-index: 2;
+            line-height: 1;
+            filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1));
+        }
+
+        .popup-title {
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            z-index: 2;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-subtitle {
+            font-size: 1.4rem;
+            font-weight: 500;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    
+        /* Drag/drop layout: two answer choices stay side by side below each image */
+        @media screen and (min-width: 1600px) {
+            header h2 {
+                font-size: 30px;
+            }
+
+            .game-stage {
+                max-width: 1500px;
+                height: 72vh;
+            }
+
+            .ruler-workbench {
+                max-width: 1250px;
+                height: 520px;
+                padding-bottom: 20px;
+            }
+
+            .object-station {
+                width: 430px;
+            }
+
+            .item-image-wrapper {
+                height: 315px;
+            }
+
+            .item-image {
+                max-height: 290px;
+            }
+
+            .pedestal-base {
+                width: 280px;
+                height: 18px;
+                margin-bottom: 14px;
+            }
+
+            .answer-dropzone {
+                width: 90px;
+                height: 72px;
+                font-size: 14px;
+            }
+
+            .answer-dropzone.filled {
+                font-size: 42px;
+            }
+
+            .choice-options {
+                gap: 18px;
+                margin-top: 14px;
+            }
+
+            .drag-option {
+                width: 70px;
+                height: 62px;
+                font-size: 40px;
+            }
+
+            footer {
+                max-width: 1500px;
+            }
+        }
+
+    
+/* ===== LESSON 1 QUIZ HEADINGS: title large, subheading smaller ===== */
+header h1,
+header h2,
+header .instruction-title,
+header .distance-title,
+.game-header h1,
+.game-header h2,
+.game-header .instruction-title,
+#questionHeading {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+}
+.game-header:not(:has(h1, h2)) .instruction,
+.game-header:not(:has(h1, h2)) p.instruction {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+    color: #2f4f4f;
+}
+header:has(h1, h2, .instruction-title) .instruction,
+header:has(h1, h2) .instruction-text,
+header:has(h1, h2, .instruction-title) p.instruction,
+header:has(h1, h2) p.instruction-text,
+.game-header:has(h1, h2) .instruction,
+.game-header:has(h1, h2) p.instruction,
+#instruction,
+.distance-header .instruction-text,
+.distance-header p.instruction-text {
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    color: #666;
+    line-height: 1.3;
+}
+header .instruction span,
+header .instruction-text span,
+header p.instruction span,
+header p.instruction-text span,
+.game-header .instruction span,
+#instruction span {
+    font-weight: 700 !important;
+    font-size: inherit !important;
+}
+@media screen and (min-width: 1600px) {
+    header h1,
+    header h2,
+    header .instruction-title,
+    header .distance-title,
+    .game-header h1,
+    .game-header h2,
+    .game-header .instruction-title,
+    #questionHeading {
+        font-size: 40px !important;
+    }
+    .game-header:not(:has(h1, h2)) .instruction,
+    .game-header:not(:has(h1, h2)) p.instruction {
+        font-size: 40px !important;
+    }
+    header:has(h1, h2, .instruction-title) .instruction,
+    header:has(h1, h2) .instruction-text,
+    header:has(h1, h2, .instruction-title) p.instruction,
+    header:has(h1, h2) p.instruction-text,
+    .game-header:has(h1, h2) .instruction,
+    .game-header:has(h1, h2) p.instruction,
+    #instruction,
+    .distance-header .instruction-text,
+    .distance-header p.instruction-text {
+        font-size: 18px !important;
+    }
+}
+
+/* ===== LAYOUT FIT: the heading always keeps its own space =====
+   The header is a fixed-size flex item and the play area takes exactly
+   the height that is left over, so artwork can never ride up into the
+   title on shorter laptop screens. */
+header,
+.game-header,
+.distance-header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 5;
+}
+main.game-stage,
+main.game-area,
+.game-stage,
+.game-area {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+footer,
+.navigation {
+    flex: 0 0 auto;
+}
+
+/* Workbench scales with the play area instead of a fixed height */
+.slide-item { min-height: 0; }
+.ruler-workbench { height: 100% !important; max-height: 100%; }
+.object-station { height: 100% !important; min-height: 0; justify-content: flex-end; }
+.item-image-wrapper { height: auto !important; flex: 1 1 auto; min-height: 0; }
+.item-image { max-height: min(220px, 100%) !important; }
+@media screen and (min-width: 1600px) { .item-image { max-height: min(290px, 100%) !important; } }
+
+/* ===== Sub-heading stays on a single line ===== */
+.instruction-box,
+.distance-title { max-width: none !important; }
+header .instruction,
+header .instruction-text,
+header p.instruction,
+header p.instruction-text,
+.game-header .instruction,
+#instruction,
+.distance-header .instruction-text {
+    white-space: nowrap;
+    max-width: 100%;
+}
+@media screen and (max-width: 1100px) {
+    header .instruction, header .instruction-text,
+    header p.instruction, header p.instruction-text,
+    .game-header .instruction,
+    #instruction,
+    .distance-header .instruction-text {
+        white-space: normal;
+    }
+}
+</style>
+</head>
+<body>
+
+    <header>
+        <h2>Thick & Thin Quiz</h2>
+        <p class="instruction-text">Tick (✓) the thicker one and crossout (×) the thinner one.</p>
+    </header>
+
+    <main class="game-stage">
+        <!-- Question 1: Log & Stick -->
+        <div class="slide-item active" data-q="0">
+            <div class="ruler-workbench">
+                <div class="ruler-floor"></div>
+
+                <div class="object-station" id="station-0-1">
+                    <div class="item-image-wrapper">
+                        <div class="caliper-guide"></div>
+                        <div class="status-badge" id="badge-0-1"></div>
+                        <img src="../images/log.png" alt="Log" class="item-image" draggable="false">
+                    </div>
+                    <div class="pedestal-base"></div>
+                    <div class="answer-dropzone" data-target="T" aria-label="Log thickness input answer drop zone">Drop ✓ or ✕</div><div class="choice-options" aria-label="Answer choices"><div class="drag-option tick-option" data-value="T" aria-label="Tick option">✓</div><div class="drag-option cross-option" data-value="N" aria-label="Cross option">✕</div></div>
+                </div>
+
+                <div class="object-station" id="station-0-2">
+                    <div class="item-image-wrapper">
+                        <div class="caliper-guide"></div>
+                        <div class="status-badge" id="badge-0-2"></div>
+                        <img src="../images/stick.png" alt="Stick" class="item-image" draggable="false">
+                    </div>
+                    <div class="pedestal-base"></div>
+                    <div class="answer-dropzone" data-target="N" aria-label="Stick thickness input answer drop zone">Drop ✓ or ✕</div><div class="choice-options" aria-label="Answer choices"><div class="drag-option tick-option" data-value="T" aria-label="Tick option">✓</div><div class="drag-option cross-option" data-value="N" aria-label="Cross option">✕</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 2: Thin Candle & Thick Candle -->
+        <div class="slide-item" data-q="1">
+            <div class="ruler-workbench">
+                <div class="ruler-floor"></div>
+
+                <div class="object-station" id="station-1-1">
+                    <div class="item-image-wrapper">
+                        <div class="caliper-guide"></div>
+                        <div class="status-badge" id="badge-1-1"></div>
+                        <img src="../images/candle_thin.png" alt="Thin Candle" class="item-image" draggable="false">
+                    </div>
+                    <div class="pedestal-base"></div>
+                    <div class="answer-dropzone" data-target="N" aria-label="Thin Candle input answer drop zone">Drop ✓ or ✕</div><div class="choice-options" aria-label="Answer choices"><div class="drag-option tick-option" data-value="T" aria-label="Tick option">✓</div><div class="drag-option cross-option" data-value="N" aria-label="Cross option">✕</div></div>
+                </div>
+
+                <div class="object-station" id="station-1-2">
+                    <div class="item-image-wrapper">
+                        <div class="caliper-guide"></div>
+                        <div class="status-badge" id="badge-1-2"></div>
+                        <img src="../images/candle_thick.png" alt="Thick Candle" class="item-image" draggable="false">
+                    </div>
+                    <div class="pedestal-base"></div>
+                    <div class="answer-dropzone" data-target="T" aria-label="Thick Candle input answer drop zone">Drop ✓ or ✕</div><div class="choice-options" aria-label="Answer choices"><div class="drag-option tick-option" data-value="T" aria-label="Tick option">✓</div><div class="drag-option cross-option" data-value="N" aria-label="Cross option">✕</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 3: Thick Rope & Thin Rope -->
+        <div class="slide-item" data-q="2">
+            <div class="ruler-workbench">
+                <div class="ruler-floor"></div>
+
+                <div class="object-station" id="station-2-1">
+                    <div class="item-image-wrapper">
+                        <div class="caliper-guide"></div>
+                        <div class="status-badge" id="badge-2-1"></div>
+                        <img src="../images/rope_thick.png" alt="Thick Rope" class="item-image" draggable="false">
+                    </div>
+                    <div class="pedestal-base"></div>
+                    <div class="answer-dropzone" data-target="T" aria-label="Thick Rope input answer drop zone">Drop ✓ or ✕</div><div class="choice-options" aria-label="Answer choices"><div class="drag-option tick-option" data-value="T" aria-label="Tick option">✓</div><div class="drag-option cross-option" data-value="N" aria-label="Cross option">✕</div></div>
+                </div>
+
+                <div class="object-station" id="station-2-2">
+                    <div class="item-image-wrapper">
+                        <div class="caliper-guide"></div>
+                        <div class="status-badge" id="badge-2-2"></div>
+                        <img src="../images/rope_thin.png" alt="Thin Rope" class="item-image" draggable="false">
+                    </div>
+                    <div class="pedestal-base"></div>
+                    <div class="answer-dropzone" data-target="N" aria-label="Thin Rope input answer drop zone">Drop ✓ or ✕</div><div class="choice-options" aria-label="Answer choices"><div class="drag-option tick-option" data-value="T" aria-label="Tick option">✓</div><div class="drag-option cross-option" data-value="N" aria-label="Cross option">✕</div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+    </footer>
+
+    <div id="confettiContainer"></div>
+
+    <!-- Result Popup Overlay -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup-card" id="popupCard">
+            <div class="popup-icon" id="popupIcon">⭐</div>
+            <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+            <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+            <button class="nav-btn replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        let quizState = Array.from({ length: 3 }, () => ({
+            input1: '',
+            input2: '',
+            isUnlocked: false
+        }));
+
+        let currentIndex = 0;
+        let popupTimer = null;
+
+        const slides = document.querySelectorAll('.slide-item');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        // Prevent dragging on all images globally
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+            }
+        });
+
+        // REQUESTED SPEAK FUNCTION WITH VOLUME 0.25
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playAudioTone(isCorrect) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2); 
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            }
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // Reliable drag-and-drop for ✓ and ✕.
+        // Works with mouse, trackpad and touch.
+        let activeDrag = null;
+
+        function setupDragAndDrop() {
+            document.querySelectorAll('.drag-option').forEach(option => {
+                option.addEventListener('pointerdown', function (e) {
+                    if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+                    const slide = this.closest('.slide-item');
+                    if (!slide || !slide.classList.contains('active')) return;
+
+                    e.preventDefault();
+
+                    const rect = this.getBoundingClientRect();
+                    const ghost = this.cloneNode(true);
+
+                    ghost.classList.add('dragging');
+                    ghost.style.position = 'fixed';
+                    ghost.style.left = rect.left + 'px';
+                    ghost.style.top = rect.top + 'px';
+                    ghost.style.width = rect.width + 'px';
+                    ghost.style.height = rect.height + 'px';
+                    ghost.style.margin = '0';
+                    ghost.style.zIndex = '99999';
+                    ghost.style.pointerEvents = 'none';
+                    ghost.style.transform = 'none';
+                    document.body.appendChild(ghost);
+
+                    this.setPointerCapture?.(e.pointerId);
+
+                    activeDrag = {
+                        option: this,
+                        ghost: ghost,
+                        value: this.dataset.value,
+                        pointerId: e.pointerId
+                    };
+                });
+
+                option.addEventListener('pointermove', function (e) {
+                    if (!activeDrag || activeDrag.option !== this) return;
+
+                    const ghost = activeDrag.ghost;
+                    ghost.style.left = (e.clientX - ghost.offsetWidth / 2) + 'px';
+                    ghost.style.top = (e.clientY - ghost.offsetHeight / 2) + 'px';
+
+                    document.querySelectorAll('.answer-dropzone').forEach(zone => {
+                        const r = zone.getBoundingClientRect();
+                        const over =
+                            e.clientX >= r.left &&
+                            e.clientX <= r.right &&
+                            e.clientY >= r.top &&
+                            e.clientY <= r.bottom &&
+                            zone.closest('.slide-item')?.classList.contains('active');
+
+                        zone.classList.toggle('drag-over', over);
+                    });
+                });
+
+                option.addEventListener('pointerup', function (e) {
+                    if (!activeDrag || activeDrag.option !== this) return;
+
+                    const value = activeDrag.value;
+                    const x = e.clientX;
+                    const y = e.clientY;
+
+                    let droppedZone = null;
+
+                    document.querySelectorAll('.answer-dropzone').forEach(zone => {
+                        const r = zone.getBoundingClientRect();
+
+                        if (
+                            zone.closest('.slide-item')?.classList.contains('active') &&
+                            x >= r.left && x <= r.right &&
+                            y >= r.top && y <= r.bottom
+                        ) {
+                            droppedZone = zone;
+                        }
+
+                        zone.classList.remove('drag-over');
+                    });
+
+                    if (droppedZone && (value === 'T' || value === 'N')) {
+                        fillDropZone(droppedZone, value);
+                    }
+
+                    activeDrag.ghost.remove();
+                    activeDrag = null;
+                });
+
+                option.addEventListener('pointercancel', function () {
+                    if (!activeDrag || activeDrag.option !== this) return;
+
+                    document.querySelectorAll('.answer-dropzone').forEach(zone => {
+                        zone.classList.remove('drag-over');
+                    });
+
+                    activeDrag.ghost.remove();
+                    activeDrag = null;
+                });
+            });
+        }
+
+        function fillDropZone(zone, value) {
+            const slide = zone.closest('.slide-item');
+            if (!slide || !slide.classList.contains('active')) return;
+
+            // Do not allow a box that has already been answered correctly
+            // to be changed again.
+            if (zone.dataset.locked === 'true') return;
+
+            zone.dataset.value = value;
+            zone.textContent = value === 'T' ? '✓' : '✕';
+            zone.classList.add('filled');
+            zone.classList.remove('drag-over');
+
+            const zones = slide.querySelectorAll('.answer-dropzone');
+            const questionIndex = Number(slide.dataset.q);
+            const zoneIndex = Array.from(zones).indexOf(zone);
+
+            if (zoneIndex === 0) {
+                quizState[questionIndex].input1 = value;
+            } else if (zoneIndex === 1) {
+                quizState[questionIndex].input2 = value;
+            }
+
+            // Check THIS answer immediately.
+            checkSingleAnswer(zone, value);
+        }
+
+        function checkSingleAnswer(zone, value) {
+            const slide = zone.closest('.slide-item');
+            if (!slide || !slide.classList.contains('active')) return;
+
+            const questionIndex = Number(slide.dataset.q);
+            const zones = slide.querySelectorAll('.answer-dropzone');
+            const zoneIndex = Array.from(zones).indexOf(zone);
+            const target = zone.dataset.target;
+
+            if (value === target) {
+                // This box is correct. Keep it filled and lock it.
+                zone.dataset.locked = 'true';
+                zone.classList.add('correct-answer');
+
+                showSmallConfetti(false);
+                playAudioTone(true);
+                speak("Correct");
+                showPopup('correct', '🌟', 'Amazing!', 'Great job! ✨', false);
+
+                // Unlock Next only after BOTH boxes are correct.
+                const bothCorrect =
+                    zones.length === 2 &&
+                    zones[0].dataset.locked === 'true' &&
+                    zones[1].dataset.locked === 'true';
+
+                if (bothCorrect) {
+                    quizState[questionIndex].isUnlocked = true;
+
+                    if (currentIndex === slides.length - 1) {
+                        lockNavigationAtFinal();
+                        showSmallConfetti(true);
+
+                        showPopup(
+                            'complete',
+                            '🏆',
+                            'Congratulations!',
+                            'Fantastic job! You solved all questions! 🎉',
+                            true
+                        );
+                    }
+
+                    updateNavButtons();
+                }
+            } else {
+                // Only the box that was just answered is cleared.
+                playAudioTone(false);
+                speak("Try again");
+                showPopup('wrong', '😟', 'Wrong!', 'Try again! 🌈', false);
+
+                zone.dataset.value = '';
+                zone.textContent = 'Drop ✓ or ✕';
+                zone.classList.remove('filled', 'drag-over', 'correct-answer');
+
+                if (zoneIndex === 0) {
+                    quizState[questionIndex].input1 = '';
+                } else if (zoneIndex === 1) {
+                    quizState[questionIndex].input2 = '';
+                }
+
+                zone.dataset.locked = 'false';
+                quizState[questionIndex].isUnlocked = false;
+                updateNavButtons();
+            }
+        }
+
+        function bindSlideEvents() {
+            slides.forEach((slide, slideIndex) => {
+                const zones = slide.querySelectorAll('.answer-dropzone');
+
+                zones.forEach((zone, zoneIndex) => {
+                    zone.dataset.value = '';
+                    zone.textContent = 'Drop ✓ or ✕';
+                    zone.classList.remove('filled', 'drag-over', 'correct-answer');
+                    zone.dataset.locked = 'false';
+
+                    // Keep state synchronized if the slide is reset.
+                    zone.dataset.target = zone.dataset.target;
+                });
+            });
+
+            setupDragAndDrop();
+            updateNavButtons();
+        }
+
+        function navigate(direction) {
+            // Never allow navigation beyond the quiz or away from the final state.
+            if (currentIndex === slides.length - 1 && direction > 0) return;
+
+            const newIndex = currentIndex + direction;
+            if (newIndex < 0 || newIndex >= slides.length) return;
+
+            // Next is available only after both answers on the current question
+            // have been answered correctly.
+            if (direction > 0 && !quizState[currentIndex].isUnlocked) return;
+
+            slides[currentIndex].classList.remove('active');
+            currentIndex = newIndex;
+            slides[currentIndex].classList.add('active');
+
+            updateNavButtons();
+        }
+
+        function updateNavButtons() {
+            prevBtn.disabled = currentIndex === 0;
+
+            const isLastQuestion = currentIndex === slides.length - 1;
+            const isUnlocked = quizState[currentIndex].isUnlocked;
+
+            nextBtn.disabled = isLastQuestion || !isUnlocked;
+        }
+
+        function checkAnswers() {
+            const activeSlide = slides[currentIndex];
+            const zones = activeSlide.querySelectorAll('.answer-dropzone');
+
+            const val1 = quizState[currentIndex].input1;
+            const val2 = quizState[currentIndex].input2;
+
+            const target1 = zones[0].dataset.target;
+            const target2 = zones[1].dataset.target;
+
+            if (!val1 || !val2) return;
+
+            if (val1 === target1 && val2 === target2) {
+                quizState[currentIndex].isUnlocked = true;
+
+                if (currentIndex === slides.length - 1) {
+                    // Last question: show Correct popup first, then Final popup.
+                    showSmallConfetti(false);
+                    showPopup('correct', '🌟', 'Amazing!', 'You got it right! ✨', false);
+                    playAudioTone(true);
+                    speak("Correct");
+
+                    setTimeout(() => {
+                        lockNavigationAtFinal();
+                        showSmallConfetti(true);
+                        showPopup(
+                            'complete',
+                            '🏆',
+                            'Congratulations!',
+                            'Fantastic job! You solved all questions! 🎉',
+                            true
+                        );
+                    }, 1900);
+
+                } else {
+                    showSmallConfetti(false);
+                    showPopup('correct', '🌟', 'Amazing!', 'You got it right! ✨', false);
+                    playAudioTone(true);
+                    speak("Correct");
+                }
+
+                updateNavButtons();
+            } else {
+                showPopup('wrong', '😟', 'Keep going!', 'Try again, you can do it! 🌈', false);
+                playAudioTone(false);
+                speak("Wrong");
+                resetCurrentInputs();
+            }
+        }
+
+        function resetCurrentInputs() {
+            const activeSlide = slides[currentIndex];
+            const zones = activeSlide.querySelectorAll('.answer-dropzone');
+
+            zones.forEach(zone => {
+                zone.dataset.value = '';
+                zone.textContent = 'Drop ✓ or ✕';
+                zone.classList.remove('filled', 'drag-over', 'correct-answer');
+                zone.dataset.locked = 'false';
+            });
+
+            quizState[currentIndex].input1 = '';
+            quizState[currentIndex].input2 = '';
+
+            updateNavButtons();
+        }
+
+        function lockNavigationAtFinal() {
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            prevBtn.style.pointerEvents = 'none';
+            nextBtn.style.pointerEvents = 'none';
+            prevBtn.setAttribute('aria-disabled', 'true');
+            nextBtn.setAttribute('aria-disabled', 'true');
+        }
+
+
+        function showSmallConfetti(isFinal = false) {
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (!confettiContainer) return;
+
+            confettiContainer.innerHTML = '';
+
+            // Exact same amount and behavior as the other quiz.
+            const count = isFinal ? 95 : 42;
+
+            const colors = [
+                '#00b894',
+                '#e67e22',
+                '#6c5ce7',
+                '#0984e3',
+                '#fdcb6e',
+                '#ff6b7a',
+                '#00cec9',
+                '#a29bfe'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('span');
+
+                piece.className =
+                    isFinal
+                        ? 'confetti-piece final-confetti-piece'
+                        : 'confetti-piece';
+
+                const startX = Math.random() * 100;
+                const startY = -8 + Math.random() * 10;
+
+                const drift =
+                    (Math.random() * 520 - 260) *
+                    (isFinal ? 1.15 : 0.9);
+
+                const fall =
+                    window.innerHeight *
+                    (0.82 + Math.random() * 0.48);
+
+                const rotation =
+                    Math.random() * 1400 - 700;
+
+                piece.style.left = startX + '%';
+                piece.style.top = startY + '%';
+
+                piece.style.setProperty('--x', drift + 'px');
+                piece.style.setProperty('--y', fall + 'px');
+                piece.style.setProperty('--r', rotation + 'deg');
+
+                piece.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+
+                piece.style.animationDelay =
+                    (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(
+                    () => piece.remove(),
+                    isFinal ? 2900 : 2050
+                );
+            }
+        }
+
+        function showPopup(status, icon, title, subtitle, isFinal = false) {
+            const popup = document.getElementById('popup');
+            const card = document.getElementById('popupCard');
+            
+            card.className = `popup-card ${status}`;
+            document.getElementById('popupIcon').innerText = icon;
+            document.getElementById('popupTitle').innerText = title;
+            document.getElementById('popupSubtitle').innerText = subtitle;
+            
+            if (isFinal) {
+                lockNavigationAtFinal();
+                playAgainBtn.style.display = 'inline-block';
+            } else {
+                playAgainBtn.style.display = 'none';
+            }
+
+            popup.classList.add('active');
+            popup.style.pointerEvents = isFinal ? 'auto' : 'none';
+
+            clearTimeout(popupTimer);
+            if (!isFinal) {
+                popupTimer = setTimeout(() => {
+                    closePopup();
+                }, 1800);
+            }
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.classList.remove('active');
+            popup.style.pointerEvents = '';
+        }
+
+        function restartGame() {
+            closePopup();
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (confettiContainer) confettiContainer.innerHTML = '';
+
+            prevBtn.style.pointerEvents = '';
+            nextBtn.style.pointerEvents = '';
+            prevBtn.removeAttribute('aria-disabled');
+            nextBtn.removeAttribute('aria-disabled');
+
+            prevBtn.style.pointerEvents = '';
+            nextBtn.style.pointerEvents = '';
+            prevBtn.removeAttribute('aria-disabled');
+            nextBtn.removeAttribute('aria-disabled');
+            prevBtn.disabled = false;
+            nextBtn.disabled = true;
+            quizState = Array.from({ length: 3 }, () => ({
+                input1: '',
+                input2: '',
+                isUnlocked: false
+            }));
+
+            slides[currentIndex].classList.remove('active');
+            currentIndex = 0;
+            slides[currentIndex].classList.add('active');
+
+            slides.forEach((slide) => {
+                const zones = slide.querySelectorAll('.answer-dropzone');
+                zones.forEach(zone => {
+                    zone.dataset.value = '';
+                    zone.textContent = 'Drop ✓ or ✕';
+                    zone.classList.remove('filled', 'drag-over', 'correct-answer');
+                    zone.dataset.locked = 'false';
+                });
+            });
+
+            updateNavButtons();
+        }
+
+        bindSlideEvents();
+    </script>
+</body>
+</html>

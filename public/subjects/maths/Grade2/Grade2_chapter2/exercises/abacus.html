@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Draw the Beads</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../assets/css/reuse.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+    font-family:"Livvic",sans-serif;
+}
+
+body {
+    background-image: url("../assets/images/bg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    font-family: "Livvic", sans-serif;
+
+    max-width: 100vw;
+    min-height: 100vh;
+}
+button,input{
+    font:inherit;
+}
+
+.page{
+    width:100%;
+    height:100vh;
+    height:100dvh;
+    padding:clamp(8px,1.4vh,18px) clamp(14px,2.5vw,42px) clamp(10px,1.5vh,18px);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+/* =========================
+   TOP BAR — from file 2
+   ========================= */
+
+.topbar{
+    width:100%;
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:90px minmax(0,1fr) 90px;
+    align-items:start;
+    gap:10px;
+}
+
+.icon-btn{
+    background:none;
+    border:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    cursor:pointer;
+}
+
+.icon-circle{
+    width:clamp(42px,4.2vw,62px);
+    height:clamp(42px,4.2vw,62px);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:clamp(18px,1.8vw,27px);
+    transition:transform .2s ease;
+}
+
+.icon-btn:hover .icon-circle{
+    transform:scale(1.06);
+}
+
+.icon-circle.home{
+    background:linear-gradient(145deg,#8b6fe0,#6f42c1);
+    box-shadow:0 4px 0 #4f2e93;
+}
+
+.icon-circle.hint{
+    background:linear-gradient(145deg,#ffc94d,#f7a800);
+    box-shadow:0 4px 0 #c17e00;
+}
+
+.title{
+    margin:0;
+    width:100%;
+    text-align:center;
+    color:#303030;
+    font-size:clamp(22px,2.7vw,40px);
+    line-height:1.12;
+    font-weight:400;
+}
+
+/* =========================
+   INSTRUCTION
+   ========================= */
+
+.instruction{
+    flex:0 0 auto;
+    text-align:center;
+    color:#303030;
+    font-size:clamp(17px,1.7vw,24px);
+    margin:clamp(8px,1.2vh,14px) 0 clamp(5px,1vh,10px);
+}
+
+/* =========================
+   THREE QUESTIONS — ONE PAGE
+   ========================= */
+
+.questions{
+    flex:1 1 auto;
+    min-height:0;
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:clamp(12px,2.5vw,42px);
+    align-items:stretch;
+}
+
+.question-card{
+    min-width:0;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    overflow:visible;
+    padding:clamp(6px,1vw,14px);
+    /* border-radius:20px; */
+    /* background:rgba(255,255,255,.7); */
+}
+
+.question-label{
+    width:100%;
+    margin:0 0 clamp(3px,.7vh,8px);
+    color:#303030;
+    font-size:clamp(18px,2vw,29px);
+    font-weight:400;
+}
+
+.abacus{
+    position:relative;
+    width:min(100%,360px);
+    height:clamp(240px,43vh,370px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
+    overflow:visible;
+}
+
+.rods{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:clamp(42px,6vh,58px);
+    height:auto;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:clamp(14px,2.6vw,42px);
+    padding:0 clamp(18px,4vw,48px);
+    overflow:visible;
+}
+
+.rod{
+    position:relative;
+    width:3px;
+    height:100%;
+    justify-self:center;
+    background:#595959;
+    border-radius:4px;
+    cursor:pointer;
+    overflow:visible;
+}
+
+.rod:hover{
+    background:#444;
+}
+
+.rod-line{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+}
+
+.bead-stack{
+    position:absolute;
+    left:50%;
+    bottom:0;
+    transform:translateX(-50%);
+    display:flex;
+    flex-direction:column-reverse;
+    align-items:center;
+    gap:1px;
+    z-index:3;
+    pointer-events:none;
+    width:30px;
+}
+
+.bead{
+    width:clamp(20px,2.1vw,30px);
+    height:clamp(20px,2.1vw,30px);
+    flex:0 0 auto;
+    border-radius:50%;
+    cursor:pointer;
+    pointer-events:auto;
+    box-shadow:inset -3px -4px 5px rgba(0,0,0,.15),0 2px 3px rgba(0,0,0,.14);
+    transition:transform .12s ease,filter .12s ease;
+}
+
+.bead:hover{
+    transform:scale(1.08);
+    filter:brightness(1.05);
+}
+
+.bead.hundred{
+    background:radial-gradient(circle at 35% 30%,#ffe976 0%,#ffd329 50%,#f2ad00 100%);
+}
+
+.bead.ten{
+    background:radial-gradient(circle at 35% 30%,#59d789 0%,#16b957 50%,#07963d 100%);
+}
+
+.bead.one{
+    background:radial-gradient(circle at 35% 30%,#62c8ff 0%,#129fdf 50%,#087bb7 100%);
+}
+
+.abacus-base{
+    position:relative;
+    z-index:5;
+    width:min(92%,330px);
+    height:clamp(42px,6vh,58px);
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    align-items:center;
+    border-radius:10px;
+    background:#f1f1f1;
+    border:2px solid #bdbdbd;
+    box-shadow:0 3px 0 rgba(0,0,0,.12);
+    color:#222;
+    font-size:clamp(16px,1.8vw,23px);
+    font-weight:500;
+}
+
+.base-label{
+    text-align:center;
+}
+
+.target-wrap{
+    margin-top:clamp(9px,1.5vh,14px);
+    display:flex;
+    justify-content:center;
+}
+
+.target-input{
+    width:clamp(120px,12vw,155px);
+    height:clamp(32px,4.5vh,44px);
+    padding:2px 8px;
+    text-align:center;
+    border:1.5px solid #ff8b5c;
+    border-radius:5px;
+    background:#fff;
+    color:#222;
+    font-size:clamp(20px,2vw,28px);
+    letter-spacing:clamp(3px,.6vw,6px);
+    outline:none;
+}
+
+.target-input:focus{
+    border-color:#ff8b5c;
+}
+
+.check-btn{
+    margin-top:clamp(7px,1.2vh,12px);
+    min-width:clamp(92px,9vw,120px);
+    height:clamp(36px,4.5vh,46px);
+    border:0;
+    border-radius:13px;
+    background:linear-gradient(145deg,#73b9ff,#4d9cf4);
+    color:#fff;
+    font-size:clamp(15px,1.5vw,19px);
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 4px 0 #377fcf;
+    transition:transform .15s ease,opacity .15s ease;
+}
+
+.check-btn:hover:not(:disabled){
+    transform:translateY(-2px);
+}
+
+.check-btn:active:not(:disabled){
+    transform:translateY(2px);
+}
+
+.check-btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+.question-card.correct .check-btn{
+    background:linear-gradient(145deg,#59d789,#16b957);
+    box-shadow:0 4px 0 #0c8c42;
+}
+
+/* =========================
+   SMALL HELPER
+   ========================= */
+
+.delete-note{
+    flex:0 0 auto;
+    text-align:center;
+    color:#666;
+    font-size:clamp(12px,1.2vw,16px);
+    margin:clamp(4px,.7vh,8px) 0 0;
+}
+
+/* =========================
+   POPUP FALLBACK / SHARED LOOK
+   ========================= */
+
+.hint-overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:3500;
+    background:rgba(0,0,0,.25);
+}
+
+.hint-overlay.show{
+    display:flex;
+}
+
+.hint-box{
+    width:min(420px,calc(100vw - 32px));
+    padding:26px 28px;
+    background:#fff;
+    border-radius:24px;
+    text-align:center;
+    box-shadow:0 12px 35px rgba(0,0,0,.18);
+}
+
+.hint-box h3{
+    margin:0 0 10px;
+    color:#e08e00;
+    font-size:clamp(24px,3vw,32px);
+    font-weight:700;
+}
+
+.hint-box p{
+    margin:0;
+    color:#1f2d3d;
+    font-size:clamp(16px,1.6vw,21px);
+    line-height:1.45;
+}
+
+.hint-close{
+    margin-top:18px;
+    min-width:110px;
+    height:44px;
+    border:0;
+    border-radius:24px;
+    background:linear-gradient(145deg,#ffc94d,#f7a800);
+    color:#fff;
+    font-size:17px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow:0 4px 0 #c17e00;
+}
+
+#answerPopup,#finalPopup{
+    z-index:4000;
+}
+
+#answerPopup:not(.show),
+#finalPopup:not(.show){
+    /* reuse.css controls visibility when available */
+}
+
+@media (max-width:900px){
+    .page{
+        padding:7px 12px 8px;
+    }
+
+    .topbar{
+        grid-template-columns:55px minmax(0,1fr) 55px;
+    }
+
+    .questions{
+        gap:10px;
+    }
+
+    .question-card{
+        padding:4px;
+    }
+
+    .abacus{
+        height:clamp(205px,39vh,300px);
+    }
+
+    .rods{
+        bottom:43px;
+        padding:0 17%;
+        gap:20px;
+    }
+
+    .bead{
+        width:20px;
+        height:20px;
+    }
+
+    .bead-stack{
+        width:28px;
+    }
+
+    .abacus-base{
+        width:92%;
+        height:43px;
+    }
+
+    .rod-count{
+    position:absolute;
+    left:50%;
+    top:calc(100% + clamp(42px,6vh,58px) + 7px);
+    transform:translateX(-50%);
+    z-index:8;
+    width:24px;
+    height:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#29345d;
+    color:#fff;
+    border:2px solid #fff;
+    font-size:11px;
+    font-weight:600;
+    line-height:1;
+    pointer-events:auto;
+    box-shadow:0 2px 4px rgba(0,0,0,.18);
+    cursor:pointer;
+}
+
+@media (max-width:600px){
+    html,body{
+        overflow:auto;
+    }
+
+    .page{
+        min-height:100dvh;
+        height:auto;
+        overflow:visible;
+        padding:5px 8px 10px;
+    }
+
+    .topbar{
+        grid-template-columns:45px minmax(0,1fr) 45px;
+    }
+
+    .icon-circle{
+        width:36px;
+        height:36px;
+        font-size:15px;
+    }
+
+    .title{
+        font-size:clamp(17px,4.5vw,21px);
+    }
+
+    .instruction{
+        font-size:15px;
+        margin:6px 0;
+    }
+
+    .questions{
+        flex:none;
+        grid-template-columns:1fr;
+        gap:10px;
+    }
+
+    .question-card{
+        min-height:300px;
+        padding:8px;
+    }
+
+    .question-label{
+        font-size:20px;
+    }
+
+    .abacus{
+        width:min(360px,100%);
+        height:220px;
+    }
+
+    .rods{
+        bottom:37px;
+        padding:0 20%;
+        gap:22px;
+    }
+
+    .rod{
+        width:3px;
+    }
+
+    .bead-stack{
+        width:25px;
+    }
+
+    .bead{
+        width:17px;
+        height:17px;
+    }
+
+    .abacus-base{
+        width:205px;
+        height:36px;
+        font-size:14px;
+    }
+
+    .rod-count{
+        top:calc(100% + 36px + 5px);
+        width:19px;
+        height:19px;
+        font-size:9px;
+        border-width:1px;
+    }
+
+    .target-input{
+        width:120px;
+        height:34px;
+        font-size:20px;
+    }
+
+    .check-btn{
+        min-width:96px;
+        height:38px;
+        font-size:15px;
+    }
+
+    .delete-note{
+        margin-bottom:4px;
+    }
+}
+
+@media (min-width:1441px){
+    .questions{
+        gap:48px;
+    }
+
+    .abacus{
+        width:380px;
+        height:370px;
+    }
+
+    .rods{
+        bottom:58px;
+        padding:0 48px;
+        gap:38px;
+    }
+
+    .bead{
+        width:28px;
+        height:28px;
+    }
+
+    .abacus-base{
+        width:350px;
+        height:58px;
+    }
+
+    .rod-count{
+        top:calc(100% + 58px + 8px);
+        width:25px;
+        height:25px;
+        font-size:11px;
+    }
+}
+
+    .abacus-base{
+        width:350px;
+    }
+}
+
+@media (max-height:700px) and (min-width:601px){
+    .instruction{
+        margin:4px 0;
+        font-size:16px;
+    }
+
+    .question-card{
+        padding:2px;
+    }
+
+    .abacus{
+        height:215px;
+    }
+
+    .rods{
+        bottom:38px;
+    }
+
+    .bead{
+        width:20px;
+        height:20px;
+    }
+
+    .abacus-base{
+        height:38px;
+    }
+
+    .rod-count{
+        top:calc(100% + 38px + 5px);
+        width:21px;
+        height:21px;
+        font-size:10px;
+    }
+
+    .target-input{
+        height:32px;
+        font-size:19px;
+    }
+
+    .check-btn{
+        height:34px;
+        margin-top:5px;
+    }
+
+    .delete-note{
+        font-size:11px;
+        margin-top:3px;
+    }
+}
+
+/* FINAL ABACUS TUNING */
+@media (min-width:901px){
+    .abacus{
+        height:clamp(245px,44vh,370px);
+    }
+
+    .rods{
+        bottom:clamp(46px,6vh,58px);
+    }
+
+    .rod{
+        height:100%;
+    }
+
+    .bead{
+        width:clamp(20px,1.9vw,28px);
+        height:clamp(20px,1.9vw,28px);
+    }
+
+    .rod-count{
+        top:calc(100% + clamp(46px,6vh,58px) + 7px);
+        width:24px;
+        height:24px;
+        font-size:11px;
+    }
+}
+
+@media (max-width:900px) and (min-width:601px){
+    .abacus{
+        height:clamp(215px,40vh,300px);
+    }
+
+    .rods{
+        bottom:43px;
+        padding:0 17%;
+        gap:20px;
+    }
+
+    .bead{
+        width:20px;
+        height:20px;
+    }
+
+    .bead-stack{
+        width:26px;
+    }
+
+    .abacus-base{
+        height:43px;
+    }
+
+    .rod-count{
+        top:calc(100% + 43px + 6px);
+        width:22px;
+        height:22px;
+        font-size:10px;
+    }
+}
+
+@media (max-width:600px){
+    .abacus{
+        height:220px;
+    }
+
+    .rods{
+        bottom:37px;
+        padding:0 20%;
+        gap:22px;
+    }
+
+    .rod{
+        width:3px;
+    }
+
+    .bead-stack{
+        width:24px;
+    }
+
+    .bead{
+        width:17px;
+        height:17px;
+    }
+
+    .abacus-base{
+        height:36px;
+    }
+
+    .rod-count{
+        top:calc(100% + 36px + 5px);
+        width:19px;
+        height:19px;
+        font-size:9px;
+        border-width:1px;
+    }
+}
+
+@media (max-height:700px) and (min-width:601px){
+    .abacus{
+        height:215px;
+    }
+
+    .rods{
+        bottom:38px;
+    }
+
+    .bead{
+        width:20px;
+        height:20px;
+    }
+
+    .abacus-base{
+        height:38px;
+    }
+
+    .rod-count{
+        top:calc(100% + 38px + 5px);
+        width:21px;
+        height:21px;
+    }
+}
+
+
+/* FINAL NO-OVERLAP RESPONSIVE PASS */
+.question-card{
+    overflow:visible;
+}
+
+.abacus{
+    overflow:visible;
+    flex:0 0 auto;
+}
+
+.rods{
+    overflow:visible;
+}
+
+.bead-stack{
+    overflow:visible;
+}
+
+.rod-count{
+    pointer-events:auto;
+    white-space:nowrap;
+}
+
+.target-wrap{
+    position:relative;
+    z-index:2;
+    margin-top:clamp(38px,4.8vh,48px);
+}
+
+@media (min-width:901px){
+    .abacus{
+        width:min(100%,360px);
+        height:clamp(250px,43vh,350px);
+    }
+
+    .rods{
+        bottom:clamp(46px,6vh,58px);
+        padding-left:clamp(22px,4vw,48px);
+        padding-right:clamp(22px,4vw,48px);
+        gap:clamp(12px,2.2vw,36px);
+    }
+
+    .bead{
+        width:clamp(20px,1.8vw,28px);
+        height:clamp(20px,1.8vw,28px);
+    }
+
+    .bead-stack{
+        width:30px;
+    }
+
+    .rod-count{
+        top:calc(100% + clamp(46px,6vh,58px) + 6px);
+        width:24px;
+        height:24px;
+    }
+
+    .target-wrap{
+        margin-top:clamp(38px,4.8vh,48px);
+    }
+}
+
+@media (min-width:1200px){
+    .abacus{
+        width:min(100%,350px);
+        height:330px;
+    }
+
+    .rods{
+        bottom:54px;
+        padding-left:32px;
+        padding-right:32px;
+        gap:24px;
+    }
+
+    .bead{
+        width:25px;
+        height:25px;
+    }
+
+    .rod-count{
+        top:calc(100% + 54px + 6px);
+    }
+}
+
+@media (min-width:1441px){
+    .abacus{
+        width:min(100%,360px);
+        height:345px;
+    }
+
+    .rods{
+        bottom:58px;
+        padding-left:36px;
+        padding-right:36px;
+        gap:28px;
+    }
+
+    .bead{
+        width:27px;
+        height:27px;
+    }
+
+    .rod-count{
+        top:calc(100% + 58px + 7px);
+        width:25px;
+        height:25px;
+    }
+}
+
+@media (max-width:900px) and (min-width:601px){
+    .abacus{
+        width:min(100%,330px);
+        height:275px;
+    }
+
+    .rods{
+        bottom:43px;
+        padding-left:38px;
+        padding-right:38px;
+        gap:18px;
+    }
+
+    .bead{
+        width:20px;
+        height:20px;
+    }
+
+    .bead-stack{
+        width:24px;
+    }
+
+    .abacus-base{
+        width:min(92%,300px);
+        height:43px;
+    }
+
+    .rod-count{
+        top:calc(100% + 43px + 5px);
+        width:22px;
+        height:22px;
+        font-size:10px;
+    }
+
+    .target-wrap{
+        margin-top:34px;
+    }
+}
+
+@media (max-width:600px){
+    .abacus{
+        width:min(330px,100%);
+        height:220px;
+    }
+
+    .rods{
+        bottom:36px;
+        left:0;
+        right:0;
+        padding-left:48px;
+        padding-right:48px;
+        gap:14px;
+    }
+
+    .rod{
+        width:3px;
+    }
+
+    .bead-stack{
+        width:22px;
+    }
+
+    .bead{
+        width:17px;
+        height:17px;
+    }
+
+    .abacus-base{
+        width:min(205px,88%);
+        height:36px;
+    }
+
+    .rod-count{
+        top:calc(100% + 36px + 5px);
+        width:19px;
+        height:19px;
+        font-size:9px;
+        border-width:1px;
+    }
+
+    .target-wrap{
+        margin-top:30px;
+    }
+}
+
+@media (max-width:380px){
+    .abacus{
+        width:100%;
+        height:210px;
+    }
+
+    .rods{
+        bottom:34px;
+        padding-left:42px;
+        padding-right:42px;
+        gap:10px;
+    }
+
+    .bead{
+        width:16px;
+        height:16px;
+    }
+
+    .bead-stack{
+        width:21px;
+    }
+
+    .abacus-base{
+        width:min(190px,86%);
+        height:34px;
+    }
+
+    .rod-count{
+        top:calc(100% + 34px + 4px);
+        width:18px;
+        height:18px;
+        font-size:8px;
+    }
+
+    .target-wrap{
+        margin-top:28px;
+    }
+}
+
+@media (max-height:700px) and (min-width:601px){
+    .abacus{
+        height:215px;
+    }
+
+    .rods{
+        bottom:38px;
+    }
+
+    .bead{
+        width:19px;
+        height:19px;
+    }
+
+    .abacus-base{
+        height:38px;
+    }
+
+    .rod-count{
+        top:calc(100% + 38px + 5px);
+        width:20px;
+        height:20px;
+    }
+
+    .target-wrap{
+        margin-top:31px;
+    }
+}
+
+
+/* ===== ROD COUNT + ABACUS RESPONSIVE FINAL ===== */
+.rod-count{
+    position:absolute;
+    left:50%;
+    top:calc(100% + 8px);
+    transform:translateX(-50%);
+    z-index:20;
+    width:clamp(26px,2.2vw,34px);
+    height:clamp(26px,2.2vw,34px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:linear-gradient(145deg,#ffffff,#e9edf7);
+    color:#29345d;
+    border:2px solid #29345d;
+    box-shadow:0 3px 0 #aab2c8, 0 4px 8px rgba(0,0,0,.16);
+    font-size:clamp(12px,1.1vw,16px);
+    font-weight:800;
+    line-height:1;
+    pointer-events:none;
+    opacity:1 !important;
+}
+
+.rods{
+    z-index:10;
+    bottom:clamp(42px,6vh,58px);
+    overflow:visible;
+}
+
+.rod{
+    z-index:11;
+    height:100%;
+    overflow:visible;
+}
+
+.bead-stack{
+    z-index:30;
+    overflow:visible;
+}
+
+/* keep rods physically touching the base */
+.abacus-base{
+    position:relative;
+    z-index:12;
+    margin:0;
+}
+
+/* reserve enough room for visible count badges before the target */
+.target-wrap{
+    position:relative;
+    z-index:2;
+    margin-top:clamp(44px,5vh,58px);
+}
+
+
+@media (min-width:901px){
+    .abacus{
+        height:clamp(250px,43vh,350px);
+    }
+    .rods{
+        bottom:clamp(46px,6vh,58px);
+    }
+    .rod-count{
+        top:calc(100% + 8px);
+    }
+}
+
+@media (min-width:1200px){
+    .abacus{
+        width:min(100%,350px);
+        height:330px;
+    }
+    .rods{
+        bottom:54px;
+        padding-left:32px;
+        padding-right:32px;
+        gap:24px;
+    }
+    .rod-count{
+        width:30px;
+        height:30px;
+        font-size:14px;
+    }
+    .target-wrap{
+        margin-top:52px;
+    }
+}
+
+@media (min-width:1441px){
+    .abacus{
+        width:min(100%,360px);
+        height:345px;
+    }
+    .rods{
+        bottom:58px;
+        padding-left:36px;
+        padding-right:36px;
+        gap:28px;
+    }
+    .rod-count{
+        width:32px;
+        height:32px;
+    }
+    .target-wrap{
+        margin-top:56px;
+    }
+}
+
+@media (max-width:900px) and (min-width:601px){
+    .abacus{
+        width:min(100%,330px);
+        height:275px;
+    }
+    .rods{
+        bottom:43px;
+        padding-left:38px;
+        padding-right:38px;
+        gap:18px;
+    }
+    .rod-count{
+        width:24px;
+        height:24px;
+        font-size:11px;
+    }
+    .target-wrap{
+        margin-top:40px;
+    }
+}
+
+@media (max-width:600px){
+    .abacus{
+        width:min(330px,100%);
+        height:220px;
+    }
+    .rods{
+        bottom:36px;
+        padding-left:48px;
+        padding-right:48px;
+        gap:14px;
+    }
+    .rod-count{
+        width:21px;
+        height:21px;
+        font-size:10px;
+        border-width:1.5px;
+    }
+    .target-wrap{
+        margin-top:34px;
+    }
+}
+
+@media (max-width:380px){
+    .abacus{
+        width:100%;
+        height:210px;
+    }
+    .rods{
+        bottom:34px;
+        padding-left:42px;
+        padding-right:42px;
+        gap:10px;
+    }
+    .rod-count{
+        width:20px;
+        height:20px;
+        font-size:9px;
+    }
+    .target-wrap{
+        margin-top:32px;
+    }
+}
+
+@media (max-height:700px) and (min-width:601px){
+    .abacus{
+        height:215px;
+    }
+    .rods{
+        bottom:38px;
+    }
+    .rod-count{
+        width:22px;
+        height:22px;
+        font-size:10px;
+    }
+    .target-wrap{
+        margin-top:36px;
+    }
+}
+
+
+
+/* ===== HOW TO PLAY HINT ===== */
+.hint-box p{
+    white-space:pre-line;
+}
+
+@media (max-width:600px){
+    .hint-box{
+        width:min(360px,calc(100vw - 24px));
+        padding:22px 20px;
+    }
+    .hint-box p{
+        font-size:15px;
+        line-height:1.5;
+        text-align:left;
+    }
+}
+
+@media (max-width:380px){
+    .hint-box{
+        width:calc(100vw - 20px);
+        padding:20px 16px;
+    }
+    .hint-box p{
+        font-size:14px;
+    }
+}
+
+/* ===== DRAW-BEAD CONTROL — BEAD SHAPE ONLY ===== */
+.draw-bead-zone{
+    position:absolute;
+    left:50%;
+    top:-38px;
+    transform:translateX(-50%);
+    z-index:40;
+    width:clamp(28px,3vw,42px);
+    height:clamp(28px,3vw,42px);
+    min-width:28px;
+    min-height:28px;
+    padding:0;
+    border:0;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:clamp(11px,1vw,15px);
+    font-weight:800;
+    line-height:1;
+    cursor:pointer;
+    box-shadow:
+        inset -3px -4px 5px rgba(0,0,0,.15),
+        0 2px 3px rgba(0,0,0,.14);
+    transition:transform .12s ease,filter .12s ease;
+    white-space:nowrap;
+    appearance:none;
+    -webkit-appearance:none;
+}
+
+.draw-bead-zone::after{
+    display:none;
+}
+
+.draw-bead-zone::before{
+    content:"0";
+}
+
+.draw-bead-zone{
+    font-size:0;
+}
+
+.draw-bead-zone:hover{
+    transform:translateX(-50%) scale(1.08);
+    filter:brightness(1.05);
+}
+
+.draw-bead-zone:active{
+    transform:translateX(-50%) scale(.96);
+}
+
+.rod:nth-child(1) .draw-bead-zone{
+    background:radial-gradient(circle at 35% 30%,#ffe976 0%,#ffd329 50%,#f2ad00 100%);
+}
+
+.rod:nth-child(2) .draw-bead-zone{
+    background:radial-gradient(circle at 35% 30%,#59d789 0%,#16b957 50%,#07963d 100%);
+}
+
+.rod:nth-child(3) .draw-bead-zone{
+    background:radial-gradient(circle at 35% 30%,#62c8ff 0%,#129fdf 50%,#087bb7 100%);
+}
+
+.draw-bead-zone::before{
+    font-size:clamp(11px,1vw,15px);
+    color:#fff;
+    text-shadow:0 1px 1px rgba(0,0,0,.18);
+}
+
+@media (max-width:900px){
+    .draw-bead-zone{
+        top:-34px;
+        width:30px;
+        height:30px;
+        min-width:30px;
+        min-height:30px;
+    }
+    .draw-bead-zone::before{
+        font-size:11px;
+    }
+}
+
+@media (max-width:600px){
+    .draw-bead-zone{
+        top:-31px;
+        width:28px;
+        height:28px;
+        min-width:28px;
+        min-height:28px;
+    }
+    .draw-bead-zone::before{
+        font-size:10px;
+    }
+}
+
+@media (max-width:380px){
+    .draw-bead-zone{
+        top:-29px;
+        width:26px;
+        height:26px;
+        min-width:26px;
+        min-height:26px;
+    }
+    .draw-bead-zone::before{
+        font-size:9px;
+    }
+}
+
+
+/* ===== TOP BAR — KEEP HOME / HINT FULLY VISIBLE ===== */
+.topbar{
+    position:relative;
+    width:100%;
+    min-height:clamp(54px,6vh,72px);
+    padding:4px clamp(6px,1vw,14px) 4px;
+    overflow:visible;
+    box-sizing:border-box;
+}
+
+.icon-btn{
+    position:relative;
+    z-index:50;
+    width:100%;
+    min-width:44px;
+    min-height:48px;
+    overflow:visible;
+}
+
+.icon-circle{
+    flex:0 0 auto;
+    margin:0;
+}
+
+@media (max-width:900px){
+    .topbar{
+        min-height:50px;
+        padding:3px 4px 3px;
+    }
+}
+
+@media (max-width:600px){
+    .topbar{
+        min-height:44px;
+        padding:2px 2px 3px;
+    }
+
+    .icon-btn{
+        min-width:40px;
+        min-height:40px;
+    }
+}
+
+@media (max-width:380px){
+    .topbar{
+        min-height:42px;
+        padding:2px 1px 2px;
+    }
+
+    .icon-btn{
+        min-width:38px;
+        min-height:38px;
+    }
+}
+
+.abacus{
+    --base-height:clamp(46px,6vh,58px);
+}
+
+.rods{
+    bottom:var(--base-height) !important;
+}
+
+.abacus-base{
+    height:var(--base-height) !important;
+}
+
+@media (min-width:1200px){
+    .abacus{
+        --base-height:54px;
+    }
+}
+
+@media (min-width:1441px){
+    .abacus{
+        --base-height:58px;
+    }
+}
+
+@media (max-width:900px) and (min-width:601px){
+    .abacus{
+        --base-height:43px;
+    }
+}
+
+@media (max-width:600px){
+    .abacus{
+        --base-height:36px;
+    }
+}
+
+@media (max-width:380px){
+    .abacus{
+        --base-height:34px;
+    }
+}
+
+@media (max-height:700px) and (min-width:601px){
+    .abacus{
+        --base-height:38px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="page" id="page">
+
+    <div class="topbar">
+        <button class="icon-btn" id="homeBtn" aria-label="Home">
+            <span class="icon-circle home">
+                <i class="fa-solid fa-house"></i>
+            </span>
+        </button>
+
+        <h1 class="title">Draw the beads according to the number.</h1>
+
+        <button class="icon-btn" id="hintBtn" aria-label="Hint">
+            <span class="icon-circle hint">
+                <i class="fa-solid fa-lightbulb"></i>
+            </span>
+        </button>
+    </div>
+<main class="questions" id="questions"></main>
+</div>
+
+<!-- HINT — from file 2 -->
+<div class="hint-overlay" id="hintOverlay">
+    <div class="hint-box">
+        <h3>Hint</h3>
+        <p id="hintText"></p>
+        <button class="hint-close" id="closeHintBtn">Got it!</button>
+    </div>
+</div>
+
+<!-- CORRECT / WRONG POPUP — from file 2 concept -->
+<div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+        <div class="kid-icon" id="popupIcon"></div>
+        <h3 id="popupTitle"></h3>
+        <p id="popupMsg"></p>
+    </div>
+</div>
+
+<!-- FINAL POPUP — from file 2 -->
+<div id="finalPopup">
+    <div class="final-kid-box">
+        <h2>🎉 Congratulations!</h2>
+        <p id="finalScore"></p>
+        <div id="stars"></div>
+        <button class="playAgain-btn" id="playAgainBtn">Play Again</button>
+    </div>
+</div>
+
+<audio id="correctSound"
+       src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound"
+       src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+/* =========================================================
+   QUESTION DATA — taken directly from the supplied image
+   a) 427 = H4 T2 O7
+   b) 685 = H6 T8 O5
+   c) 901 = H9 T0 O1
+   ========================================================= */
+
+const QUESTIONS = [
+    { label:"a)", number:"427", hundreds:4, tens:2, ones:7 },
+    { label:"b)", number:"685", hundreds:6, tens:8, ones:5 },
+    { label:"c)", number:"901", hundreds:9, tens:0, ones:1 }
+];
+
+const states = QUESTIONS.map(() => ({
+    counts:[0,0,0],
+    checked:false
+}));
+
+const questionsContainer = document.getElementById("questions");
+const hintBtn = document.getElementById("hintBtn");
+const homeBtn = document.getElementById("homeBtn");
+const hintOverlay = document.getElementById("hintOverlay");
+const hintText = document.getElementById("hintText");
+const closeHintBtn = document.getElementById("closeHintBtn");
+const answerPopup = document.getElementById("answerPopup");
+const popupIcon = document.getElementById("popupIcon");
+const popupTitle = document.getElementById("popupTitle");
+const popupMsg = document.getElementById("popupMsg");
+const finalPopup = document.getElementById("finalPopup");
+const finalScore = document.getElementById("finalScore");
+const stars = document.getElementById("stars");
+const playAgainBtn = document.getElementById("playAgainBtn");
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+function speak(text){
+    if(!window.speechSynthesis) return;
+
+    speechSynthesis.cancel();
+
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "en-UK";
+    msg.volume = 0.25;
+    msg.rate = 1;
+    msg.pitch = 1;
+
+    speechSynthesis.speak(msg);
+}
+
+function showAnswerPopup(isCorrect, message){
+    popupIcon.textContent = isCorrect ? "🎉" : "🥲";
+    popupTitle.textContent = isCorrect ? "Great Job!" : "Oops!";
+    popupMsg.textContent = message;
+
+    answerPopup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+    answerPopup.style.display = "flex";
+
+    speak(isCorrect ? "Correct" : "try again");
+
+    clearTimeout(showAnswerPopup.timer);
+    showAnswerPopup.timer = setTimeout(() => {
+        answerPopup.style.display = "none";
+    }, 1400);
+}
+
+function showFinal(){
+    finalScore.textContent = `Your Score: ${QUESTIONS.length} / ${QUESTIONS.length}`;
+    stars.textContent = "⭐".repeat(QUESTIONS.length);
+    finalPopup.style.display = "flex";
+
+    if(window.confetti){
+        confetti({
+            particleCount:150,
+            spread:100,
+            origin:{y:.5}
+        });
+    }
+}
+
+function playCorrect(){
+    correctSound.currentTime = 0;
+    correctSound.play().catch(() => {});
+}
+
+function playWrong(){
+    wrongSound.currentTime = 0;
+    wrongSound.play().catch(() => {});
+}
+
+function createBead(type, questionIndex, rodIndex){
+    const bead = document.createElement("div");
+    bead.className = "bead " + type;
+    bead.title = "Click to delete this bead";
+
+    bead.addEventListener("click", (event) => {
+        event.stopPropagation();
+
+        if(states[questionIndex].checked) return;
+
+        states[questionIndex].counts[rodIndex]--;
+
+        bead.remove();
+    });
+
+    return bead;
+}
+
+function addBead(questionIndex, rodIndex){
+    const state = states[questionIndex];
+
+    if(state.checked) return;
+    if(state.counts[rodIndex] >= 9) return;
+
+    state.counts[rodIndex]++;
+
+    const card = questionsContainer.querySelector(
+        `.question-card[data-question="${questionIndex}"]`
+    );
+
+    const stack = card.querySelector(
+        `.bead-stack[data-rod="${rodIndex}"]`
+    );
+
+    const types = ["hundred","ten","one"];
+    stack.appendChild(createBead(types[rodIndex], questionIndex, rodIndex));
+
+}
+
+function renderCard(question, index){
+    const card = document.createElement("section");
+    card.className = "question-card";
+    card.dataset.question = index;
+
+    card.innerHTML = `
+        <p class="question-label">${question.label}</p>
+
+        <div class="abacus">
+            <div class="rods">
+                <div class="rod" data-rod="0">
+                    <button class="draw-bead-zone" type="button" aria-label="Draw bead in Hundreds">DRAW BEAD</button>
+                    <div class="bead-stack" data-rod="0"></div>
+                </div>
+
+                <div class="rod" data-rod="1">
+                    <button class="draw-bead-zone" type="button" aria-label="Draw bead in Tens">DRAW BEAD</button>
+                    <div class="bead-stack" data-rod="1"></div>
+                </div>
+
+                <div class="rod" data-rod="2">
+                    <button class="draw-bead-zone" type="button" aria-label="Draw bead in Ones">DRAW BEAD</button>
+                    <div class="bead-stack" data-rod="2"></div>
+                </div>
+            </div>
+
+            <div class="abacus-base">
+                <div class="base-label">H</div>
+                <div class="base-label">T</div>
+                <div class="base-label">O</div>
+            </div>
+        </div>
+
+        <div class="target-wrap">
+            <input class="target-input"
+                   type="text"
+                   value="${question.number}"
+                   readonly
+                   aria-label="Target number ${question.number}">
+        </div>
+
+        <button class="check-btn" type="button">Check</button>
+    `;
+
+    card.querySelectorAll(".rod").forEach(rod => {
+        const rodIndex = Number(rod.dataset.rod);
+
+        rod.addEventListener("click", () => {
+            addBead(index, rodIndex);
+        });
+
+        const drawButton = rod.querySelector(".draw-bead-zone");
+        if(drawButton){
+            drawButton.addEventListener("click", (event) => {
+                event.stopPropagation();
+                addBead(index, rodIndex);
+            });
+        }
+
+    });
+
+    card.querySelector(".check-btn").addEventListener("click", () => {
+        validateQuestion(index);
+    });
+
+    return card;
+}
+
+function validateQuestion(index){
+    const question = QUESTIONS[index];
+    const state = states[index];
+
+    if(state.checked) return;
+
+    const expected = [
+        question.hundreds,
+        question.tens,
+        question.ones
+    ];
+
+    const correct = state.counts.every(
+        (value, rodIndex) => value === expected[rodIndex]
+    );
+
+    if(correct){
+        state.checked = true;
+
+        const card = questionsContainer.querySelector(
+            `.question-card[data-question="${index}"]`
+        );
+        card.querySelector(".check-btn").disabled = true;
+        card.querySelector(".check-btn").textContent = "Correct ✓";
+
+        card.querySelectorAll(".rod").forEach(rod => {
+            rod.style.cursor = "default";
+        });
+
+        playCorrect();
+        showAnswerPopup(true, "You built the number correctly!");
+
+        if(states.every(item => item.checked)){
+            setTimeout(showFinal, 1450);
+        }
+
+        return;
+    }
+
+    playWrong();
+
+    const built = state.counts.join("");
+    showAnswerPopup(
+        false,
+        `Not quite. Build ${question.number} using the H, T and O rods.`
+    );
+}
+
+function renderAll(){
+    questionsContainer.innerHTML = "";
+
+    QUESTIONS.forEach((question, index) => {
+        questionsContainer.appendChild(renderCard(question, index));
+    });
+}
+
+hintBtn.addEventListener("click", () => {
+    hintText.textContent =
+        "How to Play\n\n" +
+        "1. Click the colored bead above H, T or O to draw a bead on that rod.\n" +
+        "2. Click a bead on the rod to remove it.\n" +
+        "3. Make the number shown in the box.\n" +
+        "4. Press Check when you are finished.";
+    hintOverlay.classList.add("show");
+});
+
+closeHintBtn.addEventListener("click", () => {
+    hintOverlay.classList.remove("show");
+});
+
+hintOverlay.addEventListener("click", event => {
+    if(event.target === hintOverlay){
+        hintOverlay.classList.remove("show");
+    }
+});
+
+homeBtn.addEventListener("click", () => {
+    window.top.location.href = "../Grade2_chapter2.html";
+});
+
+playAgainBtn.addEventListener("click", () => {
+    finalPopup.style.display = "none";
+
+    states.forEach(state => {
+        state.counts = [0,0,0];
+        state.checked = false;
+    });
+
+    renderAll();
+});
+
+renderAll();
+</script>
+
+</body>
+</html>

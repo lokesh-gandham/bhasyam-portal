@@ -1,0 +1,2832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Symmetry Game</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:
+        radial-gradient(circle at 10% 15%,rgba(255,255,255,.8) 0 25px,transparent 26px),
+        radial-gradient(circle at 90% 12%,rgba(255,255,255,.7) 0 22px,transparent 23px),
+        linear-gradient(135deg,#e4f7ff,#fff5d7);
+}
+
+
+/* =========================================
+   MAIN
+========================================= */
+
+.game-wrap{
+    width:100%;
+    height:100vh;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:12px;
+}
+
+.game-card{
+    width:min(1200px,96vw);
+    height:min(800px,94vh);
+
+    background:#fff;
+
+    border-radius:32px;
+
+    box-shadow:
+        0 18px 50px rgba(40,70,90,.18);
+
+    padding:
+        clamp(18px,3vw,35px);
+
+    display:flex;
+    flex-direction:column;
+
+    position:relative;
+}
+
+
+/* =========================================
+   HEADER
+========================================= */
+
+.header{
+    width:100%;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    flex-shrink:0;
+}
+
+.title{
+    color:#12265d;
+
+    font-size:
+        clamp(22px,3vw,36px);
+
+    font-weight:400;
+}
+
+.subtitle{
+    margin-top:5px;
+
+    color:#657789;
+
+    font-size:
+        clamp(12px,1.5vw,17px);
+
+    font-weight:600;
+}
+
+/* =========================================
+   PROGRESS
+========================================= */
+
+.progress-area{
+    width:100%;
+
+    margin-top:16px;
+
+    flex-shrink:0;
+    display: none;
+}
+
+.progress-top{
+    display:flex;
+    justify-content:space-between;
+
+    color:#607483;
+
+    font-size:13px;
+    font-weight:400;
+
+    margin-bottom:6px;
+}
+
+.progress{
+    width:100%;
+    height:9px;
+
+    background:#e7edf2;
+
+    border-radius:20px;
+
+    overflow:hidden;
+}
+
+.progress-fill{
+    width:20%;
+    height:100%;
+
+    background:linear-gradient(
+        90deg,
+        #55b9e8,
+        #69d58e
+    );
+
+    border-radius:20px;
+
+    transition:width .35s ease;
+}
+
+
+/* =========================================
+   QUESTION AREA
+========================================= */
+
+.question-area{
+    flex:1;
+
+    min-height:0;
+
+    display:flex;
+    flex-direction:column;
+
+    justify-content:center;
+    align-items:center;
+}
+
+.question-text{
+    color:#12265d;
+
+    font-size:
+        clamp(17px,2.2vw,27px);
+
+    font-weight:400;
+
+    text-align:center;
+
+    margin-bottom:15px;
+}
+
+.question-text span{
+    color:#ed8b35;
+}
+
+
+/* =========================================
+   NUMBER CARD
+========================================= */
+
+.number-card{
+    width:min(430px,50vw);
+
+    height:min(310px,36vh);
+
+    min-width:220px;
+    min-height:180px;
+
+    background:
+        linear-gradient(
+            145deg,
+            #ffffff,
+            #eefaff
+        );
+
+    border:
+        4px solid #d5edf8;
+
+    border-radius:32px;
+
+    box-shadow:
+        0 12px 28px rgba(46,120,150,.12),
+        inset 0 0 25px rgba(50,170,210,.05);
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    position:relative;
+
+    overflow:hidden;
+}
+
+.number-card::before{
+    content:"✦";
+
+    position:absolute;
+
+    left:20px;
+    top:12px;
+
+    color:#ffd15c;
+
+    font-size:27px;
+}
+
+.number-card::after{
+    content:"✦";
+
+    position:absolute;
+
+    right:20px;
+    bottom:12px;
+
+    color:#ffd15c;
+
+    font-size:27px;
+}
+
+.number{
+    font-family:Arial,sans-serif;
+
+    font-size:
+        clamp(120px,18vw,195px);
+
+    line-height:1;
+
+    font-weight:400;
+
+    color:#111;
+
+    user-select:none;
+
+    position:relative;
+
+    z-index:2;
+}
+
+
+/* =========================================
+   SYMMETRY LINE
+========================================= */
+
+.symmetry-line{
+    position:absolute;
+
+    z-index:5;
+
+    opacity:0;
+
+    pointer-events:none;
+
+    transition:opacity .25s ease;
+}
+
+.symmetry-line.show{
+    opacity:1;
+}
+
+.vertical-line{
+    width:5px;
+    height:82%;
+
+    left:50%;
+    top:9%;
+
+    transform:translateX(-50%);
+
+    border-left:
+        4px dashed #ff6262;
+}
+
+.horizontal-line{
+    width:82%;
+    height:5px;
+
+    left:9%;
+    top:50%;
+
+    transform:translateY(-50%);
+
+    border-top:
+        4px dashed #ff6262;
+}
+
+
+/* =========================================
+   ANSWERS
+========================================= */
+
+.answer-area{
+    width:100%;
+
+    margin-top:16px;
+
+    flex-shrink:0;
+
+    text-align:center;
+}
+
+.choose{
+    color:#71828c;
+
+    font-size:14px;
+
+    font-weight:400;
+
+    margin-bottom:9px;
+}
+
+.answer-buttons{
+    display:flex;
+
+    justify-content:center;
+
+    gap:15px;
+}
+
+.answer-btn{
+    min-width:120px;
+
+    padding:13px 25px;
+
+    border:none;
+
+    border-radius:18px;
+
+    font-size:20px;
+
+    font-weight:400;
+
+    cursor:pointer;
+
+    transition:
+        transform .15s ease,
+        opacity .15s ease;
+}
+
+.answer-btn:hover:not(:disabled){
+    transform:translateY(-3px);
+}
+
+.answer-btn:active:not(:disabled){
+    transform:translateY(2px);
+}
+
+.symmetrical{
+    background:#82dda1;
+
+    color:#145b32;
+
+    box-shadow:
+        0 6px 0 #4caf70;
+}
+
+.asymmetrical{
+    background:#ffb36d;
+
+    color:#703800;
+
+    box-shadow:
+        0 6px 0 #e58c42;
+}
+
+.answer-btn:disabled{
+    opacity:.42;
+
+    cursor:default;
+
+    pointer-events:none;
+
+    box-shadow:none;
+}
+
+.answer-btn.selected-correct{
+    opacity:1;
+}
+
+
+/* =========================================
+   LINE OPTIONS
+========================================= */
+
+.line-options{
+    display:none;
+
+    justify-content:center;
+
+    align-items:center;
+
+    flex-wrap:wrap;
+
+    gap:10px;
+
+    margin-top:12px;
+}
+
+.line-options.show{
+    display:flex;
+}
+
+.line-btn{
+    border:2px solid #c8dce6;
+
+    background:#fff;
+
+    color:#3e5d6c;
+
+    padding:9px 15px;
+
+    border-radius:14px;
+
+    font-size:14px;
+
+    font-weight:400;
+
+    cursor:pointer;
+
+    transition:
+        transform .15s ease,
+        background .15s ease;
+}
+
+.line-btn:hover:not(:disabled){
+    transform:translateY(-2px);
+
+    background:#eefaff;
+}
+
+.line-btn.selected{
+    border-color:#ff6464;
+
+    background:#fff0f0;
+
+    color:#d44747;
+}
+
+.line-btn:disabled{
+    opacity:.42;
+
+    pointer-events:none;
+
+    cursor:default;
+}
+
+
+/* =========================================
+   FEEDBACK
+========================================= */
+
+.feedback{
+    min-height:24px;
+
+    margin-top:7px;
+
+    font-size:15px;
+
+    font-weight:400;
+}
+
+.feedback.correct{
+    color:#36a762;
+}
+
+.feedback.wrong{
+    color:#e45454;
+}
+
+
+/* =========================================
+   NAVIGATION
+   MATCHES REFERENCE STYLE
+========================================= */
+
+.nav{
+    width:100%;
+
+    margin-top:16px;
+
+    padding-top:12px;
+
+    display:grid;
+
+    grid-template-columns:
+        1fr auto 1fr;
+
+    align-items:center;
+
+    position:relative;
+
+    z-index:20;
+}
+
+.nav button{
+    min-width:115px;
+
+    border:0;
+
+    border-radius:999px;
+
+    padding:11px 20px;
+
+    background:#55b449;
+
+    color:#fff;
+
+    font-size:15px;
+
+    font-weight:400;
+
+    box-shadow:
+        0 5px 0 #3d9634;
+
+    cursor:pointer;
+
+    transition:
+        transform .15s ease,
+        opacity .15s ease;
+}
+
+.nav button:hover:not(:disabled){
+    transform:translateY(-2px);
+}
+
+.nav button:active:not(:disabled){
+    transform:translateY(2px);
+
+    box-shadow:
+        0 2px 0 #3d9634;
+}
+
+.nav button:disabled{
+    opacity:.45;
+
+    cursor:default;
+
+    box-shadow:
+        0 3px 0 #cfd9cf;
+}
+
+#prevBtn{
+    justify-self:start;
+}
+
+#nextBtn{
+    justify-self:end;
+}
+
+.nav-progress{
+    color:#12265d;
+
+    font-size:17px;
+
+    font-weight:400;
+
+    letter-spacing:.5px;
+}
+
+
+/* =========================================
+   EMOJI POPUP
+   SAME IDEA AS REFERENCE
+========================================= */
+
+.emoji-pop{
+    position:fixed;
+
+    left:50%;
+    top:45%;
+
+    transform:
+        translate(-50%,-50%);
+
+    font-size:82px;
+
+    pointer-events:none;
+
+    z-index:9999;
+
+    animation:
+        emojiPop
+        1.1s
+        ease-out
+        forwards;
+}
+
+@keyframes emojiPop{
+
+    0%{
+        opacity:0;
+
+        transform:
+            translate(-50%,-50%)
+            scale(.35);
+    }
+
+    22%{
+        opacity:1;
+
+        transform:
+            translate(-50%,-50%)
+            scale(1.18);
+    }
+
+    100%{
+        opacity:0;
+
+        transform:
+            translate(-50%,-75%)
+            scale(.82);
+    }
+}
+
+
+/* =========================================
+   SMALL FEEDBACK POPUP
+========================================= */
+
+.feedback-popup{
+    position:fixed;
+
+    left:50%;
+    top:50%;
+
+    transform:
+        translate(-50%,-50%)
+        scale(.75);
+
+    min-width:270px;
+
+    max-width:90vw;
+
+    padding:28px 32px;
+
+    border-radius:
+        38px 18px 38px 18px;
+
+    text-align:center;
+
+    z-index:9998;
+
+    opacity:0;
+
+    animation:
+        feedbackPopup
+        1.15s
+        ease
+        forwards;
+
+    pointer-events:none;
+}
+
+.feedback-popup.correct{
+    background:#edfff2;
+
+    border:
+        4px solid #55b86a;
+
+    box-shadow:
+        0 20px 45px rgba(50,130,70,.20);
+}
+
+.feedback-popup.wrong{
+    background:#fff0f0;
+
+    border:
+        4px solid #ff7272;
+
+    box-shadow:
+        0 20px 45px rgba(180,70,70,.18);
+}
+
+.feedback-popup .big{
+    font-size:55px;
+}
+
+.feedback-popup h2{
+    margin-top:7px;
+
+    color:#1d2730;
+
+    font-size:30px;
+}
+
+.feedback-popup p{
+    margin-top:5px;
+
+    color:#52606a;
+
+    font-size:16px;
+
+    font-weight:400;
+}
+
+@keyframes feedbackPopup{
+
+    0%{
+        opacity:0;
+
+        transform:
+            translate(-50%,-50%)
+            scale(.65);
+    }
+
+    20%{
+        opacity:1;
+
+        transform:
+            translate(-50%,-50%)
+            scale(1.08);
+    }
+
+    35%{
+        transform:
+            translate(-50%,-50%)
+            scale(1);
+    }
+
+    80%{
+        opacity:1;
+    }
+
+    100%{
+        opacity:0;
+
+        transform:
+            translate(-50%,-55%)
+            scale(.96);
+    }
+}
+
+
+/* =========================================
+   FINAL POPUP
+   REFERENCE STYLE
+========================================= */
+
+.final-overlay{
+    position:fixed;
+
+    inset:0;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    z-index:10000;
+
+    animation:
+        fadeIn
+        .35s
+        ease;
+}
+
+@keyframes fadeIn{
+
+    from{
+        opacity:0;
+    }
+
+    to{
+        opacity:1;
+    }
+}
+
+.final-modal{
+    background:#fff;
+
+    width:min(400px,90%);
+
+    padding:36px 28px 32px;
+
+    border-radius:
+        56px 20px 56px 20px;
+
+    text-align:center;
+
+    box-shadow:
+        0 30px 60px rgba(0,0,0,.3);
+
+    animation:
+        popUp
+        .4s
+        cubic-bezier(
+            .175,
+            .885,
+            .32,
+            1.275
+        );
+}
+
+@keyframes popUp{
+
+    from{
+        transform:scale(.8);
+
+        opacity:0;
+    }
+
+    to{
+        transform:scale(1);
+
+        opacity:1;
+    }
+}
+
+.final-icon{
+    display:block;
+
+    font-size:65px;
+
+    margin-bottom:6px;
+}
+
+.final-modal h2{
+    font-size:32px;
+
+    font-weight:400;
+
+    color:#1e1e2a;
+
+    margin-bottom:8px;
+}
+
+.final-modal p{
+    font-size:17px;
+
+    color:#3d3d4a;
+
+    margin-bottom:8px;
+}
+
+.final-score{
+    color:#e58b00;
+
+    font-size:27px;
+
+    font-weight:400;
+
+    margin-top:12px;
+}
+
+.final-stars{
+    margin-top:10px;
+
+    font-size:30px;
+}
+
+.play-again{
+    border:none;
+
+    background:
+        linear-gradient(
+            180deg,
+            #ffb347,
+            #f58a2e
+        );
+
+    padding:12px 36px;
+
+    margin-top:22px;
+
+    border-radius:999px;
+
+    font-weight:400;
+
+    font-size:18px;
+
+    color:#2d1f00;
+
+    box-shadow:
+        0 12px 24px
+        rgba(245,138,46,.3);
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    cursor:pointer;
+}
+
+.play-again:hover{
+    transform:translateY(-2px);
+}
+
+
+/* =========================================
+   CONFETTI
+========================================= */
+
+.confetti-piece{
+    position:fixed;
+
+    width:9px;
+    height:14px;
+
+    z-index:10001;
+
+    pointer-events:none;
+
+    animation:
+        confettiFall
+        1.3s
+        linear
+        forwards;
+}
+
+@keyframes confettiFall{
+
+    0%{
+        opacity:1;
+
+        transform:
+            translate3d(0,0,0)
+            rotate(0deg);
+    }
+
+    100%{
+        opacity:0;
+
+        transform:
+            translate3d(
+                var(--x),
+                var(--y),
+                0
+            )
+            rotate(
+                var(--r)
+            );
+    }
+}
+
+
+/* =========================================
+   NUMBER ANIMATIONS
+========================================= */
+
+.number.correct-animation{
+    animation:
+        correctNumber
+        .65s
+        ease;
+}
+
+@keyframes correctNumber{
+
+    0%{
+        transform:scale(1);
+    }
+
+    35%{
+        transform:
+            scale(1.18)
+            rotate(-4deg);
+    }
+
+    65%{
+        transform:
+            scale(.96)
+            rotate(3deg);
+    }
+
+    100%{
+        transform:scale(1);
+    }
+}
+
+.number.wrong-animation{
+    animation:
+        wrongNumber
+        .45s
+        ease;
+}
+
+@keyframes wrongNumber{
+
+    0%,
+    100%{
+        transform:translateX(0);
+    }
+
+    25%{
+        transform:translateX(-9px);
+    }
+
+    50%{
+        transform:translateX(9px);
+    }
+
+    75%{
+        transform:translateX(-6px);
+    }
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width:768px){
+
+    .game-wrap{
+        padding:6px;
+    }
+
+    .game-card{
+        width:98vw;
+        height:98vh;
+
+        padding:14px;
+
+        border-radius:22px;
+    }
+
+    .header{
+        gap:8px;
+    }
+
+    .progress-area{
+        margin-top:9px;
+    }
+
+    .question-text{
+        font-size:16px;
+
+        margin-bottom:8px;
+    }
+
+    .number-card{
+        width:min(330px,78vw);
+
+        height:min(225px,29vh);
+    }
+
+    .number{
+        font-size:
+            clamp(
+                100px,
+                30vw,
+                155px
+            );
+    }
+
+    .answer-area{
+        margin-top:9px;
+    }
+
+    .choose{
+        font-size:12px;
+        margin-bottom:6px;
+    }
+
+    .answer-buttons{
+        gap:9px;
+    }
+
+    .answer-btn{
+        min-width:95px;
+
+        padding:
+            10px 17px;
+
+        font-size:16px;
+    }
+
+    .line-options{
+        gap:6px;
+        margin-top:8px;
+    }
+
+    .line-btn{
+        padding:
+            7px 9px;
+
+        font-size:11px;
+    }
+
+    .feedback{
+        min-height:20px;
+
+        font-size:12px;
+    }
+
+    .nav{
+        margin-top:7px;
+
+        padding-top:4px;
+    }
+
+    .nav button{
+        min-width:85px;
+
+        padding:
+            8px 13px;
+
+        font-size:12px;
+    }
+
+    .nav-progress{
+        font-size:13px;
+    }
+
+    .emoji-pop{
+        font-size:65px;
+    }
+
+    .feedback-popup{
+        min-width:240px;
+
+        padding:
+            22px 20px;
+    }
+
+    .feedback-popup .big{
+        font-size:48px;
+    }
+
+    .feedback-popup h2{
+        font-size:27px;
+    }
+
+    .final-modal{
+        width:320px;
+
+        padding:
+            30px 20px;
+    }
+
+    .final-icon{
+        font-size:55px;
+    }
+
+    .final-modal h2{
+        font-size:28px;
+    }
+
+    .final-modal p{
+        font-size:15px;
+    }
+}
+
+
+/* =========================================
+   SHORT HEIGHT
+========================================= */
+
+@media(max-height:620px){
+
+    .game-card{
+        padding:
+            8px 18px;
+    }
+
+    .progress-area{
+        margin-top:5px;
+    }
+
+    .question-text{
+        font-size:14px;
+        margin-bottom:4px;
+    }
+
+    .number-card{
+        height:155px;
+    }
+
+    .number{
+        font-size:105px;
+    }
+
+    .answer-area{
+        margin-top:4px;
+    }
+
+    .nav{
+        margin-top:3px;
+    }
+
+    .nav button{
+        height:38px;
+    }
+}
+
+
+/* =========================================
+   1440+
+========================================= */
+
+@media(min-width:1441px){
+
+    .game-card{
+        width:1500px;
+    }
+
+    .number-card{
+        width:460px;
+        height:320px;
+    }
+
+    .number{
+        font-size:190px;
+    }
+
+    .nav button{
+        width:145px;
+        height:55px;
+
+        font-size:18px;
+    }
+}
+
+
+/* =========================================
+   1920+
+========================================= */
+
+@media(min-width:1921px){
+
+    .game-card{
+        width:1650px;
+    }
+
+    .number-card{
+        width:500px;
+        height:350px;
+    }
+
+    .number{
+        font-size:215px;
+    }
+
+    .question-text{
+        font-size:31px;
+    }
+
+    .nav button{
+        width:165px;
+        height:60px;
+
+        font-size:21px;
+    }
+
+    .nav-progress{
+        font-size:20px;
+    }
+}
+
+</style>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="../../shared/quiz-ui.css">
+</head>
+
+<body>
+
+
+<div class="game-wrap">
+
+    <main class="game-card">
+
+
+        <!-- HEADER -->
+
+        <header class="header">
+
+            <div>
+                <div class="title">
+                    🔎 Symmetry Detective
+                </div>
+
+                <div class="subtitle">
+                    Find the line of symmetry
+                </div>
+            </div>
+
+        </header>
+
+
+        <!-- PROGRESS -->
+
+        <div class="progress-area">
+
+            <div class="progress-top">
+
+                <span id="questionLabel">
+                    Question 1
+                </span>
+
+                <span id="progressText">
+                    1 / 5
+                </span>
+
+            </div>
+
+            <div class="progress">
+
+                <div
+                    class="progress-fill"
+                    id="progressFill">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- QUESTION -->
+
+        <section class="question-area">
+
+
+            <div class="question-text">
+
+                Is this number
+                <span>symmetrical</span>?
+
+            </div>
+
+
+            <div class="number-card">
+
+
+                <div
+                    class="symmetry-line vertical-line"
+                    id="verticalLine">
+                </div>
+
+
+                <div
+                    class="symmetry-line horizontal-line"
+                    id="horizontalLine">
+                </div>
+
+
+                <div
+                    class="number"
+                    id="number">
+                    0
+                </div>
+
+
+            </div>
+
+
+            <!-- ANSWERS -->
+
+            <div class="answer-area">
+
+
+                <div class="choose">
+                    Choose your answer
+                </div>
+
+
+                <div class="answer-buttons">
+
+
+                    <button
+                        class="answer-btn symmetrical"
+                        id="sBtn"
+                        type="button">
+
+                        S — Symmetrical
+
+                    </button>
+
+
+                    <button
+                        class="answer-btn asymmetrical"
+                        id="aBtn"
+                        type="button">
+
+                        A — Asymmetrical
+
+                    </button>
+
+
+                </div>
+
+
+                <!-- LINE SELECTION -->
+
+                <div
+                    class="line-options"
+                    id="lineOptions">
+
+
+                    <button
+                        class="line-btn"
+                        id="verticalBtn"
+                        type="button">
+
+                        ↕ Vertical
+
+                    </button>
+
+
+                    <button
+                        class="line-btn"
+                        id="horizontalBtn"
+                        type="button">
+
+                        ↔ Horizontal
+
+                    </button>
+
+
+                    <button
+                        class="line-btn"
+                        id="bothBtn"
+                        type="button">
+
+                        ✚ Both
+
+                    </button>
+
+
+                </div>
+
+
+                <div
+                    class="feedback"
+                    id="feedback">
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- PREV NEXT -->
+
+        <nav class="nav">
+
+            <button
+                id="prevBtn"
+                type="button"
+                disabled>
+
+                Prev
+
+            </button>
+
+
+            <button
+                id="nextBtn"
+                type="button"
+                disabled>
+
+                Next
+
+            </button>
+
+        </nav>
+
+
+    </main>
+
+</div>
+
+
+<script>
+
+/* =========================================
+   QUESTIONS
+========================================= */
+
+const questions = [
+
+    {
+        number:"0",
+        answer:"S",
+        line:"both"
+    },
+
+    {
+        number:"2",
+        answer:"A",
+        line:null
+    },
+
+    {
+        number:"5",
+        answer:"A",
+        line:null
+    },
+
+    {
+        number:"6",
+        answer:"A",
+        line:null
+    },
+
+    {
+        number:"8",
+        answer:"S",
+        line:"both"
+    }
+
+];
+
+
+/* =========================================
+   STATE
+========================================= */
+
+let current = 0;
+
+let score = 0;
+
+let quizFinished = false;
+
+const completed =
+    new Array(
+        questions.length
+    ).fill(false);
+
+const savedAnswer =
+    new Array(
+        questions.length
+    ).fill(null);
+
+const savedLine =
+    new Array(
+        questions.length
+    ).fill(null);
+
+
+/* =========================================
+   ELEMENTS
+========================================= */
+
+const number =
+    document.getElementById("number");
+
+const questionLabel =
+    document.getElementById(
+        "questionLabel"
+    );
+
+const progressText =
+    document.getElementById(
+        "progressText"
+    );
+
+const progressFill =
+    document.getElementById(
+        "progressFill"
+    );
+
+const sBtn =
+    document.getElementById("sBtn");
+
+const aBtn =
+    document.getElementById("aBtn");
+
+const lineOptions =
+    document.getElementById(
+        "lineOptions"
+    );
+
+const verticalBtn =
+    document.getElementById(
+        "verticalBtn"
+    );
+
+const horizontalBtn =
+    document.getElementById(
+        "horizontalBtn"
+    );
+
+const bothBtn =
+    document.getElementById(
+        "bothBtn"
+    );
+
+const verticalLine =
+    document.getElementById(
+        "verticalLine"
+    );
+
+const horizontalLine =
+    document.getElementById(
+        "horizontalLine"
+    );
+
+const feedback =
+    document.getElementById(
+        "feedback"
+    );
+
+const prevBtn =
+    document.getElementById(
+        "prevBtn"
+    );
+
+const nextBtn =
+    document.getElementById(
+        "nextBtn"
+    );
+
+
+/* =========================================
+   SOUND SYSTEM
+   SAME PATTERN AS REFERENCE
+========================================= */
+
+let audioCtx = null;
+
+
+function getAudioContext(){
+
+    if(!audioCtx){
+
+        audioCtx =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+    }
+
+    if(
+        audioCtx.state ===
+        "suspended"
+    ){
+
+        audioCtx.resume();
+
+    }
+
+    return audioCtx;
+}
+
+
+function beep(
+    frequency,
+    duration,
+    type="sine"
+){
+
+    try{
+
+        const ctx =
+            getAudioContext();
+
+        const oscillator =
+            ctx.createOscillator();
+
+        const gain =
+            ctx.createGain();
+
+
+        oscillator.type =
+            type;
+
+        oscillator.frequency.value =
+            frequency;
+
+
+        oscillator.connect(
+            gain
+        );
+
+        gain.connect(
+            ctx.destination
+        );
+
+
+        gain.gain.setValueAtTime(
+            .14,
+            ctx.currentTime
+        );
+
+
+        gain.gain.exponentialRampToValueAtTime(
+            .0001,
+            ctx.currentTime +
+            duration / 1000
+        );
+
+
+        oscillator.start();
+
+        oscillator.stop(
+            ctx.currentTime +
+            duration / 1000
+        );
+
+    }catch(e){}
+
+}
+
+
+const sound = {
+
+    correct(){
+
+        beep(
+            660,
+            110
+        );
+
+        setTimeout(
+            () => beep(
+                880,
+                160
+            ),
+            110
+        );
+
+    },
+
+
+    wrong(){
+
+        beep(
+            180,
+            220,
+            "sawtooth"
+        );
+
+    },
+
+
+    finish(){
+
+        [
+            523,
+            659,
+            784,
+            1047
+        ].forEach(
+            (frequency,index)=>{
+
+                setTimeout(
+                    () => beep(
+                        frequency,
+                        150
+                    ),
+                    index * 130
+                );
+
+            }
+        );
+
+    }
+
+};
+
+
+/* =========================================
+   EMOJI POPUP
+========================================= */
+
+function showEmoji(emoji){
+
+    const element =
+        document.createElement(
+            "div"
+        );
+
+    element.className =
+        "emoji-pop";
+
+    element.textContent =
+        emoji;
+
+    document.body.appendChild(
+        element
+    );
+
+
+    setTimeout(
+        () => element.remove(),
+        1600
+    );
+
+}
+
+
+/* =========================================
+   FEEDBACK POPUP
+========================================= */
+
+
+/* =========================================
+   CONFETTI
+========================================= */
+
+function burstConfetti(
+    element,
+    amount=34
+){
+
+    const rect =
+        element.getBoundingClientRect();
+
+
+    const colors = [
+        "#6635dc",
+        "#ff4e83",
+        "#4e8ff0",
+        "#76b93b",
+        "#f4ae25",
+        "#4ecdc4"
+    ];
+
+
+    for(
+        let i=0;
+        i<amount;
+        i++
+    ){
+
+        const piece =
+            document.createElement(
+                "div"
+            );
+
+        piece.className =
+            "confetti-piece";
+
+
+        const startX =
+            rect.left +
+            rect.width / 2;
+
+        const startY =
+            rect.top +
+            rect.height / 2;
+
+
+        piece.style.left =
+            startX + "px";
+
+        piece.style.top =
+            startY + "px";
+
+
+        piece.style.background =
+            colors[
+                Math.floor(
+                    Math.random() *
+                    colors.length
+                )
+            ];
+
+
+        const x =
+            (
+                Math.random() *
+                500
+                -
+                250
+            ) + "px";
+
+
+        const y =
+            (
+                300 +
+                Math.random() *
+                450
+            ) + "px";
+
+
+        const r =
+            (
+                Math.random() *
+                1200
+                -
+                600
+            ) + "deg";
+
+
+        piece.style.setProperty(
+            "--x",
+            x
+        );
+
+        piece.style.setProperty(
+            "--y",
+            y
+        );
+
+        piece.style.setProperty(
+            "--r",
+            r
+        );
+
+
+        piece.style.animationDuration =
+            (
+                .9 +
+                Math.random() *
+                .7
+            ) + "s";
+
+
+        document.body.appendChild(
+            piece
+        );
+
+
+        setTimeout(
+            () => piece.remove(),
+            1800
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   UPDATE PROGRESS
+========================================= */
+
+function updateProgress(){
+
+    const q =
+        current + 1;
+
+    const percent =
+        (
+            q /
+            questions.length
+        ) * 100;
+
+
+    questionLabel.textContent =
+        `Question ${q}`;
+
+    progressText.textContent =
+        `${q} / ${questions.length}`;
+
+    progressFill.style.width =
+        percent + "%";
+
+}
+
+
+/* =========================================
+   RESET VISUALS
+========================================= */
+
+function resetVisuals(){
+
+    sBtn.disabled = false;
+
+    aBtn.disabled = false;
+
+    verticalBtn.disabled = false;
+
+    horizontalBtn.disabled = false;
+
+    bothBtn.disabled = false;
+
+
+    sBtn.classList.remove(
+        "selected-correct"
+    );
+
+    aBtn.classList.remove(
+        "selected-correct"
+    );
+
+
+    verticalBtn.classList.remove(
+        "selected"
+    );
+
+    horizontalBtn.classList.remove(
+        "selected"
+    );
+
+    bothBtn.classList.remove(
+        "selected"
+    );
+
+
+    verticalLine.classList.remove(
+        "show"
+    );
+
+    horizontalLine.classList.remove(
+        "show"
+    );
+
+
+    lineOptions.classList.remove(
+        "show"
+    );
+
+
+    feedback.textContent = "";
+
+    feedback.className =
+        "feedback";
+
+
+    number.classList.remove(
+        "correct-animation",
+        "wrong-animation"
+    );
+
+}
+
+
+/* =========================================
+   DISABLE ALL OPTIONS
+========================================= */
+
+function disableAllOptions(){
+
+    sBtn.disabled = true;
+
+    aBtn.disabled = true;
+
+    verticalBtn.disabled = true;
+
+    horizontalBtn.disabled = true;
+
+    bothBtn.disabled = true;
+
+}
+
+
+/* =========================================
+   RESTORE COMPLETED QUESTION
+========================================= */
+
+function restoreQuestion(){
+
+    const answer =
+        savedAnswer[current];
+
+    const line =
+        savedLine[current];
+
+
+    if(answer === "S"){
+
+        sBtn.classList.add(
+            "selected-correct"
+        );
+
+        lineOptions.classList.add(
+            "show"
+        );
+
+        if(line === "vertical"){
+
+            verticalLine.classList.add(
+                "show"
+            );
+
+            verticalBtn.classList.add(
+                "selected"
+            );
+
+        }
+
+        if(line === "horizontal"){
+
+            horizontalLine.classList.add(
+                "show"
+            );
+
+            horizontalBtn.classList.add(
+                "selected"
+            );
+
+        }
+
+        if(line === "both"){
+
+            verticalLine.classList.add(
+                "show"
+            );
+
+            horizontalLine.classList.add(
+                "show"
+            );
+
+            bothBtn.classList.add(
+                "selected"
+            );
+
+        }
+
+    }
+
+    else{
+
+        aBtn.classList.add(
+            "selected-correct"
+        );
+
+    }
+
+
+    disableAllOptions();
+
+
+    feedback.textContent =
+        "🎉 Correct answer!";
+
+    feedback.className =
+        "feedback correct";
+
+
+    if(
+        current <
+        questions.length - 1
+    ){
+
+        nextBtn.disabled =
+            false;
+
+    }
+
+}
+
+
+/* =========================================
+   RENDER QUESTION
+========================================= */
+
+function renderQuestion(
+    index
+){
+
+    current = index;
+
+
+    const q =
+        questions[current];
+
+
+    updateProgress();
+
+
+    resetVisuals();
+
+
+    number.textContent =
+        q.number;
+
+
+    prevBtn.disabled =
+        current === 0;
+
+
+    /*
+     * IMPORTANT:
+     *
+     * Next is disabled until
+     * the current question is
+     * correctly completed.
+     */
+
+    nextBtn.disabled =
+        !completed[current];
+
+
+    if(
+        completed[current]
+    ){
+
+        restoreQuestion();
+
+    }
+
+}
+
+
+/* =========================================
+   COMPLETE QUESTION
+========================================= */
+
+function completeQuestion(){
+
+    if(
+        completed[current]
+    ){
+
+        return;
+
+    }
+
+
+    completed[current] =
+        true;
+
+
+    score++;
+
+
+    disableAllOptions();
+
+
+    nextBtn.disabled =
+        current ===
+        questions.length - 1;
+
+
+    feedback.textContent =
+        "🎉 Excellent! Correct!";
+
+    feedback.className =
+        "feedback correct";
+
+
+    number.classList.remove(
+        "correct-animation"
+    );
+
+    void number.offsetWidth;
+
+    number.classList.add(
+        "correct-animation"
+    );
+
+
+    sound.correct();
+
+    showEmoji("🥳");
+
+  
+
+
+    burstConfetti(
+        document.querySelector(
+            ".number-card"
+        )
+    );
+
+
+    /*
+     * FINAL QUESTION:
+     *
+     * Final popup automatically
+     * opens after last correct answer.
+     */
+
+    if(
+        current ===
+        questions.length - 1
+    ){
+
+        setTimeout(
+            finishQuiz,
+            750
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   ANSWER S / A
+========================================= */
+
+function chooseAnswer(
+    answer
+){
+
+    if(quizFinished){
+        return;
+    }
+
+
+    if(
+        completed[current]
+    ){
+
+        return;
+
+    }
+
+
+    const q =
+        questions[current];
+
+
+    /*
+     * CORRECT
+     */
+
+    if(
+        answer ===
+        q.answer
+    ){
+
+        savedAnswer[current] =
+            answer;
+
+
+        if(answer === "S"){
+
+            sBtn.classList.add(
+                "selected-correct"
+            );
+
+
+            /*
+             * S question:
+             *
+             * First disable S/A.
+             * Then ask for symmetry line.
+             */
+
+            sBtn.disabled = true;
+
+            aBtn.disabled = true;
+
+
+            lineOptions.classList.add(
+                "show"
+            );
+
+
+            feedback.textContent =
+                "Great! Now choose the line of symmetry.";
+
+            feedback.className =
+                "feedback correct";
+
+
+            sound.correct();
+
+            showEmoji("🥳");
+
+           
+
+
+            return;
+
+        }
+
+
+        /*
+         * A is complete immediately.
+         */
+
+        aBtn.classList.add(
+            "selected-correct"
+        );
+
+
+        completeQuestion();
+
+
+        return;
+
+    }
+
+
+    /*
+     * WRONG
+     */
+
+    sound.wrong();
+
+    showEmoji("😔");
+
+    
+
+
+    feedback.textContent =
+        "Not quite. Try again!";
+
+    feedback.className =
+        "feedback wrong";
+
+
+    number.classList.remove(
+        "wrong-animation"
+    );
+
+    void number.offsetWidth;
+
+    number.classList.add(
+        "wrong-animation"
+    );
+
+}
+
+
+/* =========================================
+   SYMMETRY LINE
+========================================= */
+
+function chooseLine(
+    line
+){
+
+    if(quizFinished){
+        return;
+    }
+
+
+    if(
+        completed[current]
+    ){
+
+        return;
+
+    }
+
+
+    const q =
+        questions[current];
+
+
+    /*
+     * CORRECT LINE
+     */
+
+    if(
+        line === q.line
+    ){
+
+        savedLine[current] =
+            line;
+
+
+        if(line === "vertical"){
+
+            verticalLine.classList.add(
+                "show"
+            );
+
+            verticalBtn.classList.add(
+                "selected"
+            );
+
+        }
+
+
+        if(line === "horizontal"){
+
+            horizontalLine.classList.add(
+                "show"
+            );
+
+            horizontalBtn.classList.add(
+                "selected"
+            );
+
+        }
+
+
+        if(line === "both"){
+
+            verticalLine.classList.add(
+                "show"
+            );
+
+            horizontalLine.classList.add(
+                "show"
+            );
+
+            bothBtn.classList.add(
+                "selected"
+            );
+
+        }
+
+
+        completeQuestion();
+
+        return;
+
+    }
+
+
+    /*
+     * WRONG LINE
+     */
+
+    sound.wrong();
+
+    showEmoji("😔");
+
+   
+
+
+    feedback.textContent =
+        "That line is not correct. Try again.";
+
+    feedback.className =
+        "feedback wrong";
+
+}
+
+
+/* =========================================
+   NEXT
+========================================= */
+
+function goNext(){
+
+    if(quizFinished){
+        return;
+    }
+
+
+    if(
+        !completed[current]
+    ){
+
+        return;
+
+    }
+
+
+    if(
+        current <
+        questions.length - 1
+    ){
+
+        renderQuestion(
+            current + 1
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   PREVIOUS
+========================================= */
+
+function goPrevious(){
+
+    if(quizFinished){
+        return;
+    }
+
+
+    if(
+        current > 0
+    ){
+
+        renderQuestion(
+            current - 1
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   FINAL POPUP
+========================================= */
+
+function finishQuiz(){
+
+    if(quizFinished){
+        return;
+    }
+
+
+    quizFinished = true;
+
+
+    /*
+     * Disable navigation.
+     */
+
+    prevBtn.disabled =
+        true;
+
+    nextBtn.disabled =
+        true;
+
+
+    /*
+     * Final sound.
+     */
+
+    sound.finish();
+
+
+    /*
+     * Create final overlay.
+     */
+
+    const overlay =
+        document.createElement(
+            "div"
+        );
+
+    overlay.className =
+        "final-overlay";
+
+
+    const modal =
+        document.createElement(
+            "div"
+        );
+
+    modal.className =
+        "final-modal";
+
+
+    modal.innerHTML = `
+
+        <span class="final-icon">
+            🎉
+        </span>
+
+        <h2>
+            All Done!
+        </h2>
+
+        <p>
+            Amazing! You got them all right!
+        </p>
+
+        <button
+            class="play-again"
+            type="button">
+
+            <i class="fa-solid fa-rotate-right"></i>
+            Play again
+
+        </button>
+
+    `;
+
+
+    overlay.appendChild(
+        modal
+    );
+
+    document.body.appendChild(
+        overlay
+    );
+
+
+    /*
+     * Final confetti:
+     *
+     * same multiple-burst
+     * behavior as reference.
+     */
+
+    setTimeout(
+        () =>
+            burstConfetti(
+                modal,
+                45
+            ),
+        80
+    );
+
+
+    setTimeout(
+        () =>
+            burstConfetti(
+                modal,
+                45
+            ),
+        350
+    );
+
+
+    setTimeout(
+        () =>
+            burstConfetti(
+                modal,
+                45
+            ),
+        650
+    );
+
+
+    /*
+     * Play Again
+     */
+
+    modal
+        .querySelector(
+            ".play-again"
+        )
+        .addEventListener(
+            "click",
+            () => {
+
+                overlay.remove();
+
+                restartGame();
+
+            }
+        );
+
+}
+
+
+/* =========================================
+   RESTART
+========================================= */
+
+function restartGame(){
+
+    current = 0;
+
+    score = 0;
+
+    quizFinished = false;
+
+
+    completed.fill(false);
+
+    savedAnswer.fill(null);
+
+    savedLine.fill(null);
+
+
+    window.speechSynthesis &&
+        window.speechSynthesis.cancel();
+
+
+    renderQuestion(0);
+
+}
+
+
+/* =========================================
+   EVENTS
+========================================= */
+
+sBtn.addEventListener(
+    "click",
+    () =>
+        chooseAnswer("S")
+);
+
+
+aBtn.addEventListener(
+    "click",
+    () =>
+        chooseAnswer("A")
+);
+
+
+verticalBtn.addEventListener(
+    "click",
+    () =>
+        chooseLine("vertical")
+);
+
+
+horizontalBtn.addEventListener(
+    "click",
+    () =>
+        chooseLine("horizontal")
+);
+
+
+bothBtn.addEventListener(
+    "click",
+    () =>
+        chooseLine("both")
+);
+
+
+prevBtn.addEventListener(
+    "click",
+    goPrevious
+);
+
+
+nextBtn.addEventListener(
+    "click",
+    goNext
+);
+
+
+/* =========================================
+   START
+========================================= */
+
+renderQuestion(0);
+
+</script>
+
+<script src="../../shared/quiz-ui.js"></script>
+</body>
+</html>

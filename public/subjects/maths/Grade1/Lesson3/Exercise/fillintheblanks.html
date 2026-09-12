@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jungle Math Grid Puzzle</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+        }
+
+        body {
+            /* Very Light Pastel Yellow/Green Background - NO CARDS */
+            background: linear-gradient(135deg, #fefce8 0%, #f0fdf4 60%, #e0f2fe 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5vh 2vw;
+            overflow: hidden; /* STRICTLY Prevents Scrolling */
+            gap: 12px; /* Keeps header, puzzle and submit area separated */
+            color: #1e293b;
+        }
+
+        header {
+            text-align: center;
+            z-index: 10;
+            flex-shrink: 0;
+            margin-bottom: 1vh;
+        }
+
+        /* Specific Heading Sizing Requested */
+        h1 {
+           color: #2f4f4f;
+            font-weight: 600;
+            text-shadow: 0 2px 0 #ffffff;
+            margin-bottom: 4px;
+        }
+
+        @media screen and (max-width: 1599px) { h1 { font-size: 22px; } }
+        @media screen and (min-width: 1600px) { h1 { font-size: 30px; } }
+
+        .instruction {
+            font-size: clamp(13px, 1.3vw, 17px);
+            color: #475569;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 5px 18px;
+            border-radius: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: inline-block;
+            border: 2px solid #ffffff;
+            font-size: 20px;
+        }
+
+        .instruction span { color: #2563eb; font-weight: 500; }
+
+        /* Main Playground */
+        .game-stage {
+            width: 100%;
+            max-width: 1100px;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+            min-height: 0;
+            gap: 2vw;
+            position: relative;
+            margin: 6px 0; /* Prevents the grid from touching header or submit */
+        }
+
+        /* Floating Grid (No outer card wrapper) */
+        .grid-board {
+            display: grid;
+            grid-template-columns: repeat(5, clamp(42px, 5.5vw, 72px));
+            grid-template-rows: repeat(5, clamp(42px, 5.5vw, 72px));
+            gap: clamp(6px, 1vw, 12px);
+            justify-content: center;
+            align-content: center;
+            position: relative;
+        }
+
+        /* Cell Styling */
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 16px;
+            font-size: clamp(1rem, 2.5vw, 2rem);
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        /* Given Numbers */
+        .cell.given {
+            background: #ffffff;
+            color: #0f172a;
+            border: 3px solid #cbd5e1;
+            box-shadow: 0 6px 0 #94a3b8, 0 8px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Operators (+ and =) */
+        .cell.operator {
+            background: rgba(255, 255, 255, 0.5);
+            color: #64748b;
+            font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+            text-shadow: 0 2px 0 #ffffff;
+            border-radius: 12px;
+        }
+
+        .cell.empty-spacer {
+            background: transparent;
+        }
+
+        /* Interactive Target Cells */
+        .cell.input-cell {
+            background: transparent;
+        }
+
+        .cell.input-cell input {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            border: 3px solid #ef4444; /* Red border matching original image */
+            background: #ffffff;
+            font-size: 30px;
+            font-weight: 500;
+            text-align: center;
+            color: #2f4f4f;
+            outline: none;
+            box-shadow: 0 6px 0 #dc2626, 0 8px 12px rgba(0,0,0,0.08);
+            transition: all 0.2s ease;
+        }
+
+        .cell.input-cell input:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 8px 0 #d97706, 0 0 15px rgba(245, 158, 11, 0.4);
+            transform: translateY(-3px) scale(1.04);
+        }
+
+        .cell.input-cell input:disabled {
+            border-color: #10b981;
+            box-shadow: 0 6px 0 #059669;
+            color: #059669;
+            background: #ecfdf5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Highlight Line Effect when active */
+        .cell.highlight-line {
+            border-color: #f59e0b !important;
+            background: #fffbeb !important;
+            color: #d97706 !important;
+            box-shadow: 0 6px 0 #d97706, 0 0 12px rgba(245, 158, 11, 0.3) !important;
+            transform: scale(1.04);
+        }
+
+        /* Interactive Elephant Mascot */
+        .elephant-mascot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(4rem, 8vw, 7rem);
+            line-height: 1;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+            animation: gentleBob 3s ease-in-out infinite alternate;
+            user-select: none;
+        }
+
+        @keyframes gentleBob {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-8px) rotate(3deg); }
+        }
+
+        /* Centered Action Area (FIXED OVERLAPPING HERE) */
+        .action-area {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5vh 0 1.5vh 0;
+            margin-top: 6px; /* Small safety gap above submit button */
+            z-index: 20;
+            flex-shrink: 0;
+        }
+
+        /* Strict Button Sizing Rules (Laptop: 20px, Monitor: 30px) */
+        .submit-btn, .replay-btn {
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size:20px;min-width:178px;width:178px;height:45px;padding:0;border-radius:40px;
+        }
+
+        @media screen and (min-width: 1600px) {
+            .submit-btn {
+                font-size: 30px;
+                padding: 14px 55px;
+                border-radius: 50px;
+            }
+        }
+
+        .submit-btn {
+            background: #10b981;
+            color: #ffffff;
+            box-shadow: 0 8px 0 #059669;
+        }
+
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #059669;
+        }
+
+        .submit-btn:disabled {
+            background: #cbd5e1;
+            box-shadow: 0 8px 0 #94a3b8;
+            color: #f8fafc;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .replay-btn {
+            background: #0ea5e9;
+            color: white;
+            box-shadow: 0 8px 0 #0284c7;
+            margin-top: 20px;
+        }
+
+        .replay-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #0284c7;
+        }
+
+        /* EXACT Modal Overlay & Custom Popup Design from Reference */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+           
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 100;
+        }
+        .popup-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .popup-card {
+            position: relative; width: 90%; max-width: 520px; padding: 40px 30px;
+            border-radius: 36px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            transform: scale(0.8); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #ffffff;
+        }
+
+        .popup-card::before, .popup-card::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; }
+        .popup-card::before { width: 220px; height: 220px; top: -60px; right: -50px; }
+        .popup-card::after { width: 180px; height: 180px; bottom: -70px; left: -40px; }
+
+        .popup-card.correct { background: #edfbf4; border: 6px solid #00c885; }
+        .popup-card.correct::before, .popup-card.correct::after { background: rgba(162, 245, 209, 0.45); }
+        .popup-card.correct .popup-title { color: #00a86b; text-shadow: none; }
+        .popup-card.correct .popup-subtitle { color: #2e7d5b; text-shadow: none; }
+
+        .popup-card.wrong { background: #fff0f2; border: 6px solid #ff6b7a; }
+        .popup-card.wrong::before, .popup-card.wrong::after { background: rgba(255, 196, 203, 0.45); }
+        .popup-card.wrong .popup-title { color: #d33847; text-shadow: none; }
+        .popup-card.wrong .popup-subtitle { color: #a33b45; text-shadow: none; }
+
+        .popup-card.complete { background: #f0f3ff; border: 6px solid #6c5ce7; }
+        .popup-card.complete::before, .popup-card.complete::after { background: rgba(162, 155, 254, 0.35); }
+        .popup-card.complete .popup-title { color: #6c5ce7; text-shadow: none; }
+        .popup-card.complete .popup-subtitle { color: #4834d4; text-shadow: none; }
+
+        .popup-overlay.active .popup-card { transform: scale(1); }
+        .popup-icon { font-size: 4.8rem; margin-bottom: 12px; line-height: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1)); }
+        .popup-title { font-size: 3rem; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .popup-subtitle { font-size: 1.4rem; font-weight: 500; display: flex; align-items: center; gap: 8px; color: #333; }
+
+        @media screen and (max-width: 800px) {
+            .game-stage { flex-direction: column; }
+            .elephant-mascot { font-size: 3.5rem; margin-bottom: -10px; }
+            .grid-board { gap: 5px; }
+        }
+
+        /* Exact same confetti effect */
+        #confettiContainer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 90;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 9px;
+            height: 14px;
+            border-radius: 2px;
+            opacity: 0;
+            animation: pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+            will-change: transform, opacity;
+        }
+
+        .final-confetti-piece {
+            width: 10px;
+            height: 16px;
+            animation-duration: 2300ms;
+        }
+
+        .final-confetti-piece:nth-child(3n) {
+            border-radius: 50%;
+        }
+
+        .final-confetti-piece:nth-child(4n) {
+            width: 7px;
+            height: 19px;
+            border-radius: 1px;
+        }
+
+        .final-confetti-piece:nth-child(5n) {
+            width: 13px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        @keyframes pageConfetti {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+            }
+            55% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+            }
+        }
+
+        .popup-card.complete {
+            box-shadow:
+                0 20px 45px rgba(108, 92, 231, 0.18),
+                0 0 0 8px rgba(162, 155, 254, 0.12);
+        }
+
+        .popup-card.complete .replay-btn {
+            margin-top: 12px;
+        }
+
+        .popup-card.complete .popup-icon {
+            animation: finalTrophyBounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes finalTrophyBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+    
+/* ===== LESSON 3 HEADINGS: normal weight (400), no bold ===== */
+header h1,
+header h2,
+header h3,
+header p,
+header .instruction,
+header .instruction-text,
+.heading h1,
+.heading h2,
+.heading p {
+    font-weight: 400 !important;
+}
+header h1 *,
+header h2 *,
+header h3 *,
+header p *,
+header .instruction *,
+header .instruction-text *,
+.heading h1 *,
+.heading h2 *,
+.heading p * {
+    font-weight: 400 !important;
+}
+
+/* ===== LESSON 3: Play Again only on final popup (20px) ===== */
+.popup-card .replay-btn,
+.popup-card #playAgainBtn {
+    display: none !important;
+}
+.popup-card.complete .replay-btn,
+.popup-card.complete #playAgainBtn {
+    display: inline-flex !important;
+    margin-top: 12px !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 40px !important;
+    background: #0984e3 !important;
+    color: #ffffff !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #0975c7 !important;
+    z-index: 5;
+    min-width: 178px !important;
+    width: 178px !important;
+    height: 45px !important;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s ease;
+}
+.popup-card.complete .replay-btn:active,
+.popup-card.complete #playAgainBtn:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #0975c7 !important;
+}
+</style>
+</head>
+<body>
+    <div id="confettiContainer"></div>
+
+    <header>
+        <h1>Fill in the boxes</h1>
+        <p class="instruction">Tap any <span>Red Box</span> to solve the math puzzle!</p>
+    </header>
+
+    <main class="game-stage">
+        <div class="grid-board" id="gridBoard">
+            </div>
+
+     
+    </main>
+
+    <div class="action-area">
+        <button class="submit-btn" id="submitBtn" onclick="checkAnswers()" disabled>SUBMIT</button>
+    </div>
+
+    <div class="popup-overlay" id="popup">
+        <div class="popup-card" id="popupCard">
+            <div class="popup-icon" id="popupIcon">⭐</div>
+            <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+            <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+            <button class="replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Exact Grid Structure and Target Numbers from Image:
+        // Row 0: 5 + [1] = 6
+        // Row 1: +   +   +
+        // Row 2: [0] + 0 + [0]
+        // Row 3: =   =   =
+        // Row 4: 5 + [1] = [6]
+        const gridData = [
+            [ { v: '5', t: 'g' }, { v: '+', t: 'o' }, { v: '1', t: 'i', id: 'box-0-2' }, { v: '=', t: 'o' }, { v: '6', t: 'g' } ],
+            [ { v: '+', t: 'o' }, { v: '', t: 's' },  { v: '+', t: 'o' }, { v: '', t: 's' },  { v: '+', t: 'o' } ],
+            [ { v: '0', t: 'i', id: 'box-2-0' }, { v: '+', t: 'o' }, { v: '0', t: 'g' }, { v: '+', t: 'o' }, { v: '0', t: 'i', id: 'box-2-4' } ],
+            [ { v: '=', t: 'o' }, { v: '', t: 's' },  { v: '=', t: 'o' }, { v: '', t: 's' },  { v: '=', t: 'o' } ],
+            [ { v: '5', t: 'g' }, { v: '+', t: 'o' }, { v: '1', t: 'i', id: 'box-4-2' }, { v: '=', t: 'o' }, { v: '6', t: 'i', id: 'box-4-4' } ]
+        ];
+
+        let isSolved = false;
+        let popupTimer = null;
+        let audioCtx = null;
+
+        const gridBoard = document.getElementById('gridBoard');
+        const submitBtn = document.getElementById('submitBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        // Robust Audio Engine
+        function playTone(type) {
+            try {
+                if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2); 
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'focus') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                    osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+                }
+            } catch(e) { console.log('Audio error:', e); }
+        }
+
+        function speak(t) {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(t);
+                msg.lang = "en-US"; msg.volume = 0.8; msg.rate = 1; msg.pitch = 1.2;
+                speechSynthesis.speak(msg);
+            }
+        }
+
+        function renderGrid() {
+            gridBoard.innerHTML = '';
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c < 5; c++) {
+                    const cellData = gridData[r][c];
+                    const cellDiv = document.createElement('div');
+                    cellDiv.dataset.row = r;
+                    cellDiv.dataset.col = c;
+
+                    if (cellData.t === 'g') {
+                        cellDiv.className = 'cell given';
+                        cellDiv.innerText = cellData.v;
+                    } else if (cellData.t === 'o') {
+                        cellDiv.className = 'cell operator';
+                        cellDiv.innerText = cellData.v;
+                    } else if (cellData.t === 's') {
+                        cellDiv.className = 'cell empty-spacer';
+                    } else if (cellData.t === 'i') {
+                        cellDiv.className = 'cell input-cell';
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.inputMode = 'numeric';
+                        input.maxLength = 2;
+                        input.id = cellData.id;
+                        input.dataset.target = cellData.v;
+                        input.dataset.row = r;
+                        input.dataset.col = c;
+                        
+                        input.addEventListener('focus', () => {
+                            playTone('focus');
+                            highlightEquationLine(r, c);
+                        });
+                        input.addEventListener('blur', clearHighlights);
+                        input.addEventListener('input', handleInput);
+
+                        cellDiv.appendChild(input);
+                    }
+                    gridBoard.appendChild(cellDiv);
+                }
+            }
+        }
+
+        // Highlight Row and Column to guide calculation
+        function highlightEquationLine(r, c) {
+            document.querySelectorAll('.cell').forEach(cell => {
+                const cellR = parseInt(cell.dataset.row);
+                const cellC = parseInt(cell.dataset.col);
+                if ((cellR === r || cellC === c) && !cell.classList.contains('empty-spacer') && !cell.classList.contains('input-cell')) {
+                    cell.classList.add('highlight-line');
+                }
+            });
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('highlight-line');
+            });
+        }
+
+        function handleInput(e) {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            checkSubmitState();
+        }
+
+        function checkSubmitState() {
+            const inputs = document.querySelectorAll('.input-cell input');
+            const allFilled = Array.from(inputs).every(input => input.value.trim() !== '');
+            submitBtn.disabled = isSolved || !allFilled;
+        }
+
+        function checkAnswers() {
+            const inputs = document.querySelectorAll('.input-cell input');
+            let allCorrect = true;
+
+            inputs.forEach(input => {
+                if (input.value.trim() !== input.dataset.target) {
+                    allCorrect = false;
+                }
+            });
+
+            if (!allCorrect) {
+                showPopup('wrong', '😟', 'Keep Trying!', 'Some numbers are not quite right yet!', false);
+                playTone('wrong');
+                speak("Try again.");
+                return;
+            }
+
+            // SUCCESS!
+            isSolved = true;
+            inputs.forEach(input => input.disabled = true);
+            submitBtn.disabled = true;
+
+            // Exact same Correct popup + small confetti first.
+            showPopup('correct', '🌟', 'Amazing!', 'You got it exactly right! ✨', false);
+            showSmallConfetti(false);
+            playTone('correct');
+            speak("Correct");
+
+            // Then show the final completion popup + larger final confetti.
+            setTimeout(() => {
+                closePopup();
+                showSmallConfetti(true);
+                showPopup('complete', '🏆', "Congratulations!","Fantastic job! You solved all questions! 🎉", true);
+                playTone('correct');
+                
+            }, 1800);
+        }
+
+
+        function showSmallConfetti(isFinal = false) {
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (!confettiContainer) return;
+
+            confettiContainer.innerHTML = '';
+
+            const count = isFinal ? 95 : 42;
+
+            const colors = [
+                '#00b894',
+                '#e67e22',
+                '#6c5ce7',
+                '#0984e3',
+                '#fdcb6e',
+                '#ff6b7a',
+                '#00cec9',
+                '#a29bfe'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('span');
+
+                piece.className =
+                    isFinal
+                        ? 'confetti-piece final-confetti-piece'
+                        : 'confetti-piece';
+
+                const startX = Math.random() * 100;
+                const startY = -8 + Math.random() * 10;
+
+                const drift =
+                    (Math.random() * 520 - 260) *
+                    (isFinal ? 1.15 : 0.9);
+
+                const fall =
+                    window.innerHeight *
+                    (0.82 + Math.random() * 0.48);
+
+                const rotation =
+                    Math.random() * 1400 - 700;
+
+                piece.style.left = startX + '%';
+                piece.style.top = startY + '%';
+
+                piece.style.setProperty('--x', drift + 'px');
+                piece.style.setProperty('--y', fall + 'px');
+                piece.style.setProperty('--r', rotation + 'deg');
+
+                piece.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+
+                piece.style.animationDelay =
+                    (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(
+                    () => piece.remove(),
+                    isFinal ? 2900 : 2050
+                );
+            }
+        }
+
+        function showPopup(status, icon, title, subtitle, isFinal = false) {
+            const popup = document.getElementById('popup');
+            const card = document.getElementById('popupCard');
+
+            card.className = `popup-card ${status}${isFinal ? ' complete' : ''}`;
+            document.getElementById('popupIcon').innerText = icon;
+            document.getElementById('popupTitle').innerText = title;
+            document.getElementById('popupSubtitle').innerText = subtitle;
+
+            playAgainBtn.style.display = isFinal ? 'inline-block' : 'none';
+            popup.classList.add('active');
+
+            clearTimeout(popupTimer);
+            if (!isFinal) {
+                popupTimer = setTimeout(() => closePopup(), 2000);
+            }
+        }
+
+        function closePopup() { 
+            document.getElementById('popup').classList.remove('active'); 
+        }
+
+        function restartGame() {
+            closePopup();
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (confettiContainer) confettiContainer.innerHTML = '';
+            isSolved = false;
+            
+            const inputs = document.querySelectorAll('.input-cell input');
+            inputs.forEach(input => {
+                input.value = '';
+                input.disabled = false;
+            });
+            
+            submitBtn.disabled = true;
+        }
+
+        window.onload = () => {
+            renderGrid();
+        };
+    </script>
+</body>
+</html>

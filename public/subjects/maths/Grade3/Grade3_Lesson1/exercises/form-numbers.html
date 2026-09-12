@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Number Builder · Even or Odd</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/shared/quiz-ui.css">
+  <link rel="stylesheet" href="../assets/shared/grade3-chapter1.css">
+  <script src="../assets/shared/quiz-ui.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Livvic', sans-serif;
+      font-weight: 400;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .wrap {
+      max-width: 780px;
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* ===== HEADER ===== */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 32px;
+      text-align: center;
+      flex-wrap: wrap;
+    }
+
+    .title-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 19px;
+      background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .9), rgba(255, 255, 255, 0) 42%), #a855f7;
+      box-shadow: 0 6px 14px -4px rgba(168, 85, 247, .6);
+      flex-shrink: 0;
+    }
+
+    .topbar h1 {
+      font-size: 22px;
+      color: #2d3250;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+
+    }
+
+    /* ===== CARD WRAPPER (for absolute nav) ===== */
+    .card-wrapper {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 70px;
+    }
+
+    /* ===== QUESTION CONTAINER (no card style) ===== */
+    .question-container {
+      width: 100%;
+      padding: 20px 0;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: rise .45s cubic-bezier(.34, 1.56, .64, 1) forwards;
+    }
+
+    @keyframes rise {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .question-container.solved {
+      opacity: 0.85;
+    }
+
+    /* ===== QUESTION HEADING ===== */
+    .q-heading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 6px 0;
+    }
+
+    .q-badge {
+      font-size: 28px;
+      font-weight: 800;
+      color: #252425;
+      padding: 10px;
+      border-radius: 40px;
+      line-height: 1.4;
+      letter-spacing: 1px;
+    }
+
+    .q-desc {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2d3250;
+      line-height: 1.4;
+    }
+
+    .q-desc .highlight {
+      background: #fde3a1;
+      padding: 10px 15px;
+      border-radius: 12px;
+      color: #1e1e2a;
+      font-weight: 800;
+    }
+
+    /* ===== NUMBER INPUT BOXES ===== */
+    .number-input-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0 16px;
+    }
+
+    .input-label {
+      font-size: 15px;
+      font-weight: 700;
+      color: #7c8397;
+      letter-spacing: 0.5px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .digit-input {
+      width: 64px;
+      height: 64px;
+      border: 4px solid #e7ebf3;
+      border-radius: 16px;
+      text-align: center;
+      font-size: 32px;
+      font-weight: 800;
+      color: #2d3250;
+      background: #fbfcfe;
+      transition: border-color .2s, background .2s, transform .15s;
+      outline: none;
+
+    }
+
+    .digit-input:focus {
+      border-color: #a855f7;
+      background: #f5f0ff;
+      box-shadow: 0 0 0 4px rgba(168, 85, 247, .15);
+    }
+
+    .digit-input.filled-correct {
+      border-color: #4caf50;
+      background: #eefbef;
+    }
+
+    .digit-input.filled-wrong {
+      border-color: #ef5675;
+      background: #fff1f4;
+      animation: shake 0.35s ease;
+    }
+
+    .digit-input:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-8px);
+      }
+
+      75% {
+        transform: translateX(8px);
+      }
+    }
+
+    /* ===== EVEN / ODD BUTTONS (unique style) ===== */
+    .parity-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin: 12px 0 18px;
+    }
+
+    .parity-label {
+      font-size: 17px;
+      font-weight: 700;
+      color: #5b6480;
+    }
+
+    .parity-group {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .parity-btn {
+      border: none;
+      cursor: pointer;
+      padding: 14px 40px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 22px;
+      color: #fff;
+      transition: transform .12s, box-shadow .2s, opacity .2s, filter .2s;
+
+      min-width: 120px;
+      box-shadow: 0 6px 0 -1px rgba(0, 0, 0, .2), 0 10px 20px -8px rgba(0, 0, 0, .2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .parity-btn::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, .15) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .parity-btn:hover:not(:disabled)::after {
+      opacity: 1;
+    }
+
+    .parity-btn:hover:not(:disabled) {
+      transform: translateY(-3px) scale(1.02);
+      filter: brightness(1.06);
+    }
+
+    .parity-btn:active:not(:disabled) {
+      transform: translateY(2px) scale(.96);
+    }
+
+    .parity-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    .parity-btn.even {
+      background: linear-gradient(135deg, #4ecb5c, #2e9e3e);
+      box-shadow: 0 6px 0 -1px #1e7a2a, 0 10px 20px -8px rgba(46, 158, 62, .4);
+    }
+
+    .parity-btn.odd {
+      background: linear-gradient(135deg, #29b6f6, #0d8fd4);
+      box-shadow: 0 6px 0 -1px #0a6fa8, 0 10px 20px -8px rgba(13, 143, 212, .4);
+    }
+
+    .parity-btn.selected-even {
+      background: linear-gradient(135deg, #4ecb5c, #2e9e3e);
+      box-shadow: 0 0 0 4px #fff, 0 0 0 8px rgba(78, 203, 92, .4), 0 6px 0 -1px #1e7a2a;
+      transform: scale(1.04);
+    }
+
+    .parity-btn.selected-odd {
+      background: linear-gradient(135deg, #29b6f6, #0d8fd4);
+      box-shadow: 0 0 0 4px #fff, 0 0 0 8px rgba(41, 182, 246, .4), 0 6px 0 -1px #0a6fa8;
+      transform: scale(1.04);
+    }
+
+    /* ===== CHECK BUTTON (centered) ===== */
+    .check-wrapper {
+      display: flex;
+      justify-content: center;
+      margin: 8px 0 12px;
+    }
+
+    .btn-check {
+      border: none;
+      cursor: pointer;
+      padding: 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 20px;
+      color: #fff;
+      background: #a855f7;
+      box-shadow: 0 6px 0 -1px rgba(168, 85, 247, .6), 0 10px 20px -8px rgba(168, 85, 247, .4);
+      transition: transform .12s, opacity .2s, box-shadow .2s;
+
+      opacity: 0.4;
+      pointer-events: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-check.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .btn-check:active:not(:disabled) {
+      transform: translateY(2px);
+    }
+
+    .btn-check:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    .feedback {
+      font-size: 20px;
+      font-weight: 800;
+      opacity: 0;
+      transition: opacity .2s;
+      text-align: center;
+      margin-top: 8px;
+      min-height: 32px;
+    }
+
+    .feedback.show {
+      opacity: 1;
+    }
+
+    .feedback.good {
+      color: #2f9e44;
+    }
+
+    .feedback.bad {
+      color: #e0398c;
+    }
+
+    /* ===== NAV BUTTONS (absolute, like reference) ===== */
+    .nav-btn-abs {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      cursor: pointer;
+      padding: 14px 28px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 15px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform .15s ease, opacity .2s ease, box-shadow .2s ease;
+      box-shadow: 0 5px 0 -1px rgba(0, 0, 0, .2), 0 8px 14px -8px rgba(0, 0, 0, .3);
+      z-index: 100;
+      background: linear-gradient(180deg, #7ed957, #4caf50);
+
+    }
+
+    .nav-btn-abs:active:not(:disabled) {
+      transform: translateY(-50%) translateY(2px);
+    }
+
+    .nav-btn-abs:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: translateY(-50%);
+    }
+
+    .nav-btn-abs:hover:not(:disabled) {
+      filter: brightness(1.05);
+      transform: translateY(-50%) translateY(-2px);
+    }
+
+    .btn-prev-abs {
+      left: -85px;
+      background: linear-gradient(180deg, #7ed957, #4caf50);
+    }
+
+    .btn-next-abs {
+      right: -85px;
+      background: linear-gradient(180deg, #7ed957, #4caf50);
+    }
+
+    .progress-indicator {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 14px;
+      font-weight: 700;
+      color: #7c8397;
+      text-align: center;
+      background: rgba(255, 255, 255, .7);
+      padding: 4px 18px;
+      border-radius: 999px;
+      white-space: nowrap;
+      display: none;
+    }
+
+    /* ===== POPUPS & CONFETTI (from reference) ===== */
+    .celebration-piece {
+      position: fixed;
+      left: 50%;
+      top: 42%;
+      width: 10px;
+      height: 18px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 9998;
+      animation: confettiBurst 1.4s cubic-bezier(.2, .8, .2, 1) forwards;
+    }
+
+    @keyframes confettiBurst {
+      from {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(0) scale(.7);
+      }
+
+      to {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(520deg) scale(1);
+      }
+    }
+
+    .emoji-pop {
+      position: fixed;
+      left: 50%;
+      top: 42%;
+      font-size: 80px;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%) scale(.35) rotate(-12deg);
+      animation: emojiPop 1.8s cubic-bezier(.2, .8, .2, 1) forwards;
+      filter: drop-shadow(0 10px 14px rgba(45, 50, 80, .18));
+    }
+
+    @keyframes emojiPop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.35) rotate(-12deg);
+      }
+
+      28% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.18) rotate(8deg);
+      }
+
+      68% {
+        opacity: 1;
+        transform: translate(-50%, -54%) scale(1) rotate(-4deg);
+      }
+
+      to {
+        opacity: 0;
+        transform: translate(-50%, -68%) scale(.9) rotate(0);
+      }
+    }
+
+    .final-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      animation: fadeIn .4s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .final-modal {
+      background: #fff;
+      max-width: 400px;
+      width: 90%;
+      padding: 36px 28px 32px;
+      border-radius: 56px 20px 56px 20px;
+      text-align: center;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, .3);
+      animation: popUp .4s cubic-bezier(.175, .885, .32, 1.275);
+
+    }
+
+    @keyframes popUp {
+      from {
+        transform: scale(.8);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .final-modal .icon-big {
+      font-size: 52px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .final-modal h2 {
+      font-size: 30px;
+      font-weight: 800;
+      color: #1e1e2a;
+      margin-bottom: 8px;
+    }
+
+    .final-modal p {
+      font-size: 17px;
+      color: #3d3d4a;
+      margin-bottom: 22px;
+    }
+
+    .final-modal .btn-playagain {
+      border: none;
+      background: linear-gradient(180deg, #ffb347, #f58a2e);
+      padding: 12px 36px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 18px;
+      color: #2d1f00;
+      box-shadow: 0 12px 24px rgba(245, 138, 46, .3);
+      cursor: pointer;
+      transition: transform .1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+
+    }
+
+    .final-modal .btn-playagain:active {
+      transform: scale(.95);
+    }
+
+    /* ===== RESPONSIVE – exact same from reference ===== */
+    @media (max-width:900px) {
+      body {
+        align-items: center;
+        padding: 20px;
+        overflow: auto;
+      }
+
+      .card-wrapper {
+        padding: 0 60px;
+      }
+
+      .btn-prev-abs {
+        left: -60px;
+      }
+
+      .btn-next-abs {
+        right: -60px;
+      }
+
+      .nav-btn-abs {
+        padding: 12px 22px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width:768px) {
+      body {
+        padding: 30px 0 10px;
+        align-items: flex-start;
+        overflow: auto;
+      }
+
+      .card-wrapper {
+        padding: 0 50px;
+      }
+
+      .btn-prev-abs {
+        left: -50px;
+      }
+
+      .btn-next-abs {
+        right: -50px;
+      }
+
+      .topbar h1 {
+        font-size: 19px;
+      }
+
+      .q-desc {
+        font-size: 18px;
+      }
+
+      .q-badge {
+        font-size: 22px;
+      }
+
+      .digit-input {
+        width: 52px;
+        height: 52px;
+        font-size: 24px;
+      }
+
+      .parity-btn {
+        font-size: 18px;
+        padding: 12px 28px;
+        min-width: 90px;
+      }
+
+      .btn-check {
+        font-size: 17px;
+        padding: 12px 32px;
+      }
+
+      .nav-btn-abs {
+        padding: 10px 18px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width:480px) {
+      body {
+        padding: 40px 0 10px;
+        align-items: flex-start;
+        overflow: auto;
+      }
+
+      .card-wrapper {
+        padding: 0 40px;
+      }
+
+      .btn-prev-abs {
+        left: -40px;
+      }
+
+      .btn-next-abs {
+        right: -40px;
+      }
+
+      .q-desc {
+        font-size: 15px;
+      }
+
+      .q-badge {
+        font-size: 18px;
+      }
+
+      .digit-input {
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+        border-width: 3px;
+      }
+
+      .parity-btn {
+        font-size: 15px;
+        padding: 10px 18px;
+        min-width: 70px;
+      }
+
+      .btn-check {
+        font-size: 14px;
+        padding: 10px 24px;
+      }
+
+      .feedback {
+        font-size: 16px;
+      }
+
+      .nav-btn-abs {
+        padding: 8px 12px;
+        font-size: 11px;
+      }
+
+      .progress-indicator {
+        font-size: 12px;
+        padding: 3px 12px;
+        bottom: -34px;
+      }
+    }
+
+    @media (max-width:380px) {
+      .card-wrapper {
+        padding: 0 30px;
+      }
+
+      .btn-prev-abs {
+        left: -30px;
+      }
+
+      .btn-next-abs {
+        right: -30px;
+      }
+
+      .nav-btn-abs {
+        padding: 6px 10px;
+        font-size: 10px;
+      }
+    }
+
+    @media screen and (min-width:1025px) and (max-width:1440px) {
+      .wrap {
+        max-width: 900px;
+      }
+
+      .topbar h1 {
+        font-size: 26px;
+      }
+
+      .q-desc {
+        font-size: 26px;
+      }
+
+      .q-badge {
+        font-size: 32px;
+      }
+
+      .digit-input {
+        width: 72px;
+        height: 72px;
+        font-size: 36px;
+      }
+
+      .parity-btn {
+        font-size: 24px;
+        padding: 16px 44px;
+        min-width: 130px;
+      }
+
+      .btn-check {
+        font-size: 22px;
+        padding: 16px 30px;
+      }
+
+      .nav-btn-abs {
+        padding: 16px 32px;
+        font-size: 17px;
+      }
+
+      .btn-prev-abs {
+        left: -90px;
+      }
+
+      .btn-next-abs {
+        right: -90px;
+      }
+    }
+
+    @media screen and (min-width:1441px) and (max-width:1920px) {
+      .wrap {
+        max-width: 1000px;
+      }
+
+      .topbar h1 {
+        font-size: 30px;
+      }
+
+      .q-desc {
+        font-size: 30px;
+      }
+
+      .q-badge {
+        font-size: 36px;
+      }
+
+      .digit-input {
+        width: 80px;
+        height: 80px;
+        font-size: 40px;
+      }
+
+      .parity-btn {
+        font-size: 26px;
+        padding: 18px 50px;
+        min-width: 150px;
+      }
+
+      .btn-check {
+        font-size: 24px;
+        padding: 18px 40px;
+      }
+
+      .nav-btn-abs {
+        padding: 18px 38px;
+        font-size: 19px;
+      }
+
+      .btn-prev-abs {
+        left: -100px;
+      }
+
+      .btn-next-abs {
+        right: -100px;
+      }
+    }
+
+    @media screen and (min-width:1921px) {
+      .wrap {
+        max-width: 1100px;
+      }
+
+      .topbar h1 {
+        font-size: 34px;
+      }
+
+      .q-desc {
+        font-size: 34px;
+      }
+
+      .q-badge {
+        font-size: 40px;
+      }
+
+      .digit-input {
+        width: 88px;
+        height: 88px;
+        font-size: 44px;
+      }
+
+      .parity-btn {
+        font-size: 28px;
+        padding: 20px 56px;
+        min-width: 160px;
+      }
+
+      .btn-check {
+        font-size: 26px;
+        padding: 20px 45px;
+      }
+
+      .nav-btn-abs {
+        padding: 20px 42px;
+        font-size: 22px;
+      }
+
+      .btn-prev-abs {
+        left: -110px;
+      }
+
+      .btn-next-abs {
+        right: -110px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .emoji-pop,
+      .final-overlay,
+      .final-modal,
+      .question-container {
+        animation: none;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../shared/quiz-ui.css">
+  <link rel="stylesheet" href="../../shared/grade3-chapter1.css">
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title-icon"><i class="fa-solid fa-pencil"></i></div>
+      <h1>Write the numbers formed and write whether even or odd.</h1>
+    </div>
+
+    <div class="card-wrapper" id="cardWrapper">
+      <button class="nav-btn-abs btn-prev-abs" id="prevBtnAbs" disabled>
+        <i class="fa-solid fa-chevron-left nav-icon"></i> Prev
+      </button>
+      <div id="questionsGrid" style="width:100%;"></div>
+      <button class="nav-btn-abs btn-next-abs" id="nextBtnAbs" disabled>
+        Next <i class="fa-solid fa-chevron-right nav-icon"></i>
+      </button>
+      <div class="progress-indicator" id="progressIndicator">1 / 2</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // ----- DATA -----
+      const QUESTIONS = [
+        {
+          letter: 'a',
+          parts: [
+            { label: 'Th', value: 4 },
+            { label: 'H', value: 8 },
+            { label: 'T', value: 2 },
+            { label: 'O', value: 9 }
+          ],
+          display: '4 thousands 8 hundreds 2 tens 9 ones'
+        },
+        {
+          letter: 'b',
+          parts: [
+            { label: 'Th', value: 8 },
+            { label: 'H', value: 0 },
+            { label: 'T', value: 3 },
+            { label: 'O', value: 6 }
+          ],
+          display: '8 thousands 3 tens 6 ones'
+        }
+      ];
+
+      // Build full number and determine parity
+      QUESTIONS.forEach(q => {
+        let num = 0;
+        q.parts.forEach(p => {
+          if (p.label === 'Th') num += p.value * 1000;
+          else if (p.label === 'H') num += p.value * 100;
+          else if (p.label === 'T') num += p.value * 10;
+          else if (p.label === 'O') num += p.value;
+        });
+        q.fullNumber = num;
+        q.isEven = num % 2 === 0;
+        q.answer = q.isEven ? 'even' : 'odd';
+        q._solved = false;
+      });
+
+      let currentIndex = 0;
+      let selectedParity = null;
+      let isLocked = false;
+
+      const grid = document.getElementById('questionsGrid');
+      const prevBtn = document.getElementById('prevBtnAbs');
+      const nextBtn = document.getElementById('nextBtnAbs');
+      const progressIndicator = document.getElementById('progressIndicator');
+
+      // ----- SOUND (from reference) -----
+      let audioCtx = null;
+      function getCtx() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
+      function beep(freq, duration, type) {
+        try {
+          const ctx = getCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = type || 'sine';
+          osc.frequency.value = freq;
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.16, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration / 1000);
+          osc.start();
+          osc.stop(ctx.currentTime + duration / 1000);
+        } catch (e) { }
+      }
+      const sfx = {
+        good: () => { beep(660, 110, 'sine'); setTimeout(() => beep(880, 160, 'sine'), 110); },
+        bad: () => beep(180, 220, 'sawtooth'),
+        finish: () => { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 150, 'sine'), i * 130)); }
+      };
+
+      // ----- CONFETTI & POPUPS (from reference) -----
+      function burstConfetti(fromEl, color) {
+        const rect = fromEl.getBoundingClientRect();
+        const x = (rect.left + rect.width / 2) / window.innerWidth;
+        const y = (rect.top + rect.height / 2) / window.innerHeight;
+        confetti({
+          particleCount: 30,
+          spread: 70,
+          origin: { x, y },
+          startVelocity: 20,
+          colors: [color, '#ffd54f', '#ff9f45', '#7ed957', '#ff6b6b', '#4ecdc4']
+        });
+      }
+
+      function showCorrectEmoji() {
+        const colors = ['#ff6fb5', '#ffd54f', '#7ed957', '#4fc3f7', '#b388ff'];
+        for (let i = 0; i < 18; i++) {
+          const piece = document.createElement('span');
+          const angle = (Math.PI * 2 * i) / 18;
+          const distance = 90 + Math.random() * 100;
+          piece.className = 'celebration-piece';
+          piece.style.setProperty('--x', `${Math.cos(angle) * distance}px`);
+          piece.style.setProperty('--y', `${Math.sin(angle) * distance}px`);
+          piece.style.background = colors[i % colors.length];
+          piece.style.animationDelay = `${Math.random() * .12}s`;
+          document.body.appendChild(piece);
+          setTimeout(() => piece.remove(), 1600);
+        }
+        const emoji = document.createElement('div');
+        emoji.className = 'emoji-pop';
+        emoji.textContent = '🥳';
+        document.body.appendChild(emoji);
+        setTimeout(() => emoji.remove(), 1850);
+      }
+
+      function showWrongEmoji() {
+        const emoji = document.createElement('div');
+        emoji.className = 'emoji-pop';
+        emoji.textContent = '😔';
+        emoji.style.fontSize = '70px';
+        document.body.appendChild(emoji);
+        setTimeout(() => emoji.remove(), 1500);
+      }
+
+      function showFinalPopup() {
+        const old = document.querySelector('.final-overlay');
+        if (old) old.remove();
+        sfx.finish();
+        const overlay = document.createElement('div');
+        overlay.className = 'final-overlay';
+        overlay.innerHTML = `
+        <div class="final-modal">
+          <span class="icon-big">🎉</span>
+          <h2>All Done!</h2>
+          <p>Amazing! You got them all right!</p>
+          <button class="btn-playagain" id="playAgainBtn"><i class="fa-solid fa-rotate-right"></i> Play again</button>
+        </div>
+      `;
+        document.body.appendChild(overlay);
+        setTimeout(() => {
+          const modal = overlay.querySelector('.final-modal');
+          if (modal) burstConfetti(modal, '#ffd54f');
+          setTimeout(() => { if (modal) burstConfetti(modal, '#4ecdc4'); }, 400);
+          setTimeout(() => { if (modal) burstConfetti(modal, '#ff9f45'); }, 800);
+        }, 100);
+        overlay.querySelector('#playAgainBtn').addEventListener('click', function () {
+          overlay.remove();
+          playAgain();
+        });
+      }
+
+      // ----- RENDER -----
+      function render() {
+        const q = QUESTIONS[currentIndex];
+        const isSolved = q._solved || false;
+
+        // Build input boxes
+        let inputsHTML = q.parts.map((p, idx) => `
+        <input type="text" class="digit-input" id="digit_${idx}" maxlength="1" 
+  value="" ${isSolved ? 'disabled' : ''}>
+      `).join('');
+
+        grid.innerHTML = `
+        <div class="question-container ${isSolved ? 'solved' : ''}" id="qContainer">
+          <div class="q-heading">
+            <span class="q-badge">${q.letter})</span>
+            <span class="q-desc"><span class="highlight">${q.display}</span></span>
+          </div>
+
+          <div class="number-input-area">
+            <span class="input-label">Type the number</span>
+            <div class="input-row">
+              ${inputsHTML}
+            </div>
+          </div>
+
+          <div class="parity-section">
+            <span class="parity-label">This number is:</span>
+            <div class="parity-group">
+              <button class="parity-btn even ${selectedParity === 'even' ? 'selected-even' : ''}" data-value="even" ${isLocked || isSolved ? 'disabled' : ''}>Even</button>
+              <button class="parity-btn odd ${selectedParity === 'odd' ? 'selected-odd' : ''}" data-value="odd" ${isLocked || isSolved ? 'disabled' : ''}>Odd</button>
+            </div>
+          </div>
+
+          <div class="check-wrapper">
+            <button class="btn-check" id="checkBtn" ${isSolved ? 'disabled' : ''}>
+              Check
+            </button>
+          </div>
+          <div class="feedback ${isSolved ? 'show good' : ''}" id="feedback">${isSolved ? '✅ Correct!' : ''}</div>
+        </div>
+      `;
+
+        // If solved, populate inputs with correct values and lock
+        if (isSolved) {
+          q.parts.forEach((p, idx) => {
+            const input = document.getElementById(`digit_${idx}`);
+            if (input) {
+              input.value = p.value;
+              input.classList.add('filled-correct');
+              input.disabled = true;
+            }
+          });
+          // disable parity buttons
+          grid.querySelectorAll('.parity-btn').forEach(b => b.disabled = true);
+        } else {
+          // Auto-focus first empty input
+          const firstInput = document.getElementById('digit_0');
+          if (firstInput) setTimeout(() => firstInput.focus(), 100);
+        }
+
+        // ---- event listeners ----
+        // Input boxes: only allow digits, auto-advance
+        q.parts.forEach((p, idx) => {
+          const input = document.getElementById(`digit_${idx}`);
+          if (!input || isSolved) return;
+
+          input.addEventListener('input', function (e) {
+            // Only allow single digit
+            this.value = this.value.replace(/\D/g, '').slice(0, 1);
+            // Auto-advance to next input
+            if (this.value.length === 1 && idx < q.parts.length - 1) {
+              const next = document.getElementById(`digit_${idx + 1}`);
+              if (next) next.focus();
+            }
+            updateCheckButton();
+          });
+
+          input.addEventListener('keydown', function (e) {
+            if (e.key === 'Backspace' && this.value === '' && idx > 0) {
+              const prev = document.getElementById(`digit_${idx - 1}`);
+              if (prev) prev.focus();
+            }
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              // Check if all inputs filled
+              const allFilled = q.parts.every((_, i) => {
+                const inp = document.getElementById(`digit_${i}`);
+                return inp && inp.value.length === 1;
+              });
+              if (allFilled && selectedParity) {
+                document.getElementById('checkBtn')?.click();
+              }
+            }
+          });
+        });
+
+        // Parity buttons
+        grid.querySelectorAll('.parity-btn').forEach(btn => {
+          btn.addEventListener('click', function () {
+            if (isLocked || isSolved) return;
+            const val = this.dataset.value;
+            selectedParity = val;
+            grid.querySelectorAll('.parity-btn').forEach(b => {
+              b.classList.remove('selected-even', 'selected-odd');
+            });
+            this.classList.add(val === 'even' ? 'selected-even' : 'selected-odd');
+            updateCheckButton();
+          });
+        });
+
+        // Check button
+        const checkBtn = document.getElementById('checkBtn');
+        const feedback = document.getElementById('feedback');
+
+        function updateCheckButton() {
+          if (!checkBtn) return;
+          // Check if all digits are filled
+          const allFilled = q.parts.every((_, i) => {
+            const inp = document.getElementById(`digit_${i}`);
+            return inp && inp.value.length === 1;
+          });
+          const hasSelection = selectedParity !== null;
+          const enabled = allFilled && hasSelection && !isLocked && !isSolved;
+          checkBtn.classList.toggle('active', enabled);
+          checkBtn.disabled = !enabled;
+        }
+
+        if (checkBtn) {
+          checkBtn.addEventListener('click', function () {
+            if (isLocked || isSolved) return;
+
+            // Get user's number
+            let userNum = 0;
+            const digits = [];
+            q.parts.forEach((p, idx) => {
+              const input = document.getElementById(`digit_${idx}`);
+              const val = parseInt(input?.value || '0');
+              digits.push(val);
+              if (p.label === 'Th') userNum += val * 1000;
+              else if (p.label === 'H') userNum += val * 100;
+              else if (p.label === 'T') userNum += val * 10;
+              else if (p.label === 'O') userNum += val;
+            });
+
+            const numberCorrect = (userNum === q.fullNumber);
+            const parityCorrect = (selectedParity === q.answer);
+
+            if (numberCorrect && parityCorrect) {
+              // CORRECT
+              q._solved = true;
+              isLocked = true;
+              sfx.good();
+              burstConfetti(document.getElementById('qContainer'), '#a855f7');
+              showCorrectEmoji();
+
+              // Mark inputs as correct
+              q.parts.forEach((p, idx) => {
+                const input = document.getElementById(`digit_${idx}`);
+                if (input) {
+                  input.classList.add('filled-correct');
+                  input.disabled = true;
+                }
+              });
+
+              feedback.textContent = '✅ Correct!';
+              feedback.className = 'feedback show good';
+              document.getElementById('qContainer').classList.add('solved');
+              this.disabled = true;
+              this.classList.remove('active');
+              grid.querySelectorAll('.parity-btn').forEach(b => b.disabled = true);
+
+              updateNav();
+
+              if (QUESTIONS.every(qq => qq._solved)) {
+                setTimeout(() => showFinalPopup(), 700);
+              }
+            } else {
+              // WRONG
+              sfx.bad();
+              showWrongEmoji();
+
+              // Flash inputs that are wrong
+              q.parts.forEach((p, idx) => {
+                const input = document.getElementById(`digit_${idx}`);
+                if (input) {
+                  const val = parseInt(input.value || '0');
+                  if (val !== p.value) {
+                    input.classList.add('filled-wrong');
+                  }
+                }
+              });
+
+              feedback.textContent = numberCorrect ? 'Parity is wrong — try again!' : 'Number is wrong — try again!';
+              feedback.className = 'feedback show bad';
+
+              // Reset after delay
+              setTimeout(() => {
+                q.parts.forEach((_, idx) => {
+                  const input = document.getElementById(`digit_${idx}`);
+                  if (input) {
+                    input.classList.remove('filled-wrong');
+                    if (!q._solved) {
+                      input.value = '';
+                      input.disabled = false;
+                    }
+                  }
+                });
+                selectedParity = null;
+                grid.querySelectorAll('.parity-btn').forEach(b => {
+                  b.classList.remove('selected-even', 'selected-odd');
+                });
+                feedback.className = 'feedback';
+                feedback.textContent = '';
+                updateCheckButton();
+                if (!q._solved) {
+                  const firstInput = document.getElementById('digit_0');
+                  if (firstInput) firstInput.focus();
+                }
+              }, 800);
+            }
+          });
+        }
+
+        updateCheckButton();
+        updateNav();
+      }
+
+      // ----- NAV -----
+      function updateNav() {
+        prevBtn.disabled = (currentIndex === 0);
+        const currentSolved = QUESTIONS[currentIndex]._solved || false;
+        const hasNext = currentIndex < QUESTIONS.length - 1;
+        nextBtn.disabled = !(currentSolved && hasNext);
+        progressIndicator.textContent = `${currentIndex + 1} / ${QUESTIONS.length}`;
+      }
+
+      function goPrev() {
+        if (currentIndex > 0) {
+          currentIndex--;
+          selectedParity = null;
+          isLocked = false;
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+
+      function goNext() {
+        if (currentIndex < QUESTIONS.length - 1 && QUESTIONS[currentIndex]._solved) {
+          currentIndex++;
+          selectedParity = null;
+          isLocked = false;
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+
+      prevBtn.addEventListener('click', goPrev);
+      nextBtn.addEventListener('click', goNext);
+
+      function playAgain() {
+        QUESTIONS.forEach(q => { q._solved = false; });
+        currentIndex = 0;
+        selectedParity = null;
+        isLocked = false;
+        render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      // ----- INIT -----
+      render();
+    })();
+  </script>
+  <script src="../../shared/quiz-ui.js"></script>
+</body>
+
+</html>

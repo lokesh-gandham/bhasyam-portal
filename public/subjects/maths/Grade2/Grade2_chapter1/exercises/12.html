@@ -1,0 +1,1165 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biggest Number → Balloons</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link rel="stylesheet" href="../assets/css/reuse.css">
+
+<style>
+
+/* =========================================================
+   RESET
+   ========================================================= */
+
+*{
+  box-sizing:border-box;
+  font-family:"Livvic",sans-serif;
+}
+html,
+body,
+.quiz-card,
+.quiz-card *{
+  cursor:default !important;
+}
+
+html,
+body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#F8F4FF;
+  touch-action:none;
+  overscroll-behavior:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+html,
+body,
+.quiz-card,
+.quiz-card *{
+  cursor:default !important;
+}
+
+/* =========================================================
+   QUIZ CARD
+   ========================================================= */
+
+.quiz-card{
+  width:100%;
+  height:100vh;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:
+    clamp(18px,3vh,35px)
+    clamp(15px,4vw,60px);
+  overflow:hidden;
+}
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
+.heading{
+  margin:0;
+  width:100%;
+  text-align:center;
+  font-size:30px;
+  line-height:1.25;
+  color:#2f2f2f;
+  margin-top: -20px;
+}
+
+/* =========================================================
+   TOPBAR
+   ========================================================= */
+
+.topbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 0 6px 8px 6px;
+}
+
+.icon-flat {
+  background: transparent;
+  border: none;
+  font-size: 32px;
+  line-height: 1;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: transform .2s ease;
+  color: #2f2f2f;
+}
+.icon-flat:hover {
+  transform: scale(1.15);
+}
+
+/* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+.content-row{
+  width:100%;
+  max-width:900px;
+  flex:1;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  gap:clamp(4px,1vh,12px);
+  min-height:0;
+  padding:clamp(2px,0.8vh,10px) 0 0;
+}
+
+/* =========================================================
+   QUESTION HEADER
+   ========================================================= */
+
+.question-heading{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  margin:0;
+  font-size:30px;
+  flex:0 0 auto;
+  padding-left: clamp(4px, 0.6vw, 8px);
+}
+
+.qlabel{
+  margin:0;
+  font-size:clamp(30px,3.3vw,46px);
+  line-height:1.1;
+  color:#2f2f2f;
+  text-align:left;
+}
+
+/* =========================================================
+   QUESTION TEXT
+   ========================================================= */
+
+.question-text{
+  display:none;
+  font-size:clamp(24px,3vw,38px);
+  font-weight:600;
+  color:#2f2f2f;
+  text-align:center;
+  margin:0;
+  padding:0 10px;
+  flex:0 0 auto;
+}
+
+/* =========================================================
+   OPTIONS — 4 BALLOONS
+   ========================================================= */
+
+.archery-area{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  flex:0 0 auto;
+}
+
+.options-row{
+  width:100%;
+  max-width:760px;
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  align-items:end;
+  justify-items:center;
+  gap:clamp(26px,2.8vw,44px);
+  cursor: pointer !important;
+}
+
+.arrow-option{
+  position:relative;
+
+  width:clamp(120px,17vw,190px);
+  height:clamp(150px,22vw,240px);
+
+  padding:0;
+  margin:0;
+  cursor: pointer !important;
+
+  border:0;
+  border-radius:0;
+
+  background:transparent;
+  box-shadow:none;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  transition:
+    transform .2s ease,
+    filter .2s ease,
+    opacity .25s ease;
+
+  animation:balloonFloat 2.8s ease-in-out infinite;
+}
+
+.arrow-option:nth-child(1){ animation-delay:0s; }
+.arrow-option:nth-child(2){ animation-delay:.25s; }
+.arrow-option:nth-child(3){ animation-delay:.5s; }
+.arrow-option:nth-child(4){ animation-delay:.75s; }
+
+.arrow-option::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  display:block;
+
+  background-color:transparent;
+
+  -webkit-mask-image:url("../assets/images/balloon.png");
+  mask-image:url("../assets/images/balloon.png");
+  -webkit-mask-repeat:no-repeat;
+  mask-repeat:no-repeat;
+  -webkit-mask-position:center;
+  mask-position:center;
+  -webkit-mask-size:contain;
+  mask-size:contain;
+
+  z-index:1;
+
+  transition:
+    background-color .2s ease,
+    transform .2s ease;
+}
+
+/* 4 different pastel colors */
+.arrow-option:nth-child(1)::before{
+  background-color:#BEEFC9; /* mint */
+}
+.arrow-option:nth-child(2)::before{
+  background-color:#F9C9DE; /* pink */
+}
+.arrow-option:nth-child(3)::before{
+  background-color:#FCEAAE; /* yellow */
+}
+.arrow-option:nth-child(4)::before{
+  background-color:#C9D9F8; /* periwinkle */
+}
+
+.arrow-option .arrow-number{
+  position:relative;
+  z-index:2;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  width:64%;
+  min-height:40%;
+
+  border-radius:0;
+
+  background:transparent;
+
+  color:#4a3f6b;
+
+  font-size:clamp(24px,3vw,34px);
+  font-weight:400;
+  line-height:1;
+
+  transform:translateY(-20%);
+
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.55),
+    0 2px 6px rgba(0,0,0,.10);
+
+  transition:
+    transform .2s ease,
+    color .2s ease;
+}
+
+.arrow-option img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  z-index:2;
+  display:block;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.12));
+}
+
+.arrow-option:nth-child(1) img{
+  filter:brightness(0) saturate(100%) invert(79%) sepia(22%) saturate(700%) hue-rotate(92deg) brightness(105%) contrast(90%);
+}
+.arrow-option:nth-child(2) img{
+  filter:brightness(0) saturate(100%) invert(80%) sepia(18%) saturate(1100%) hue-rotate(292deg) brightness(105%) contrast(92%);
+}
+.arrow-option:nth-child(3) img{
+  filter:brightness(0) saturate(100%) invert(91%) sepia(35%) saturate(900%) hue-rotate(5deg) brightness(105%) contrast(92%);
+}
+.arrow-option:nth-child(4) img{
+  filter:brightness(0) saturate(100%) invert(78%) sepia(20%) saturate(1000%) hue-rotate(178deg) brightness(105%) contrast(92%);
+}
+
+.arrow-option:hover:not(:disabled){
+  transform:translateY(-9px) scale(1.05);
+}
+
+.arrow-option:hover:not(:disabled)::before{
+  transform:scale(1.035);
+}
+
+.arrow-option:hover:not(:disabled) .arrow-number{
+  transform:translateY(-20%) scale(1.08);
+  color:#6d4ca3;
+}
+
+.arrow-option:active:not(:disabled){
+  transform:translateY(2px) scale(.97);
+}
+
+.arrow-option.correct-hit{
+  animation:correctBalloon .65s ease forwards;
+  pointer-events:none;
+  z-index:5;
+}
+
+.arrow-option.correct-hit::after{
+  content:"✓";
+  position:absolute;
+  right:5%;
+  top:5%;
+  width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#55c878;
+  color:#fff;
+  font-size:23px;
+  font-weight:800;
+  box-shadow:0 3px 8px rgba(50,130,80,.28);
+  z-index:5;
+  animation:checkPop .35s ease;
+}
+
+@keyframes correctBalloon{
+  0%{transform:scale(1);}
+  45%{transform:scale(1.12) translateY(-8px);}
+  100%{transform:scale(1.06) translateY(-5px);}
+}
+
+@keyframes checkPop{
+  0%{transform:scale(0);}
+  75%{transform:scale(1.15);}
+  100%{transform:scale(1);}
+}
+
+.arrow-option.faded{
+  opacity:0;
+  pointer-events:none;
+  animation:wrongDisappear .35s ease forwards;
+}
+
+@keyframes wrongDisappear{
+  0%{
+    opacity:1;
+    transform:scale(1);
+  }
+  100%{
+    opacity:0;
+    transform:scale(.55) translateY(-14px);
+  }
+}
+
+.arrow-option.shot{
+  animation:wrongDisappear .35s ease forwards;
+}
+
+@keyframes balloonFloat{
+  0%,100%{
+    transform:translateY(0) rotate(-1deg);
+  }
+  50%{
+    transform:translateY(-9px) rotate(1deg);
+  }
+}
+
+/* =========================================================
+   FLYING ARROW
+   ========================================================= */
+
+.flying-arrow{
+  position:absolute;
+  left:0;
+  top:0;
+  width:0;
+  height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  z-index:50;
+  opacity:0;
+  transform:translate(0,0) rotate(0deg);
+}
+
+.flying-arrow.active{
+  opacity:1;
+  transition:transform .32s cubic-bezier(.35,.9,.4,1);
+}
+
+.flying-arrow img{
+  width:40px;
+  height:40px;
+  object-fit:contain;
+  transform:translate(-50%,-50%);
+}
+
+.flying-arrow .flying-number{
+  position:absolute;
+  transform:translate(-50%,-140%);
+  font-size:16px;
+  font-weight:700;
+  color:#302b3b;
+  background:#ffffff;
+  border-radius:8px;
+  padding:1px 6px;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);
+}
+
+/* =========================================================
+   NAV
+   ========================================================= */
+
+.nav {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  position: relative;
+  top: -20px;
+  flex: 0 0 auto;
+  gap:420px;
+}
+
+.nav button {
+  min-width: 120px;
+  height: 44px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (min-width:1024px) and (max-width:1365px){
+  .quiz-card{ padding:22px 35px; }
+  .heading{ font-size:27px; }
+  .qlabel{ font-size:34px; }
+  .content-row{
+    max-width:780px;
+    gap:6px;
+    padding-top:6px;
+  }
+  .options-row{ gap:18px; max-width:780px; }
+  .arrow-option{ width:clamp(165px,16vw,195px); height:clamp(210px,23vw,250px); }
+  .arrow-option .arrow-number{ font-size:22px; }
+}
+
+@media (min-width:1366px){
+  .quiz-card{ padding:28px 50px; }
+  .heading{ font-size:30px; }
+  .content-row{
+    max-width:900px;
+    gap:8px;
+    padding-top:8px;
+  }
+  .qlabel{ font-size:42px; }
+  .options-row{ gap:28px; max-width:900px; }
+  .arrow-option{ width:clamp(190px,17vw,230px); height:clamp(240px,24vw,300px); }
+  .arrow-option .arrow-number{ font-size:26px; }
+}
+
+@media (max-width:768px){
+
+  html,
+  body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+  }
+
+  .quiz-card{
+    width:100%;
+    height:100vh;
+    min-height:100vh;
+    padding:14px 12px 10px;
+    overflow:hidden;
+  }
+
+  .heading{
+    font-size:19px;
+    margin:0;
+  }
+
+  .content-row{
+    max-width:340px;
+    gap:8px;
+    padding:6px 0 0;
+    flex:1;
+  }
+
+  .question-heading{
+    justify-content:flex-start;
+    padding-left: 6px;
+  }
+
+  .qlabel{
+    font-size:24px;
+  }
+
+  .question-text{
+    font-size:20px;
+  }
+
+  .options-row{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    grid-template-rows:repeat(2, auto);
+    justify-items:center;
+    align-items:center;
+    column-gap:12px;
+    row-gap:12px;
+    width:100%;
+    max-width:300px;
+  }
+
+  .arrow-option{
+    width:90px;
+    height:110px;
+    animation-duration:3s;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:18px;
+  }
+
+  .arrow-option:hover:not(:disabled){
+    transform:translateY(-5px) scale(1.04);
+  }
+
+  .nav{
+    display:flex !important;
+    visibility:visible !important;
+    pointer-events:auto !important;
+    width:100%;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+    position:static;
+    margin-top:8px;
+    flex:0 0 auto;
+  }
+
+  .nav button{
+    min-width:90px;
+    height:38px;
+    font-size:13px;
+    padding:0 10px;
+  }
+}
+
+@media (max-width:480px){
+
+  .heading{
+    font-size:16px;
+  }
+
+  .content-row{
+    max-width:300px;
+    gap:6px;
+    padding:4px 0;
+  }
+
+  .qlabel{
+    font-size:21px;
+  }
+
+  .question-text{
+    font-size:17px;
+  }
+
+  .options-row{
+    max-width:260px;
+    column-gap:8px;
+    row-gap:8px;
+  }
+
+  .arrow-option{
+    width:72px;
+    height:88px;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:15px;
+  }
+
+  .arrow-option.correct-hit::after{
+    width:22px;
+    height:22px;
+    font-size:15px;
+  }
+
+  .nav{
+    gap:10px;
+    margin-top:4px;
+  }
+
+  .nav button{
+    min-width:72px;
+    height:34px;
+    font-size:12px;
+  }
+}
+
+
+
+/* =========================================================
+   HINT OVERLAY
+   ========================================================= */
+
+
+
+/* =========================================================
+   BALLOON-ONLY NUMBERS
+   ========================================================= */
+
+.arrow-option{
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+
+.arrow-option .arrow-number{
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  color:#4a3f6b !important;
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.55),
+    0 2px 6px rgba(0,0,0,.10);
+}
+
+/* Clickable elements */
+button,
+button *,
+.arrow-option,
+.arrow-option *{
+  cursor:pointer !important;
+}
+
+button:disabled,
+button:disabled *,
+.arrow-option:disabled,
+.arrow-option:disabled *{
+  cursor:default !important;
+}
+@media (min-width:1600px){
+
+  .quiz-card{ padding:30px 70px 5px; }
+
+  .heading{
+    font-size:42px;
+    margin-top:-18px;
+  }
+
+  .content-row{
+    max-width:1000px;
+    gap:18px;
+  }
+
+  
+
+  .question-text{ font-size:40px; }
+
+  .options-row{
+  gap:200px !important;
+  max-width:1000px;
+}
+
+  /* Larger option images — fixed size, won't shrink */
+    .qlabel{
+    transform:translateX(-150px);
+  }
+
+ 
+  .arrow-option{
+    width:300px !important;
+    height:400px !important;
+    /* min-width:400px !important; */
+    
+  }
+
+  .arrow-option .arrow-number{
+    font-size:40px !important;
+  }
+  .nav{
+    gap:80px;
+    top:-40px;
+  }
+
+  .nav button{
+    min-width:175px;
+    height:60px;
+    font-size:22px;
+    border-radius:19px;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="quiz-card" id="quizCard">
+
+  <div class="topbar">
+    <button class="icon-flat" id="homeBtn" style="display: none;" title="Home" aria-label="Home">🏠</button>
+
+    <p class="heading" id="heading">
+      Tick (✔) the biggest number in each set.
+    </p>
+
+    <button class="icon-flat" id="hintBtn" title="Hint" aria-label="Hint">💡</button>
+  </div>
+
+  <div class="content-row">
+
+    <div class="question-heading">
+      <span class="qlabel" id="qLabel">Q1.</span>
+    </div>
+
+    <div class="question-text" id="questionText">
+      Choose the biggest number
+    </div>
+
+    <div class="archery-area">
+      <div class="options-row" id="optionsRow">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nav">
+    <button class="prev" id="prevBtn" disabled>← Prev</button>
+    <button class="next" id="nextBtn" disabled>Next →</button>
+  </div>
+
+  <div class="flying-arrow" id="flyingArrow" aria-hidden="true" style="display:none;">
+    <img src="../assets/images/arrow.png" alt="">
+    <span class="flying-number" id="flyingNumber"></span>
+  </div>
+
+</div>
+
+<div class="hint-overlay" id="hintOverlay" aria-live="polite">
+  <div class="hint-box">
+    <h3>Hint</h3>
+    <p id="hintText">Look at all the numbers and pick the largest one.</p>
+    <button class="popup-btn" id="closeHintBtn">Got it!</button>
+  </div>
+</div>
+
+<!-- POPUPS -->
+<div id="answerPopup" class="popup">
+  <div class="popup-content">
+    <div class="popup-icon" id="popupIcon"></div>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMsg"></p>
+  </div>
+</div>
+
+<div id="finalPopup">
+  <div class="finalpopup-box">
+    <h2 class="final-heading">🎉 Amazing Job!</h2>
+    <p id="finalScore"></p>
+    <div id="stars">⭐⭐⭐</div>
+    <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+  </div>
+</div>
+
+<!-- SOUNDS -->
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+
+/* =========================================================
+   QUESTION DATA — from image
+   ========================================================= */
+
+const QUESTIONS = [
+  { 
+    label: "Q1.", 
+    text: "Tick the biggest number",
+    options: [45, 54, 40, 50],
+    answer: 54
+  },
+  { 
+    label: "Q2.", 
+    text: "Tick the biggest number",
+    options: [36, 30, 60, 63],
+    answer: 63
+  },
+  { 
+    label: "Q3.", 
+    text: "Tick the biggest number",
+    options: [89, 80, 90, 98],
+    answer: 98
+  },
+  { 
+    label: "Q4.", 
+    text: "Tick the biggest number",
+    options: [100, 99, 70, 9],
+    answer: 100
+  }
+];
+
+const LABELS = ["Q1.", "Q2.", "Q3.", "Q4."];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+const total = QUESTIONS.length;
+let current = 0;
+let shooting = false;
+const state = QUESTIONS.map(() => ({
+  answered: false,
+  wrongPicks: []
+}));
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const quizCard     = document.getElementById("quizCard");
+const qLabel       = document.getElementById("qLabel");
+const questionText = document.getElementById("questionText");
+const optionsRow   = document.getElementById("optionsRow");
+const flyingArrow  = document.getElementById("flyingArrow");
+const flyingNumber = document.getElementById("flyingNumber");
+const prevBtn      = document.getElementById("prevBtn");
+const nextBtn      = document.getElementById("nextBtn");
+
+const correctSound = document.getElementById("correctSound");
+const wrongSound   = document.getElementById("wrongSound");
+const homeBtn      = document.getElementById("homeBtn");
+const hintBtn      = document.getElementById("hintBtn");
+const hintOverlay  = document.getElementById("hintOverlay");
+const closeHintBtn = document.getElementById("closeHintBtn");
+const hintText     = document.getElementById("hintText");
+
+/* =========================================================
+   RENDER QUESTION
+   ========================================================= */
+   function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-UK";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+function renderQuestion(){
+
+  const q  = QUESTIONS[current];
+  const st = state[current];
+
+  qLabel.textContent = LABELS[current] || `Q${current + 1}.`;
+  questionText.textContent = q.text;
+
+  optionsRow.innerHTML = "";
+
+  q.options.forEach((value) => {
+
+    const btn = document.createElement("button");
+    btn.className = "arrow-option";
+    btn.type = "button";
+    btn.dataset.value = String(value);
+
+    const img = document.createElement("img");
+    img.src = "../assets/images/balloon.png";
+    img.alt = "";
+    btn.appendChild(img);
+
+    const label = document.createElement("span");
+    label.className = "arrow-number";
+    label.textContent = value;
+    btn.appendChild(label);
+
+    if(st.answered){
+      btn.disabled = true;
+
+      if(value === q.answer){
+        btn.classList.add("correct-hit");
+      }else{
+        btn.classList.add("faded");
+      }
+
+    }else if(st.wrongPicks.includes(value)){
+      btn.disabled = true;
+      btn.classList.add("faded");
+
+    }else{
+      btn.addEventListener("click", () => handleShoot(btn, value));
+    }
+
+    optionsRow.appendChild(btn);
+  });
+
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = !st.answered || current === total - 1;
+}
+
+function localCenter(el){
+  const stageRect = quizCard.getBoundingClientRect();
+  const scale = stageRect.width / quizCard.offsetWidth || 1;
+  const rect  = el.getBoundingClientRect();
+  return {
+    x: (rect.left - stageRect.left + rect.width / 2) / scale,
+    y: (rect.top  - stageRect.top  + rect.height / 2) / scale
+  };
+}
+
+function fireArrowAt(optionEl, targetEl, value, onDone){
+  const from = localCenter(optionEl);
+  const to   = localCenter(targetEl);
+  const angle = Math.atan2(to.y - from.y, to.x - from.x) * (180 / Math.PI) + 90;
+
+  flyingNumber.textContent = value;
+
+  flyingArrow.style.display = "flex";
+  flyingArrow.style.transition = "none";
+  flyingArrow.style.transform  = `translate(${from.x}px, ${from.y}px) rotate(${angle}deg)`;
+  flyingArrow.classList.add("active");
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      flyingArrow.style.transition = "transform .32s cubic-bezier(.35,.9,.4,1)";
+      flyingArrow.style.transform  = `translate(${to.x}px, ${to.y}px) rotate(${angle}deg)`;
+    });
+  });
+
+  setTimeout(() => {
+    flyingArrow.classList.remove("active");
+    flyingArrow.style.display = "none";
+    onDone();
+  },340);
+}
+
+function handleShoot(optionEl, value){
+
+  const st = state[current];
+  if(st.answered || shooting) return;
+
+  const q = QUESTIONS[current];
+  shooting = true;
+
+  fireArrowAt(optionEl, optionEl, value, () => {});
+
+  optionsRow.querySelectorAll(".arrow-option").forEach((b) => {
+    b.disabled = true;
+  });
+
+  if(value === q.answer){
+
+    st.answered = true;
+
+    optionEl.classList.remove("shot");
+    optionEl.classList.add("correct-hit");
+
+    optionsRow.querySelectorAll(".arrow-option").forEach((b) => {
+      if(b !== optionEl){
+        b.disabled = true;
+        b.classList.add("faded");
+      }
+    });
+
+    correctSound.currentTime = 0;
+    correctSound.play().catch(() => {});
+    speak("correct");
+    showPopup(true);
+    fireConfetti();
+
+    nextBtn.disabled = current === total - 1;
+
+    shooting = false;
+
+    if(current === total - 1){
+      setTimeout(() => {
+        fireBigConfetti();
+        showFinal();
+      },1100);
+    }
+
+  }else{
+
+    st.wrongPicks.push(value);
+
+    wrongSound.currentTime = 0;
+    wrongSound.play().catch(() => {});
+    speak("wrong");
+    showPopup(false);
+
+    setTimeout(() => {
+
+      optionEl.classList.add("faded");
+      optionEl.disabled = true;
+
+      optionsRow.querySelectorAll(".arrow-option").forEach((b) => {
+
+        if(!st.wrongPicks.includes(Number(b.dataset.value)) && !st.answered){
+          b.disabled = false;
+        }
+
+      });
+
+      shooting = false;
+
+    },500);
+  }
+}
+
+/* =========================================================
+   POPUP
+   ========================================================= */
+
+function showPopup(isCorrect){
+  const popup = document.getElementById("answerPopup");
+  const icon  = document.getElementById("popupIcon");
+  const title = document.getElementById("popupTitle");
+  const msg   = document.getElementById("popupMsg");
+
+  popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+  popup.style.display = "flex";
+
+  if(isCorrect){
+    icon.textContent = "🎉";
+    title.textContent = "Correct!";
+    msg.textContent = "Great job!";
+  }else{
+    icon.textContent = "❌";
+    title.textContent = "Try Again!";
+    msg.textContent = "That's not the biggest number.";
+  }
+
+  clearTimeout(showPopup._t);
+  showPopup._t = setTimeout(() => {
+    popup.style.display = "none";
+  },1100);
+}
+
+/* =========================================================
+   FINAL
+   ========================================================= */
+
+function showFinal(){
+  const finalPopup = document.getElementById("finalPopup");
+  finalPopup.style.display = "flex";
+  document.getElementById("finalScore").textContent = `${total} / ${total} Completed`;
+  document.getElementById("stars").textContent = "⭐⭐⭐";
+}
+
+/* =========================================================
+   CONFETTI
+   ========================================================= */
+
+function fireConfetti(){
+  if(!window.confetti) return;
+  confetti({
+    particleCount:24,
+    spread:55,
+    startVelocity:26,
+    origin:{ x:.5, y:.4 },
+    colors:["#e6473f","#3a6fd8","#f7b733","#8bba8a","#c9a8e0"]
+  });
+}
+
+function fireBigConfetti(){
+  if(!window.confetti) return;
+  const end = Date.now() + 1800;
+  (function frame(){
+    confetti({ particleCount:6, angle:60,  spread:55, origin:{ x:0 } });
+    confetti({ particleCount:6, angle:120, spread:55, origin:{ x:1 } });
+    if(Date.now() < end){ requestAnimationFrame(frame); }
+  })();
+}
+
+/* =========================================================
+   NAV
+   ========================================================= */
+
+prevBtn.addEventListener("click", () => {
+  if(current === 0) return;
+  current--;
+  renderQuestion();
+});
+
+nextBtn.addEventListener("click", () => {
+  if(nextBtn.disabled) return;
+  if(current < total - 1){
+    current++;
+    renderQuestion();
+  }
+});
+
+homeBtn.addEventListener("click", () => {
+  window.location.href = "../Grade2_chapter1.html";
+});
+
+hintBtn.addEventListener("click", () => {
+  hintText.textContent = `Look at all the numbers. The biggest one is the answer.`;
+  hintOverlay.classList.add("show");
+});
+
+closeHintBtn.addEventListener("click", () => {
+  hintOverlay.classList.remove("show");
+});
+
+hintOverlay.addEventListener("click", (event) => {
+  if(event.target === hintOverlay) {
+    hintOverlay.classList.remove("show");
+  }
+});
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+renderQuestion();
+
+</script>
+
+</body>
+</html>

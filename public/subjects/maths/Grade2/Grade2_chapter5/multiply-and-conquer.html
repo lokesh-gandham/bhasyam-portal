@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multiply &amp; Conquer &mdash; Kid Math</title>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+  --ink:#20345F;
+  --sub:#58708F;
+  --cream:#F4F9FF;
+  --coral:#FF7A59;
+  --blue:#3B9EF8;
+  --yellow:#FFC94A;
+  --mint:#49C7A5;
+  --purple:#9B7BE8;
+  --pink:#FF7FA8;
+  --card-radius:24px;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  font-family:"Livvic",sans-serif;
+  background:
+    radial-gradient(circle at 8% 8%, rgba(91,180,255,.14) 0 90px, transparent 91px),
+    radial-gradient(circle at 94% 20%, rgba(255,201,74,.16) 0 110px, transparent 111px),
+    linear-gradient(180deg,#F7FBFF 0%,#EEF7FF 100%);
+  color:var(--ink);
+  min-height:100vh;
+}
+
+main{max-width:1180px;margin:0 auto;padding:0 1.75rem 4rem;}
+
+/* ---------------- top bar ---------------- */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:1.5rem 1.75rem 0;
+  max-width:1180px;
+  margin:0 auto;
+}
+.home-btn{
+  width:44px;height:44px;
+  border-radius:50%;
+  background:#fff;
+  border:none;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;
+  cursor:pointer;
+  box-shadow:0 4px 10px -4px rgba(43,42,69,.25);
+}
+.brand{
+  display:flex;align-items:center;gap:.55rem;
+  border:2px solid #DCEBFA;
+  border-radius:999px;
+  padding:.55rem 1.15rem;
+  background:rgba(255,255,255,.96);
+  font-weight:800;
+  letter-spacing:1.5px;
+  font-size:.85rem;
+  box-shadow:0 8px 22px rgba(44,91,135,.10);
+}
+.brand-dot{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,#FFB62E,#FF735F);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:.75rem;
+}
+.game-count{
+  border:2px solid #DCEBFA;
+  background:rgba(255,255,255,.96);
+  border-radius:999px;
+  padding:.5rem 1rem;
+  font-weight:700;
+  font-size:.85rem;
+  display:flex;align-items:center;gap:.4rem;
+}
+
+/* ---------------- hero ---------------- */
+.hero{
+  padding:2.2rem 0 2.35rem;
+  text-align:left;
+}
+.eyebrow{
+  letter-spacing:3px;
+  font-weight:800;
+  font-size:.82rem;
+  color:#4D8BC7;
+  margin:0 0 .4rem;
+}
+.hero h1{
+  font-size:clamp(2.1rem,5vw,3rem);
+  margin:0;
+  font-weight:600;
+}
+.hero h1 span{
+  color:#FF725C;
+  text-shadow:0 3px 0 rgba(255,114,92,.08);
+}
+.hero p{
+  margin:.55rem 0 0;
+  color:var(--sub);
+  font-size:1.08rem;
+  font-weight:600;
+}
+
+/* ---------------- view switching ---------------- */
+.view{display:none;}
+.view.is-active{display:block;animation:reveal .35s ease;}
+@keyframes reveal{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@media (prefers-reduced-motion:reduce){.view.is-active{animation:none;}}
+
+/* ---------------- home: 2 category cards ---------------- */
+.category-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:1.75rem;
+}
+
+.category-card{
+  position:relative;
+  overflow:hidden;
+  text-align:left;
+  border:2px solid rgba(255,255,255,.9);
+  cursor:pointer;
+  font-family:inherit;
+  border-radius:28px;
+  padding:2rem 1.9rem;
+  color:var(--ink);
+  min-height:285px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  box-shadow:0 14px 34px rgba(52,92,130,.13);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.category-card:hover,.category-card:focus-visible{
+  transform:translateY(-5px);
+  box-shadow:0 20px 42px rgba(52,92,130,.18);
+}
+.category-card:focus-visible{outline:3px solid #fff;outline-offset:3px;}
+
+.cat-understand{
+  background:
+    radial-gradient(circle at 88% 10%,rgba(255,255,255,.75) 0 80px,transparent 81px),
+    linear-gradient(135deg,#DDF7FF 0%,#C9EEFF 100%);
+}
+.cat-practice{
+  background:
+    radial-gradient(circle at 88% 10%,rgba(255,255,255,.78) 0 80px,transparent 81px),
+    linear-gradient(135deg,#FFF5C9 0%,#FFE7A6 100%);
+}
+
+.category-card .deco-circle{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(255,255,255,.48);
+}
+.category-card .deco-circle.c1{width:180px;height:180px;top:-60px;right:-50px;}
+.category-card .deco-circle.c2{width:110px;height:110px;bottom:-40px;right:40px;background:rgba(255,255,255,.34);}
+
+.category-card .cat-icon{
+  font-size:2.55rem;
+  margin-bottom:1rem;
+  position:relative;
+  filter:drop-shadow(0 4px 5px rgba(32,52,95,.12));
+}
+.category-card .cat-count{
+  position:absolute;
+  top:1.35rem;right:1.45rem;
+  background:rgba(255,255,255,.82);
+  color:#31557E;
+  padding:.35rem .8rem;
+  border-radius:999px;
+  font-size:.78rem;
+  font-weight:800;
+  letter-spacing:.5px;
+}
+.category-card h2{
+  margin:0 0 .5rem;
+  font-size:1.65rem;
+  position:relative;
+  color:#173B69;
+  font-weight: 500 !important;
+}
+.category-card p{
+  margin:0 0 1.1rem;
+  font-size:.98rem;
+  color:#3F6081;
+  line-height:1.5;
+  max-width:40ch;
+  position:relative;
+  font-weight:400;
+}
+.sub-name{
+   margin:0 0 1.1rem;
+  font-size:.98rem;
+  color:#3F6081;
+  line-height:1.5;
+  max-width:40ch;
+  position:relative;
+  font-weight:500;
+  
+}
+.category-card .cat-topics{
+  display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.3rem;position:relative;
+}
+.category-card .cat-topics span{
+  background:rgba(255,255,255,.72);
+  color:#31557E;
+  padding:.3rem .7rem;
+  border-radius:999px;
+  font-size:.72rem;
+  font-weight:700;
+}
+.category-card .cat-cta{
+  position:relative;
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:#fff;
+  color:#173B69;
+  font-weight:500;
+  padding:.65rem 1.2rem;
+  border-radius:999px;
+  font-size:1rem;
+  width:fit-content;
+}
+.category-card .cat-cta i{font-style:normal;transition:transform .18s ease;}
+.category-card:hover .cat-cta i{transform:translateX(4px);}
+
+/* ---------------- category detail ---------------- */
+.back-btn{
+  border:none;
+  background:#fff;
+  color:var(--ink);
+  font-weight:700;
+  padding:.6rem 1.15rem;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:.88rem;
+  box-shadow:0 4px 10px -5px rgba(43,42,69,.3);
+  margin-bottom:1.5rem;
+}
+.back-btn:hover{background:#EAF5FF;}
+
+.view-heading{
+  display:flex;align-items:center;gap:1rem;
+  margin-bottom:1.75rem;
+}
+.view-heading .cat-icon-badge{
+  width:56px;height:56px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;color:#fff;flex-shrink:0;
+}
+.heading-understand .cat-icon-badge{background:#39A9D8;}
+.heading-practice .cat-icon-badge{background:#FF9A3D;}
+.view-heading h2{margin:0 0 .2rem;font-size:1.55rem; font-weight: 500;}
+.view-heading p{margin:0;color:var(--sub);font-size:.92rem;}
+
+/* ---------------- quiz cards ---------------- */
+.quiz-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:1.5rem;
+}
+
+.quiz-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:var(--card-radius);
+  background:var(--bg,#F4F9FF);
+  border:2px solid rgba(255,255,255,.95);
+  padding:1.5rem 1.5rem 1.25rem;
+  box-shadow:0 10px 26px rgba(52,92,130,.12);
+  display:flex;flex-direction:column;
+  min-height:245px;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.quiz-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 16px 32px rgba(52,92,130,.17);
+}
+.quiz-card .deco-circle{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(255,255,255,.52);
+}
+.quiz-card .deco-circle.c1{width:120px;height:120px;top:-40px;right:-30px;}
+
+.quiz-card-top{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  margin-bottom:1rem;
+  position:relative;
+}
+.quiz-icon{
+  width:44px;height:44px;border-radius:13px;
+  background:rgba(255,255,255,.92);
+  border:1px solid rgba(255,255,255,.8);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.15rem;
+  box-shadow:0 3px 8px -3px rgba(43,42,69,.3);
+}
+.quiz-meta{margin-left:.75rem;}
+.quiz-meta .section-label{
+  display:block;
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  font-size:.68rem;
+  font-weight:800;
+  color:#547697;
+  display: none;
+}
+.quiz-meta h3{margin:.1rem 0 0;font-size:1.08rem;color:#203F67;}
+.quiz-card-top .index-num{
+  font-weight:900;
+  color:#547697;
+  font-size:1.3rem;
+}
+.quiz-top-row{display:flex;align-items:flex-start;}
+
+.quiz-preview{
+  flex:1;
+  background:rgba(255,255,255,.76);
+  border:1px solid rgba(255,255,255,.85);
+  border-radius:14px;
+  min-height:90px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:1.1rem;
+  padding:.75rem;
+  position:relative;
+  font-weight:700;
+  font-size:1.3rem;
+}
+.preview-box{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:1.9rem;height:1.9rem;
+  border:2px dashed var(--accent,#7C7360);
+  border-radius:7px;
+  font-size:.9rem;
+  margin:0 .3rem;
+  color:var(--accent,#7C7360);
+}
+.preview-dots{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
+.preview-dots span{width:10px;height:10px;border-radius:50%;background:var(--accent,#B65C9C);display:block;}
+.preview-line{width:100%;position:relative;height:40px;}
+.preview-line svg{width:100%;height:100%;}
+.preview-table-mini{font-size:.72rem;line-height:1.5;font-weight:700;text-align:left;}
+.preview-match-mini{display:flex;flex-direction:column;gap:.4rem;width:100%;font-size:.85rem;}
+.preview-match-mini .row{display:flex;justify-content:space-between;background:#fff;border-radius:8px;padding:.3rem .7rem;}
+
+.quiz-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1.5px dashed rgba(48,85,126,.20);
+  padding-top:.85rem;
+  position:relative;
+}
+.quiz-tag{
+  text-transform:uppercase;
+  font-size:.68rem;
+  letter-spacing:1px;
+  font-weight:700;
+  color:var(--sub);
+}
+.start-btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  text-decoration:none;
+  background:#287EDB;
+  color:#fff;
+  font-weight:800;
+  padding:.55rem 1.05rem;
+  border-radius:999px;
+  font-size:1.2rem;
+  transition:filter .15s ease, transform .15s ease;
+}
+.start-btn:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 6px 12px rgba(40,126,219,.22);}
+.start-btn:focus-visible{outline:3px solid #287EDB;outline-offset:2px;}
+
+/* clean, kid-friendly pastel section themes */
+.bg-green{--bg:#E2F8EF;--accent:#1F9B78;}
+.bg-blue{--bg:#E5F2FF;--accent:#287EDB;}
+.bg-peach{--bg:#FFF1D9;--accent:#E28A22;}
+.bg-red{--bg:#FFE7EC;--accent:#E05278;}
+.bg-purple{--bg:#F0E9FF;--accent:#7B5BD6;}
+
+/* ---------------- footer ---------------- */
+.site-footer{
+  text-align:center;
+  color:#7390AC;
+  font-size:.85rem;
+  padding:1rem 0 2.5rem;
+}
+
+@media (max-width:560px){
+  .topbar{flex-wrap:wrap;gap:.75rem;}
+  .category-card{min-height:auto;}
+}
+
+  .home-btn{
+    display:inline-flex !important;
+    align-items:center;
+    justify-content:center;
+    gap:.35rem;
+    min-width:92px;
+    cursor:pointer;
+    z-index:100;
+    position:relative;
+  }
+  .home-btn span{font-size:.8rem;font-weight:800;line-height:1;}
+  @media(max-width:560px){.home-btn{min-width:78px}.home-btn span{font-size:.72rem}}
+
+/* ---------------- quiz iframe + always-visible home button ---------------- */
+.quiz-frame-overlay{position:fixed;inset:0;z-index:2147483000;display:none;width:100vw;height:100vh;background:#fff}
+.quiz-frame-overlay.open{display:block}
+.quiz-frame{position:absolute;inset:0;z-index:1;display:block;width:100%;height:100%;border:0;margin:0;padding:0;background:#fff}
+.quiz-frame-home{position:fixed!important;top:14px!important;left:14px!important;z-index:2147483647!important;width:52px!important;height:52px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:0!important;border-radius:15px!important;padding:0!important;margin:0!important;background:#ffffff!important;color:#20345F!important;font-size:27px!important;line-height:1!important;cursor:pointer!important;box-shadow:0 5px 0 rgba(43,42,69,.18),0 8px 22px rgba(43,42,69,.16)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+.quiz-frame-home:hover{transform:translateY(-2px)}
+.quiz-frame-home:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(43,42,69,.18),0 5px 14px rgba(43,42,69,.12)!important}
+@media(max-width:560px){.quiz-frame-home{top:9px!important;left:9px!important;width:45px!important;height:45px!important;border-radius:13px!important;font-size:24px!important}}
+
+</style>
+
+<style id="final-kids-readable-theme">
+/* ===== FINAL KIDS READABLE THEME ===== */
+:root{
+  --ink:#173B67;
+  --sub:#4B6785;
+}
+
+/* Page */
+body{
+  font-family:"Livvic",sans-serif;
+  background:
+    radial-gradient(circle at 7% 7%,rgba(83,177,244,.16) 0 105px,transparent 106px),
+    radial-gradient(circle at 94% 18%,rgba(255,204,78,.18) 0 120px,transparent 121px),
+    linear-gradient(180deg,#F8FCFF 0%,#EDF7FF 100%);
+  color:#173B67;
+}
+
+/* Header */
+.brand,
+.game-count{
+  border:2px solid #D7E8F7;
+  color:#173B67;
+  box-shadow:0 7px 18px rgba(40,91,135,.09);
+}
+
+.brand-dot{
+  background:#FF7B62;
+}
+
+.home-btn{
+  color:#173B67;
+  border:2px solid #D7E8F7;
+}
+
+/* Hero text */
+.eyebrow{
+  color:#2877B9 !important;
+  font-weight:900 !important;
+}
+
+.hero h1{
+  color:#17345F !important;
+  font-weight:600 ;
+  letter-spacing:-.5px;
+}
+
+.hero h1 span{
+  color:#E85F4B !important;
+}
+
+.hero p{
+  color:#466783 !important;
+  font-weight:700 !important;
+}
+
+/* Main category cards */
+.category-card{
+  color:#173B67 !important;
+  border:3px solid rgba(255,255,255,.95) !important;
+  box-shadow:0 12px 30px rgba(40,91,135,.14) !important;
+}
+
+.cat-understand{
+  background:linear-gradient(135deg,#DDF5FF 0%,#BDEBFF 100%) !important;
+}
+
+.cat-practice{
+  background:linear-gradient(135deg,#FFF6C9 0%,#FFE29A 100%) !important;
+}
+
+.category-card h2{
+  color:#123A67 !important;
+  font-size:1.72rem !important;
+  
+}
+
+.category-card p{
+  color:#315879 !important;
+  opacity:1 !important;
+  font-weight:500 !important;
+  font-size:1rem !important;
+}
+
+.category-card .cat-count{
+  color:#173B67 !important;
+  background:rgba(255,255,255,.9) !important;
+  border:1px solid rgba(255,255,255,.95);
+  font-weight:900 !important;
+}
+
+.category-card .cat-topics span{
+  color:#24557D !important;
+  background:rgba(255,255,255,.82) !important;
+  font-weight:500 !important;
+  border:1px solid rgba(255,255,255,.65);
+}
+
+.category-card .cat-cta{
+  color:#173B67 !important;
+  background:#FFFFFF !important;
+  border:2px solid rgba(255,255,255,.9);
+ 
+  box-shadow:0 4px 10px rgba(40,91,135,.10);
+}
+
+/* Category/list page headings */
+.view-heading h2{
+  color:#173B67 !important;
+  
+}
+
+.view-heading p{
+  color:#4B6785 !important;
+  font-weight:700 !important;
+}
+
+/* Quiz cards */
+.quiz-card{
+  border:2px solid #FFFFFF !important;
+  box-shadow:0 10px 25px rgba(40,91,135,.13) !important;
+}
+
+.quiz-meta .section-label,
+.quiz-tag{
+  color:#52708D !important;
+  font-weight:900 !important;
+}
+
+.quiz-meta h3,
+.quiz-card h3{
+  color:#173B67 !important;
+  font-weight:500 !important;
+  font-size: 1.4rem;
+}
+
+.quiz-card .index-num{
+  color:#315D84 !important;
+  font-weight:900 !important;
+}
+
+.quiz-preview{
+  color:#244E73 !important;
+  background:rgba(255,255,255,.86) !important;
+  border:1px solid #FFFFFF !important;
+}
+
+.quiz-footer{
+  border-top-color:rgba(49,93,132,.22) !important;
+}
+
+.start-btn{
+  background:#2379D0 !important;
+  color:#FFFFFF !important;
+  font-weight:500 !important;
+  box-shadow:0 5px 0 #15599F !important;
+}
+
+.start-btn:hover{
+  background:#176FC8 !important;
+}
+
+/* Better pastel section colors */
+.bg-green{--bg:#E3F8EF !important;--accent:#168B68 !important;}
+.bg-blue{--bg:#E5F2FF !important;--accent:#2477C8 !important;}
+.bg-peach{--bg:#FFF0D6 !important;--accent:#D97919 !important;}
+.bg-red{--bg:#FFE6EC !important;--accent:#D94C70 !important;}
+.bg-purple{--bg:#F0E8FF !important;--accent:#7655C7 !important;}
+
+/* Back button */
+.back-btn{
+  color:#173B67 !important;
+  background:#FFFFFF !important;
+  border:2px solid #D7E8F7 !important;
+  font-weight:600 !important;
+}
+
+/* Footer */
+.site-footer{
+  color:#66839E !important;
+  font-weight:700 !important;
+}
+
+/* Mobile readability */
+@media(max-width:700px){
+  main{
+    padding-left:1rem;
+    padding-right:1rem;
+  }
+
+  .topbar{
+    padding-left:1rem;
+    padding-right:1rem;
+  }
+
+  .hero{
+    padding-top:1.5rem;
+    padding-bottom:1.5rem;
+  }
+
+  .hero h1{
+    font-size:clamp(2rem,10vw,2.8rem) !important;
+  }
+
+  .category-card{
+    min-height:270px !important;
+    padding:1.5rem !important;
+  }
+
+  .category-card h2{
+    font-size:1.5rem !important;
+  }
+
+  .category-card p{
+    font-size:.95rem !important;
+  }
+}
+
+/* Reduce glare on decorative circles */
+.category-card .deco-circle{
+  background:rgba(255,255,255,.48) !important;
+}
+.category-card .deco-circle.c2{
+  background:rgba(255,255,255,.32) !important;
+}
+</style>
+
+
+<style id="top-center-new-card-colors">
+/* ===== TOP-CENTER HERO ===== */
+.hero{
+  text-align:center !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:1.55rem 0 2rem !important;
+}
+
+.hero .eyebrow{
+  margin:0 0 .25rem !important;
+}
+
+.hero h1{
+  margin:0 !important;
+  font-size:clamp(2.25rem,5vw,3.35rem) !important;
+  line-height:1.08 !important;
+}
+
+.hero p{
+  margin:.45rem 0 0 !important;
+}
+
+/* ===== DIFFERENT, CLEAR KID-FRIENDLY CARD COLORS ===== */
+.cat-understand{
+  background:
+    radial-gradient(circle at 88% 12%,rgba(255,255,255,.72) 0 78px,transparent 79px),
+    linear-gradient(135deg,#DFF8E9 0%,#BCEED4 100%) !important;
+  border-color:#FFFFFF !important;
+}
+
+.cat-practice{
+  background:
+    radial-gradient(circle at 88% 12%,rgba(255,255,255,.75) 0 78px,transparent 79px),
+    linear-gradient(135deg,#F1E6FF 0%,#DCC9FF 100%) !important;
+  border-color:#FFFFFF !important;
+}
+
+.cat-understand h2,
+.cat-practice h2{
+  color:#173B67 !important;
+  font-weight:900 !important;
+}
+
+.cat-understand p,
+.cat-practice p{
+  color:#315878 !important;
+  font-weight:700 !important;
+}
+
+.cat-understand .cat-count,
+.cat-practice .cat-count{
+  color:#173B67 !important;
+  background:rgba(255,255,255,.9) !important;
+}
+
+.cat-understand .cat-topics span,
+.cat-practice .cat-topics span{
+  color:#245577 !important;
+  background:rgba(255,255,255,.82) !important;
+}
+
+.cat-understand .cat-cta,
+.cat-practice .cat-cta{
+  color:#173B67 !important;
+  background:#FFFFFF !important;
+}
+
+/* Different icon accents */
+.cat-understand .cat-icon{
+  filter:drop-shadow(0 4px 5px rgba(22,139,104,.18));
+}
+
+.cat-practice .cat-icon{
+  filter:drop-shadow(0 4px 5px rgba(118,85,199,.18));
+}
+
+/* Keep the home button and top badges clean */
+.brand,
+.game-count{
+  background:#fff !important;
+  color:#173B67 !important;
+}
+
+/* Responsive */
+@media(max-width:700px){
+  .hero{
+    padding:1.25rem 0 1.5rem !important;
+  }
+
+  .hero h1{
+    font-size:clamp(2rem,10vw,2.8rem) !important;
+  }
+
+  .hero p{
+    font-size:.98rem !important;
+  }
+}
+</style>
+
+
+<style id="small-starting-cards">
+/* ===== SMALLER STARTING CARDS ===== */
+.category-grid{
+  max-width:1050px !important;
+  margin:0 auto !important;
+  gap:1.45rem !important;
+}
+
+.category-card{
+  min-height:245px !important;
+  padding:1.65rem 1.6rem !important;
+  border-radius:24px !important;
+}
+
+/* ===== NEW CARD COLORS ===== */
+/* Understand It - soft aqua */
+.cat-understand{
+  background:
+    radial-gradient(circle at 88% 10%,rgba(255,255,255,.78) 0 70px,transparent 71px),
+    linear-gradient(135deg,#D9F7F2 0%,#AEE7DE 100%) !important;
+}
+
+/* Practice It - soft peach/coral */
+.cat-practice{
+  background:
+    radial-gradient(circle at 88% 10%,rgba(255,255,255,.8) 0 70px,transparent 71px),
+    linear-gradient(135deg,#FFE8D8 0%,#FFC9B5 100%) !important;
+}
+
+/* Clear readable text */
+.category-card h2{
+  color:#163B62 !important;
+  font-size:1.55rem !important;
+}
+
+.category-card p{
+  color:#355A78 !important;
+  font-size:.94rem !important;
+  line-height:1.42 !important;
+}
+
+.category-card .cat-topics{
+  gap:.35rem !important;
+  margin-bottom:1rem !important;
+}
+
+.category-card .cat-topics span{
+  color:#234F70 !important;
+  background:rgba(255,255,255,.84) !important;
+  font-size:.69rem !important;
+  padding:.24rem .58rem !important;
+}
+
+.category-card .cat-cta{
+  color:#163B62 !important;
+  padding:.58rem 1.05rem !important;
+  font-size:.86rem !important;
+}
+
+.category-card .cat-count{
+  color:#163B62 !important;
+  background:rgba(255,255,255,.92) !important;
+  font-size:.74rem !important;
+}
+
+/* Mobile */
+@media(max-width:700px){
+  .category-grid{
+    max-width:none !important;
+    gap:1rem !important;
+  }
+
+  .category-card{
+    min-height:225px !important;
+    padding:1.35rem !important;
+  }
+
+  .category-card h2{
+    font-size:1.42rem !important;
+  }
+}
+
+/* =========================================================
+   LARGE DESKTOP / MONITOR RESPONSIVE
+   1600px - 1920px
+   ========================================================= */
+
+@media (min-width:1600px) and (max-width:1920px){
+
+  /* ---------- MAIN PAGE WIDTH ---------- */
+  main{
+    max-width:1520px !important;
+    margin:0 auto !important;
+    padding-left:2.5rem !important;
+    padding-right:2.5rem !important;
+    padding-bottom:4rem !important;
+  }
+
+  /* ---------- TOP BAR ---------- */
+  .topbar{
+    max-width:1520px !important;
+    padding:1.8rem 2.5rem 0 !important;
+  }
+
+  .brand{
+    padding:.7rem 1.35rem !important;
+    font-size:.95rem !important;
+  }
+
+  .brand-dot{
+    width:32px !important;
+    height:32px !important;
+    font-size:.85rem !important;
+  }
+
+  .game-count{
+    padding:.65rem 1.2rem !important;
+    font-size:.95rem !important;
+  }
+
+  .home-btn{
+    width:50px !important;
+    height:50px !important;
+    font-size:1.3rem !important;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:2.4rem 0 2.7rem !important;
+  }
+
+  .hero .eyebrow{
+    font-size:.9rem !important;
+    letter-spacing:3.5px !important;
+    margin-bottom:.45rem !important;
+  }
+
+  .hero h1{
+    font-size:clamp(3rem,3.6vw,4rem) !important;
+    line-height:1.08 !important;
+  }
+
+  .hero p{
+    font-size:1.2rem !important;
+    margin-top:.65rem !important;
+  }
+
+  /* =====================================================
+     STARTING 2 CATEGORY CARDS
+     ===================================================== */
+
+  .category-grid{
+    max-width:1320px !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:2rem !important;
+    margin:0 auto !important;
+  }
+
+  .category-card{
+    min-height:390px !important;
+    padding:3rem 2.1rem !important;
+    border-radius:28px !important;
+  }
+
+  .category-card .cat-icon{
+    font-size:3rem !important;
+    margin-bottom:1.1rem !important;
+  }
+
+  .category-card .cat-count{
+    top:1.5rem !important;
+    right:1.6rem !important;
+    padding:.42rem .9rem !important;
+    font-size:.82rem !important;
+  }
+
+  .category-card h2{
+    font-size:1.8rem !important;
+    margin-bottom:.55rem !important;
+  }
+
+  .category-card p,
+  .category-card .sub-name{
+    font-size:1.05rem !important;
+    line-height:1.5 !important;
+    max-width:48ch !important;
+  }
+
+  .category-card .cat-topics{
+    gap:.5rem !important;
+    margin-bottom:1.25rem !important;
+  }
+
+  .category-card .cat-topics span{
+    padding:.35rem .75rem !important;
+    font-size:.75rem !important;
+  }
+
+  .category-card .cat-cta{
+    padding:.7rem 1.3rem !important;
+    font-size:1.1rem !important;
+   
+  }
+
+  /* ---------- CATEGORY DETAIL HEADING ---------- */
+
+  .back-btn{
+    padding:.7rem 1.3rem !important;
+    font-size:.92rem !important;
+    margin-bottom:1.8rem !important;
+  }
+
+  .view-heading{
+    gap:1.2rem !important;
+    margin-bottom:2rem !important;
+  }
+
+  .view-heading .cat-icon-badge{
+    width:64px !important;
+    height:64px !important;
+    font-size:1.8rem !important;
+  }
+
+  .view-heading h2{
+    font-size:1.8rem !important;
+  }
+
+  .view-heading p,
+  .view-heading .sub-name{
+    font-size:1rem !important;
+  }
+
+  /* =====================================================
+     QUIZ CARDS
+     ===================================================== */
+
+  .quiz-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    gap:1.5rem !important;
+  }
+
+  .quiz-card{
+    min-height:285px !important;
+    padding:1.65rem 1.55rem 1.4rem !important;
+    border-radius:24px !important;
+  }
+
+  .quiz-card-top{
+    margin-bottom:1.1rem !important;
+  }
+
+  .quiz-icon{
+    width:48px !important;
+    height:48px !important;
+    border-radius:14px !important;
+    font-size:1.25rem !important;
+  }
+
+  .quiz-meta{
+    margin-left:.8rem !important;
+  }
+
+  .quiz-meta .section-label{
+    font-size:.72rem !important;
+  }
+
+  .quiz-meta h3,
+  .quiz-card h3{
+    font-size:1.6rem !important;
+  }
+
+  .quiz-card-top .index-num{
+    font-size:1.4rem !important;
+  }
+
+  .quiz-preview{
+    min-height:105px !important;
+    margin-bottom:1.2rem !important;
+    padding:.9rem !important;
+    font-size:1.4rem !important;
+    border-radius:15px !important;
+  }
+
+  .preview-box{
+    width:2rem !important;
+    height:2rem !important;
+    font-size:.95rem !important;
+  }
+
+  .preview-dots{
+    gap:6px !important;
+  }
+
+  .preview-dots span{
+    width:11px !important;
+    height:11px !important;
+  }
+
+  .quiz-footer{
+    padding-top:.95rem !important;
+  }
+
+  .quiz-tag{
+    font-size:.7rem !important;
+  }
+
+  .start-btn{
+    padding:.62rem 1.1rem !important;
+    font-size:.88rem !important;
+  }
+
+  /* ---------- DECORATIVE CIRCLES ---------- */
+
+  .category-card .deco-circle.c1{
+    width:210px !important;
+    height:210px !important;
+    top:-70px !important;
+    right:-60px !important;
+  }
+
+  .category-card .deco-circle.c2{
+    width:125px !important;
+    height:125px !important;
+    bottom:-45px !important;
+    right:45px !important;
+  }
+
+  .quiz-card .deco-circle.c1{
+    width:135px !important;
+    height:135px !important;
+    top:-45px !important;
+    right:-35px !important;
+  }
+
+  /* ---------- FOOTER ---------- */
+
+  .site-footer{
+    font-size:.9rem !important;
+    padding:1.2rem 0 2.8rem !important;
+  }
+
+  /* ---------- FULLSCREEN QUIZ HOME BUTTON ---------- */
+
+  .quiz-frame-home{
+    top:20px !important;
+    left:20px !important;
+    width:58px !important;
+    height:58px !important;
+    border-radius:16px !important;
+    font-size:29px !important;
+  }
+}
+
+
+</style>
+
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="brand-dot">&#10022;</span> KID MATH</div>
+  <div class="game-count">&#9733; 9 Activities</div>
+</div>
+
+<main>
+
+  <section class="hero">
+    <p class="eyebrow">PLAY &amp; LEARN</p>
+    <h1>Multiply <span>&amp; Conquer</span></h1>
+    <!-- <p>pick a game, press play!</p> -->
+  </section>
+
+  <!-- ===================== HOME: 2 CATEGORY CARDS ===================== -->
+  <section id="home-view" class="view is-active">
+    <div class="category-grid">
+
+      <button class="category-card cat-understand" data-target="cat-understand">
+        <span class="deco-circle c1"></span>
+        <span class="deco-circle c2"></span>
+        <span class="cat-count">4 games</span>
+        <span class="cat-icon">&#129504;</span>
+        <h2>Discover Multiplication</h2>
+        <div class="sub-name">Discover how multiplication works with repeated addition, arrays, number lines and the commutative property.</div>
+        <div class="cat-topics">
+          <!-- <span>Addition Facts</span><span>Rows &amp; Columns</span><span>Number Line</span><span>Commutative</span> -->
+        </div>
+        <span class="cat-cta">Explore Activities <i>&rarr;</i></span>
+      </button>
+
+      <button class="category-card cat-practice" data-target="cat-practice">
+        <span class="deco-circle c1"></span>
+        <span class="deco-circle c2"></span>
+        <span class="cat-count">5 games</span>
+        <span class="cat-icon">&#9917;</span>
+        <h2>Multiplication Practice</h2>
+        <div  class="sub-name">Build your multiplication skills by filling missing numbers, times tables, matching pairs and finding hidden factors.</div>
+        <div class="cat-topics">
+          <!-- <span>Fill the Box</span><span>Fill the Product</span><span>Table</span><span>Matching</span><span>Given Product</span> -->
+        </div>
+        <span class="cat-cta">Explore Activities <i>&rarr;</i></span>
+      </button>
+
+    </div>
+  </section>
+
+  <!-- ===================== CATEGORY 1: UNDERSTAND IT ===================== -->
+  <section id="cat-understand" class="view">
+    <button class="back-btn" data-back>🏠 Home</button>
+    <div class="view-heading heading-understand">
+      <span class="cat-icon-badge">&#129504;</span>
+      <div>
+        <h2>Discover Multiplication</h2>
+        <div  class="sub-name">See what multiplication really means before you speed through it.</div>
+      </div>
+    </div>
+
+    <div class="quiz-grid">
+
+      <article class="quiz-card bg-blue">
+        <span class="deco-circle c1"></span>
+        <div class="quiz-card-top">
+          <div class="quiz-top-row">
+            <span class="quiz-icon">&#10133;</span>
+            <span class="quiz-meta"><span class="section-label">Section 1</span><h3>Addition Facts</h3></span>
+          </div>
+          <span class="index-num">1</span>
+        </div>
+        <div class="quiz-preview">3 + 3 + 3 + 3</div>
+        <div class="quiz-footer">
+          <span class="quiz-tag">Write as &times;</span>
+          <a class="start-btn" href="exercises/2.html">Play &#9654;</a>
+        </div>
+      </article>
+
+      <article class="quiz-card bg-peach">
+        <span class="deco-circle c1"></span>
+        <div class="quiz-card-top">
+          <div class="quiz-top-row">
+            <span class="quiz-icon">&#128309;</span>
+            <span class="quiz-meta"><span class="section-label">Section 2</span><h3>Rows &amp; Columns</h3></span>
+          </div>
+          <span class="index-num">2</span>
+        </div>
+        <div class="quiz-preview">
+          <div class="preview-dots">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="quiz-footer">
+          <span class="quiz-tag">Count the array</span>
+          <a class="start-btn" href="exercises/4.html">Play &#9654;</a>
+        </div>
+      </article>
+
+      <article class="quiz-card bg-red">
+        <span class="deco-circle c1"></span>
+        <div class="quiz-card-top">
+          <div class="quiz-top-row">
+            <span class="quiz-icon">&#128054;</span>
+            <span class="quiz-meta"><span class="section-label">Section 3</span><h3>Number Line</h3></span>
+          </div>
+          <span class="index-num">3</span>
+        </div>
+        <div class="quiz-preview">
+          <div class="preview-line">
+            <svg viewBox="0 0 220 50" preserveAspectRatio="none">
+              <line x1="10" y1="35" x2="210" y2="35" stroke="#C6524A" stroke-width="2"/>
+              <line x1="10" y1="28" x2="10" y2="42" stroke="#C6524A" stroke-width="2"/>
+              <line x1="65" y1="28" x2="65" y2="42" stroke="#C6524A" stroke-width="2"/>
+              <line x1="120" y1="28" x2="120" y2="42" stroke="#C6524A" stroke-width="2"/>
+              <line x1="175" y1="28" x2="175" y2="42" stroke="#C6524A" stroke-width="2"/>
+              <path d="M10,30 Q37,5 65,30" fill="none" stroke="#C6524A" stroke-width="2"/>
+              <path d="M65,30 Q92,5 120,30" fill="none" stroke="#C6524A" stroke-width="2"/>
+              <path d="M120,30 Q147,5 175,30" fill="none" stroke="#C6524A" stroke-width="2"/>
+            </svg>
+          </div>
+        </div>
+        <div class="quiz-footer">
+          <span class="quiz-tag">Find product</span>
+          <a class="start-btn" href="exercises/numberLine.html">Play &#9654;</a>
+        </div>
+      </article>
+
+      <article class="quiz-card bg-blue">
+        <span class="deco-circle c1"></span>
+        <div class="quiz-card-top">
+          <div class="quiz-top-row">
+            <span class="quiz-icon">&#128260;</span>
+            <span class="quiz-meta"><span class="section-label">Section 4</span><h3>Commutative</h3></span>
+          </div>
+          <span class="index-num">4</span>
+        </div>
+        <div class="quiz-preview">2 &times; 5 = 5 &times; 2</div>
+        <div class="quiz-footer">
+          <span class="quiz-tag">Same product</span>
+          <a class="start-btn" href="exercises/cumlative.html">Play &#9654;</a>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ===================== CATEGORY 2: PRACTICE IT ===================== -->
+  <section id="cat-practice" class="view">
+    <button class="back-btn" data-back>🏠 Home</button>
+    <div class="view-heading heading-practice">
+      <span class="cat-icon-badge">&#9917;</span>
+      <div>
+        <h2>Multiplication Practice</h2>
+        <div  class="sub-name">Speed rounds and drills to lock the facts in.</div>
+      </div>
+    </div>
+
+    <div class="quiz-grid">
+
+      <article class="quiz-card bg-green">
+        <span class="deco-circle c1"></span>
+        <div class="quiz-card-top">
+          <div class="quiz-top-row">
+            <span class="quiz-icon">&#128230;</span>
+            <span class="quiz-meta"><span class="section-label">Section 1</span><h3>Fill the Box</h3></span>
+          </div>
+          <span class="index-num">1</span>
+        </div>
+        <div class="quiz-preview">4 &times; 3 = <span class="preview-box">?</span></div>
+        <div class="quiz-footer">
+          <span class="quiz-tag">Missing product</span>
+          <a class="start-btn" href="exercises/1.html">Play &#9654;</a>
+        </div>
+      </article>
+
+      <article class="quiz-card bg-purple">
+        <span class="deco-circle c1"></span>
+        <div class="quiz-card-top">
+          <div class="quiz-top-row">
+            <span class="quiz-icon">&#9999;&#65039;</span>
+            <span class="quiz-meta"><span class="section-label">Section 2</span><h3>Fill the Product</h3></span>
+          </div>
+          <span class="index-num">2</span>
+        </div>
+        <div class="quiz-preview">6 &times; 4 = <span class="preview-box">?</span></div>
+        <div class="quiz-footer">
+          <span class="quiz-tag">Complete it</span>
+          <a class="start-btn" href="exercises/mul.html">Play &#9654;</a>
+        </div>
+      </article>
+
+      <article class="quiz-card bg-green">
+        <span class="deco-circle c1"></span>
+        <div class="quiz-card-top">
+          <div class="quiz-top-row">
+            <span class="quiz-icon">&#128220;</span>
+            <span class="quiz-meta"><span class="section-label">Section 3</span><h3>Multiplication Table</h3></span>
+          </div>
+          <span class="index-num">3</span>
+        </div>
+        <div class="quiz-preview">
+          <div class="preview-table-mini">
+            2&times;1=2&nbsp;&nbsp;2&times;2=4&nbsp;&nbsp;2&times;3=6<br>
+            3&times;1=3&nbsp;&nbsp;3&times;2=6&nbsp;&nbsp;3&times;3=9
+          </div>
+        </div>
+        <div class="quiz-footer">
+          <span class="quiz-tag">Build table</span>
+          <a class="start-btn" href="exercises/tables.html">Play &#9654;</a>
+        </div>
+      </article>
+
+      <article class="quiz-card bg-blue">
+        <span class="deco-circle c1"></span>
+        <div class="quiz-card-top">
+          <div class="quiz-top-row">
+            <span class="quiz-icon">&#129513;</span>
+            <span class="quiz-meta"><span class="section-label">Section 4</span><h3>Matching</h3></span>
+          </div>
+          <span class="index-num">4</span>
+        </div>
+        <div class="quiz-preview">
+          <div class="preview-match-mini">
+            <div class="row"><span>3 &times; 4</span><span>12</span></div>
+            <div class="row"><span>2 &times; 5</span><span>10</span></div>
+          </div>
+        </div>
+        <div class="quiz-footer">
+          <span class="quiz-tag">Match pairs</span>
+          <a class="start-btn" href="exercises/matching.html">Play &#9654;</a>
+        </div>
+      </article>
+
+      <article class="quiz-card bg-peach">
+        <span class="deco-circle c1"></span>
+        <div class="quiz-card-top">
+          <div class="quiz-top-row">
+            <span class="quiz-icon">&#127919;</span>
+            <span class="quiz-meta"><span class="section-label">Section 5</span><h3>Given Product</h3></span>
+          </div>
+          <span class="index-num">5</span>
+        </div>
+        <div class="quiz-preview">18 = <span class="preview-box">?</span> &times; <span class="preview-box">?</span></div>
+        <div class="quiz-footer">
+          <span class="quiz-tag">Find factors</span>
+          <a class="start-btn" href="exercises/9.html">Play &#9654;</a>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+</main>
+
+<p class="site-footer">Made with &hearts; for curious Grade&nbsp;2 mathematicians.</p>
+<!-- Quiz iframe overlay: Home stays outside the iframe -->
+<div class="quiz-frame-overlay" id="quizFrameOverlay" aria-hidden="true">
+  <iframe class="quiz-frame" id="quizFrame" title="Multiplication quiz"></iframe>
+  <button class="quiz-frame-home" id="quizFrameHome" type="button" aria-label="Home" title="Home">🏠</button>
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var views = document.querySelectorAll(".view");
+  var categoryCards = document.querySelectorAll(".category-card[data-target]");
+  var backButtons = document.querySelectorAll("[data-back]");
+
+  function showView(id) {
+    views.forEach(function (view) {
+      view.classList.toggle("is-active", view.id === id);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  categoryCards.forEach(function (card) {
+    card.addEventListener("click", function () {
+      showView(card.getAttribute("data-target"));
+    });
+  });
+
+  backButtons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      showView("home-view");
+    });
+  });
+
+  document.querySelectorAll("[data-home]").forEach(function (btn) {
+    btn.addEventListener("click", function (event) {
+      event.preventDefault();
+      showView("home-view");
+      history.replaceState(null, "", window.location.pathname);
+    });
+  });
+
+  /* Open every quiz inside one iframe. Home is outside the iframe,
+     so it remains visible on every quiz regardless of quiz CSS. */
+  var quizFrameOverlay = document.getElementById("quizFrameOverlay");
+  var quizFrame = document.getElementById("quizFrame");
+  var quizFrameHome = document.getElementById("quizFrameHome");
+
+  function openQuizInFrame(url) {
+    if (!url || !quizFrameOverlay || !quizFrame) return;
+    quizFrame.src = url;
+    quizFrameOverlay.classList.add("open");
+    quizFrameOverlay.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeQuizFrame() {
+    if (!quizFrameOverlay || !quizFrame) return;
+    quizFrame.src = "about:blank";
+    quizFrameOverlay.classList.remove("open");
+    quizFrameOverlay.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+
+  document.addEventListener("click", function (event) {
+    var link = event.target.closest(".start-btn");
+    if (!link) return;
+    var url = link.getAttribute("href");
+    if (!url || url.charAt(0) === "#") return;
+    event.preventDefault();
+    event.stopPropagation();
+    openQuizInFrame(url);
+  }, true);
+
+  if (quizFrameHome) {
+    quizFrameHome.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeQuizFrame();
+      showView("home-view");
+      history.replaceState(null, "", window.location.pathname);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, true);
+  }
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && quizFrameOverlay &&
+        quizFrameOverlay.classList.contains("open")) {
+      closeQuizFrame();
+    }
+  });
+
+  var hash = window.location.hash.replace("#", "");
+  if (hash && document.getElementById(hash)) {
+    showView(hash);
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Counting Subtraction</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Livvic', sans-serif;
+}
+
+body {
+    /* Dreamy Pastel Animated Background */
+  
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2vh 2vw;
+    overflow: hidden; 
+    color: #1e293b;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+header {
+    text-align: center;
+    z-index: 10;
+    flex-shrink: 0;
+    margin-bottom: 1vh;
+}
+
+h1 {
+    color: #2f4f4f;
+    font-weight: 400;
+   
+    margin-bottom: 6px;
+    font-size: 22px;
+}
+
+.instruction-badge {
+    font-size: clamp(20px, 1.5vw, 25px);
+    color: #2f4f4f;
+    font-weight: 500;
+   
+    display: inline-block;
+}
+
+/* =========================
+   UNIQUE GAMING ARENA: GLASS COUNTING BOARD
+========================= */
+.game-stage {
+    width: 100%;
+    max-width: 1400px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+    position: relative;
+    gap: 25px;
+    margin-top: -30px;
+}
+
+/* Flex container matching the worksheet layout */
+.visual-equation-board {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(15px, 3vw, 40px);
+    width: 100%;
+  
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  
+    border-radius: 30px;
+    padding: 30px 20px;
+
+   
+}
+
+/* Image Group Containers */
+.item-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(5px, 1vw, 15px);
+    background: rgba(255, 255, 255, 0.6);
+    padding: 20px;
+    border-radius: 20px;
+    box-shadow: inset 0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* Keep both image areas at a consistent height on every question.
+   Question 1 and Question 2 may contain different numbers of items,
+   but the left area will not grow/shrink and the right area will not grow/shrink. */
+.group-left {
+    width: 600px;
+    max-width: 60vw;
+    min-height: 280px;
+    height: 280px;
+    border: 2px dashed #f59e0b;
+}
+
+.group-right {
+    width: 200px;
+    max-width: 24vw;
+    min-height: 280px;
+    height: 280px;
+    border: 2px dashed #10b981;
+}
+
+/* Interactive Counting Items */
+.item-card {
+    width: clamp(40px, 6vw, 65px);
+    height: clamp(50px, 7vw, 75px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: default;
+    user-select: none;
+    position: relative;
+}
+
+.item-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));
+    transition: all 0.3s ease;
+}
+
+/* =========================
+   EQUATION ROW (Matching exact previous style)
+========================= */
+.equation-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(10px, 2vw, 25px);
+    margin-top: -10px;
+}
+
+.operator {
+    font-size: clamp(3rem, 5vw, 4.5rem);
+    font-weight: 400;
+    color: #c2410c;
+    text-shadow: 0 3px 0 #ffffff;
+    flex-shrink: 0;
+}
+
+input[type="text"] {
+    width: clamp(70px, 8vw, 90px);
+    height: clamp(55px, 6.5vw, 70px);
+    font-size: 30px;
+    font-weight: 400;
+    text-align: center;
+    border: 4px solid #f59e0b;
+    border-radius: 18px;
+    background: #ffffff;
+    color: #0f172a;
+    outline: none;
+    box-shadow: 0 6px 0 #d97706, 0 10px 15px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+input[type="text"]:focus {
+    transform: translateY(-4px);
+    border-color: #fbbf24;
+    box-shadow: 0 10px 0 #d97706, 0 0 20px rgba(245, 158, 11, 0.4);
+}
+
+input[type="text"]:disabled {
+    background-color: #f1f2f6;
+    border-color: #10b981;
+    color: #059669;
+    box-shadow: 0 6px 0 #059669;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* =========================
+   CORNER CONTROLS (Exact Preserved)
+========================= */
+.bottom-controls {
+    width: 100%;
+    max-width: 1400px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 1vh 2vw 2vh 2vw;
+    z-index: 20;
+    flex-shrink: 0;
+}
+
+.left-control { justify-self: start; }
+.center-control { justify-self: center; }
+.right-control { justify-self: end; }
+
+.nav-btn, .submit-btn, .replay-btn {
+    font-weight: 500; border: none; cursor: pointer; transition: all 0.1s ease;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-size: 20px; min-width:178px;height:45px; border-radius: 40px;
+}
+
+@media screen and (min-width: 1600px) {
+    input[type="text"] {
+        font-size: 40px;
+        font-weight: 400;
+    }
+
+    h1 {
+        font-size: 30px;
+    }
+    .nav-btn, .submit-btn, .replay-btn {
+        width: 200px;
+        min-width: 200px;
+        height: 60px;
+        font-size: 30px;
+        padding: 0;
+        border-radius: 50px;
+    }
+}
+
+.nav-btn.prev { background: #64748b; color: #ffffff; box-shadow: 0 8px 0 #475569; }
+.nav-btn.prev:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 2px 0 #475569; }
+
+.nav-btn.next { background: #f97316; color: #ffffff; box-shadow: 0 8px 0 #c2410c; }
+.nav-btn.next:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 2px 0 #c2410c; }
+
+.submit-btn { background: #10b981; color: #ffffff; box-shadow: 0 8px 0 #059669; }
+.submit-btn:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 2px 0 #059669; }
+
+.replay-btn { background: #0ea5e9; color: white; box-shadow: 0 8px 0 #0284c7; margin-top: 20px; }
+.replay-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #0284c7; }
+
+.nav-btn:disabled, .submit-btn:disabled {
+    background: #cbd5e1; box-shadow: 0 8px 0 #94a3b8; color: #f8fafc; cursor: not-allowed; opacity: 0.8;
+}
+
+
+/* =========================
+   EXACT SAME CONFETTI
+========================= */
+#confettiContainer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 200;
+}
+
+.confetti-piece {
+    position: absolute;
+    width: 9px;
+    height: 14px;
+    border-radius: 2px;
+    opacity: 0;
+    animation: pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+    will-change: transform, opacity;
+}
+
+.final-confetti-piece {
+    width: 10px;
+    height: 16px;
+    animation-duration: 2300ms;
+}
+
+.final-confetti-piece:nth-child(3n) {
+    border-radius: 50%;
+}
+
+.final-confetti-piece:nth-child(4n) {
+    width: 7px;
+    height: 19px;
+    border-radius: 1px;
+}
+
+.final-confetti-piece:nth-child(5n) {
+    width: 13px;
+    height: 8px;
+    border-radius: 2px;
+}
+
+@keyframes pageConfetti {
+    0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    }
+    55% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+    }
+}
+
+.popup-card.complete {
+    box-shadow:
+        0 20px 45px rgba(108, 92, 231, 0.18),
+        0 0 0 8px rgba(162, 155, 254, 0.12);
+}
+
+.popup-card.complete .replay-btn {
+    margin-top: 12px;
+}
+
+.popup-card.complete .popup-icon {
+    animation: finalTrophyBounce 1.2s ease-in-out infinite;
+}
+
+@keyframes finalTrophyBounce {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg) scale(1);
+    }
+    50% {
+        transform: translateY(-5px) rotate(-4deg) scale(1.06);
+    }
+}
+
+/* =========================
+   POPUP (Exact Preserved)
+========================= */
+.popup-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+   
+    display: flex; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 100;
+}
+.popup-overlay.active { opacity: 1; pointer-events: auto; }
+
+.popup-card {
+    position: relative; width: 90%; max-width: 520px; padding: 40px 30px;
+    border-radius: 36px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    transform: scale(0.8); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: #ffffff;
+}
+
+.popup-card::before, .popup-card::after { content: ''; position: absolute; border-radius: 50%; pointer-events: none; }
+.popup-card::before { width: 220px; height: 220px; top: -60px; right: -50px; }
+.popup-card::after { width: 180px; height: 180px; bottom: -70px; left: -40px; }
+
+.popup-card.correct { background: #edfbf4; border: 6px solid #00c885; }
+.popup-card.correct::before, .popup-card.correct::after { background: rgba(162, 245, 209, 0.45); }
+.popup-card.correct .popup-title { color: #00a86b; }
+.popup-card.correct .popup-subtitle { color: #2e7d5b; }
+
+.popup-card.wrong { background: #fff0f2; border: 6px solid #ff6b7a; }
+.popup-card.wrong::before, .popup-card.wrong::after { background: rgba(255, 196, 203, 0.45); }
+.popup-card.wrong .popup-title { color: #d33847; }
+.popup-card.wrong .popup-subtitle { color: #a33b45; }
+
+.popup-card.complete { background: #f0f3ff; border: 6px solid #6c5ce7; }
+.popup-card.complete::before, .popup-card.complete::after { background: rgba(162, 155, 254, 0.35); }
+.popup-card.complete .popup-title { color: #6c5ce7; }
+.popup-card.complete .popup-subtitle { color: #4834d4; }
+
+.popup-overlay.active .popup-card { transform: scale(1); }
+.popup-icon { font-size: 4.8rem; margin-bottom: 12px; line-height: 1; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1)); }
+.popup-title { font-size: 3rem; font-weight: 600; margin-bottom: 8px; letter-spacing: -0.5px; }
+.popup-subtitle { font-size: 1.4rem; font-weight: 500; display: flex; align-items: center; gap: 8px; color: #333; }
+
+@media screen and (max-width: 768px) {
+    .visual-equation-board { flex-direction: column; gap: 10px; padding: 15px; }
+    .operator { transform: rotate(90deg); margin: 0; }
+
+    /* Same stable height for both groups on mobile as well */
+    .group-left,
+    .group-right {
+        width: 100%;
+        max-width: 520px;
+        height: 260px;
+        min-height: 260px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Count and fill in the boxes</h1>
+    <div class="instruction-badge" id="instructionText">Count the items and type the numbers below.</div>
+</header>
+
+<main class="game-stage" id="stage">
+    
+    <div class="visual-equation-board">
+        <div class="item-group group-left" id="groupLeftContainer">
+            </div>
+        
+        <div class="operator">−</div>
+        
+        <div class="item-group group-right" id="groupRightContainer">
+            </div>
+    </div>
+
+    <div class="equation-row">
+        <input type="text" id="inp1" inputmode="numeric" maxlength="2">
+        <span class="operator">−</span>
+        <input type="text" id="inp2" inputmode="numeric" maxlength="2">
+        <span class="operator">=</span>
+        <input type="text" id="inp3" inputmode="numeric" maxlength="2">
+    </div>
+
+</main>
+
+<div class="bottom-controls">
+    <div class="left-control">
+        <button class="nav-btn prev" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+    </div>
+    <div class="center-control">
+        <button class="submit-btn" id="submitBtn" onclick="checkAnswers()" disabled>SUBMIT</button>
+    </div>
+    <div class="right-control">
+        <button class="nav-btn next" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+    </div>
+</div>
+
+
+<div id="confettiContainer"></div>
+
+<div class="popup-overlay" id="popup">
+    <div class="popup-card" id="popupCard">
+        <div class="popup-icon" id="popupIcon">⭐</div>
+        <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+        <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+        <button class="replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play Again</button>
+    </div>
+</div>
+
+<script>
+/* ==========================================
+   QUIZ DATA (EXACT IMAGE PATHS RESTORED)
+========================================== */
+const quizData = [
+    {
+        instruction: "🍍 Count the pineapples and type the numbers below!",
+        image: "../images/pineapple.png",
+        emojiFallback: "🍍",
+        count1: 12,
+        count2: 2,
+        ans: 10
+    },
+    {
+        instruction: "🌹 Count the roses and type the numbers below!",
+        image: "../images/rose1.png",
+        emojiFallback: "🌹",
+        count1: 18,
+        count2: 5,
+        ans: 13
+    }
+];
+
+let quizState = Array.from({ length: quizData.length }, () => ({
+    isSolved: false,
+    v1: '',
+    v2: '',
+    v3: '',
+    countedLeft: [],
+    countedRight: []
+}));
+
+let currentIndex = 0;
+let popupTimer = null;
+let audioCtx = null;
+
+const instructionText = document.getElementById("instructionText");
+const leftContainer = document.getElementById("groupLeftContainer");
+const rightContainer = document.getElementById("groupRightContainer");
+
+const inp1 = document.getElementById("inp1");
+const inp2 = document.getElementById("inp2");
+const inp3 = document.getElementById("inp3");
+
+const submitBtn = document.getElementById("submitBtn");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const playAgainBtn = document.getElementById("playAgainBtn");
+
+/* ==========================================
+   PRESERVED AUDIO SYNTHESIZER
+========================================== */
+function playTone(type) {
+    try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === "correct") {
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === "wrong") {
+            osc.type = "sawtooth";
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === "tick") {
+            // New fun ticking sound for counting the items
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+    } catch (error) { console.log("Audio error:", error); }
+}
+
+function speak(text) {
+    if ("speechSynthesis" in window) {
+        speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = "en-US"; msg.volume = 0.8; msg.rate = 1; msg.pitch = 1.2;
+        speechSynthesis.speak(msg);
+    }
+}
+
+/* ==========================================
+   UI GENERATION (MATCHING IMAGE LAYOUT)
+========================================== */
+function loadQuestion() {
+    const q = quizData[currentIndex];
+    const state = quizState[currentIndex];
+
+    instructionText.innerText = q.instruction;
+    leftContainer.innerHTML = '';
+    rightContainer.innerHTML = '';
+
+    // Generate Left Group (Minuend)
+    for (let i = 0; i < q.count1; i++) {
+        createInteractiveItem(i, 'left', q.image, q.emojiFallback, leftContainer, state.countedLeft.includes(i));
+    }
+
+    // Generate Right Group (Subtrahend)
+    for (let i = 0; i < q.count2; i++) {
+        createInteractiveItem(i, 'right', q.image, q.emojiFallback, rightContainer, state.countedRight.includes(i));
+    }
+
+    // Set Inputs
+    inp1.value = state.v1;
+    inp2.value = state.v2;
+    inp3.value = state.v3;
+
+    updateInputStatus();
+    checkSubmitState();
+
+    prevBtn.disabled = (currentIndex === 0);
+    nextBtn.disabled = (!state.isSolved || currentIndex === quizData.length - 1);
+}
+
+// Reusable function to create the counting items
+function createInteractiveItem(index, group, imgSource, fallback, container, isCounted) {
+    // Images are display-only. The child enters the counts directly
+    // in the three answer boxes below.
+    const card = document.createElement('div');
+    card.className = 'item-card';
+
+    card.innerHTML = `
+        <img src="${imgSource}" class="item-img" alt="Item"
+             onerror="this.style.display='none'; this.parentElement.innerText='${fallback}'; this.parentElement.style.fontSize='40px';">
+    `;
+
+    container.appendChild(card);
+}
+
+/* ==========================================
+   INPUT HANDLING & VALIDATION
+========================================== */
+[inp1, inp2, inp3].forEach((inp, idx) => {
+    inp.addEventListener("input", (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, "");
+        const state = quizState[currentIndex];
+        if (idx === 0) state.v1 = e.target.value;
+        if (idx === 1) state.v2 = e.target.value;
+        if (idx === 2) state.v3 = e.target.value;
+
+        // Automatically move the cursor to the next box after the number is entered.
+        if (e.target.value.length >= e.target.maxLength && idx < 2) {
+            [inp1, inp2, inp3][idx + 1].focus();
+            [inp1, inp2, inp3][idx + 1].select();
+        }
+
+        checkSubmitState();
+    });
+});
+
+function updateInputStatus() {
+    const state = quizState[currentIndex];
+    const isDisabled = state.isSolved;
+    inp1.disabled = isDisabled;
+    inp2.disabled = isDisabled;
+    inp3.disabled = isDisabled;
+}
+
+function checkSubmitState() {
+    const state = quizState[currentIndex];
+    const allFilled = state.v1.trim() !== "" && state.v2.trim() !== "" && state.v3.trim() !== "";
+    submitBtn.disabled = state.isSolved || !allFilled;
+}
+
+function navigate(direction) {
+    const state = quizState[currentIndex];
+    if (direction === 1 && !state.isSolved) return;
+    
+    currentIndex += direction;
+    if (currentIndex < 0) currentIndex = 0;
+    if (currentIndex > quizData.length - 1) currentIndex = quizData.length - 1;
+    
+    loadQuestion();
+}
+
+function checkAnswers() {
+    const q = quizData[currentIndex];
+    const state = quizState[currentIndex];
+    const v1Val = parseInt(state.v1);
+    const v2Val = parseInt(state.v2);
+    const v3Val = parseInt(state.v3);
+
+    if (v1Val !== q.count1 || v2Val !== q.count2 || v3Val !== q.ans) {
+        showPopup("wrong", "😟", "Keep Going!", "Count the items carefully and try again! 🌈", false);
+        playTone("wrong");
+        speak("Try again");
+        
+        // Reset Inputs on wrong answer
+        state.v1 = ""; state.v2 = ""; state.v3 = ""; 
+        loadQuestion();
+        return;
+    }
+
+    state.isSolved = true;
+    
+    // Auto-count all items on correct submission for visual completion
+    state.countedLeft = Array.from({length: q.count1}, (_, i) => i);
+    state.countedRight = Array.from({length: q.count2}, (_, i) => i);
+    
+    loadQuestion();
+    playTone("correct");
+
+    if (currentIndex === quizData.length - 1) {
+        nextBtn.disabled = true;
+
+        showPopup("correct", "🌟", "Amazing!", "You got it right! ✨", false);
+        showSmallConfetti(false);
+        speak("Correct");
+
+        clearTimeout(popupTimer);
+        popupTimer = setTimeout(() => {
+            closePopup();
+            showSmallConfetti(true);
+            showPopup("complete", "🏆", "Congratulations!", "Fantastic job! You solved all questions! 🎉", true);
+            
+        }, 1800);
+
+    } else {
+        nextBtn.disabled = false;
+        showPopup("correct", "🌟", "Amazing!", "You got it right! ✨", false);
+        showSmallConfetti(false);
+        speak("Correct");
+    }
+}
+
+
+function showSmallConfetti(isFinal = false) {
+    const confettiContainer = document.getElementById('confettiContainer');
+    if (!confettiContainer) return;
+
+    confettiContainer.innerHTML = '';
+
+    const count = isFinal ? 95 : 42;
+
+    const colors = [
+        '#00b894',
+        '#e67e22',
+        '#6c5ce7',
+        '#0984e3',
+        '#fdcb6e',
+        '#ff6b7a',
+        '#00cec9',
+        '#a29bfe'
+    ];
+
+    for (let i = 0; i < count; i++) {
+        const piece = document.createElement('span');
+
+        piece.className =
+            isFinal
+                ? 'confetti-piece final-confetti-piece'
+                : 'confetti-piece';
+
+        const startX = Math.random() * 100;
+        const startY = -8 + Math.random() * 10;
+
+        const drift =
+            (Math.random() * 520 - 260) *
+            (isFinal ? 1.15 : 0.9);
+
+        const fall =
+            window.innerHeight *
+            (0.82 + Math.random() * 0.48);
+
+        const rotation =
+            Math.random() * 1400 - 700;
+
+        piece.style.left = startX + '%';
+        piece.style.top = startY + '%';
+
+        piece.style.setProperty('--x', drift + 'px');
+        piece.style.setProperty('--y', fall + 'px');
+        piece.style.setProperty('--r', rotation + 'deg');
+
+        piece.style.background =
+            colors[Math.floor(Math.random() * colors.length)];
+
+        piece.style.animationDelay =
+            (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+        confettiContainer.appendChild(piece);
+
+        setTimeout(
+            () => piece.remove(),
+            isFinal ? 2900 : 2050
+        );
+    }
+}
+
+/* ==========================================
+   POPUP LOGIC (PRESERVED EXACTLY)
+========================================== */
+function showPopup(status, icon, title, subtitle, isFinal = false) {
+    const popup = document.getElementById("popup");
+    const card = document.getElementById("popupCard");
+
+    card.className = `popup-card ${status}${isFinal ? ' complete' : ''}`;
+    document.getElementById("popupIcon").innerText = icon;
+    document.getElementById("popupTitle").innerText = title;
+    document.getElementById("popupSubtitle").innerText = subtitle;
+
+    playAgainBtn.style.display = isFinal ? "inline-block" : "none";
+    popup.classList.add("active");
+
+    if (!isFinal) {
+        clearTimeout(popupTimer);
+        popupTimer = setTimeout(closePopup, 1800);
+    }
+}
+
+function closePopup() {
+    document.getElementById("popup").classList.remove("active");
+}
+
+function restartGame() {
+    closePopup();
+    const confettiContainer = document.getElementById("confettiContainer");
+    if (confettiContainer) confettiContainer.innerHTML = "";
+    clearTimeout(popupTimer);
+    quizState = Array.from({ length: quizData.length }, () => ({
+        isSolved: false, v1: '', v2: '', v3: '', countedLeft: [], countedRight: []
+    }));
+    currentIndex = 0;
+    loadQuestion();
+}
+
+window.onload = function() { loadQuestion(); };
+</script>
+
+</body>
+</html>

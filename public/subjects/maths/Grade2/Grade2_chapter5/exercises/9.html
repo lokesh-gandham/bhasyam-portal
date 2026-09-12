@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fill in the boxes to get the given product</title>
+ <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Shared project styles: Home, Hint, Previous/Next, feedback popups and final popup -->
+    <link rel="stylesheet" href="../assets/css/reuse.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "Livvic", sans-serif;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: "Livvic", sans-serif;
+        }
+
+        body {
+            font-family: "Livvic", sans-serif;
+            color: #2f4f4f;
+            background: #fff8e8;
+            user-select: none
+        }
+
+        button {
+            font: inherit
+        }
+
+
+        /* =========================================================
+   SHARED HOME / HINT BUTTONS
+   ========================================================= */
+        .icon-button {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            border: 2px solid #eadff7;
+            background: #fffdf7;
+            box-shadow: 0 4px 12px rgba(70, 50, 120, .15);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+        .icon-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(70, 50, 120, .20);
+        }
+
+        .icon-button img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* =========================================================
+   SHARED NEXT / PREVIOUS NAVIGATION
+   ========================================================= */
+        .navigation {
+            flex: 0 0 auto;
+            width: 100%;
+            max-width: 1250px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 4px 0 0;
+        }
+
+        .nav-button {
+            min-width: 150px;
+            height: 50px;
+            padding: 0 22px;
+            border: 2px solid #8d73d0;
+            border-radius: 15px;
+            background: #fff;
+            color: #60449e;
+            font-size: clamp(16px, 1.35vw, 20px);
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #d8caef;
+            transition: .12s;
+        }
+
+        .nav-button.next {
+            background: #7153c1;
+            color: #fff;
+            border-color: #7153c1;
+            box-shadow: 0 4px 0 #4e3994;
+        }
+
+        .nav-button:not(:disabled):hover {
+            transform: translateY(-2px)
+        }
+
+        .nav-button:not(:disabled):active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #d8caef;
+        }
+
+        .nav-button.next:not(:disabled):active {
+            box-shadow: 0 1px 0 #4e3994
+        }
+
+        .nav-button:disabled {
+            opacity: .38;
+            cursor: not-allowed;
+        }
+
+        /* =========================================================
+   SHARED FEEDBACK / FINAL POPUP
+   ========================================================= */
+        .feedback {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* background: rgba(38, 31, 76, .35); */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: .2s;
+        }
+
+        .feedback.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .feedback-card {
+            position: relative;
+            width: min(430px, 90vw);
+            padding: 34px 26px 28px;
+            text-align: center;
+            border-radius: 28px;
+            background: linear-gradient(180deg, #ffffff 0%, #fffdf6 100%);
+            border: 5px solid #8d73d0;
+            box-shadow: 0 20px 50px rgba(43, 31, 90, .32), inset 0 0 0 3px rgba(255, 255, 255, .6);
+            overflow: hidden;
+        }
+
+        .feedback-card::before {
+            content: "";
+            position: absolute;
+            top: -60%;
+            left: -20%;
+            width: 140%;
+            height: 140%;
+            background: radial-gradient(circle, rgba(255, 255, 255, .55) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .feedback-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            margin: 0 auto 6px;
+            background: radial-gradient(circle at 35% 30%, #ffffff, #f1eaff);
+            box-shadow: 0 8px 18px rgba(70, 50, 120, .22), inset 0 0 0 4px rgba(255, 255, 255, .8);
+        }
+
+        .feedback-emoji {
+            font-size: 58px;
+            line-height: 1
+        }
+
+        .feedback-title {
+            margin: 8px 0 6px;
+            color: #3f3278;
+            font-size: 32px;
+            line-height: 1.1;
+            font-weight: 900;
+            letter-spacing: .3px;
+        }
+
+        .feedback-text {
+            color: #59627a;
+            font-size: 18px;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .feedback.simple-correct .feedback-card {
+            border-color: #4ec263;
+            box-shadow: 0 20px 50px rgba(30, 120, 60, .32), inset 0 0 0 3px rgba(255, 255, 255, .6);
+        }
+
+        .feedback.simple-correct .feedback-badge {
+            background: radial-gradient(circle at 35% 30%, #ffffff, #e4faea);
+            box-shadow: 0 8px 18px rgba(35, 140, 70, .3), inset 0 0 0 4px rgba(255, 255, 255, .85);
+        }
+
+        .feedback.simple-correct .feedback-title {
+            color: #2a9648
+        }
+
+        .feedback.simple-wrong .feedback-card {
+            border-color: #ed737c;
+            box-shadow: 0 20px 50px rgba(150, 40, 50, .28), inset 0 0 0 3px rgba(255, 255, 255, .6);
+        }
+
+        .feedback.simple-wrong .feedback-badge {
+            background: radial-gradient(circle at 35% 30%, #ffffff, #ffe7e8);
+            box-shadow: 0 8px 18px rgba(200, 60, 70, .28), inset 0 0 0 4px rgba(255, 255, 255, .85);
+        }
+
+        .feedback.simple-wrong .feedback-title {
+            color: #d64d58
+        }
+
+        .feedback.simple-hint .feedback-card {
+            border-color: #f0bd45;
+            box-shadow: 0 20px 50px rgba(150, 110, 10, .25), inset 0 0 0 3px rgba(255, 255, 255, .6);
+        }
+
+        .feedback.simple-hint .feedback-badge {
+            background: radial-gradient(circle at 35% 30%, #ffffff, #fff3d9);
+            box-shadow: 0 8px 18px rgba(190, 140, 10, .28), inset 0 0 0 4px rgba(255, 255, 255, .85);
+        }
+
+        .feedback.simple-hint .feedback-title {
+            color: #a36c00
+        }
+
+        .feedback.final-pop .feedback-card {
+            width: min(540px, 92vw);
+            border-color: #efc34d;
+            padding: 40px 30px 32px;
+            box-shadow: 0 24px 60px rgba(150, 110, 10, .32), inset 0 0 0 3px rgba(255, 255, 255, .6);
+        }
+
+        .feedback.final-pop .feedback-badge {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 35% 30%, #ffffff, #fff3d9);
+            box-shadow: 0 10px 22px rgba(190, 140, 10, .3), inset 0 0 0 5px rgba(255, 255, 255, .85);
+        }
+
+        .feedback.final-pop .feedback-emoji {
+            font-size: 72px
+        }
+
+        .feedback.final-pop .feedback-title {
+            font-size: 40px;
+            font-weight: 400;
+        }
+
+        .feedback.final-pop .feedback-text {
+            font-size: 20px
+        }
+
+        .final-score {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 9px 26px;
+            border-radius: 20px;
+            background: linear-gradient(145deg, #e9fbe4, #d3f4cb);
+            color: #2a9648;
+            font-size: 26px;
+            font-weight: 400;
+            box-shadow: 0 4px 10px rgba(40, 140, 60, .25), inset 0 0 0 2px rgba(255, 255, 255, .7);
+        }
+
+        .play-again {
+            margin-top: 22px;
+            min-width: 180px;
+            min-height: 52px;
+            padding: 12px 24px;
+            border: 0;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #8567d6, #6a4fbf);
+            color: #fff;
+            font-size: 19px;
+            font-weight: 800;
+            box-shadow: 0 5px 0 #4e3994;
+            cursor: pointer;
+            transition: .12s;
+        }
+
+        .play-again:hover {
+            transform: translateY(-2px)
+        }
+
+        .play-again:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #4e3994;
+        }
+
+        @keyframes correctPop {
+            0% {
+                transform: scale(.55) rotate(-4deg);
+                opacity: 0
+            }
+
+            60% {
+                transform: scale(1.08) rotate(2deg);
+                opacity: 1
+            }
+
+            100% {
+                transform: scale(1) rotate(0);
+                opacity: 1
+            }
+        }
+
+        @keyframes wrongShake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            20% {
+                transform: translateX(-9px) rotate(-1.5deg)
+            }
+
+            40% {
+                transform: translateX(9px) rotate(1.5deg)
+            }
+
+            60% {
+                transform: translateX(-6px)
+            }
+
+            80% {
+                transform: translateX(6px)
+            }
+        }
+
+        @keyframes badgePulse {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.08)
+            }
+        }
+
+        .feedback.simple-correct .feedback-card,
+        .feedback.final-pop .feedback-card {
+            animation: correctPop .35s ease
+        }
+
+        .feedback.simple-wrong .feedback-card {
+            animation: wrongShake .38s ease
+        }
+
+        .feedback.show .feedback-badge {
+            animation: badgePulse 1.1s ease-in-out infinite
+        }
+
+        /* =========================================================
+   SHARED CONFETTI
+   ========================================================= */
+        .confetti-piece {
+            position: fixed;
+            top: -24px;
+            z-index: 600;
+            border-radius: 3px;
+            pointer-events: none;
+            animation: confettiFall 1.6s ease-in forwards;
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(112vh) rotate(760deg);
+                opacity: .25
+            }
+        }
+
+        .game-page {
+            width: 100%;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 10px 28px 12px
+        }
+
+        .header {
+            flex: 0 0 auto;
+            width: 100%;
+            max-width: 1440px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 100px 1fr 100px;
+            align-items: start
+        }
+
+        .title {
+            margin: 0;
+            text-align: center;
+            color: #3f2a86;
+            font-size: 34px;
+            line-height: 1;
+            align-self: center;
+        }
+
+        .content {
+            /* flex: 1 1 auto; */
+            min-height: 0;
+            width: 100%;
+            max-width: 1250px;
+            margin: 5px auto 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .factor-area {
+            /* flex: 1 1 auto; */
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+            padding: 0 8px
+        }
+
+        .question-label {
+            flex: 0 0 auto;
+            align-self: flex-start;
+            color: #2f4f4f;
+            font-size: clamp(19px, 1.8vw, 28px);
+            line-height: 1;
+            margin: 0 0 2px
+        }
+
+        .activity-board {
+            /* flex: 1 1 auto; */
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            overflow: hidden
+        }
+
+        .tree-panel {
+            width: min(900px, 100%);
+            height: clamp(255px, 52vh, 455px);
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden
+        }
+
+        .tree-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            overflow: visible
+        }
+
+        .tree-line {
+            fill: none;
+            stroke: #8b5b35;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round
+        }
+
+        .product-node {
+            fill: #fffdf7;
+            stroke: #f0a52f;
+            stroke-width: 2
+        }
+
+        .answer-box {
+            fill: #fffdf7;
+            stroke: #f0a52f;
+            stroke-width: 2
+        }
+
+        .answer-box.filled {
+            fill: #eef9e9;
+            stroke: #6db36b
+        }
+
+        .answer-box.drop-target {
+            stroke: #f0a52f;
+            stroke-width: 3
+        }
+
+        .product-text,
+        .tree-answer {
+            fill: #2f4f4f;
+            text-anchor: middle;
+            dominant-baseline: middle
+        }
+
+        .product-text {
+            font-size: 28px
+        }
+
+        .tree-answer {
+            font-size: 24px;
+            pointer-events: none
+        }
+
+        .tree-answer.correct {
+            fill: #2a9648
+        }
+
+        .tree-label {
+            fill: #3f2a86;
+            font-size: 23px;
+            text-anchor: middle;
+            dominant-baseline: middle
+        }
+
+        .apple-tray {
+            flex: 0 0 auto;
+            width: min(920px, 100%);
+            height: 78px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+            padding: 0 4px
+        }
+
+        .tray-title {
+            color: #2f4f4f;
+            font-size: clamp(15px, 1.25vw, 20px);
+            line-height: 1
+        }
+
+        .apple-line {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 20px auto 0;
+        }
+
+        .apple-choice {
+            position: relative;
+            width: 100%;
+            height: 50px;
+            border: 0;
+            background: transparent;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            padding: 0
+        }
+
+        .apple-choice::before {
+            content: "";
+            position: absolute;
+            width: 40px;
+            height: 35px;
+            left: 50%;
+            top: 11px;
+            transform: translateX(-50%);
+            border-radius: 48% 48% 45% 45%;
+            background: #ef5350;
+            box-shadow: inset -5px -4px 0 rgba(170, 35, 35, .14)
+        }
+
+        .apple-choice::after {
+            content: "";
+            position: absolute;
+            width: 7px;
+            height: 13px;
+            left: calc(50% + 3px);
+            top: 2px;
+            border-radius: 6px;
+            background: #795548;
+            transform: rotate(12deg)
+        }
+
+        .apple-choice {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .apple-choice span {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+
+        .apple-choice:hover {
+            transform: translateY(-3px) scale(1.04)
+        }
+
+        .apple-choice:active,
+        .apple-choice.dragging {
+            cursor: grabbing;
+            transform: scale(.96)
+        }
+
+        .apple-choice.used {
+            opacity: .32;
+            cursor: default;
+            transform: none
+        }
+
+        .apple-choice.selected {
+            filter: drop-shadow(0 0 5px #f0a52f);
+            transform: translateY(-3px) scale(1.05)
+        }
+
+        .activity-status {
+            flex: 0 0 auto;
+            min-height: 18px;
+            color: #2a9648;
+            font-size: clamp(13px, 1.1vw, 18px);
+            line-height: 1;
+            text-align: center
+        }
+
+        /* =========================================================
+   RESPONSIVE MEDIA QUERIES
+   ========================================================= */
+        @media (max-width:600px) {
+            .icon-button {
+                width: 52px;
+                height: 52px
+            }
+
+            .icon-button img {
+                width: 36px;
+                height: 36px
+            }
+
+            .navigation {
+                gap: 8px
+            }
+
+            .nav-button {
+                min-width: 110px;
+                height: 42px;
+                padding: 0 12px;
+                font-size: 14px
+            }
+
+            .feedback-card {
+                width: 90vw;
+                padding: 22px 16px
+            }
+
+            .feedback-badge {
+                width: 72px;
+                height: 72px
+            }
+
+            .feedback-emoji {
+                font-size: 44px
+            }
+
+            .feedback-title {
+                font-size: 24px
+            }
+
+            .feedback-text {
+                font-size: 15px
+            }
+
+            .feedback.final-pop .feedback-badge {
+                width: 88px;
+                height: 88px
+            }
+
+            .feedback.final-pop .feedback-emoji {
+                font-size: 54px
+            }
+
+            .feedback.final-pop .feedback-title {
+                font-size: 28px
+            }
+
+            .feedback.final-pop .feedback-text {
+                font-size: 16px
+            }
+
+            .game-page {
+                padding: 5px 8px 7px
+            }
+
+            .header {
+                grid-template-columns: 46px 1fr 46px
+            }
+
+            .title {
+                font-size: 30px
+            }
+
+            .content {
+                margin-top: 3px
+            }
+
+            .factor-area {
+                padding: 0 1px
+            }
+
+            .question-label {
+                font-size: 16px
+            }
+
+            .activity-board {
+                gap: 3px
+            }
+
+            .tree-panel {
+                width: 100%;
+                height: clamp(205px, 48vh, 285px)
+            }
+
+            .product-text {
+                font-size: 23px
+            }
+
+            .tree-answer {
+                font-size: 18px
+            }
+
+            .tree-label {
+                font-size: 17px
+            }
+
+            .apple-tray {
+                width: 100%;
+                height: 66px;
+                padding: 0 0 1px;
+                gap: 3px
+            }
+
+            .tray-title {
+                font-size: 12px
+            }
+
+            .apple-line {
+                gap: 0
+            }
+
+            .apple-choice {
+                height: 43px
+            }
+
+            .apple-choice::before {
+                width: 29px;
+                height: 27px;
+                top: 10px
+            }
+
+            .apple-choice::after {
+                width: 5px;
+                height: 10px;
+                left: calc(50% + 2px);
+                top: 2px
+            }
+
+            .apple-choice span {
+                font-size: 12px
+            }
+
+            .activity-status {
+                min-height: 14px;
+                font-size: 11px
+            }
+        }
+
+        @media (min-width:601px) and (max-width:900px) {
+            .icon-button {
+                width: 56px;
+                height: 56px
+            }
+
+            .icon-button img {
+                width: 40px;
+                height: 40px
+            }
+
+            .nav-button {
+                min-width: 120px;
+                height: 42px;
+                padding: 0 14px;
+                font-size: 15px
+            }
+
+            .game-page {
+                padding: 7px 16px 9px
+            }
+
+            .header {
+                grid-template-columns: 64px 1fr 64px
+            }
+
+            .title {
+                font-size: 30px
+            }
+
+            .factor-area {
+                padding: 0 4px
+            }
+
+            .question-label {
+                font-size: 19px
+            }
+
+            .tree-panel {
+                height: clamp(235px, 50vh, 350px)
+            }
+
+            .product-text {
+                font-size: 25px
+            }
+
+            .tree-answer {
+                font-size: 20px
+            }
+
+            .tree-label {
+                font-size: 19px
+            }
+
+            .apple-tray {
+                height: 72px;
+                width: min(760px, 100%)
+            }
+
+            .apple-line {
+                gap: 3px
+            }
+
+            .apple-choice {
+                height: 47px
+            }
+
+            .apple-choice::before {
+                width: 34px;
+                height: 31px
+            }
+
+            .apple-choice span {
+                font-size: 14px
+            }
+        }
+
+        @media (min-width:901px) and (max-width:1440px) {
+            .icon-button {
+                width: 74px;
+                height: 74px
+            }
+
+            .icon-button img {
+                width: 50px;
+                height: 50px
+            }
+
+            .navigation {
+                max-width: 1150px
+            }
+
+            .nav-button {
+                min-width: 145px;
+                height: 46px;
+                font-size: 18px
+            }
+
+            .game-page {
+                padding: 8px 24px 11px
+            }
+
+            .header {
+                grid-template-columns: 84px 1fr 84px
+            }
+
+            .title {
+                font-size: 30px
+            }
+
+            .content {
+                max-width: 1180px
+            }
+
+            .question-label {
+                font-size: 23px
+            }
+
+            .tree-panel {
+                height: clamp(280px, 54vh, 400px)
+            }
+
+            .apple-tray {
+                height: 82px;
+                width: min(900px, 100%)
+            }
+        }
+
+        @media (min-width:1441px) {
+            .icon-button {
+                width: 96px;
+                height: 96px;
+                border-width: 3px;
+                gap: 4px
+            }
+
+            .icon-button img {
+                width: 64px;
+                height: 64px
+            }
+
+            .navigation {
+                max-width: 1350px
+            }
+
+            .nav-button {
+                min-width: 190px;
+                height: 58px;
+                padding: 0 28px;
+                border-radius: 18px;
+                font-size: 22px
+            }
+
+            .feedback-card {
+                width: min(520px, 60vw);
+                padding: 42px 34px 34px;
+                border-radius: 32px
+            }
+
+            .feedback-badge {
+                width: 120px;
+                height: 120px
+            }
+
+            .feedback-emoji {
+                font-size: 72px
+            }
+
+            .feedback-title {
+                font-size: 38px
+            }
+
+            .feedback-text {
+                font-size: 22px
+            }
+
+            .feedback.final-pop .feedback-card {
+                width: min(640px, 62vw);
+                padding: 50px 40px 40px
+            }
+
+            .feedback.final-pop .feedback-badge {
+                width: 150px;
+                height: 150px
+            }
+
+            .feedback.final-pop .feedback-emoji {
+                font-size: 88px
+            }
+
+            .feedback.final-pop .feedback-title {
+                font-size: 48px
+            }
+
+            .feedback.final-pop .feedback-text {
+                font-size: 24px
+            }
+
+            .final-score {
+                font-size: 30px;
+                padding: 11px 32px
+            }
+
+            .play-again {
+                min-width: 210px;
+                min-height: 58px;
+                font-size: 22px
+            }
+
+            .game-page {
+                padding: 14px 46px 18px
+            }
+
+            .header {
+                max-width: 1900px;
+                grid-template-columns: 120px 1fr 120px
+            }
+
+            .title {
+                font-size: 40px
+            }
+
+            .content {
+                max-width: 1450px
+            }
+
+            .question-label {
+                font-size: 29px
+            }
+
+            .tree-panel {
+                height: clamp(320px, 56vh, 470px);
+                width: min(1000px, 100%)
+            }
+
+            .product-text {
+                font-size: 30px
+            }
+
+            .tree-answer {
+                font-size: 25px
+            }
+
+            .tree-label {
+                font-size: 24px
+            }
+
+            .apple-tray {
+                height: 92px;
+                width: min(1000px, 100%)
+            }
+
+            .apple-choice {
+                height: 80px;
+            }
+
+            .apple-choice::before {
+                width: 46px;
+                height: 41px;
+                top: 13px
+            }
+
+            .apple-choice::after {
+                width: 7px;
+                height: 14px
+            }
+
+            .apple-choice span {
+                font-size: 19px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-page">
+        <header class="header">
+            <button class="icon-button" id="homeButton" type="button" aria-label="Home">
+                <img src="../assets/images/home.png" alt="Home">
+            </button>
+            <p class="title">Fill in the boxes to get the given product.</p>
+            <button class="icon-button" id="hintButton" type="button" aria-label="Hint">
+                <img src="../assets/images/hint.png" alt="Hint">
+            </button>
+        </header>
+
+        <main class="content">
+            <section class="factor-area" aria-label="Factor tree activity">
+                <div class="question-label" id="questionNumber">Q1.</div>
+                <div class="activity-board">
+                    <div class="tree-panel">
+                        <svg id="treeSvg" class="tree-svg" viewBox="0 0 920 430" preserveAspectRatio="xMidYMid meet"
+                            aria-label="Factor tree"></svg>
+                    </div>
+                    <div class="apple-tray" id="appleTray">
+                        <div class="tray-title">Place the apples</div>
+                        <div class="apple-line" id="appleLine"></div>
+                    </div>
+                </div>
+                <div class="activity-status" id="activityStatus" aria-live="polite"></div>
+            </section>
+
+            <div class="progress" id="progress" aria-label="Question progress"></div>
+            <nav class="navigation">
+                <button class="nav-button" id="prevButton" type="button" disabled>← Previous</button>
+                <button class="nav-button next" id="nextButton" type="button" disabled>Next →</button>
+            </nav>
+        </main>
+    </div>
+
+    <div class="feedback" id="feedback" aria-hidden="true">
+        <div class="feedback-card">
+            <div class="feedback-badge">
+                <div class="feedback-emoji" id="feedbackEmoji">😊</div>
+            </div>
+            <h2 class="feedback-title" id="feedbackTitle">Correct!</h2>
+            <p class="feedback-text" id="feedbackText">Great job!</p>
+        </div>
+    </div>
+
+    <div class="feedback final-pop" id="finalFeedback" aria-hidden="true">
+        <div class="feedback-card">
+            <div class="feedback-badge">
+                <div class="feedback-emoji">🎉</div>
+            </div>
+            <h2 class="feedback-title">Great Job!</h2>
+            <p class="feedback-text">You completed all 2 questions.</p>
+            <div class="final-score" id="finalScore">2 / 2</div><br>
+            <button class="play-again" id="playAgainButton" type="button">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const data = [
+            {
+                product: 16,
+                rows: [
+                    { left: "1", right: null, answer: ["1", "16"] },
+                    { left: null, right: "8", answer: ["2", "8"] },
+                    { left: "4", right: null, answer: ["4", "4"] },
+                    { left: null, right: "2", answer: ["8", "2"] },
+                    { left: "16", right: null, answer: ["16", "1"] }
+                ]
+            },
+            {
+                product: 24,
+                rows: [
+                    { left: "1", right: null, answer: ["1", "24"] },
+                    { left: null, right: "12", answer: ["2", "12"] },
+                    { left: "3", right: null, answer: ["3", "8"] },
+                    { left: null, right: "6", answer: ["4", "6"] },
+                    { left: "6", right: null, answer: ["6", "4"] }
+                ]
+            }
+        ];
+
+        const qn = document.getElementById("questionNumber");
+        const svg = document.getElementById("treeSvg");
+        const appleLine = document.getElementById("appleLine");
+        const statusEl = document.getElementById("activityStatus");
+        const progress = document.getElementById("progress");
+        const prev = document.getElementById("prevButton");
+        const next = document.getElementById("nextButton");
+        const fb = document.getElementById("feedback");
+        const fe = document.getElementById("feedbackEmoji");
+        const ft = document.getElementById("feedbackTitle");
+        const fx = document.getElementById("feedbackText");
+        const finalFb = document.getElementById("finalFeedback");
+        const finalScore = document.getElementById("finalScore");
+        const again = document.getElementById("playAgainButton");
+
+        let current = 0;
+        let completed = data.map(() => false);
+        let answers = data.map(q => q.rows.map(r => ({ left: r.left, right: r.right })));
+        let selectedApple = null;
+        let timer = null;
+
+        function speak(text) {
+            if (!("speechSynthesis" in window)) return;
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = "en-US"; msg.volume = .25; msg.rate = 1; msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+        function hideFeedback() { clearTimeout(timer); fb.className = "feedback"; fb.setAttribute("aria-hidden", "true") }
+        function launchConfetti(count) {
+            const colors = ["#ff8cab", "#8a78ed", "#65cbd2", "#ffd26e", "#8fd9a8", "#7153c1"];
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement("span");
+                p.className = "confetti-piece"; p.style.left = `${Math.random() * 100}vw`;
+                p.style.width = "10px"; p.style.height = "16px"; p.style.background = colors[i % colors.length];
+                p.style.animationDelay = `${Math.random() * .35}s`; p.style.transform = `rotate(${Math.random() * 180}deg)`;
+                document.body.appendChild(p); setTimeout(() => p.remove(), 2200);
+            }
+        }
+        function correctPopup() {
+            fb.className = "feedback show simple-correct"; fe.textContent = "😊"; ft.textContent = "Correct!"; fx.textContent = "Great job!";
+            fb.setAttribute("aria-hidden", "false"); launchConfetti(45); speak("correct"); timer = setTimeout(hideFeedback, 900);
+        }
+        function wrongPopup() {
+            fb.className = "feedback show simple-wrong"; fe.textContent = "😕"; ft.textContent = "Try Again!"; fx.textContent = "Choose the correct answer.";
+            fb.setAttribute("aria-hidden", "false"); speak("wrong"); timer = setTimeout(hideFeedback, 650);
+        }
+        function hintPopup() {
+            clearTimeout(timer); fb.className = "feedback show simple-hint"; fe.textContent = "💡"; ft.textContent = "Hint";
+            fx.textContent = `Find factor pairs that multiply to ${data[current].product}.`; fb.setAttribute("aria-hidden", "false"); timer = setTimeout(hideFeedback, 2600);
+        }
+        function createProgress() {
+            progress.innerHTML = "";
+            data.forEach((_, i) => { const d = document.createElement("span"); d.className = "progress-dot"; if (i === current) d.classList.add("active"); if (completed[i]) d.classList.add("done"); progress.appendChild(d) })
+        }
+        function svgEl(name, attrs = {}) { const e = document.createElementNS("http://www.w3.org/2000/svg", name); Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v)); return e }
+        function addText(parent, x, y, text, cls) { const e = svgEl("text", { x, y, class: cls }); e.textContent = text; parent.appendChild(e); return e }
+
+        function drawBranch(parent, productRightX, productY, branchX, branchY, boxX) {
+            /* One continuous branch: product -> trunk -> branch -> left answer box. */
+            const trunkX = 270;
+            const productMidY = productY + 27;
+            const path = svgEl("path", { class: "tree-line", d: `M ${productRightX} ${productMidY} L ${trunkX} ${productMidY} L ${trunkX} ${branchY + 27} L ${boxX} ${branchY + 27}` });
+            parent.appendChild(path);
+        }
+        function addDropBox(parent, x, y, value, rowIndex, side) {
+            const g = svgEl("g");
+            const rect = svgEl("rect", { x, y, width: 92, height: 52, rx: 9, class: "answer-box" + (value !== null ? " filled" : "") });
+            g.appendChild(rect);
+            if (value !== null) addText(g, x + 46, y + 27, value, "tree-answer");
+            if (value === null && !completed[current]) {
+                rect.style.cursor = "pointer";
+                rect.addEventListener("dragover", e => { e.preventDefault(); rect.classList.add("drop-target") });
+                rect.addEventListener("dragleave", () => rect.classList.remove("drop-target"));
+                rect.addEventListener("drop", e => { e.preventDefault(); rect.classList.remove("drop-target"); const v = e.dataTransfer.getData("text/plain"); if (v) placeValue(rowIndex, side, v) });
+                rect.addEventListener("click", () => { if (selectedApple) { placeValue(rowIndex, side, selectedApple); selectedApple = null; clearSelection() } });
+            }
+            parent.appendChild(g); return rect;
+        }
+        function createTree() {
+            const q = data[current]; svg.innerHTML = "";
+            const productX = 80, productY = 188, productW = 116;
+            svg.appendChild(svgEl("rect", { x: productX, y: productY, width: productW, height: 54, rx: 9, class: "product-node" }));
+            addText(svg, productX + productW / 2, productY + 28, String(q.product), "product-text");
+            const boxX = 360, rightX = 510, firstY = 25, gap = 78;
+            q.rows.forEach((row, i) => {
+                const y = firstY + i * gap;
+                drawBranch(svg, productX + productW, productY, 270, y, boxX);
+                addDropBox(svg, boxX, y, answers[current][i].left, i, "left");
+                addText(svg, rightX - 29, y + 27, "×", "tree-label");
+                addDropBox(svg, rightX, y, answers[current][i].right, i, "right");
+            });
+        }
+
+        function requiredCounts(q) {
+            const m = {};
+            q.rows.forEach(r => r.answer.forEach(v => m[v] = (m[v] || 0) + 1));
+            return m;
+        }
+        function currentCounts(q) {
+            const m = {};
+            answers[current].forEach(r => [r.left, r.right].forEach(v => { if (v !== null) m[v] = (m[v] || 0) + 1 }));
+            return m;
+        }
+        function clearSelection() { document.querySelectorAll(".apple-choice").forEach(a => a.classList.remove("selected", "dragging")) }
+        function createApples() {
+            appleLine.innerHTML = "";
+            const q = data[current], req = requiredCounts(q), counts = currentCounts(q);
+
+            // Question-specific answer options
+            const options = current === 0
+                ? [1, 2, 4, 8, 16]
+                : [1, 2, 3, 4, 6, 8, 12, 24];
+
+            options.forEach(n => {
+                const value = String(n), btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "apple-choice";
+                btn.draggable = true;
+                btn.dataset.value = value;
+                btn.setAttribute("aria-label", `Apple ${value}`);
+
+                const span = document.createElement("span");
+                span.textContent = value;
+                btn.appendChild(span);
+
+                if ((counts[value] || 0) >= (req[value] || 0))
+                    btn.classList.add("used");
+
+                btn.addEventListener("dragstart", e => {
+                    if (btn.classList.contains("used")) {
+                        e.preventDefault();
+                        return;
+                    }
+                    e.dataTransfer.setData("text/plain", value);
+                    e.dataTransfer.effectAllowed = "copy";
+                    btn.classList.add("dragging");
+                });
+
+                btn.addEventListener("dragend", () => {
+                    btn.classList.remove("dragging");
+                });
+
+                btn.addEventListener("click", () => {
+                    if (btn.classList.contains("used")) return;
+                    selectedApple = selectedApple === value ? null : value;
+                    clearSelection();
+                    if (selectedApple === value) btn.classList.add("selected");
+                });
+
+                appleLine.appendChild(btn);
+            });
+        }
+        function updateAppleUsage() { createApples() }
+        function pairIsCorrect(i) { const r = answers[current][i]; return r.left !== null && r.right !== null && Number(r.left) * Number(r.right) === data[current].product }
+        function allFilled() { return answers[current].every(r => r.left !== null && r.right !== null) }
+        function validQuestion() {
+            if (!allFilled()) return false;
+            const q = data[current];
+            if (!answers[current].every((_, i) => pairIsCorrect(i))) return false;
+            const keys = answers[current].map(r => `${r.left}x${r.right}`);
+            return new Set(keys).size === keys.length;
+        }
+        function placeValue(rowIndex, side, value) {
+            if (completed[current]) return;
+            const q = data[current], target = answers[current][rowIndex];
+            if (target[side] !== null) return;
+            const req = requiredCounts(q), counts = currentCounts(q);
+            if ((counts[value] || 0) >= (req[value] || 0)) { wrongPopup(); return }
+            target[side] = value;
+            const duplicate = answers[current].some((r, i) => i !== rowIndex && r.left !== null && r.right !== null && r.left === target.left && r.right === target.right);
+            if (!pairIsCorrect(rowIndex) || duplicate) { target[side] = null; selectedApple = null; clearSelection(); createTree(); createApples(); wrongPopup(); return }
+            selectedApple = null; clearSelection(); createTree(); createApples(); correctPopup();
+            if (validQuestion()) {
+                completed[current] = true; statusEl.textContent = "All factor pairs are correct!"; createTree(); createApples(); createProgress();
+                prev.disabled = current === 0; next.disabled = current === data.length - 1;
+                if (current === data.length - 1) setTimeout(() => { hideFeedback(); finalScore.textContent = `${data.length} / ${data.length}`; finalFb.className = "feedback final-pop show"; finalFb.setAttribute("aria-hidden", "false"); launchConfetti(120) }, 900);
+            }
+        }
+        function render() {
+            selectedApple = null; qn.textContent = `Q${current + 1}.`; statusEl.textContent = completed[current] ? "All factor pairs are correct!" : "";
+            createTree(); createApples(); createProgress(); prev.disabled = current === 0; next.disabled = !completed[current] || current === data.length - 1;
+        }
+        next.addEventListener("click", () => { if (!next.disabled) { current++; render() } });
+        prev.addEventListener("click", () => { if (!prev.disabled) { current--; render() } });
+        document.getElementById("hintButton").addEventListener("click", hintPopup);
+        document.getElementById("homeButton").addEventListener("click", () => window.top.location.href = "../Grade2_chapter5.html");
+        again.addEventListener("click", () => { current = 0; completed = data.map(() => false); answers = data.map(q => q.rows.map(r => ({ left: r.left, right: r.right }))); finalFb.className = "feedback final-pop"; finalFb.setAttribute("aria-hidden", "true"); render() });
+        window.addEventListener("resize", createTree);
+        render();
+    </script>
+</body>
+
+</html>

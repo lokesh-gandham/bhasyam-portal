@@ -1,0 +1,2163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Near and Far Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+            -webkit-user-drag: none;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 50%, #fbcfe8 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            overflow: hidden;
+            margin-top: -30px;
+        }
+
+        /* Header Box */
+        header {
+           
+           
+            padding: 12px 40px;
+            border-radius: 30px;
+           
+            text-align: center;
+          
+           
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            font-weight: 600;
+            
+        }
+        
+
+        /* Main Game Stage Layout */
+        .game-stage {
+            width: 100%;
+            max-width: 1100px;
+            height: 68vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-top: 30px;
+        }
+
+        .slide-item {
+            display: none;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            margin-top: -80px;
+        }
+
+        .slide-item.active {
+            display: flex;
+        }
+
+        /* Telescope Viewfinder Stage */
+        .scope-stage {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            max-width: 950px;
+            height: 100%;
+            position: relative;
+        }
+
+        .scope-pod {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Circular Telescope Lens Frame */
+        .scope-lens {
+            width: 320px;
+            height: 300px;
+            background: #ffffff;
+            border-radius: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 
+                0 20px 30px rgba(148, 163, 184, 0.2),
+                inset 0 -8px 0 rgba(226, 232, 240, 0.8);
+            border: 6px solid #38bdf8;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+        }
+
+        .item-image-wrapper {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 10px;
+        }
+
+        .item-image {
+            max-height: 220px;
+            max-width: 95%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 12px rgba(0,0,0,0.08));
+            transition: transform 0.35s ease;
+            pointer-events: none;
+        }
+
+        /* Active Pastel Glow States */
+        .scope-pod.state-far .scope-lens {
+            border-color: #8b5cf6;
+            box-shadow: 0 20px 35px rgba(139, 92, 246, 0.25);
+            transform: scale(0.95);
+        }
+
+        .scope-pod.state-near .scope-lens {
+            border-color: #f43f5e;
+            box-shadow: 0 20px 35px rgba(244, 63, 94, 0.25);
+            transform: scale(1.05);
+        }
+
+        /* Status Badge Indicators */
+        .status-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+
+        .status-badge.far {
+            background: #8b5cf6;
+            display: flex;
+        }
+
+        .status-badge.near {
+            background: #f43f5e;
+            display: flex;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* EXACT ORIGINAL INPUT CONTROL */
+        input[type="text"] {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+            font-weight: 600;
+            text-align: center;
+            text-transform: uppercase;
+            border: 4px solid #e67e22;
+            border-radius: 16px;
+            background: #ffffff;
+            color: #2d3436;
+            outline: none;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            margin-top: 15px;
+            z-index: 10;
+            position: relative;
+            user-select: text;
+        }
+
+        input[type="text"]:disabled {
+            background-color: #f1f2f6;
+            border-color: #00b894;
+            color: #2d3436;
+            cursor: not-allowed;
+        }
+
+        /* EXACT ORIGINAL FOOTER & BUTTONS */
+        footer {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .nav-btn {
+            background: #e67e22;
+            color: #ffffff;
+            border: none;
+            padding: 10px 35px;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #d35400;
+            transition: all 0.1s ease;
+            margin-top: -40px;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #d35400;
+        }
+
+        .nav-btn:disabled {
+            background: #b2bec3;
+            box-shadow: 0 6px 0 #636e72;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .check-btn {
+            background: #00b894;
+            box-shadow: 0 6px 0 #008f72;
+        }
+
+        .check-btn:active:not(:disabled) {
+            box-shadow: 0 2px 0 #008f72;
+        }
+
+        .replay-btn {
+            background: #0984e3;
+            box-shadow: 0 6px 0 #0975c7;
+            margin-top: 20px;
+            z-index: 5;
+        }
+
+        .replay-btn:active {
+            box-shadow: 0 2px 0 #0975c7;
+        }
+
+        @media screen and (min-width: 1600px) {
+            .nav-btn {
+                font-size: 25px;
+                padding: 14px 45px;
+            }
+        }
+
+        /* EXACT ORIGINAL POPUP OVERLAY & CARD */
+        .popup-overlay {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-card {
+            position: relative;
+            width: 90%;
+            max-width: 520px;
+            padding: 40px 30px;
+            border-radius: 36px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transform: scale(0.8);
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-card::before,
+        .popup-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .popup-card::before {
+            width: 220px;
+            height: 220px;
+            top: -60px;
+            right: -50px;
+        }
+
+        .popup-card::after {
+            width: 180px;
+            height: 180px;
+            bottom: -70px;
+            left: -40px;
+        }
+
+        .popup-card.correct {
+            background: #edfbf4;
+            border: 6px solid #00c885;
+        }
+
+        .popup-card.correct::before,
+        .popup-card.correct::after {
+            background: rgba(162, 245, 209, 0.45);
+        }
+
+        .popup-card.correct .popup-title { color: #00a86b; }
+        .popup-card.correct .popup-subtitle { color: #2e7d5b; }
+
+        .popup-card.wrong {
+            background: #fff0f2;
+            border: 6px solid #ff6b7a;
+        }
+
+        .popup-card.wrong::before,
+        .popup-card.wrong::after {
+            background: rgba(255, 196, 203, 0.45);
+        }
+
+        .popup-card.wrong .popup-title { color: #d33847; }
+        .popup-card.wrong .popup-subtitle { color: #a33b45; }
+
+        .popup-card.complete {
+            background: #f0f3ff;
+            border: 6px solid #6c5ce7;
+        }
+
+        .popup-card.complete::before,
+        .popup-card.complete::after {
+            background: rgba(162, 155, 254, 0.35);
+        }
+
+        .popup-card.complete .popup-title { color: #6c5ce7; }
+        .popup-card.complete .popup-subtitle { color: #4834d4; }
+
+        .popup-overlay.active .popup-card { transform: scale(1); }
+
+        .popup-icon {
+            font-size: 4.8rem;
+            margin-bottom: 12px;
+            z-index: 2;
+            line-height: 1;
+            
+        }
+
+        .popup-title {
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            z-index: 2;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-subtitle {
+            font-size: 1.4rem;
+            font-weight: 500;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* =========================================================
+           NEW OPEN "DISTANCE ADVENTURE" DESIGN
+           No cards around the pictures. Footer/nav and popup untouched.
+        ========================================================= */
+        body {
+            background:
+                radial-gradient(circle at 14% 15%, rgba(255,255,255,.95) 0 2px, transparent 3px),
+                radial-gradient(circle at 88% 12%, rgba(255,255,255,.8) 0 3px, transparent 4px),
+                linear-gradient(180deg, #dff4ff 0%, #edf9ff 52%, #fff7df 100%);
+            padding: 8px 28px;
+        }
+
+        .distance-header {
+            width: min(1080px, 100%);
+            background: transparent;
+            backdrop-filter: none;
+            border: none;
+            box-shadow: none;
+            padding: 4px 4px 0;
+            margin: 0;
+            text-align: left;
+        }
+
+        .distance-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .title-eye {
+            width: 62px;
+            height: 62px;
+            display: grid;
+            place-items: center;
+            font-size: 2.4rem;
+            background: #fff;
+            border: 3px solid #f59e0b;
+            border-radius: 50%;
+            box-shadow: 0 6px 0 rgba(245,158,11,.22);
+        }
+
+        .distance-header h2 {
+            font-size: clamp(1.55rem, 2.8vw, 2.25rem);
+            line-height: 1.05;
+            color: #243b53;
+            margin: 0 0 5px;
+        }
+
+        .distance-header .instruction {
+            margin: 0;
+            font-size: 1rem;
+            color: #516577;
+        }
+
+        .instruction b:first-of-type { color: #7c3aed; }
+        .instruction b:last-of-type { color: #f43f5e; }
+
+        .mini-key {
+            display: flex;
+            justify-content: center;
+            gap: 28px;
+            margin-top: 8px;
+            font-size: .82rem;
+            font-weight: 900;
+            color: #607080;
+            letter-spacing: .4px;
+        }
+
+        .mini-key span { display: flex; align-items: center; gap: 7px; }
+        .mini-key i { display: inline-block; border-radius: 50%; }
+        .far-dot { width: 11px; height: 11px; background: #8b5cf6; }
+        .near-dot { width: 18px; height: 18px; background: #f43f5e; }
+
+        .game-stage {
+            max-width: 1100px;
+            height: 68vh;
+            min-height: 410px;
+        }
+
+        .distance-world {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        /* Open horizon */
+        .distance-world::before {
+            content: "";
+            position: absolute;
+            left: 5%;
+            right: 5%;
+            bottom: 9%;
+            height: 36%;
+            border-radius: 50% 50% 0 0 / 20% 20% 0 0;
+            background:
+                linear-gradient(180deg, transparent 0 24%, rgba(83,180,91,.12) 25% 100%);
+            border-top: 3px dashed rgba(45,133,88,.28);
+            z-index: -2;
+        }
+
+        .distance-world::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 19%;
+            width: 2px;
+            height: 60%;
+            background: linear-gradient(to bottom, transparent, rgba(100,116,139,.35), transparent);
+            z-index: -1;
+        }
+
+        .distance-line {
+            position: absolute;
+            left: 8%;
+            right: 8%;
+            top: 48%;
+            border-top: 2px dashed rgba(56,189,248,.45);
+            z-index: -1;
+        }
+
+        .sky-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(.2px);
+            opacity: .6;
+            z-index: -1;
+        }
+
+        .orb-one { width: 70px; height: 70px; background: rgba(255,202,80,.28); top: 8%; left: 8%; }
+        .orb-two { width: 46px; height: 46px; background: rgba(139,92,246,.12); top: 17%; right: 13%; }
+
+        .distance-pod {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform .35s cubic-bezier(.175,.885,.32,1.275);
+        }
+
+        .far-place {
+            left: 9%;
+            top: 15%;
+            width: 38%;
+            transform: scale(.78);
+            transform-origin: center;
+        }
+
+        .near-place {
+            right: 8%;
+            bottom: 5%;
+            width: 47%;
+        }
+
+        .distance-tag {
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #fff;
+            padding: 7px 15px;
+            border-radius: 999px;
+            background: #34495e;
+            box-shadow: 0 4px 0 rgba(0,0,0,.12);
+            margin-bottom: 6px;
+        }
+
+        .far-place .distance-tag { background: #8b5cf6; }
+        .near-place .distance-tag { background: #f43f5e; }
+
+        .image-zone {
+            width: 100%;
+            height: 260px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .far-place .image-zone { height: 230px; }
+
+        .image-zone::after {
+            content: "";
+            position: absolute;
+            width: 64%;
+            height: 16px;
+            bottom: 12px;
+            border-radius: 50%;
+            background: rgba(46,72,88,.14);
+            filter: blur(8px);
+            z-index: -1;
+        }
+
+        .item-image-wrapper { display: contents; }
+
+        .item-image {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 13px 12px rgba(38,50,56,.15));
+            transition: transform .35s ease;
+        }
+
+        .far-place .item-image { transform: scale(.76); }
+        .near-place .item-image { transform: scale(1.04); }
+
+        .trail {
+            position: absolute;
+            left: 49%;
+            width: 12px;
+            height: 12px;
+            border: 3px solid rgba(245,158,11,.8);
+            background: #fff7d6;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .trail-a { top: 39%; }
+        .trail-b { top: 53%; width: 18px; height: 18px; left: 48.5%; }
+        .trail-c { top: 70%; width: 25px; height: 25px; left: 48%; }
+
+        /* Answer is a tiny signpost, not a card */
+        .answer-station {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: -4px;
+            padding: 0;
+        }
+
+        .answer-station span {
+            font-size: .72rem;
+            font-weight: 600;
+            letter-spacing: 1.1px;
+            color: #52616b;
+            background: transparent;
+        }
+
+        input[type="text"] {
+            width: 58px;
+            height: 58px;
+            margin: 0;
+            border: 3px dashed #f59e0b;
+            border-radius: 50%;
+            box-shadow: 0 5px 0 rgba(245,158,11,.18);
+            background: #fffdf7;
+            font-size: 1.7rem;
+        }
+
+        input[type="text"]:focus {
+            border-style: solid;
+            transform: scale(1.08);
+        }
+
+        .status-badge {
+            top: 8px;
+            right: 10%;
+            width: 48px;
+            height: 48px;
+            border: 4px solid #fff;
+            z-index: 5;
+        }
+
+        .scope-pod.state-far .scope-lens,
+        .scope-pod.state-near .scope-lens { transform: none; }
+
+        .distance-pod.state-far { transform: scale(.84) translateY(-5px); }
+        .distance-pod.near-place.state-near { transform: scale(1.03) translateY(-5px); }
+        .distance-pod.state-far .item-image { filter: drop-shadow(0 0 0 #fff) drop-shadow(0 12px 15px rgba(139,92,246,.3)); }
+        .distance-pod.state-near .item-image { filter: drop-shadow(0 0 0 #fff) drop-shadow(0 12px 15px rgba(244,63,94,.3)); }
+
+        @media (max-width: 700px) {
+            body { padding: 8px 12px; }
+            .mini-key { gap: 12px; font-size: .7rem; }
+            .game-stage { height: 65vh; min-height: 380px; }
+            .far-place { left: 0; width: 48%; }
+            .near-place { right: 0; width: 58%; }
+            .image-zone { height: 205px; }
+            .far-place .image-zone { height: 175px; }
+            .distance-tag { font-size: .62rem; padding: 5px 9px; }
+            input[type="text"] { width: 48px; height: 48px; }
+        }
+
+
+        /* =========================================================
+           FINAL VISUAL REFINEMENT
+           Background requested: #fbf8eb
+           FAR AWAY / CLOSE BY labels removed for simpler child UX
+        ========================================================= */
+        body {
+            background-color: #fbf8eb !important;
+            background-image:
+                radial-gradient(circle at 7% 12%, rgba(251, 191, 36, .12) 0 3px, transparent 4px),
+                radial-gradient(circle at 93% 15%, rgba(96, 165, 250, .10) 0 4px, transparent 5px),
+                radial-gradient(circle at 18% 72%, rgba(74, 222, 128, .08) 0 70px, transparent 71px),
+                radial-gradient(circle at 84% 72%, rgba(244, 114, 182, .06) 0 80px, transparent 81px) !important;
+        }
+
+        .distance-header {
+            padding-top: 7px;
+        }
+
+        .distance-header h2 {
+            color: #334155;
+        }
+
+        .distance-header .instruction {
+            color: #52616b;
+        }
+
+        /* Soft open play area, not a card */
+        .distance-world {
+            background:
+                linear-gradient(180deg,
+                    rgba(255,255,255,.28) 0%,
+                    rgba(255,255,255,.12) 58%,
+                    rgba(209,250,229,.20) 100%);
+            border-radius: 40px;
+        }
+
+        .distance-world::before {
+            background:
+                linear-gradient(180deg,
+                    transparent 0 20%,
+                    rgba(134, 239, 172, .12) 21% 100%);
+            border-top-color: rgba(34, 197, 94, .22);
+        }
+
+        .distance-line {
+            border-top-color: rgba(56, 189, 248, .28);
+        }
+
+        /* Remove unused label spacing completely */
+        .distance-tag {
+            display: none !important;
+        }
+
+        .far-place {
+            top: 22%;
+        }
+
+        .near-place {
+            bottom: 7%;
+        }
+
+        /* Cleaner child-friendly visual markers */
+        .far-place::before,
+        .near-place::before {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            border-radius: 50%;
+            filter: blur(1px);
+        }
+
+        .far-place::before {
+            width: 150px;
+            height: 150px;
+            top: 8%;
+            left: 22%;
+            background: rgba(139, 92, 246, .07);
+        }
+
+        .near-place::before {
+            width: 210px;
+            height: 210px;
+            top: 3%;
+            right: 15%;
+            background: rgba(251, 146, 60, .07);
+        }
+
+        /* More playful answer area without making it a card */
+        .answer-station {
+            gap: 12px;
+            margin-top: 4px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.55);
+            border: 2px solid rgba(245, 158, 11, .18);
+        }
+
+        .answer-station span {
+            color: #64748b;
+            font-size: .68rem;
+        }
+
+        input[type="text"] {
+            background: #ffffff;
+            border-color: #f59e0b;
+            box-shadow:
+                0 5px 0 rgba(245,158,11,.16),
+                0 0 0 5px rgba(255,255,255,.7);
+        }
+
+        .trail {
+            background: #fffdf4;
+            border-color: rgba(245,158,11,.65);
+        }
+
+        .orb-one {
+            background: rgba(251, 191, 36, .16);
+        }
+
+        .orb-two {
+            background: rgba(96, 165, 250, .10);
+        }
+
+    
+        /* FINAL: CLEAN WARM BACKGROUND + TICK / CROSS */
+        body {
+            background: #fbf8eb !important;
+            background-image: none !important;
+        }
+
+        /* Remove every decorative bubble / circle from the background */
+        .sky-orb,
+        .orb-one,
+        .orb-two {
+            display: none !important;
+        }
+
+        .distance-world {
+            background: linear-gradient(
+                180deg,
+                rgba(255,255,255,.32) 0%,
+                rgba(255,255,255,.12) 55%,
+                rgba(219,234,254,.12) 100%
+            ) !important;
+        }
+
+        .tick-text,
+        .cross-text {
+            display: inline-grid;
+            place-items: center;
+            width: 29px;
+            height: 29px;
+            margin: 0 3px;
+            border-radius: 50%;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.1rem;
+            vertical-align: middle;
+        }
+
+        .tick-text {
+            background: #22c55e;
+            box-shadow: 0 3px 0 rgba(22,163,74,.18);
+        }
+
+        .cross-text {
+            background: #ef4444;
+            box-shadow: 0 3px 0 rgba(220,38,38,.16);
+        }
+
+        /* Show tick for FAR and cross for NEAR after the child answers */
+        .status-badge.far {
+            background: #22c55e !important;
+        }
+
+        .status-badge.near {
+            background: #ef4444 !important;
+        }
+
+        /* Keep the answer input clean and easy to understand */
+        .answer-station span {
+            font-size: .72rem;
+        }
+
+
+        /* FINAL REQUESTED SIZE OVERRIDES ONLY */
+        .distance-header h2 {
+            font-size: 30px !important;
+            color: #2f4f4f !important;
+        }
+
+        .distance-header .instruction {
+            font-size: 20px !important;
+        }
+
+        .nav-btn {
+            width: 178px !important;
+            height: 45px !important;
+            padding: 0 !important;
+            font-size: 20px !important;
+        }
+
+        /* Keep the full navigation button area clickable above the game stage. */
+        footer {
+            position: relative;
+            z-index: 20;
+        }
+
+        @media screen and (min-width: 1600px) {
+            .distance-header h2 {
+                font-size: 40px !important;
+            }
+
+            .distance-header .instruction-text,
+            .distance-header p.instruction-text {
+                font-size: 18px !important;
+            }
+
+            .nav-btn {
+                width: 178px !important;
+                height: 45px !important;
+                padding: 0 !important;
+                font-size: 20px !important;
+            }
+        }
+
+    
+        /* USER REQUESTED FINAL LAYOUT */
+        .distance-world {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 55px !important;
+            overflow: hidden !important;
+        }
+
+        .distance-world::before,
+        .distance-world::after,
+        .distance-line,
+        .trail,
+        .far-place::before,
+        .near-place::before {
+            display: none !important;
+        }
+
+        .distance-pod {
+            position: relative !important;
+            left: auto !important;
+            right: auto !important;
+            top: auto !important;
+            bottom: auto !important;
+            width: 42% !important;
+            transform: none !important;
+            flex: 0 1 42%;
+        }
+
+        .image-zone,
+        .far-place .image-zone {
+            height: 270px !important;
+            width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .item-image,
+        .far-place .item-image,
+        .near-place .item-image {
+            max-width: 100% !important;
+            max-height: 250px !important;
+            width: auto !important;
+            height: auto !important;
+            transform: none !important;
+        }
+
+        .answer-station {
+            justify-content: center !important;
+            margin-top: 10px !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: 0 !important;
+            gap: 0 !important;
+        }
+
+        .answer-station span {
+            display: none !important;
+        }
+
+        .input-box,
+        input[type="text"] {
+            width: 60px !important;
+            height: 60px !important;
+            min-width: 60px !important;
+            min-height: 60px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'Livvic', sans-serif !important;
+            font-size: 1.7rem !important;
+            font-weight: 700 !important;
+            line-height: 60px !important;
+            text-align: center !important;
+            text-transform: uppercase !important;
+        }
+
+        /* Remove popup background blur while keeping the overlay */
+        .popup-overlay {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+
+        @media (max-width: 700px) {
+            .distance-world {
+                gap: 12px !important;
+            }
+
+            .distance-pod {
+                width: 47% !important;
+                flex-basis: 47% !important;
+            }
+
+            .image-zone,
+            .far-place .image-zone {
+                height: 205px !important;
+            }
+
+            .item-image,
+            .far-place .item-image,
+            .near-place .item-image {
+                max-height: 190px !important;
+            }
+
+            .input-box,
+            input[type="text"] {
+                width: 48px !important;
+                height: 48px !important;
+                min-width: 48px !important;
+                min-height: 48px !important;
+                line-height: 48px !important;
+                font-size: 1.45rem !important;
+            }
+        }
+
+        /* =========================================================
+           DRAG & DROP ANSWERS
+           Each picture has its own drop box and two side-by-side
+           draggable choices. Answers are checked immediately.
+        ========================================================= */
+        .answer-station {
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 10px !important;
+            margin-top: 10px !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: 0 !important;
+        }
+
+        .drop-box {
+            width: 62px !important;
+            height: 62px !important;
+            min-width: 62px !important;
+            min-height: 62px !important;
+            margin: 0 !important;
+            border: 3px solid #f59e0b !important;
+            border-radius: 14px !important;
+            background: #fff !important;
+            color: #243b53 !important;
+            display: grid !important;
+            place-items: center !important;
+            font-size: 38px !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            box-shadow: 0 5px 0 rgba(245,158,11,.16) !important;
+            transition: transform .15s ease, border-color .15s ease, background .15s ease;
+        }
+
+
+        /* FAR = tick, NEAR = cross inside the answer box */
+        .drop-box.answer-tick {
+            color: #00b894 !important;
+        }
+
+        .drop-box.answer-cross {
+            color: #e03131 !important;
+        }
+
+        .drop-box.drag-over {
+            transform: scale(1.06);
+            border-color: #2f4f4f !important;
+            background: #fffdf2 !important;
+        }
+
+        .drop-box.filled {
+            border-color: #00b894 !important;
+        }
+
+        .drag-options {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 12px !important;
+        }
+
+        .drag-option {
+            -webkit-user-drag: auto !important;
+            width: 58px !important;
+            height: 58px !important;
+            display: grid !important;
+            place-items: center !important;
+            border-radius: 14px !important;
+            background: #fff !important;
+            font-size: 36px !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            cursor: grab !important;
+            box-shadow: 0 5px 0 rgba(0,0,0,.12) !important;
+            border: 3px solid !important;
+            touch-action: none !important;
+        }
+
+        .drag-option:active {
+            cursor: grabbing !important;
+            transform: scale(.96);
+        }
+
+        .tick-option {
+            color: #00b894 !important;
+            border-color: #00b894 !important;
+        }
+
+        .cross-option {
+            color: #e03131 !important;
+            border-color: #e03131 !important;
+        }
+
+        .drag-option.used {
+            opacity: .45;
+        }
+
+        /* The answer choices must stay below the pictures and never
+           overlap the heading or the game controls. */
+        .distance-pod {
+            z-index: 2;
+        }
+
+        .distance-header {
+            position: relative;
+            z-index: 10;
+        }
+
+        .distance-header h2 {
+            position: relative;
+            z-index: 11;
+        }
+
+        @media (min-width: 1600px) {
+            .game-stage {
+                height: 72vh !important;
+                min-height: 520px !important;
+                max-width: 1250px !important;
+            }
+
+            .distance-world {
+                gap: 90px !important;
+            }
+
+            .distance-pod {
+                width: 43% !important;
+                flex-basis: 43% !important;
+            }
+
+            .image-zone,
+            .far-place .image-zone {
+                height: 320px !important;
+            }
+
+            .item-image,
+            .far-place .item-image,
+            .near-place .item-image {
+                max-height: 300px !important;
+            }
+
+            .drop-box {
+                width: 70px !important;
+                height: 70px !important;
+                min-width: 70px !important;
+                min-height: 70px !important;
+                font-size: 42px !important;
+            }
+
+            .drag-options {
+                gap: 16px !important;
+            }
+
+            .drag-option {
+                width: 64px !important;
+                height: 64px !important;
+                font-size: 40px !important;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .drag-options {
+                gap: 8px !important;
+            }
+
+            .drag-option {
+                width: 48px !important;
+                height: 48px !important;
+                font-size: 30px !important;
+            }
+
+            .drop-box {
+                width: 48px !important;
+                height: 48px !important;
+                min-width: 48px !important;
+                min-height: 48px !important;
+                font-size: 30px !important;
+            }
+        }
+
+        /* Reliable mouse + touch drag support */
+        .drag-ghost {
+            position: fixed !important;
+            left: 0;
+            top: 0;
+            width: 64px !important;
+            height: 64px !important;
+            display: grid !important;
+            place-items: center !important;
+            border-radius: 14px !important;
+            background: #fff !important;
+            font-size: 40px !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            pointer-events: none !important;
+            z-index: 9999 !important;
+            box-shadow: 0 8px 18px rgba(0,0,0,.22) !important;
+            transform: translate(-50%, -50%) scale(1.05) !important;
+        }
+
+        .drag-option.dragging {
+            opacity: .55 !important;
+            transform: scale(.96);
+        }
+
+    
+        /* Final popup: remove background blur */
+        #popup.popup-overlay,
+        #popup.popup-overlay.active {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            filter: none !important;
+        }
+    
+        #popup.active ~ footer .nav-btn:disabled {
+            pointer-events: none !important;
+        }
+    
+/* Exact same confetti design */
+#confettiContainer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 90;
+}
+
+.confetti-piece {
+    position: absolute;
+    width: 9px;
+    height: 14px;
+    border-radius: 2px;
+    opacity: 0;
+    animation: pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+    will-change: transform, opacity;
+}
+
+.final-confetti-piece {
+    width: 10px;
+    height: 16px;
+    animation-duration: 2300ms;
+}
+
+.final-confetti-piece:nth-child(3n) {
+    border-radius: 50%;
+}
+
+.final-confetti-piece:nth-child(4n) {
+    width: 7px;
+    height: 19px;
+    border-radius: 1px;
+}
+
+.final-confetti-piece:nth-child(5n) {
+    width: 13px;
+    height: 8px;
+    border-radius: 2px;
+}
+
+@keyframes pageConfetti {
+    0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    }
+    55% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+        transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+    }
+}
+
+.final-confetti-piece::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+}
+        .instruction-text {
+            margin: 4px 0 0;
+            color: #52616b;
+            font-size: 15px;
+            line-height: 1.25;
+            text-align: center;
+            margin-top: -10px;
+        }
+
+        @media screen and (min-width: 1600px) {
+            .instruction-text {
+                font-size: 18px;
+            }
+        }
+    
+/* ===== LESSON 1 QUIZ HEADINGS: title large, subheading smaller ===== */
+header h1,
+header h2,
+header .instruction-title,
+.game-header h1,
+.game-header h2,
+.game-header .instruction-title,
+.distance-header h2,
+#questionHeading {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+}
+.game-header:not(:has(h1, h2)) .instruction,
+.game-header:not(:has(h1, h2)) p.instruction {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+    color: #2f4f4f;
+}
+header:has(h1, h2, .instruction-title) .instruction,
+header:has(h1, h2) .instruction-text,
+header:has(h1, h2, .instruction-title) p.instruction,
+header:has(h1, h2) p.instruction-text,
+.game-header:has(h1, h2) .instruction,
+.game-header:has(h1, h2) p.instruction,
+#instruction,
+.distance-header .instruction-text,
+.distance-header p.instruction-text {
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    color: #666;
+    line-height: 1.3;
+}
+header .instruction span,
+header .instruction-text span,
+header p.instruction span,
+header p.instruction-text span,
+.game-header .instruction span,
+#instruction span {
+    font-weight: 700 !important;
+    font-size: inherit !important;
+}
+@media screen and (min-width: 1600px) {
+    header h1,
+    header h2,
+    header .instruction-title,
+    .game-header h1,
+    .game-header h2,
+    .game-header .instruction-title,
+    .distance-header h2,
+    #questionHeading {
+        font-size: 40px !important;
+    }
+    .game-header:not(:has(h1, h2)) .instruction,
+    .game-header:not(:has(h1, h2)) p.instruction {
+        font-size: 40px !important;
+    }
+    header:has(h1, h2, .instruction-title) .instruction,
+    header:has(h1, h2) .instruction-text,
+    header:has(h1, h2, .instruction-title) p.instruction,
+    header:has(h1, h2) p.instruction-text,
+    .game-header:has(h1, h2) .instruction,
+    .game-header:has(h1, h2) p.instruction,
+    #instruction,
+    .distance-header .instruction-text,
+    .distance-header p.instruction-text {
+        font-size: 18px !important;
+    }
+}
+
+/* ===== LAYOUT FIT: the heading always keeps its own space =====
+   The header is a fixed-size flex item and the play area takes exactly
+   the height that is left over, so artwork can never ride up into the
+   title on shorter laptop screens. */
+header,
+.game-header,
+.distance-header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 5;
+}
+main.game-stage,
+main.game-area,
+.game-stage,
+.game-area {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+footer,
+.navigation {
+    flex: 0 0 auto;
+}
+
+/* Drop the negative offset that pulled the scene under the heading */
+.game-stage { margin-top: 0 !important; }
+.slide-item { margin-top: 0 !important; min-height: 0; }
+.distance-world { max-height: 100%; min-height: 0; }
+.image-zone img, .distance-pod img { max-height: 100%; }
+
+/* The nav buttons were pulled 40px up into the play area, which put them
+   on top of the tick/cross row on shorter screens. Give the footer its
+   real height back and let the scene use the space that is left. */
+footer { height: auto !important; padding: 4px 0 6px !important; }
+.nav-btn { margin-top: 0 !important; }
+.distance-pod { height: auto !important; max-height: 100%; min-height: 0; }
+.image-zone,
+.far-place .image-zone { height: min(270px, calc(100vh - 300px)) !important; min-height: 0; overflow: hidden; }
+/* the picture follows the zone, so it can never spill onto the answer box */
+.image-zone img,
+.item-image,
+.far-place .item-image,
+.near-place .item-image { max-height: 100% !important; max-width: 100% !important; }
+
+/* ===== Sub-heading stays on a single line ===== */
+.instruction-box,
+.distance-title { max-width: none !important; }
+header .instruction,
+header .instruction-text,
+header p.instruction,
+header p.instruction-text,
+.game-header .instruction,
+#instruction,
+.distance-header .instruction-text {
+    white-space: nowrap;
+    max-width: 100%;
+}
+@media screen and (max-width: 1100px) {
+    header .instruction, header .instruction-text,
+    header p.instruction, header p.instruction-text,
+    .game-header .instruction,
+    #instruction,
+    .distance-header .instruction-text {
+        white-space: normal;
+    }
+}
+
+/* The tick / cross badge over each picture is not wanted — the answer box
+   below the picture already shows the child's choice. */
+.status-badge,
+.status-badge.far,
+.status-badge.near {
+    display: none !important;
+}
+
+/* Near & Far quiz title */
+.distance-header h2 {
+    font-size: 30px !important;
+    font-weight: 400 !important;
+}
+@media screen and (min-width: 1600px) {
+    .distance-header h2 {
+        font-size: 40px !important;
+    }
+}
+</style>
+</head>
+<body>
+
+    <header class="distance-header">
+        <div class="distance-title">
+           
+            <header>
+                <h2>Near & Far Quiz</h2>
+                 
+            </header>
+        </div>
+        <p class="instruction-text">Tick (✓) the object that is far and crossout (×) that is near.</p>
+        <div class="mini-key">
+         
+        </div>
+    </header>
+
+    <main class="game-stage">
+        <!-- Question 1 -->
+        <div class="slide-item active" data-q="0">
+            <div class="distance-world">
+                <div class="sky-orb orb-one"></div>
+                <div class="sky-orb orb-two"></div>
+                <div class="distance-line"></div>
+
+                <div class="distance-pod far-place" id="pod-0-1">
+                    <div class="image-zone">
+                        <div class="status-badge" id="badge-0-1"></div>
+                        <img src="../images/nearBus.png" alt="Near Bus" class="item-image" draggable="false">
+                    </div>
+                    <div class="answer-station">
+        <div class="drop-box input-box" data-target="N" data-answer="" aria-label="Drop answer here"> </div>
+        <div class="drag-options" aria-label="Answer options">
+            <div class="drag-option tick-option" draggable="true" data-value="F" aria-label="Drag tick">✓</div>
+            <div class="drag-option cross-option" draggable="true" data-value="N" aria-label="Drag cross">×</div>
+        </div>
+    </div>
+                </div>
+
+                <div class="trail trail-a"></div>
+                <div class="trail trail-b"></div>
+                <div class="trail trail-c"></div>
+
+                <div class="distance-pod near-place" id="pod-0-2">
+                    <div class="image-zone">
+                        <div class="status-badge" id="badge-0-2"></div>
+                        <img src="../images/farBus.png" alt="Far Bus" class="item-image" draggable="false">
+                    </div>
+                    <div class="answer-station">
+        <div class="drop-box input-box" data-target="F" data-answer="" aria-label="Drop answer here"> </div>
+        <div class="drag-options" aria-label="Answer options">
+            <div class="drag-option tick-option" draggable="true" data-value="F" aria-label="Drag tick">✓</div>
+            <div class="drag-option cross-option" draggable="true" data-value="N" aria-label="Drag cross">×</div>
+        </div>
+    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="slide-item" data-q="1">
+            <div class="distance-world">
+                <div class="sky-orb orb-one"></div><div class="sky-orb orb-two"></div><div class="distance-line"></div>
+                <div class="distance-pod far-place" id="pod-1-1">
+                    <div class="image-zone"><div class="status-badge" id="badge-1-1"></div><img src="../images/ship_far.png" alt="Far Ship" class="item-image" draggable="false"></div>
+                    <div class="answer-station">
+        <div class="drop-box input-box" data-target="F" data-answer="" aria-label="Drop answer here"> </div>
+        <div class="drag-options" aria-label="Answer options">
+            <div class="drag-option tick-option" draggable="true" data-value="F" aria-label="Drag tick">✓</div>
+            <div class="drag-option cross-option" draggable="true" data-value="N" aria-label="Drag cross">×</div>
+        </div>
+    </div>
+                </div>
+                <div class="trail trail-a"></div><div class="trail trail-b"></div><div class="trail trail-c"></div>
+                <div class="distance-pod near-place" id="pod-1-2">
+                    <div class="image-zone"><div class="status-badge" id="badge-1-2"></div><img src="../images/ship_near.png" alt="Near Ship" class="item-image" draggable="false"></div>
+                    <div class="answer-station">
+        <div class="drop-box input-box" data-target="N" data-answer="" aria-label="Drop answer here"> </div>
+        <div class="drag-options" aria-label="Answer options">
+            <div class="drag-option tick-option" draggable="true" data-value="F" aria-label="Drag tick">✓</div>
+            <div class="drag-option cross-option" draggable="true" data-value="N" aria-label="Drag cross">×</div>
+        </div>
+    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="slide-item" data-q="2">
+            <div class="distance-world">
+                <div class="sky-orb orb-one"></div><div class="sky-orb orb-two"></div><div class="distance-line"></div>
+                <div class="distance-pod far-place" id="pod-2-1">
+                    <div class="image-zone"><div class="status-badge" id="badge-2-1"></div><img src="../images/nearPlane.png" alt="Near Airplane" class="item-image" draggable="false"></div>
+                    <div class="answer-station">
+        <div class="drop-box input-box" data-target="N" data-answer="" aria-label="Drop answer here"> </div>
+        <div class="drag-options" aria-label="Answer options">
+            <div class="drag-option tick-option" draggable="true" data-value="F" aria-label="Drag tick">✓</div>
+            <div class="drag-option cross-option" draggable="true" data-value="N" aria-label="Drag cross">×</div>
+        </div>
+    </div>
+                </div>
+                <div class="trail trail-a"></div><div class="trail trail-b"></div><div class="trail trail-c"></div>
+                <div class="distance-pod near-place" id="pod-2-2">
+                    <div class="image-zone"><div class="status-badge" id="badge-2-2"></div><img src="../images/farPlaane.png" alt="Far Airplane" class="item-image" draggable="false"></div>
+                    <div class="answer-station">
+        <div class="drop-box input-box" data-target="F" data-answer="" aria-label="Drop answer here"> </div>
+        <div class="drag-options" aria-label="Answer options">
+            <div class="drag-option tick-option" draggable="true" data-value="F" aria-label="Drag tick">✓</div>
+            <div class="drag-option cross-option" draggable="true" data-value="N" aria-label="Drag cross">×</div>
+        </div>
+    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 4 -->
+        <div class="slide-item" data-q="3">
+            <div class="distance-world">
+                <div class="sky-orb orb-one"></div><div class="sky-orb orb-two"></div><div class="distance-line"></div>
+                <div class="distance-pod far-place" id="pod-3-1">
+                    <div class="image-zone"><div class="status-badge" id="badge-3-1"></div><img src="../images/lion_far.png" alt="Far Lion" class="item-image" draggable="false"></div>
+                    <div class="answer-station">
+        <div class="drop-box input-box" data-target="F" data-answer="" aria-label="Drop answer here"> </div>
+        <div class="drag-options" aria-label="Answer options">
+            <div class="drag-option tick-option" draggable="true" data-value="F" aria-label="Drag tick">✓</div>
+            <div class="drag-option cross-option" draggable="true" data-value="N" aria-label="Drag cross">×</div>
+        </div>
+    </div>
+                </div>
+                <div class="trail trail-a"></div><div class="trail trail-b"></div><div class="trail trail-c"></div>
+                <div class="distance-pod near-place" id="pod-3-2">
+                    <div class="image-zone"><div class="status-badge" id="badge-3-2"></div><img src="../images/lion_near.png" alt="Near Lion" class="item-image" draggable="false"></div>
+                    <div class="answer-station">
+        <div class="drop-box input-box" data-target="N" data-answer="" aria-label="Drop answer here"> </div>
+        <div class="drag-options" aria-label="Answer options">
+            <div class="drag-option tick-option" draggable="true" data-value="F" aria-label="Drag tick">✓</div>
+            <div class="drag-option cross-option" draggable="true" data-value="N" aria-label="Drag cross">×</div>
+        </div>
+    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+    </footer>
+
+    <div id="confettiContainer"></div>
+
+    <!-- Result Popup Overlay -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup-card" id="popupCard">
+            <div class="popup-icon" id="popupIcon">⭐</div>
+            <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+            <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+            <button class="nav-btn replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        let quizState = Array.from({ length: 4 }, () => ({
+            input1: '',
+            input2: '',
+            isUnlocked: false
+        }));
+
+        let currentIndex = 0;
+        let popupTimer = null;
+
+        const slides = document.querySelectorAll('.slide-item');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        // Prevent dragging on all images globally
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+            }
+        });
+
+        // EXACT REQUESTED SPEAK FUNCTION WITH VOLUME 0.25
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playAudioTone(isCorrect) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2); 
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            }
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        let activeDrag = null;
+
+        function bindSlideEvents() {
+            slides.forEach((slide, sIdx) => {
+                const dropBoxes = slide.querySelectorAll('.drop-box');
+                const dragOptions = slide.querySelectorAll('.drag-option');
+
+                dragOptions.forEach(option => {
+                    // Disable native HTML5 drag so it cannot conflict with
+                    // the custom pointer drag.
+                    option.draggable = false;
+
+                    option.addEventListener('pointerdown', (e) => {
+                        if (e.button !== undefined && e.button !== 0) return;
+                        if (sIdx !== currentIndex) return;
+
+                        e.preventDefault();
+
+                        const value = option.dataset.value;
+                        if (!value) return;
+
+                        activeDrag = {
+                            option,
+                            value,
+                            slide,
+                            sIdx,
+                            pointerId: e.pointerId,
+                            ghost: null,
+                            lastX: e.clientX,
+                            lastY: e.clientY
+                        };
+
+                        option.classList.add('dragging');
+
+                        // Keep the pointer events flowing even when the
+                        // pointer moves away from the original option.
+                        try {
+                            option.setPointerCapture(e.pointerId);
+                        } catch (_) {}
+
+                        const ghost = option.cloneNode(true);
+                        ghost.className = `drag-ghost ${option.classList.contains('tick-option') ? 'tick-option' : 'cross-option'}`;
+                        ghost.textContent = option.textContent;
+                        document.body.appendChild(ghost);
+                        activeDrag.ghost = ghost;
+
+                        moveDragGhost(e.clientX, e.clientY);
+                        highlightDropBox(e.clientX, e.clientY);
+                    });
+
+                    option.addEventListener('pointermove', (e) => {
+                        if (!activeDrag || activeDrag.pointerId !== e.pointerId) return;
+                        e.preventDefault();
+                        activeDrag.lastX = e.clientX;
+                        activeDrag.lastY = e.clientY;
+                        moveDragGhost(e.clientX, e.clientY);
+                        highlightDropBox(e.clientX, e.clientY);
+                    });
+
+                    option.addEventListener('pointerup', finishPointerDrag);
+                    option.addEventListener('pointercancel', cancelPointerDrag);
+                });
+
+                dropBoxes.forEach(box => {
+                    box.addEventListener('pointerenter', () => {
+                        if (activeDrag) box.classList.add('drag-over');
+                    });
+
+                    box.addEventListener('pointerleave', () => {
+                        box.classList.remove('drag-over');
+                    });
+                });
+            });
+
+            // Fallback listeners ensure the drag finishes even if pointer
+            // capture is not supported by a particular browser.
+            document.addEventListener('pointermove', (e) => {
+                if (!activeDrag || activeDrag.pointerId !== e.pointerId) return;
+                e.preventDefault();
+                activeDrag.lastX = e.clientX;
+                activeDrag.lastY = e.clientY;
+                moveDragGhost(e.clientX, e.clientY);
+                highlightDropBox(e.clientX, e.clientY);
+            }, { passive: false });
+
+            document.addEventListener('pointerup', finishPointerDrag);
+            document.addEventListener('pointercancel', cancelPointerDrag);
+        }
+
+        function moveDragGhost(x, y) {
+            if (!activeDrag || !activeDrag.ghost) return;
+            activeDrag.ghost.style.left = `${x}px`;
+            activeDrag.ghost.style.top = `${y}px`;
+        }
+
+        function getDropBoxAtPoint(x, y) {
+            const elements = document.elementsFromPoint(x, y);
+            for (const el of elements) {
+                if (el.classList && el.classList.contains('drop-box')) {
+                    return el;
+                }
+                if (el.closest) {
+                    const box = el.closest('.drop-box');
+                    if (box) return box;
+                }
+            }
+            return null;
+        }
+
+        function highlightDropBox(x, y) {
+            document.querySelectorAll('.drop-box').forEach(box => {
+                box.classList.remove('drag-over');
+            });
+
+            const box = getDropBoxAtPoint(x, y);
+            if (box) box.classList.add('drag-over');
+        }
+
+        function finishPointerDrag(e) {
+            if (!activeDrag || activeDrag.pointerId !== e.pointerId) return;
+
+            const drag = activeDrag;
+            const dropBox = getDropBoxAtPoint(e.clientX, e.clientY);
+
+            cleanupPointerDrag();
+
+            if (dropBox) {
+                const slide = dropBox.closest('.slide-item');
+                if (!slide) return;
+
+                const sIdx = Number(slide.dataset.q);
+                const boxes = slide.querySelectorAll('.drop-box');
+                const iIdx = Array.from(boxes).indexOf(dropBox);
+
+                // Only the currently visible question can receive an answer.
+                if (sIdx === currentIndex) {
+                    handleAnswerDrop(sIdx, iIdx, drag.value);
+                }
+            }
+        }
+
+        function cancelPointerDrag(e) {
+            if (!activeDrag) return;
+            if (e && e.pointerId !== undefined && activeDrag.pointerId !== e.pointerId) return;
+            cleanupPointerDrag();
+        }
+
+        function cleanupPointerDrag() {
+            if (!activeDrag) return;
+
+            activeDrag.option.classList.remove('dragging');
+
+            if (activeDrag.ghost && activeDrag.ghost.parentNode) {
+                activeDrag.ghost.parentNode.removeChild(activeDrag.ghost);
+            }
+
+            document.querySelectorAll('.drop-box').forEach(box => {
+                box.classList.remove('drag-over');
+            });
+
+            activeDrag = null;
+        }
+
+        function handleAnswerDrop(sIdx, iIdx, value) {
+            if (sIdx !== currentIndex) return;
+
+            const slide = slides[sIdx];
+            const boxes = slide.querySelectorAll('.drop-box');
+            const box = boxes[iIdx];
+
+            // Do not allow changing an already-correct answer.
+            if (box.dataset.locked === 'true') return;
+
+            const target = box.dataset.target;
+            const isCorrect = value === target;
+
+            // Show the dropped symbol in this one box only.
+            box.textContent = value === 'F' ? '✓' : '×';
+            box.dataset.answer = value;
+            box.classList.remove('answer-tick', 'answer-cross');
+            box.classList.add(value === 'F' ? 'answer-tick' : 'answer-cross');
+            box.classList.add('filled');
+
+            if (isCorrect) {
+                box.dataset.locked = 'true';
+                quizState[sIdx][iIdx === 0 ? 'input1' : 'input2'] = value;
+
+                const badge = document.getElementById(`badge-${sIdx}-${iIdx + 1}`);
+                const pod = document.getElementById(`pod-${sIdx}-${iIdx + 1}`);
+                updateBadgeAndPod(badge, pod, value);
+
+                // Use the same two draggable choices below the image,
+                // but prevent accidental duplicate use after a correct drop.
+                updateOptionStates(slide);
+
+                playAudioTone(true);
+                speak("Correct");
+
+                // Show the final popup automatically when BOTH answers
+                // on the last question are correct.
+                const bothCorrect =
+                    boxes.length === 2 &&
+                    boxes[0].dataset.locked === 'true' &&
+                    boxes[1].dataset.locked === 'true';
+
+                if (bothCorrect && currentIndex === slides.length - 1) {
+                    // Show the exact same Correct popup first, then the final popup.
+                    showSmallConfetti(false);
+                    showPopup('correct', '🌟', 'Amazing!', 'Great job! ✨', false);
+
+                    setTimeout(() => {
+                        showSmallConfetti(true);
+
+                        prevBtn.disabled = true;
+                        nextBtn.disabled = true;
+                        prevBtn.style.pointerEvents = 'none';
+                        nextBtn.style.pointerEvents = 'none';
+                        prevBtn.setAttribute('aria-disabled', 'true');
+                        nextBtn.setAttribute('aria-disabled', 'true');
+
+                        showPopup(
+                            'complete',
+                            '🏆',
+                            'Congratulations!',
+                            'Fantastic job! You solved all questions! 🎉',
+                            true
+                        );
+                    }, 1900);
+                } else {
+                    // Exact same normal correct-answer confetti.
+                    showSmallConfetti(false);
+                    showPopup('correct', '🌟', 'Amazing!', 'Great job! ✨', false);
+                }
+            } else {
+                playAudioTone(false);
+                speak("Try again");
+
+                showPopup('wrong', '😟', 'Try again!', 'Choose the correct symbol. 🌈', false);
+
+                // Clear only the box that was just checked.
+                setTimeout(() => {
+                    if (box.dataset.locked !== 'true') {
+                        box.textContent = '';
+                        box.dataset.answer = '';
+                        box.classList.remove('filled', 'answer-tick', 'answer-cross');
+                    }
+                }, 900);
+            }
+
+            updateNavButtons();
+        }
+
+        function updateOptionStates(slide) {
+            // Keep both choices available so the child can drag either
+            // symbol into the other answer box. Only the correct box locks.
+            slide.querySelectorAll('.drag-option').forEach(option => {
+                option.classList.remove('used');
+            });
+        }
+
+        bindSlideEvents();
+
+        function navigate(dir) {
+            if (dir === 1 && nextBtn.disabled) return;
+            if (dir === -1 && prevBtn.disabled) return;
+
+            slides[currentIndex].classList.remove('active');
+            currentIndex += dir;
+            slides[currentIndex].classList.add('active');
+
+            restoreCurrentSlideState();
+            updateNavButtons();
+        }
+
+        function restoreCurrentSlideState() {
+            const activeSlide = slides[currentIndex];
+            const boxes = activeSlide.querySelectorAll('.drop-box');
+            const savedState = quizState[currentIndex];
+
+            restoreBox(boxes[0], savedState.input1);
+            restoreBox(boxes[1], savedState.input2);
+
+            const badge1 = document.getElementById(`badge-${currentIndex}-1`);
+            const badge2 = document.getElementById(`badge-${currentIndex}-2`);
+            const pod1 = document.getElementById(`pod-${currentIndex}-1`);
+            const pod2 = document.getElementById(`pod-${currentIndex}-2`);
+
+            updateBadgeAndPod(badge1, pod1, savedState.input1);
+            updateBadgeAndPod(badge2, pod2, savedState.input2);
+        }
+
+        function restoreBox(box, value) {
+            if (!box) return;
+            box.textContent = value ? (value === 'F' ? '✓' : '×') : '';
+            box.classList.remove('answer-tick', 'answer-cross');
+            if (value) box.classList.add(value === 'F' ? 'answer-tick' : 'answer-cross');
+            box.dataset.answer = value || '';
+            box.dataset.locked = value ? 'true' : 'false';
+            box.classList.toggle('filled', !!value);
+        }
+
+        function updateBadgeAndPod(badgeEl, podEl, val) {
+            if (!badgeEl || !podEl) return;
+            podEl.classList.remove('state-far', 'state-near');
+
+            if (val === 'N') {
+                badgeEl.innerHTML = '✕';
+                badgeEl.className = 'status-badge near';
+                podEl.classList.add('state-near');
+            } else if (val === 'F') {
+                badgeEl.innerHTML = '✓';
+                badgeEl.className = 'status-badge far';
+                podEl.classList.add('state-far');
+            } else {
+                badgeEl.className = 'status-badge';
+            }
+        }
+
+        function updateNavButtons() {
+            prevBtn.disabled = currentIndex === 0;
+
+            const isLastQuestion = currentIndex === slides.length - 1;
+            const state = quizState[currentIndex];
+            const bothCorrect = state.input1 && state.input2;
+
+            // Next becomes available only after both individual answers
+            // have been checked correctly.
+            nextBtn.disabled = isLastQuestion || !bothCorrect;
+        }
+
+        function showPopup(status, icon, title, subtitle, isFinal = false) {
+            const popup = document.getElementById('popup');
+            const card = document.getElementById('popupCard');
+            
+            card.className = `popup-card ${status}`;
+            document.getElementById('popupIcon').innerText = icon;
+            document.getElementById('popupTitle').innerText = title;
+            document.getElementById('popupSubtitle').innerText = subtitle;
+            
+            if (isFinal) {
+                playAgainBtn.style.display = 'inline-block';
+            } else {
+                playAgainBtn.style.display = 'none';
+            }
+
+            popup.classList.add('active');
+
+            clearTimeout(popupTimer);
+            if (!isFinal) {
+                popupTimer = setTimeout(() => {
+                    closePopup();
+                }, 1800);
+            }
+        }
+
+        function closePopup() {
+            document.getElementById('popup').classList.remove('active');
+        }
+
+        function restartGame() {
+            closePopup();
+            quizState = Array.from({ length: 4 }, () => ({
+                input1: '',
+                input2: '',
+                isUnlocked: false
+            }));
+
+            slides[currentIndex].classList.remove('active');
+            currentIndex = 0;
+            slides[currentIndex].classList.add('active');
+
+            slides.forEach((slide, sIdx) => {
+                const boxes = slide.querySelectorAll('.drop-box');
+                boxes.forEach(box => {
+                    box.textContent = '';
+                    box.dataset.answer = '';
+                    box.dataset.locked = 'false';
+                    box.classList.remove('filled', 'drag-over');
+                });
+
+                document.getElementById(`badge-${sIdx}-1`).className = 'status-badge';
+                document.getElementById(`badge-${sIdx}-2`).className = 'status-badge';
+                document.getElementById(`pod-${sIdx}-1`).classList.remove('state-far', 'state-near');
+                document.getElementById(`pod-${sIdx}-2`).classList.remove('state-far', 'state-near');
+            });
+
+            slides.forEach(slide => {
+                slide.querySelectorAll('.drag-option').forEach(option => {
+                    option.classList.remove('used', 'dragging');
+                });
+            });
+
+            updateNavButtons();
+        }
+
+        updateNavButtons();
+    
+function showSmallConfetti(isFinal = false) {
+    const confettiContainer = document.getElementById('confettiContainer');
+    if (!confettiContainer) return;
+
+    confettiContainer.innerHTML = '';
+
+    // Final completion gets a fuller, more playful celebration.
+    const count = isFinal ? 95 : 42;
+
+    const colors = [
+        '#00b894',
+        '#e67e22',
+        '#6c5ce7',
+        '#0984e3',
+        '#fdcb6e',
+        '#ff6b7a',
+        '#00cec9',
+        '#a29bfe'
+    ];
+
+    for (let i = 0; i < count; i++) {
+        const piece = document.createElement('span');
+
+        piece.className =
+            isFinal
+                ? 'confetti-piece final-confetti-piece'
+                : 'confetti-piece';
+
+        // Start all across the top, then drift naturally down.
+        const startX = Math.random() * 100;
+        const startY = -8 + Math.random() * 10;
+
+        // Larger horizontal drift makes the pieces visibly spread
+        // across the whole screen instead of staying around the popup.
+        const drift =
+            (Math.random() * 520 - 260) *
+            (isFinal ? 1.15 : 0.9);
+
+        const fall =
+            window.innerHeight *
+            (0.82 + Math.random() * 0.48);
+
+        const rotation =
+            Math.random() * 1400 - 700;
+
+        piece.style.left = startX + '%';
+        piece.style.top = startY + '%';
+
+        piece.style.setProperty('--x', drift + 'px');
+        piece.style.setProperty('--y', fall + 'px');
+        piece.style.setProperty('--r', rotation + 'deg');
+
+        piece.style.background =
+            colors[Math.floor(Math.random() * colors.length)];
+
+        piece.style.animationDelay =
+            (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+        confettiContainer.appendChild(piece);
+
+        setTimeout(
+            () => piece.remove(),
+            isFinal ? 2900 : 2050
+        );
+    }
+}
+    </script>
+</body>
+</html>

@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Math Marvels · Kids Playground</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    @font-face {
+      font-family: "CCSYBold";
+      src: url("./assets/CCSYBOLD.TTF") format("truetype");
+      font-display: swap;
+    }
+
+    :root {
+      --ink: #25183e;
+      --purple: #7652df;
+      --purple-dark: #4f2ba8;
+      --pink: #ff6f9b;
+      --glass: rgba(255, 255, 255, .72);
+      /* Card width grows with the screen on desktop, while staying bounded. */
+      --card-w: clamp(300px, 31vw, 560px);
+      --card-h: min(630px, 74vh);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      min-height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      color: var(--ink);
+      font-family: "CCSYBold", "Nunito", sans-serif;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(255, 221, 238, .9), transparent 32%),
+        radial-gradient(circle at 90% 12%, rgba(211, 223, 255, .95), transparent 34%),
+        radial-gradient(circle at 85% 92%, rgba(207, 255, 230, .8), transparent 32%),
+        linear-gradient(145deg, #eee7ff 0%, #dbe8ff 48%, #e9f8ff 100%);
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      filter: blur(35px);
+      opacity: .35;
+      pointer-events: none;
+    }
+
+    body::before {
+      background: #b997ff;
+      left: -60px;
+      top: 25%;
+    }
+
+    body::after {
+      background: #8fd7ff;
+      right: -60px;
+      bottom: 15%;
+    }
+
+    .page {
+      width: min(1180px, 100%);
+      height: min(820px, 94vh);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .title-block {
+      text-align: center;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .title-block .kids {
+      display: block;
+      font-family: "Baloo 2", sans-serif;
+      font-size: clamp(38px, 5vw, 64px);
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #5b3fc2;
+      text-shadow: 0 8px 20px rgba(91, 63, 194, .12);
+    }
+
+    .title-block .math {
+      display: block;
+      margin-top: -4px;
+      font-family: "Baloo 2", sans-serif;
+      font-size: clamp(20px, 2.5vw, 32px);
+      font-weight: 800;
+      letter-spacing: .5px;
+      background: linear-gradient(135deg, #ff759d, #ff4e79);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .carousel {
+      width: 100%;
+      min-height: 0;
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: visible;
+      perspective: 1400px;
+    }
+
+    .hint {
+      display: none !important;
+    }
+
+    .carousel::before {
+      content: "";
+      position: absolute;
+      width: 360px;
+      height: 70%;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .34);
+      filter: blur(28px);
+      pointer-events: none;
+    }
+
+    .card-stage {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      isolation: isolate;
+    }
+
+    .card {
+      --bg: #fbf7ff;
+      --mid: #bb9aff;
+      --dark: #7041d2;
+
+      width: var(--card-w);
+      height: min(var(--card-h), calc(100% - 12px));
+      min-width: 250px;
+      max-width: none;
+      border-radius: 34px;
+      overflow: hidden;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      border: 1px solid rgba(255, 255, 255, .9);
+      box-shadow:
+        0 35px 70px -28px rgba(62, 34, 129, .42),
+        0 12px 24px -12px rgba(30, 20, 70, .18),
+        inset 0 1px 0 rgba(255, 255, 255, .9);
+      transform: translate(-50%, -50%);
+      transition:
+        transform .55s cubic-bezier(.2, .85, .25, 1),
+        opacity .45s ease,
+        filter .45s ease,
+        box-shadow .45s ease;
+      will-change: transform, opacity, filter;
+    }
+
+    /* =========================================================
+       CLEAN CENTERED CARD DESIGN
+       Circle icon + centered title + subtitle.
+       ========================================================= */
+
+    .card-stage {
+      overflow: visible;
+      isolation: isolate;
+    }
+
+    .card {
+      aspect-ratio: 1 / 1;
+      width: var(--card-w);
+      height: var(--card-w);
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, .92);
+      box-shadow:
+        0 28px 60px rgba(48, 30, 100, .18),
+        0 10px 24px rgba(48, 30, 100, .09);
+      overflow: hidden;
+      transform-origin: center center;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .card.is-current {
+      z-index: 8;
+      opacity: 1;
+      filter: none;
+      transform: translate3d(-50%, -50%, 0) scale(.88);
+      cursor: default;
+    }
+
+    .card.is-prev,
+    .card.is-next {
+      z-index: 5;
+      opacity: .92;
+      filter: none;
+      pointer-events: auto;
+      cursor: pointer;
+      transform: translate3d(-50%, -50%, 0) scale(.74);
+      transition:
+        transform .72s cubic-bezier(.22, .75, .18, 1),
+        margin-left .72s cubic-bezier(.22, .75, .18, 1),
+        opacity .4s ease,
+        box-shadow .35s ease;
+    }
+
+    .card.is-prev {
+      margin-left: calc(-1 * (var(--card-w) * .81 + 18px));
+    }
+
+    .card.is-next {
+      margin-left: calc(var(--card-w) * .81 + 18px);
+    }
+
+    .card.is-enter-right,
+    .card.is-enter-left {
+      z-index: 3;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate3d(-50%, -50%, 0) scale(.74);
+    }
+
+    .card.is-enter-right {
+      margin-left: calc((var(--card-w) * .81 + 18px) + 85vw);
+    }
+
+    .card.is-enter-left {
+      margin-left: calc(-1 * ((var(--card-w) * .81 + 18px) + 85vw));
+    }
+
+    .card.is-leaving-left,
+    .card.is-leaving-right {
+      z-index: 2;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate3d(-50%, -50%, 0) scale(.76);
+    }
+
+    .card.is-leaving-left {
+      margin-left: calc(-1 * ((var(--card-w) * .81 + 18px) + 85vw));
+    }
+
+    .card.is-leaving-right {
+      margin-left: calc((var(--card-w) * .81 + 18px) + 85vw);
+    }
+
+    .card.is-prev:hover,
+    .card.is-next:hover,
+    .card.is-prev:focus-visible,
+    .card.is-next:focus-visible {
+      opacity: 1;
+      outline: none;
+      box-shadow:
+        0 30px 60px rgba(48, 30, 100, .22),
+        0 10px 24px rgba(48, 30, 100, .10);
+    }
+
+    .card.is-prev:hover,
+    .card.is-prev:focus-visible {
+      transform: translate3d(calc(-50% - 6px), -50%, 0) scale(.76);
+    }
+
+    .card.is-next:hover,
+    .card.is-next:focus-visible {
+      transform: translate3d(calc(-50% + 6px), -50%, 0) scale(.76);
+    }
+
+    .card-head {
+      height: 54%;
+      flex: none;
+      position: relative;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .22) 0 2px, transparent 3px) 0 0 / 22px 22px,
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, .20), transparent 32%),
+        linear-gradient(145deg, var(--mid), var(--dark));
+    }
+
+    .card-head::after {
+      content: "";
+      position: absolute;
+      width: 72%;
+      height: 72%;
+      left: 14%;
+      top: 14%;
+      border: 1px solid rgba(255, 255, 255, .22);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .number-pill {
+      position: absolute;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 48px;
+      height: 32px;
+      padding: 0 13px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: var(--dark);
+      background: rgba(255, 255, 255, .94);
+      border: 1px solid rgba(255, 255, 255, .8);
+      box-shadow: 0 7px 16px rgba(45, 25, 95, .13);
+      font-family: "Nunito", sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      z-index: 5;
+    }
+
+    .level {
+      display: none;
+    }
+
+    .icon-orb {
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--dark);
+      background: rgba(255, 255, 255, .97);
+      border: 8px solid rgba(255, 255, 255, .28);
+      box-shadow:
+        0 16px 30px rgba(45, 25, 95, .20),
+        inset 0 0 0 1px rgba(255, 255, 255, .95);
+      z-index: 2;
+    }
+
+    .icon-orb i {
+      font-size: 45px;
+    }
+
+    .card::before,
+    .card::after,
+    .card.is-prev .card-body::after,
+    .card.is-current .card-body::after,
+    .card.is-next .card-body::after {
+      display: none;
+    }
+
+    .card-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 14px 38px 30px;
+      gap: 7px;
+      background: var(--bg);
+    }
+
+    .tag {
+      order: 2;
+      margin: 0;
+      padding: 0;
+      max-width: 82%;
+      color: #71657f;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      font-family: "Nunito", sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    .card h2 {
+      order: 1;
+      width: 100%;
+      max-width: 290px;
+      margin: 0;
+      font-family: "Baloo 2", sans-serif;
+      font-size: clamp(28px, 3vw, 38px);
+      line-height: 1.05;
+      font-weight: 800;
+      color: #26183f;
+      text-align: center;
+    }
+
+    .play-btn {
+      order: 3;
+      width: min(190px, 100%);
+      min-height: 44px;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 999px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--mid), var(--dark));
+      font-family: "Nunito", sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 10px 20px rgba(70, 30, 150, .20);
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .play-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 24px rgba(70, 30, 150, .24);
+    }
+
+    .play-btn:active {
+      transform: translateY(0) scale(.98);
+    }
+
+    /* Quiz overlay from the original page is preserved. */
+    .quiz-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      background: #fff;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .quiz-overlay.active {
+      display: flex;
+    }
+
+    .quiz-iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #eaf3ff;
+    }
+
+    .quiz-home-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1001;
+      width: 56px;
+      height: 56px;
+      border: 0;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(145deg, #9b78f4, #6034c3);
+      box-shadow: 0 15px 30px -12px rgba(70, 30, 150, .6);
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    /* Desktop: keep the same card proportions and visual scale across monitors. */
+    @media (min-width: 1025px) {
+      :root {
+        --card-w: clamp(390px, 34vw, 500px);
+        --card-h: var(--card-w);
+      }
+
+      .card {
+        width: var(--card-w);
+        height: var(--card-w);
+      }
+
+      .card.is-prev {
+        margin-left: calc(-1 * (var(--card-w) * .81 + 18px));
+      }
+
+      .card.is-next {
+        margin-left: calc(var(--card-w) * .81 + 18px);
+      }
+    }
+
+    @media (min-width: 901px) and (max-width: 1024px) {
+      :root {
+        --card-w: min(390px, 46vw);
+        --card-h: min(560px, 70vh);
+      }
+
+      .card.is-prev {
+        margin-left: calc(-1 * (var(--card-w) * .81 + 16px));
+      }
+
+      .card.is-next {
+        margin-left: calc(var(--card-w) * .81 + 16px);
+      }
+    }
+
+    @media (max-width: 900px) {
+      :root {
+        --card-w: min(360px, 68vw);
+        --card-h: min(530px, 66vh);
+      }
+
+      .card.is-prev {
+        margin-left: calc(-1 * (var(--card-w) * .81 + 16px));
+      }
+
+      .card.is-next {
+        margin-left: calc(var(--card-w) * .81 + 16px);
+      }
+    }
+
+    @media (max-width: 620px) {
+      :root {
+        --card-w: min(310px, 76vw);
+        --card-h: min(500px, 65vh);
+      }
+
+      body {
+        padding: 10px;
+      }
+
+      .page {
+        height: 96vh;
+        gap: 8px;
+      }
+
+      .carousel {
+        overflow: visible;
+      }
+
+      .card.is-prev,
+      .card.is-next {
+        opacity: .88;
+        filter: none;
+        transform: translate3d(-50%, -50%, 0) scale(.61);
+      }
+
+      .card.is-prev:hover,
+      .card.is-prev:focus-visible {
+        transform: translate(calc(-50% - 4px), -50%) scale(.63);
+      }
+
+      .card.is-next:hover,
+      .card.is-next:focus-visible {
+        transform: translate(calc(-50% + 4px), -50%) scale(.63);
+      }
+
+      .card-stage::before {
+        top: calc(50% + 96px);
+      }
+
+      .card::before,
+      .card::after {
+        width: 24px;
+        height: 24px;
+      }
+
+      .card.is-prev {
+        margin-left: calc(-1 * (var(--card-w) * .695 + 14px));
+      }
+
+      .card.is-next {
+        margin-left: calc(var(--card-w) * .695 + 14px);
+      }
+
+      .card-head {
+        height: 150px;
+      }
+
+      .card {
+        width: var(--card-w);
+        height: var(--card-w);
+        border-radius: 50%;
+      }
+
+      .card-head {
+        height: 54%;
+      }
+
+      .number-pill {
+        top: 18px;
+        min-width: 42px;
+        height: 29px;
+        font-size: 12px;
+      }
+
+      .icon-orb {
+        width: 92px;
+        height: 92px;
+        border-radius: 50%;
+      }
+
+      .icon-orb i {
+        font-size: 36px;
+      }
+
+      .card-body {
+        padding: 14px 28px 28px;
+      }
+
+      .card h2 {
+        font-size: 27px;
+        max-width: 230px;
+      }
+
+      .tag {
+        max-width: 78%;
+        font-size: 12px;
+      }
+
+      .play-btn {
+        width: 155px;
+        min-height: 40px;
+        margin-top: 9px;
+        font-size: 13px;
+      }
+
+      .hint {
+        display: none;
+      }
+    }
+
+
+    @media (min-width: 1600px) {
+      .title-block .kids {
+        font-size: clamp(56px, 4vw, 78px);
+      }
+
+      .title-block .math {
+        font-size: clamp(28px, 2vw, 40px);
+      }
+
+      .tag {
+        font-size: 13px;
+      }
+
+      .play-btn {
+        min-height: 46px;
+        width: 190px;
+      }
+
+      .card h2 {
+        font-size: clamp(38px, 2.3vw, 52px);
+      }
+
+      .number-pill,
+      .level {
+        font-size: 14px;
+      }
+
+      .icon-orb i {
+        font-size: 56px;
+      }
+    }
+
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .card,
+      .play-btn {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="title-block">
+      <span class="kids">Kids Learning</span>
+      <span class="math">Math Playground</span>
+    </header>
+
+    <section class="carousel" aria-label="Math games carousel">
+      <div class="card-stage" id="cardStage"></div>
+    </section>
+    </div>
+  </main>
+
+  <div class="quiz-overlay" id="quizOverlay">
+    <button class="quiz-home-btn" id="quizHomeBtn" aria-label="Back to home">
+      <i class="fa-solid fa-house"></i>
+    </button>
+    <iframe class="quiz-iframe" id="quizFrame" title="Quiz" src="about:blank"></iframe>
+  </div>
+
+  <script>
+    /* Exactly 10 cards, as requested. */
+    const games = [
+      { icon: "fa-shapes", title: "Identify the Shape", tag: "Shapes", href: "./exercises/identify-shape.html" },
+      { icon: "fa-shapes", title: "Odd One Out", tag: "Visual Reasoning", href: "./exercises/odd-one-out.html" },
+      { icon: "fa-puzzle-piece", title: "What Is It?", tag: "Shapes", href: "./exercises/what-is-it.html" },
+      { icon: "fa-scale-balanced", title: "Closed and Open Figures", tag: "Shapes", href: "./exercises/closed-open-figures.html" },
+      { icon: "fa-table-cells", title: "Complete the Shape Table", tag: "Shapes", href: "./exercises/complete-shape-table.html" },
+      { icon: "fa-cube", title: "Shapes of Objects", tag: "Shapes", href: "./exercises/shapes-of-objects.html" },
+      { icon: "fa-circle-check", title: "Correct the Statements", tag: "Shapes", href: "./exercises/correct-statements.html" },
+      { icon: "fa-arrows-left-right", title: "Lines of Symmetry", tag: "Symmetry", href: "./exercises/lines-of-symmetry.html" },
+
+      { icon: "fa-ruler-horizontal", title: "Multiplication Scale", tag: "Multiplication Practice", href: "./exercises/symmterical.html" },
+      
+      { icon: "fa-shapes", title: "Complete the Shape Pattern", tag: "Patterns", href: "./exercises/shapes.html" },
+      { icon: "fa-list-ol", title: "Complete the Pattern", tag: "Patterns", href: "./exercises/pattern.html" },
+    ];
+
+    /* Only three signature colors, reused across all 11 coaches. */
+    const themes = [
+      ["#f4edff", "#8b6cf6", "#5b3fc2"],
+      ["#e9f9f4", "#35b98a", "#167a5a"],
+      ["#fff2e8", "#ff9566", "#d85b2d"]
+    ];
+
+    const stage = document.getElementById("cardStage");
+    const quizOverlay = document.getElementById("quizOverlay");
+    const quizFrame = document.getElementById("quizFrame");
+    const quizHomeBtn = document.getElementById("quizHomeBtn");
+
+    let current = 0;
+    let isAnimating = false;
+    let touchStartX = 0;
+
+    function wrap(index) {
+      return (index + games.length) % games.length;
+    }
+
+    function cardHtml(index, position) {
+      const game = games[index];
+      const theme = themes[index % themes.length];
+
+      return `
+        <article class="card ${position}"
+          style="--bg:${theme[0]};--mid:${theme[1]};--dark:${theme[2]}"
+          data-index="${index}" tabindex="${position === "is-current" ? "0" : "0"}" role="button" aria-label="${position === "is-current" ? game.title : `Open ${game.title}`}">
+          <div class="card-head">
+            <span class="number-pill">${String(index + 1).padStart(2, "0")}</span>
+            <span class="level"><i class="fa-solid fa-train"></i> GAME ${index + 1}</span>
+            <div class="icon-orb"><i class="fa-solid ${game.icon}"></i></div>
+          </div>
+
+          <div class="card-body">
+            <span class="tag">${game.tag}</span>
+            <h2>${game.title}</h2>
+
+            <a class="play-btn" href="${game.href}" data-href="${game.href}">
+              Play Quiz <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </article>
+      `;
+    }
+
+    function render() {
+      const prev = wrap(current - 1);
+      const next = wrap(current + 1);
+
+      stage.innerHTML =
+        cardHtml(prev, "is-prev") +
+        cardHtml(current, "is-current") +
+        cardHtml(next, "is-next");
+    }
+
+    function goTo(index, direction = 1) {
+      if (isAnimating) return;
+
+      const target = wrap(index);
+      if (target === current) return;
+
+      isAnimating = true;
+      const oldCurrent = stage.querySelector(".is-current");
+      const oldPrev = stage.querySelector(".is-prev");
+      const oldNext = stage.querySelector(".is-next");
+
+      /*
+       * Synchronized slide:
+       * every visible coach moves at the same time.
+       * The clicked coach never waits for the new coach.
+       */
+      const cardWidth = oldCurrent.getBoundingClientRect().width / 0.88;
+      const isSmall = window.innerWidth <= 620;
+      const side = isSmall
+        ? cardWidth * .695 + 14
+        : cardWidth * .81 + 16;
+      const travel = Math.max(window.innerWidth * 0.95, side + 520);
+
+      const leaving = direction > 0 ? oldPrev : oldNext;
+      const movingCenter = oldCurrent;
+      const incoming = direction > 0 ? oldNext : oldPrev;
+
+      const enteringIndex = direction > 0
+        ? wrap(current + 2)
+        : wrap(current - 2);
+
+      const enteringPosition = direction > 0
+        ? "is-enter-right"
+        : "is-enter-left";
+
+      stage.insertAdjacentHTML(
+        "beforeend",
+        cardHtml(enteringIndex, enteringPosition)
+      );
+
+      const entering = stage.querySelector("." + enteringPosition);
+
+      const transition =
+        "transform .72s cubic-bezier(.22,.75,.18,1), " +
+        "margin-left .72s cubic-bezier(.22,.75,.18,1), " +
+        "opacity .30s ease";
+
+      [leaving, movingCenter, incoming, entering].forEach(card => {
+        card.style.transition = transition;
+      });
+
+      /* Old side coach exits completely. */
+      leaving.style.marginLeft = direction > 0
+        ? `${-side - travel}px`
+        : `${side + travel}px`;
+      leaving.style.transform =
+        "translate3d(-50%, -50%, 0) scale(.76)";
+      leaving.style.opacity = "0";
+
+      /* Center coach moves to the side at exactly the same speed.
+         Target scale matches the resting .is-prev/.is-next scale (.74)
+         so there is no size jump when render() re-applies the CSS class. */
+      movingCenter.style.marginLeft = direction > 0
+        ? `${-side}px`
+        : `${side}px`;
+      movingCenter.style.transform =
+        "translate3d(-50%, -50%, 0) scale(.74)";
+      movingCenter.style.opacity = ".95";
+      movingCenter.style.zIndex = "5";
+
+      /* Clicked coach moves into the center simultaneously.
+         Target scale matches the resting .is-current scale (.88)
+         so there is no size jump when render() re-applies the CSS class. */
+      incoming.style.marginLeft = "0px";
+      incoming.style.transform =
+        "translate3d(-50%, -50%, 0) scale(.88)";
+      incoming.style.opacity = "1";
+      incoming.style.zIndex = "8";
+
+      /* New coach is already positioned outside, then slides into the side slot.
+         Target scale matches the resting .is-prev/.is-next scale (.74). */
+      entering.style.marginLeft = direction > 0
+        ? `${side}px`
+        : `${-side}px`;
+      entering.style.transform =
+        "translate3d(-50%, -50%, 0) scale(.74)";
+      entering.style.opacity = ".95";
+
+      setTimeout(() => {
+        current = target;
+        render();
+        isAnimating = false;
+      }, 735);
+    }
+
+    function next() { goTo(current + 1, 1); }
+    function prev() { goTo(current - 1, -1); }
+
+    stage.addEventListener("click", (event) => {
+      const card = event.target.closest(".card");
+      if (!card) return;
+
+      /* Clicking the left/right box makes that box the center box. */
+      if (card.classList.contains("is-next")) {
+        event.preventDefault();
+        next();
+        return;
+      }
+
+      if (card.classList.contains("is-prev")) {
+        event.preventDefault();
+        prev();
+        return;
+      }
+
+      /* The focused card keeps the original Start Game behavior. */
+      const button = event.target.closest(".play-btn");
+      if (!button) return;
+      event.preventDefault();
+      quizFrame.src = button.dataset.href;
+      quizOverlay.classList.add("active");
+    });
+
+    quizHomeBtn.addEventListener("click", () => {
+      quizOverlay.classList.remove("active");
+      quizFrame.src = "about:blank";
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (quizOverlay.classList.contains("active")) {
+        if (event.key === "Escape") {
+          quizOverlay.classList.remove("active");
+          quizFrame.src = "about:blank";
+        }
+        return;
+      }
+
+      if (event.key === "ArrowRight") next();
+      if (event.key === "ArrowLeft") prev();
+    });
+
+    stage.addEventListener("touchstart", (event) => {
+      touchStartX = event.changedTouches[0].clientX;
+    }, { passive: true });
+
+    stage.addEventListener("touchend", (event) => {
+      const delta = event.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(delta) < 45) return;
+      if (delta < 0) next();
+      else prev();
+    }, { passive: true });
+
+    render();
+  </script>
+</body>
+
+</html>

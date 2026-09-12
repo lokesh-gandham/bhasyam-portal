@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Height Order Game</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link rel="stylesheet" href="../assets/css/reuse.css">
+
+<style>
+/* =========================================================
+   BASE — RESET
+   ========================================================= */
+
+*{
+  box-sizing:border-box;
+  font-family:"Livvic",sans-serif;
+}
+
+html,
+body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  touch-action:none;
+  overscroll-behavior:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+html,
+body,
+.quiz-card,
+.quiz-card *{
+  cursor:default !important;
+}
+
+/* =========================================================
+   BASE — QUIZ CARD
+   ========================================================= */
+
+.quiz-card{
+  width:100%;
+  height:100dvh;
+  min-height:0;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:clamp(12px,2.2vh,26px) clamp(14px,3.5vw,50px);
+  overflow:hidden;
+  background:#F8F4FF;
+}
+
+/* =========================================================
+   BASE — TOP BAR
+   ========================================================= */
+
+.topbar{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex:0 0 auto;
+  padding:0 4px;
+}
+
+.icon-flat{
+  background:transparent;
+  border:0;
+  font-size:28px;
+  line-height:1;
+  padding:0 6px;
+  flex:0 0 auto;
+  cursor:pointer;
+  transition:transform .2s ease;
+}
+
+.icon-flat:hover{
+  transform:scale(1.12);
+}
+
+.topbar-right{
+  display:flex;
+  align-items:center;
+}
+
+/* =========================================================
+   BASE — MAIN HEADING
+   ========================================================= */
+
+.heading{
+  width:100%;
+  margin:0;
+  text-align:center;
+  color:#2f2f2f;
+  font-size:clamp(20px,2.2vw,32px);
+  font-weight:700;
+  line-height:1.2;
+  flex:0 0 auto;
+}
+
+/* =========================================================
+   BASE — CONTENT
+   ========================================================= */
+
+.content-row{
+  width:100%;
+  max-width:1500px;
+  min-height:0;
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(8px,1.5vh,18px);
+}
+
+.question-heading{
+  width:100%;
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  gap:9px;
+  flex:0 0 auto;
+  margin:0;
+  text-align:center;
+}
+
+.qlabel,
+.question-text{
+  margin:0;
+  color:#2f2f2f;
+}
+
+.qlabel{
+  font-size:clamp(22px,2.5vw,34px);
+  font-weight:800;
+}
+
+.question-text{
+  font-size:clamp(20px,2.3vw,32px);
+  font-weight:600;
+}
+
+/* =========================================================
+   BASE — GAME AREA
+   ========================================================= */
+
+.game-area{
+  width:100%;
+  min-height:0;
+  flex:1 1 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:clamp(4px,1vh,14px) 0;
+}
+
+.order-board{
+  width:100%;
+  max-width:1450px;
+  min-height:0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  gap:clamp(18px,4vw,70px);
+  padding:clamp(10px,2vh,24px);
+}
+
+/* =========================================================
+   BASE — DRAGGABLE OBJECT
+   ========================================================= */
+
+.object-slot{
+  position:relative;
+  width:clamp(180px,18vw,330px);
+  height:clamp(300px,52dvh,500px);
+  flex:0 1 330px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-end;
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),
+             opacity .2s ease;
+}
+
+.object-slot.dragging{
+  opacity:.45;
+  transform:scale(.96);
+}
+
+.object-slot.drop-target{
+  transform:translateY(-8px);
+}
+
+.order-number{
+  position:absolute;
+  top:0;
+  left:50%;
+  transform:translateX(-50%);
+  min-width:54px;
+  text-align:center;
+  font-size:clamp(18px,2vw,28px);
+  font-weight:700;
+  color:#2f2f2f;
+  line-height:1;
+  white-space:nowrap;
+}
+
+.object-card{
+  width:100%;
+  height:calc(100% - 42px);
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  position:relative;
+  cursor:grab;
+  touch-action:none;
+}
+
+.object-card:active{
+  cursor:grabbing;
+}
+
+.object-card img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  pointer-events:none;
+  -webkit-user-drag:none;
+  filter:drop-shadow(0 5px 5px rgba(0,0,0,.10));
+  transition:transform .28s cubic-bezier(.2,.8,.2,1);
+}
+
+.object-slot:not(.game-complete):hover .object-card img{
+  transform:translateY(-5px) scale(1.025);
+}
+
+.object-slot.correct-position .object-card img{
+  transform:translateY(-3px);
+}
+
+.swap-ghost{
+  position:fixed;
+  width:clamp(150px,17vw,290px);
+  height:clamp(210px,40dvh,390px);
+  pointer-events:none;
+  z-index:9999;
+  transform:translate(-50%,-50%) rotate(2deg) scale(1.04);
+  opacity:.88;
+  filter:drop-shadow(0 10px 14px rgba(0,0,0,.20));
+}
+
+.swap-ghost img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+
+/* =========================================================
+   BASE — CORRECT STATE
+   ========================================================= */
+
+.object-slot.correct-position{
+  animation:correctPop .45s ease;
+}
+
+.object-slot.game-complete{
+  border:3px solid rgba(76,175,80,.6);
+  border-radius:12px;
+  padding:8px;
+  background:rgba(139,186,138,.08);
+  box-shadow:0 0 16px rgba(76,175,80,.35),inset 0 0 12px rgba(139,186,138,.15);
+  animation:correctGlow .8s ease-in-out infinite;
+}
+
+.object-slot.game-complete .object-card{
+  cursor:not-allowed;
+  pointer-events:none;
+}
+
+.object-slot.game-complete .object-card img{
+  filter:drop-shadow(0 7px 8px rgba(76,175,80,.28));
+}
+
+.object-slot.game-complete:hover .object-card img{
+  transform:translateY(-3px);
+}
+
+@keyframes correctGlow{
+  0%,100%{
+    box-shadow:0 0 16px rgba(76,175,80,.35),inset 0 0 12px rgba(139,186,138,.15);
+  }
+  50%{
+    box-shadow:0 0 22px rgba(76,175,80,.5),inset 0 0 16px rgba(139,186,138,.22);
+  }
+}
+
+@keyframes correctPop{
+  0%{transform:scale(1);}
+  45%{transform:scale(1.045);}
+  100%{transform:scale(1);}
+}
+
+/* =========================================================
+   BASE — NAVIGATION
+   ========================================================= */
+
+.nav{
+  width:100%;
+  flex:0 0 auto;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:clamp(14px,2vw,26px);
+  padding:4px 0 0;
+}
+
+</style>
+
+<style>
+/* =========================================================
+   MEDIA — 481px and up
+   ========================================================= */
+
+@media (min-width:481px){
+  .object-slot{
+    width:clamp(190px,19vw,300px);
+    height:clamp(320px,55dvh,480px);
+  }
+
+  .order-board{
+    gap:clamp(24px,4vw,58px);
+  }
+}
+
+/* =========================================================
+   MEDIA — 769px and up (laptop)
+   ========================================================= */
+
+@media (min-width:769px){
+  .quiz-card{
+    padding:clamp(16px,2.4vh,28px) clamp(24px,3vw,60px);
+  }
+
+  .heading{
+    font-size:clamp(25px,2.1vw,34px);
+  }
+
+  .question-heading{
+    justify-content:center;
+    max-width:1450px;
+    padding-left:0;
+  }
+
+  .qlabel{
+    font-size:clamp(26px,2.2vw,36px);
+  }
+
+  .question-text{
+    font-size:clamp(24px,2.1vw,34px);
+  }
+
+  .game-area{
+    align-items:center;
+  }
+
+  .order-board{
+    gap:clamp(28px,4vw,64px);
+    padding:clamp(12px,2vh,22px) 0;
+  }
+
+  .object-slot{
+    width:clamp(210px,20vw,330px);
+    height:clamp(350px,58dvh,520px);
+  }
+
+  .order-number{
+    font-size:clamp(22px,2vw,30px);
+  }
+}
+
+/* =========================================================
+   MEDIA — 1200px and up (desktop)
+   ========================================================= */
+
+@media (min-width:1200px){
+  .quiz-card{
+    padding-left:clamp(30px,3.5vw,65px);
+    padding-right:clamp(30px,3.5vw,65px);
+  }
+
+  .heading{
+    font-size:34px;
+  }
+
+  .question-heading{
+    max-width:1500px;
+    justify-content:center;
+  }
+
+  .qlabel{
+    font-size:38px;
+  }
+
+  .question-text{
+    font-size:34px;
+  }
+
+  .order-board{
+    max-width:1500px;
+    gap:clamp(38px,5vw,82px);
+  }
+
+  .object-slot{
+    width:clamp(230px,20vw,360px);
+    height:clamp(390px,61dvh,560px);
+  }
+
+  .order-number{
+    font-size:30px;
+  }
+}
+
+/* =========================================================
+   MEDIA — 1600px and up (large desktop)
+   ========================================================= */
+
+@media (min-width:1600px){
+  .quiz-card{
+    padding-top:24px;
+    padding-bottom:10px;
+  }
+
+  .heading{
+    font-size:38px;
+  }
+
+  .qlabel{
+    font-size:42px;
+  }
+
+  .question-text{
+    font-size:38px;
+  }
+
+  .order-board{
+    gap:90px;
+  }
+
+  .object-slot{
+    width:370px;
+    height:570px;
+  }
+
+  .order-number{
+    font-size:32px;
+  }
+}
+
+/* =========================================================
+   MEDIA — short screens
+   ========================================================= */
+
+@media (max-height:640px){
+  .quiz-card{
+    padding-top:6px;
+    padding-bottom:4px;
+  }
+
+  .content-row{
+    gap:5px;
+  }
+
+  .game-area{
+    padding:0;
+  }
+
+  .order-board{
+    gap:clamp(12px,3vw,36px);
+    padding:4px 0;
+  }
+
+  .object-slot{
+    height:clamp(240px,47dvh,350px);
+  }
+
+  .order-number{
+    font-size:20px;
+  }
+}
+
+/* =========================================================
+   MEDIA — mobile
+   ========================================================= */
+
+@media (max-width:480px){
+  .quiz-card{
+    padding:8px 10px 5px;
+  }
+
+  .topbar{
+    padding:0;
+  }
+
+  .icon-flat{
+    font-size:24px;
+  }
+
+  .heading{
+    font-size:19px;
+  }
+
+  .question-heading{
+    gap:5px;
+    justify-content:center;
+  }
+
+  .qlabel{
+    font-size:21px;
+  }
+
+  .question-text{
+    font-size:19px;
+  }
+
+  .game-area{
+    width:100%;
+    padding:0;
+  }
+
+  .order-board{
+    width:100%;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    align-items:end;
+    gap:clamp(7px,2vw,12px);
+    padding:4px 0;
+  }
+
+  .object-slot{
+    width:100%;
+    height:clamp(220px,45dvh,330px);
+    flex:none;
+  }
+
+  .order-number{
+    top:0;
+    min-width:40px;
+    font-size:17px;
+  }
+
+  .object-card{
+    height:calc(100% - 30px);
+  }
+
+  .swap-ghost{
+    width:125px;
+    height:190px;
+  }
+
+  .nav{
+    gap:10px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="quiz-card" id="quizCard">
+
+  <div class="topbar">
+    <button class="icon-flat" id="homeBtn" style="display: none;" title="Home" aria-label="Home">🏠</button>
+    <div class="topbar-right">
+      <button class="icon-flat" id="hintBtn" title="Hint" aria-label="Hint">💡</button>
+    </div>
+  </div>
+
+  <p class="heading">Write the position of the following based on their height.</p>
+
+  <div class="content-row">
+
+    <div class="question-heading">
+      <span class="qlabel" id="qLabel">Q1.</span>
+      <span class="question-text" id="questionText">Smallest to Biggest</span>
+    </div>
+
+    <div class="game-area">
+      <div class="order-board" id="orderBoard"></div>
+    </div>
+
+  </div>
+
+  <div class="nav">
+    <button class="prev" id="prevBtn" disabled>← Prev</button>
+    <button class="next" id="nextBtn" disabled>Next →</button>
+  </div>
+
+</div>
+
+<div class="hint-overlay" id="hintOverlay" aria-live="polite">
+  <div class="hint-box">
+    <h3>Hint</h3>
+    <p id="hintText">Arrange the pictures from smallest to biggest.</p>
+    <button class="popup-btn" id="closeHintBtn">Got it!</button>
+  </div>
+</div>
+
+<!-- POPUPS — supplied by reuse.css -->
+<div id="answerPopup" class="popup">
+  <div class="popup-content">
+    <div class="popup-icon" id="popupIcon"></div>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMsg"></p>
+  </div>
+</div>
+
+<div id="finalPopup">
+  <div class="finalpopup-box">
+    <h2 class="final-heading">🎉 Amazing Job!</h2>
+    <p id="finalScore"></p>
+    <div id="stars">⭐⭐⭐</div>
+    <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+  </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+/* =========================================================
+   ARTWORK
+   Replace only the filenames if your generated assets
+   use different names.
+   ========================================================= */
+
+const IMG_SRC = {
+  zebra:"../assets/images/zebra.png",
+  elephant:"../assets/images/elephant.png",
+  monkey:"../assets/images/squirrel.png",
+  mangoTree:"../assets/images/mangoTree.png",
+  conifer:"../assets/images/coniferousTree.png",
+  grass:"../assets/images/grass.png"
+};
+
+/* =========================================================
+   QUESTION DATA
+   order = original image positions in the correct order
+   ========================================================= */
+
+const QUESTIONS = [
+  {
+    label:"Q1.",
+    text:"Smallest to Biggest",
+    instruction:"Arrange the animals from smallest to biggest.",
+    items:[
+      { id:"zebra",  src:IMG_SRC.zebra,  original:1, label:"Zebra" },
+      { id:"elephant", src:IMG_SRC.elephant, original:2, label:"Elephant" },
+      { id:"squirrel", src:IMG_SRC.squirrel, original:3, label:"Squirrel" }
+    ],
+    correctOrder:["squirrel","zebra","elephant"]
+  },
+  {
+    label:"Q2.",
+    text:"Biggest to Smallest",
+    instruction:"Arrange the trees and grass from biggest to smallest.",
+    items:[
+      { id:"mangoTree", src:IMG_SRC.mangoTree, original:1, label:"Mango tree" },
+      { id:"conifer", src:IMG_SRC.conifer, original:2, label:"Coniferous tree" },
+      { id:"grass", src:IMG_SRC.grass, original:3, label:"Grass" }
+    ],
+    correctOrder:["grass","mangoTree","conifer"]
+  }
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+const total = QUESTIONS.length;
+let current = 0;
+
+const state = QUESTIONS.map(q => ({
+  order:q.items.map(item => item.id),
+  answered:false
+}));
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const quizCard = document.getElementById("quizCard");
+const qLabel = document.getElementById("qLabel");
+const questionText = document.getElementById("questionText");
+const orderBoard = document.getElementById("orderBoard");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+const homeBtn = document.getElementById("homeBtn");
+const hintBtn = document.getElementById("hintBtn");
+const hintOverlay = document.getElementById("hintOverlay");
+const closeHintBtn = document.getElementById("closeHintBtn");
+const hintText = document.getElementById("hintText");
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+
+function speak(text){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "en-UK";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+
+  speechSynthesis.speak(msg);
+}
+
+function ordinal(n){
+  const v = n % 100;
+  if(v >= 11 && v <= 13) return n + "th";
+  switch(n % 10){
+    case 1: return n + "st";
+    case 2: return n + "nd";
+    case 3: return n + "rd";
+    default: return n + "th";
+  }
+}
+
+function getItem(q,id){
+  return q.items.find(item => item.id === id);
+}
+
+function arraysEqual(a,b){
+  return a.length === b.length && a.every((value,index) => value === b[index]);
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  const st = state[current];
+
+  qLabel.textContent = q.label;
+  questionText.textContent = q.text;
+
+  renderBoard(q,st);
+
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = !st.answered || current === total - 1;
+}
+
+function renderBoard(q,st){
+  orderBoard.innerHTML = "";
+
+  st.order.forEach((id,index) => {
+    const item = getItem(q,id);
+
+    const slot = document.createElement("div");
+    slot.className = "object-slot";
+    slot.dataset.id = item.id;
+    slot.dataset.index = index;
+
+    const number = document.createElement("div");
+    number.className = "order-number";
+    number.textContent = ordinal(item.original);
+
+    const card = document.createElement("div");
+    card.className = "object-card";
+    card.dataset.id = item.id;
+    card.title = "Drag to swap";
+
+    const img = document.createElement("img");
+    img.src = item.src;
+    img.alt = item.label;
+    img.draggable = false;
+
+    card.appendChild(img);
+    slot.appendChild(number);
+    slot.appendChild(card);
+    orderBoard.appendChild(slot);
+
+    attachSwapEvents(card,slot);
+  });
+
+  if(st.answered){
+    [...orderBoard.children].forEach(slot => {
+      slot.classList.add("game-complete");
+    });
+  }
+}
+
+/* =========================================================
+   SWAP GAME — MOUSE + TOUCH
+   ========================================================= */
+
+let drag = null;
+
+function attachSwapEvents(card,slot){
+
+  card.addEventListener("pointerdown",event => {
+    if(state[current].answered) return;
+
+    event.preventDefault();
+
+    const itemId = slot.dataset.id;
+
+    drag = {
+      id:itemId,
+      startX:event.clientX,
+      startY:event.clientY,
+      currentTarget:null,
+      ghost:null,
+      moved:false
+    };
+
+    slot.classList.add("dragging");
+
+    const ghost = document.createElement("div");
+    ghost.className = "swap-ghost";
+
+    const ghostImg = document.createElement("img");
+    ghostImg.src = card.querySelector("img").src;
+    ghostImg.alt = "";
+
+    ghost.appendChild(ghostImg);
+    ghost.style.left = event.clientX + "px";
+    ghost.style.top = event.clientY + "px";
+
+    document.body.appendChild(ghost);
+    drag.ghost = ghost;
+
+    window.addEventListener("pointermove",onPointerMove);
+    window.addEventListener("pointerup",onPointerUp,{once:true});
+    window.addEventListener("pointercancel",onPointerUp,{once:true});
+  });
+
+  function onPointerMove(event){
+    if(!drag) return;
+
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+
+    if(Math.abs(dx) + Math.abs(dy) > 6){
+      drag.moved = true;
+    }
+
+    if(drag.ghost){
+      drag.ghost.style.left = event.clientX + "px";
+      drag.ghost.style.top = event.clientY + "px";
+    }
+
+    const target = document.elementFromPoint(event.clientX,event.clientY);
+    const targetSlot = target ? target.closest(".object-slot") : null;
+
+    document.querySelectorAll(".object-slot.drop-target")
+      .forEach(el => el.classList.remove("drop-target"));
+
+    if(
+      targetSlot &&
+      targetSlot.dataset.id !== drag.id &&
+      !targetSlot.classList.contains("dragging")
+    ){
+      targetSlot.classList.add("drop-target");
+      drag.currentTarget = targetSlot;
+    }else{
+      drag.currentTarget = null;
+    }
+  }
+
+  function onPointerUp(event){
+    window.removeEventListener("pointermove",onPointerMove);
+
+    if(!drag) return;
+
+    const activeDrag = drag;
+    drag = null;
+
+    const sourceSlot = document.querySelector(
+      `.object-slot[data-id="${CSS.escape(activeDrag.id)}"]`
+    );
+
+    document.querySelectorAll(".object-slot")
+      .forEach(el => {
+        el.classList.remove("dragging","drop-target");
+      });
+
+    if(activeDrag.ghost){
+      activeDrag.ghost.remove();
+    }
+
+    const target = document.elementFromPoint(event.clientX,event.clientY);
+    const targetSlot = target ? target.closest(".object-slot") : null;
+
+    if(
+      activeDrag.moved &&
+      targetSlot &&
+      sourceSlot &&
+      targetSlot !== sourceSlot
+    ){
+      swapItems(sourceSlot.dataset.id,targetSlot.dataset.id);
+    }
+  }
+}
+
+/* =========================================================
+   SWAP
+   ========================================================= */
+
+function swapItems(firstId,secondId){
+  const st = state[current];
+
+  const firstIndex = st.order.indexOf(firstId);
+  const secondIndex = st.order.indexOf(secondId);
+
+  if(firstIndex < 0 || secondIndex < 0) return;
+
+  [st.order[firstIndex],st.order[secondIndex]] =
+  [st.order[secondIndex],st.order[firstIndex]];
+
+  const q = QUESTIONS[current];
+
+  renderBoard(q,st);
+
+  if(arraysEqual(st.order,q.correctOrder)){
+    completeQuestion();
+  }
+}
+
+/* =========================================================
+   COMPLETION
+   ========================================================= */
+
+function completeQuestion(){
+  const q = QUESTIONS[current];
+  const st = state[current];
+
+  if(st.answered) return;
+
+  st.answered = true;
+
+  [...orderBoard.children].forEach((slot,index) => {
+    slot.classList.add("correct-position","game-complete");
+
+    setTimeout(() => {
+      slot.classList.remove("correct-position");
+    },500);
+  });
+
+  correctSound.currentTime = 0;
+  correctSound.play().catch(() => {});
+
+  speak("Correct! Great job!");
+  showPopup(true,"Correct!","You arranged them in the right order.");
+  fireConfetti();
+
+  nextBtn.disabled = current === total - 1;
+
+  if(current === total - 1){
+    setTimeout(() => {
+      fireBigConfetti();
+      showFinal();
+    },1100);
+  }
+}
+
+/* =========================================================
+   POPUP
+   ========================================================= */
+
+function showPopup(isCorrect,titleOverride,msgOverride){
+  const popup = document.getElementById("answerPopup");
+  const icon = document.getElementById("popupIcon");
+  const title = document.getElementById("popupTitle");
+  const msg = document.getElementById("popupMsg");
+
+  popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+  popup.style.display = "flex";
+
+  if(isCorrect){
+    icon.textContent = "🎉";
+    title.textContent = titleOverride || "Correct!";
+    msg.textContent = msgOverride || "Great job!";
+  }else{
+    icon.textContent = "❌";
+    title.textContent = titleOverride || "Try Again!";
+    msg.textContent = msgOverride || "That's not the right order.";
+  }
+
+  clearTimeout(showPopup._t);
+
+  showPopup._t = setTimeout(() => {
+    popup.style.display = "none";
+  },1100);
+}
+
+/* =========================================================
+   FINAL POPUP
+   ========================================================= */
+
+function showFinal(){
+  const finalPopup = document.getElementById("finalPopup");
+
+  finalPopup.style.display = "flex";
+
+  document.getElementById("finalScore").textContent =
+    `${total} / ${total} Completed`;
+
+  document.getElementById("stars").textContent = "⭐⭐⭐";
+}
+
+/* =========================================================
+   CONFETTI
+   ========================================================= */
+
+function fireConfetti(){
+  if(!window.confetti) return;
+
+  confetti({
+    particleCount:24,
+    spread:55,
+    startVelocity:26,
+    origin:{x:.5,y:.4},
+    colors:["#e6473f","#3a6fd8","#f7b733","#8bba8a","#c9a8e0"]
+  });
+}
+
+function fireBigConfetti(){
+  if(!window.confetti) return;
+
+  const end = Date.now() + 1800;
+
+  (function frame(){
+    confetti({
+      particleCount:6,
+      angle:60,
+      spread:55,
+      origin:{x:0}
+    });
+
+    confetti({
+      particleCount:6,
+      angle:120,
+      spread:55,
+      origin:{x:1}
+    });
+
+    if(Date.now() < end){
+      requestAnimationFrame(frame);
+    }
+  })();
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+prevBtn.addEventListener("click",() => {
+  if(current === 0) return;
+
+  current--;
+  renderQuestion();
+});
+
+nextBtn.addEventListener("click",() => {
+  if(nextBtn.disabled) return;
+
+  if(current < total - 1){
+    current++;
+    renderQuestion();
+  }
+});
+
+/* =========================================================
+   HOME
+   ========================================================= */
+
+homeBtn.addEventListener("click",() => {
+  window.location.href = "../Grade2_chapter1.html";
+});
+
+/* =========================================================
+   HINT
+   ========================================================= */
+
+hintBtn.addEventListener("click",() => {
+  const q = QUESTIONS[current];
+
+  hintText.textContent = q.instruction;
+  hintOverlay.classList.add("show");
+});
+
+closeHintBtn.addEventListener("click",() => {
+  hintOverlay.classList.remove("show");
+});
+
+hintOverlay.addEventListener("click",event => {
+  if(event.target === hintOverlay){
+    hintOverlay.classList.remove("show");
+  }
+});
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+renderQuestion();
+</script>
+
+</body>
+</html>

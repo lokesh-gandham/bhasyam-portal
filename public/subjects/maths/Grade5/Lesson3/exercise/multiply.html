@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Multiply The Following</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+}
+
+body{
+  overflow:hidden;
+  font-family:"Livvic",sans-serif;
+  color:#2f4f4f;
+  background:#f8f3e8; /* single background color */
+}
+
+#game{
+  position:relative;
+  width:100%;
+  height:100vh;
+  min-height:620px;
+  overflow:hidden;
+}
+
+/* ---------- TOP TITLE ---------- */
+.topbar{
+  position:relative;
+  z-index:20;
+  height:90px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 20px;
+}
+
+.hud{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:10px 25px;
+  background:#fffdf9;
+  border:3px solid #9274bd;
+  border-radius:25px 16px 25px 16px;
+  box-shadow:0 6px 0 rgba(83,55,126,.12);
+}
+
+.hud-icon{
+  width:45px;
+  height:45px;
+  display:grid;
+  place-items:center;
+  border-radius:14px 18px 10px 18px;
+  background:#eadcf7;
+  border:2px solid #b08bd2;
+  font-size:23px;
+}
+
+.hud h1{
+  margin:0;
+  font-size:22px;
+  font-weight:400;
+  white-space:nowrap;
+}
+
+/* ---------- MAIN OPEN PLAY AREA ---------- */
+.arena{
+  position:relative;
+  z-index:5;
+  width:min(1120px,90vw);
+  height:calc(100vh - 175px);
+  margin:0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.mission{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* Question number only — no repeated heading */
+.question-marker{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:13px;
+  margin-bottom:25px;
+}
+
+.question-marker .number{
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#d9eef3;
+  border:3px solid #7eb9c3;
+  color:#315d63;
+  font-size:22px;
+  box-shadow:0 5px 0 rgba(49,93,99,.13);
+}
+
+.question-marker .label{
+  color:#7350a8;
+  font-size:18px;
+  font-weight:600;
+  letter-spacing:.8px;
+}
+
+/* ---------- QUESTION ---------- */
+.question-area{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:145px;
+}
+
+.problem{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:wrap;
+  color:#303d40;
+  font-size:30px;
+  font-weight:400;
+  line-height:1.5;
+  text-align:center;
+}
+
+.expression{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  white-space:nowrap;
+}
+
+.answer-box{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:150px;
+  height:54px;
+  padding:0 12px;
+  margin:0 2px;
+  border:2px solid #d79b58;
+  border-radius:13px;
+  background:#fffdf8;
+  color:#2f4f4f;
+  font:600 30px "Livvic",sans-serif;
+  box-shadow:0 4px 0 rgba(215,155,88,.16);
+  vertical-align:middle;
+}
+
+.answer-box.filled{
+  background:#eef8f5;
+  border-color:#78aeb0;
+}
+
+.answer-box.correct{
+  background:#dcf5e5;
+  border-color:#16834f;
+  color:#16834f;
+  box-shadow:0 4px 0 rgba(22,131,79,.18);
+}
+
+.answer-box.wrong{
+  background:#ffe8e4;
+  border-color:#c94740;
+  color:#c94740;
+}
+
+/* ---------- UNIQUE OPTION SELECTOR ---------- */
+/* No cards, no previous input-tile design, no stars */
+.options{
+  width:min(720px,100%);
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+}
+
+.option{
+  position:relative;
+  min-height:62px;
+  border:3px solid #b9a4d8;
+  border-radius:17px 8px 17px 8px;
+  background:#fffdf8;
+  color:#35565a;
+  font:500 22px "Livvic",sans-serif;
+  cursor:pointer;
+  box-shadow:0 5px 0 #d6c9e5;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease,border-color .15s ease;
+}
+
+.option:nth-child(1){border-color:#9fc9d7;box-shadow:0 5px 0 #c5dfe7}
+.option:nth-child(2){border-color:#c7b0df;box-shadow:0 5px 0 #dfd2eb}
+.option:nth-child(3){border-color:#e1bd83;box-shadow:0 5px 0 #ecd8b5}
+.option:nth-child(4){border-color:#a9cdbd;box-shadow:0 5px 0 #cbe1d5}
+
+.option:hover:not(:disabled){
+  transform:translateY(-3px);
+  box-shadow:0 8px 0 #d6c9e5;
+}
+
+.option:active:not(:disabled){
+  transform:translateY(3px);
+  box-shadow:0 2px 0 #d6c9e5;
+}
+
+.option.selected{
+  background:#e4f2f5;
+  border-color:#579aaa;
+  box-shadow:0 5px 0 #8bbcc6;
+  transform:translateY(-2px);
+}
+
+.option.selected:nth-child(2){
+  background:#eee5f8;
+  border-color:#9274bd;
+  box-shadow:0 5px 0 #bba3d3;
+}
+
+.option.selected:nth-child(3){
+  background:#fff0c9;
+  border-color:#d39a3e;
+  box-shadow:0 5px 0 #d8ad60;
+}
+
+.option.selected:nth-child(4){
+  background:#e4f2e9;
+  border-color:#6da98a;
+  box-shadow:0 5px 0 #91bca7;
+}
+
+.option.correct{
+  background:#dcf5e5!important;
+  border-color:#16834f!important;
+  color:#16834f;
+  box-shadow:0 5px 0 #16834f!important;
+}
+
+.option.wrong{
+  background:#ffe8e4!important;
+  border-color:#c94740!important;
+  color:#c94740;
+  box-shadow:0 5px 0 #c94740!important;
+}
+
+.option:disabled{
+  cursor:default;
+}
+
+/* ---------- SUBMIT ---------- */
+.controls{
+  display:flex;
+  justify-content:center;
+  margin-top:18px;
+}
+
+.submit-btn{
+  min-width:155px;
+  height:50px;
+  padding:0 28px;
+  border:0;
+  border-radius:18px;
+  background:#2f4f4f;
+  color:#fff;
+  font:500 20px "Livvic",sans-serif;
+  cursor:pointer;
+  box-shadow:0 8px 0 rgba(22,59,59,.18),0 13px 25px rgba(47,79,79,.20);
+}
+
+.submit-btn:hover:not(:disabled){transform:translateY(-2px)}
+.submit-btn:active:not(:disabled){transform:translateY(3px)}
+
+.submit-btn:disabled{
+  opacity:.55;
+  cursor:default;
+  transform:none;
+}
+
+.hint{
+  margin-top:11px;
+  text-align:center;
+  color:#6c7e7e;
+  font-size:16px;
+}
+
+/* ---------- NAV ---------- */
+.nav-btn{
+  position:fixed;
+  z-index:30;
+  bottom:22px;
+  min-width:126px;
+  height:46px;
+  padding:0 19px;
+  border-radius:15px;
+  font:500 20px "Livvic",sans-serif;
+  color:#2f4f4f;
+  border:2px solid rgba(47,79,79,.12);
+  cursor:pointer;
+  box-shadow:0 8px 18px rgba(47,79,79,.12);
+}
+
+#prevBtn{
+  left:4%;
+  background:#a9cbe2;
+  border-color:#79a9c7;
+}
+
+#nextBtn{
+  right:4%;
+  background:#efbca6;
+  border-color:#d99074;
+}
+
+.nav-btn:disabled{
+  opacity:.48;
+  cursor:default;
+  pointer-events:none;
+}
+
+.nav-btn:not(:disabled):hover{transform:translateY(-2px)}
+
+/* ---------- POPUPS: SAME FAMILY ---------- */
+.feedback{
+  position:fixed;
+  z-index:100;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) scale(.92);
+  width:min(440px,88vw);
+  min-height:215px;
+  padding:26px 30px 28px;
+  border-radius:30px;
+  text-align:center;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  box-shadow:0 20px 50px rgba(32,57,57,.22);
+}
+
+.feedback.show{
+  display:flex;
+  animation:pop .18s ease-out forwards;
+}
+
+@keyframes pop{
+  to{transform:translate(-50%,-50%) scale(1)}
+}
+
+.correct-popup{
+  background:linear-gradient(135deg,#e2f6e9,#f4fcf6);
+  border:5px solid #16834f;
+}
+
+.wrong-popup{
+  background:linear-gradient(135deg,#fde6e2,#fff7f5);
+  border:5px solid #c94740;
+}
+
+.feedback-icon{
+  width:68px;
+  height:68px;
+  border-radius:24px 24px 24px 8px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  font-size:34px;
+  box-shadow:0 8px 16px rgba(32,57,57,.14);
+}
+
+.correct-popup .feedback-icon{background:#16834f}
+.wrong-popup .feedback-icon{background:#c94740}
+
+.feedback h3{
+  margin:0;
+  font-size:28px;
+  font-weight:600;
+}
+
+.feedback p{
+  margin:0;
+  color:#607878;
+  font-size:17px;
+}
+
+/* ---------- FINAL POPUP ---------- */
+.final-popup{
+  position:fixed;
+  z-index:110;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%) scale(.94);
+  width:min(520px,91vw);
+  padding:38px 36px 32px;
+  border-radius:34px;
+  background:linear-gradient(145deg,#eadcff,#cbb5f4 58%,#b89ae8);
+  border:5px solid #7350a8;
+  box-shadow:0 10px 0 rgba(83,55,126,.18),0 28px 70px rgba(55,38,80,.30);
+  text-align:center;
+  display:none;
+}
+
+.final-popup.show{
+  display:block;
+  animation:finalPop .25s ease-out forwards;
+}
+
+@keyframes finalPop{
+  to{transform:translate(-50%,-50%) scale(1)}
+}
+
+.final-emoji{
+  font-size:78px;
+  margin-bottom:8px;
+}
+
+.final-popup h2{
+  margin:0 0 8px;
+  font-size:36px;
+  font-weight:600;
+  color:#4e3970;
+}
+
+.final-popup p{
+  margin:0 0 22px;
+  font-size:18px;
+  color:#5e4e70;
+}
+
+.play-again-btn{
+  width:185px;
+  height:52px;
+  border:0;
+  border-radius:17px;
+  background:#68449a;
+  color:#fff;
+  font:500 20px "Livvic",sans-serif;
+  cursor:pointer;
+}
+
+/* ---------- MONITOR ---------- */
+@media (min-width:1400px){
+  .topbar{height:100px}
+
+  .hud{
+    padding:13px 28px;
+    border-width:4px;
+    border-radius:28px 18px 28px 18px;
+  }
+
+  .hud-icon{
+    width:54px;
+    height:54px;
+    font-size:28px;
+  }
+
+  .hud h1{font-size:30px}
+
+  .arena{
+    width:min(1180px,88vw);
+    height:calc(100vh - 185px);
+  }
+
+  .question-marker{
+    margin-bottom:28px;
+  }
+
+  .question-marker .number{
+    width:54px;
+    height:54px;
+    font-size:24px;
+  }
+
+  .question-marker .label{
+    font-size:20px;
+  }
+
+  .question-area{
+    min-height:165px;
+  }
+
+  .problem{
+    font-size:40px;
+    gap:16px;
+  }
+
+  .expression{gap:13px}
+
+  .options{
+    width:min(820px,100%);
+    gap:16px;
+    margin-top:18px;
+  }
+
+  .option{
+    min-height:70px;
+    border-radius:20px 10px 20px 10px;
+    font-size:30px;
+  }
+
+  .answer-box{
+    width:190px;
+    height:70px;
+    font-size:34px;
+    border-width:3px;
+    border-radius:16px;
+  }
+
+  .controls{margin-top:20px}
+
+  .submit-btn{
+    min-width:175px;
+    height:56px;
+    font-size:22px;
+  }
+
+  .hint{font-size:23px;margin-top:16px}
+
+  .nav-btn{
+    min-width:155px;
+    height:56px;
+    font-size:30px;
+    border-width:3px;
+  }
+
+  #prevBtn{left:4%}
+  #nextBtn{right:4%}
+}
+
+/* ---------- LAPTOP ---------- */
+@media (min-width:761px) and (max-width:1399px){
+  .arena{
+    width:min(1050px,90vw);
+  }
+
+  .options{
+    width:min(720px,100%);
+  }
+}
+
+/* ---------- MOBILE ---------- */
+@media (max-width:760px){
+  body{overflow:auto}
+
+  #game{
+    min-height:100vh;
+    height:auto;
+    overflow:hidden;
+  }
+
+  .topbar{
+    height:72px;
+    padding:8px 12px;
+  }
+
+  .hud{
+    padding:8px 15px;
+    gap:8px;
+    border-width:2px;
+  }
+
+  .hud-icon{
+    width:36px;
+    height:36px;
+    font-size:19px;
+  }
+
+  .hud h1{font-size:20px}
+
+  .arena{
+    width:92vw;
+    height:auto;
+    min-height:calc(100vh - 160px);
+    margin:0 auto 85px;
+  }
+
+  .question-marker{
+    margin-bottom:12px;
+    gap:8px;
+  }
+
+  .question-marker .number{
+    width:34px;
+    height:34px;
+    font-size:16px;
+    border-width:2px;
+  }
+
+  .question-marker .label{
+    font-size:14px;
+  }
+
+  .question-area{
+    min-height:110px;
+  }
+
+  .problem{
+    font-size:24px;
+    gap:8px;
+  }
+
+  .answer-box{
+    width:120px;
+    height:46px;
+    font-size:23px;
+  }
+
+  .expression{gap:7px}
+
+  .options{
+    width:100%;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    margin-top:10px;
+  }
+
+  .option{
+    min-height:52px;
+    border-width:2px;
+    border-radius:15px 7px 15px 7px;
+    font-size:18px;
+  }
+
+  .controls{margin-top:10px}
+
+  .submit-btn{
+    min-width:125px;
+    height:43px;
+    font-size:17px;
+  }
+
+  .hint{font-size:14px}
+
+  .nav-btn{
+    bottom:14px;
+    min-width:82px;
+    height:40px;
+    padding:0 12px;
+    font-size:15px;
+  }
+
+  #prevBtn{left:3%}
+  #nextBtn{right:3%}
+}
+
+@media (max-width:420px){
+  .hud h1{font-size:18px}
+  .problem{font-size:21px}
+  .option{min-height:48px;font-size:17px}
+}
+</style>
+</head>
+
+<body>
+<div id="game">
+
+  <header class="topbar">
+    <div class="hud">
+      <div class="hud-icon">✖️</div>
+      <h1>Multiply The Following</h1>
+    </div>
+  </header>
+
+  <main class="arena">
+    <section class="mission">
+
+      <div class="question-marker">
+        <span class="number" id="qBadge">1</span>
+        <span class="label">Choose The Correct Answer</span>
+      </div>
+
+      <div class="question-area">
+        <div class="live-question" id="board"></div>
+      </div>
+
+      <div class="options" id="options"></div>
+
+      <div class="controls">
+        <button id="submitBtn" class="submit-btn" type="button" disabled>Submit</button>
+      </div>
+
+      <div class="hint">Choose One Option, Then Submit Your Answer.</div>
+
+    </section>
+  </main>
+
+  <button class="nav-btn" id="prevBtn" type="button">← Back</button>
+  <button class="nav-btn" id="nextBtn" type="button" disabled>Next →</button>
+
+  <div id="correctPopup" class="feedback correct-popup">
+    <div class="feedback-icon">🎉</div>
+    <h3>Perfect!</h3>
+    <p>Correct Answer!</p>
+  </div>
+
+  <div id="wrongPopup" class="feedback wrong-popup">
+    <div class="feedback-icon">😕</div>
+    <h3>Try Again!</h3>
+    <p>Check Your Choice And Try Again.</p>
+  </div>
+
+  <div id="finalPopup" class="final-popup">
+    <div class="final-emoji">🏆</div>
+    <h2>Well Done!</h2>
+    <p>You completed every question in this activity!</p>
+    <button id="playAgainBtn" class="play-again-btn" type="button">↻ Play Again</button>
+  </div>
+
+</div>
+
+<script>
+/*
+  Source worksheet questions and correct answers:
+  1) 1009 × 100 = 100900
+  2) 710 × 100 = 71000
+  3) 9090 × 100 = 909000
+  4) 4120 × 300 = 1236000
+  5) 10 × 10201 = 102010
+  6) 6500 × 100 = 650000
+  7) 520 × 700 = 364000
+  8) 31 × 1000 = 31000
+  9) 111 × 100 = 11100
+  10) 2044 × 1000 = 2044000
+
+  Four choices are provided for every question.
+*/
+const questions=[
+  {number:1,question:"1009 × 100 = ___",options:["100900","10090","100009","109000"],answer:"100900"},
+  {number:2,question:"710 × ___ = 71000",options:["10","100","1000","110"],answer:"100"},
+  {number:3,question:"9090 × ___ = 909000",options:["10","90","100","1000"],answer:"100"},
+  {number:4,question:"4120 × 300 = ___",options:["123600","1236000","1230600","1246000"],answer:"1236000"},
+  {number:5,question:"___ × 10201 = 102010",options:["1","10","100","101"],answer:"10"},
+  {number:6,question:"6500 × ___ = 650000",options:["10","100","1000","50"],answer:"100"},
+  {number:7,question:"520 × 700 = ___",options:["36400","364000","362000","370000"],answer:"364000"},
+  {number:8,question:"31 × 1000 = ___",options:["3100","31000","30100","30010"],answer:"31000"},
+  {number:9,question:"111 × ___ = 11100",options:["10","100","1000","110"],answer:"100"},
+  {number:10,question:"___ × 1000 = 2044000",options:["204","2044","2440","20440"],answer:"2044"}
+];
+
+let current=0;
+let solved=questions.map(()=>false);
+let selected=null;
+let finalShown=false;
+
+const board=document.getElementById("board");
+const optionsBox=document.getElementById("options");
+const qBadge=document.getElementById("qBadge");
+const submitBtn=document.getElementById("submitBtn");
+const prevBtn=document.getElementById("prevBtn");
+const nextBtn=document.getElementById("nextBtn");
+const correctPopup=document.getElementById("correctPopup");
+const wrongPopup=document.getElementById("wrongPopup");
+const finalPopup=document.getElementById("finalPopup");
+const playAgainBtn=document.getElementById("playAgainBtn");
+
+function speak(text){
+  if(!("speechSynthesis" in window)||!("SpeechSynthesisUtterance" in window))return;
+
+  try{
+    const synth=window.speechSynthesis;
+    synth.cancel();
+    synth.resume();
+
+    const msg=new SpeechSynthesisUtterance(text);
+    msg.volume=1;
+    msg.rate=1;
+    msg.pitch=1;
+
+    const voices=synth.getVoices();
+    const voice=
+      voices.find(v=>v.lang==="en-US")||
+      voices.find(v=>/^en[-_]/i.test(v.lang))||
+      voices.find(v=>/English/i.test(v.name));
+
+    if(voice){
+      msg.voice=voice;
+      msg.lang=voice.lang;
+    }else{
+      msg.lang="en-US";
+    }
+
+    synth.speak(msg);
+  }catch(error){
+    console.warn("Voice error:",error);
+  }
+}
+
+if("speechSynthesis" in window){
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
+}
+
+function sound(type){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;
+    if(!C)return;
+
+    const ctx=new C();
+    const o=ctx.createOscillator();
+    const g=ctx.createGain();
+
+    o.connect(g);
+    g.connect(ctx.destination);
+
+    const now=ctx.currentTime;
+
+    if(type==="correct"){
+      o.frequency.setValueAtTime(660,now);
+      o.frequency.setValueAtTime(880,now+.09);
+    }else{
+      o.frequency.setValueAtTime(260,now);
+      o.frequency.setValueAtTime(190,now+.12);
+    }
+
+    g.gain.setValueAtTime(.0001,now);
+    g.gain.exponentialRampToValueAtTime(.12,now+.015);
+    g.gain.exponentialRampToValueAtTime(.0001,now+.22);
+
+    o.start(now);
+    o.stop(now+.23);
+  }catch(e){}
+}
+
+function showPopup(el,time=1200){
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),time);
+}
+
+function render(){
+  const q=questions[current];
+
+  qBadge.textContent=q.number;
+  const questionHtml=q.question.replace("___", '<span class="answer-box" id="answerBox"></span>');
+  board.innerHTML=`<div class="problem"><span>${questionHtml}</span></div>`;
+
+  optionsBox.innerHTML="";
+  selected=null;
+
+  q.options.forEach(value=>{
+    const btn=document.createElement("button");
+    btn.type="button";
+    btn.className="option";
+    btn.textContent=value;
+
+    btn.addEventListener("click",()=>{
+      if(solved[current]||finalShown)return;
+
+      document.querySelectorAll(".option").forEach(o=>o.classList.remove("selected"));
+      btn.classList.add("selected");
+      selected=value;
+
+      const answerBox=document.getElementById("answerBox");
+      if(answerBox){
+        answerBox.textContent=value;
+        answerBox.classList.add("filled");
+        answerBox.classList.remove("wrong");
+      }
+
+      submitBtn.disabled=false;
+    });
+
+    optionsBox.appendChild(btn);
+  });
+
+  if(solved[current]){
+    const buttons=[...optionsBox.querySelectorAll(".option")];
+
+    buttons.forEach(btn=>{
+      btn.disabled=true;
+      if(btn.textContent===q.answer){
+        btn.classList.add("correct");
+        btn.classList.add("selected");
+      }
+    });
+
+    const answerBox=document.getElementById("answerBox");
+    if(answerBox){
+      answerBox.textContent=q.answer;
+      answerBox.classList.add("filled","correct");
+    }
+
+    submitBtn.disabled=true;
+  }else{
+    submitBtn.disabled=true;
+  }
+
+  prevBtn.disabled=current===0;
+  nextBtn.disabled=!solved[current]||current===questions.length-1;
+}
+
+function submitAnswer(){
+  if(finalShown||solved[current]||!selected)return;
+
+  const q=questions[current];
+  const buttons=[...optionsBox.querySelectorAll(".option")];
+
+  if(selected===q.answer){
+    buttons.forEach(btn=>{
+      btn.disabled=true;
+      if(btn.textContent===q.answer){
+        btn.classList.remove("selected");
+        btn.classList.add("correct");
+      }
+    });
+
+    solved[current]=true;
+    selected=q.answer;
+
+    const answerBox=document.getElementById("answerBox");
+    if(answerBox){
+      answerBox.textContent=q.answer;
+      answerBox.classList.add("filled","correct");
+      answerBox.classList.remove("wrong");
+    }
+
+    submitBtn.disabled=true;
+
+    /* Next unlocks only after the answer is correct. */
+    nextBtn.disabled=current===questions.length-1;
+
+    sound("correct");
+    speak("Correct!");
+    showPopup(correctPopup);
+
+    if(solved.every(Boolean)){
+      setTimeout(showFinal,850);
+    }
+
+  }else{
+    buttons.forEach(btn=>{
+      if(btn.textContent===selected){
+        btn.classList.remove("selected");
+        btn.classList.add("wrong");
+      }
+    });
+
+    sound("wrong");
+    speak("Try Again!");
+    showPopup(wrongPopup);
+
+    setTimeout(()=>{
+      buttons.forEach(btn=>{
+        btn.classList.remove("wrong","selected");
+      });
+      const answerBox=document.getElementById("answerBox");
+      if(answerBox){
+        answerBox.textContent="";
+        answerBox.classList.remove("filled","wrong");
+      }
+      selected=null;
+      submitBtn.disabled=true;
+    },650);
+  }
+}
+
+function go(delta){
+  if(finalShown)return;
+
+  const target=current+delta;
+  if(target<0||target>=questions.length)return;
+
+  /* Next is allowed only after current question is solved. */
+  if(delta>0&&!solved[current])return;
+
+  current=target;
+  render();
+}
+
+function showFinal(){
+  finalShown=true;
+  finalPopup.classList.add("show");
+  prevBtn.disabled=true;
+  nextBtn.disabled=true;
+  submitBtn.disabled=true;
+  
+}
+
+prevBtn.addEventListener("click",()=>go(-1));
+nextBtn.addEventListener("click",()=>go(1));
+submitBtn.addEventListener("click",submitAnswer);
+
+playAgainBtn.addEventListener("click",()=>{
+  current=0;
+  solved=questions.map(()=>false);
+  selected=null;
+  finalShown=false;
+  finalPopup.classList.remove("show");
+  render();
+});
+
+render();
+</script>
+<script>
+/* ===== CONFETTI CELEBRATION (right & final popups) ===== */
+(function () {
+  let canvas, ctx, pieces = [], raf = null;
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    resize();
+    window.addEventListener("resize", resize);
+  }
+  function resize() {
+    if (!canvas) return;
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  const colors = ["#16834f", "#d99c36", "#7350a8", "#c94740", "#3a8fb7", "#e86ea4", "#ffd257"];
+  function burst(count) {
+    ensureCanvas();
+    for (let i = 0; i < count; i++) {
+      pieces.push({
+        x: innerWidth / 2 + (Math.random() - .5) * 180,
+        y: innerHeight / 2 + (Math.random() - .5) * 90,
+        vx: (Math.random() - .5) * 11,
+        vy: Math.random() * -13 - 4,
+        g: 0.30 + Math.random() * 0.14,
+        s: 6 + Math.random() * 7,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - .5) * 0.4,
+        color: colors[i % colors.length],
+        life: 0
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces = pieces.filter(p => p.life < 280 && p.y < innerHeight + 40);
+    pieces.forEach(p => {
+      p.life++;
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.99;
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6);
+      ctx.restore();
+    });
+    if (pieces.length) { raf = requestAnimationFrame(tick); }
+    else { raf = null; ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  }
+  window.fireConfetti = function (big) {
+    if (big) {
+      burst(170);
+      let n = 0;
+      const iv = setInterval(() => { burst(90); if (++n >= 4) clearInterval(iv); }, 400);
+    } else {
+      burst(90);
+    }
+  };
+  function watch(id, big) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let was = el.classList.contains("show");
+    new MutationObserver(() => {
+      const now = el.classList.contains("show");
+      if (now && !was) window.fireConfetti(big);
+      was = now;
+    }).observe(el, { attributes: true, attributeFilter: ["class"] });
+  }
+  function init() { watch("correctPopup", false); watch("finalPopup", true); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Letter Transformations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/quiz-popup.css">
+<script src="../assets/js/quiz-popup.js"></script>
+<style>
+  :root{
+    --ink:#2b2b2b;
+    --blue:#4A90D9;
+    --blue-soft:#E8F0FA;
+    --green:#2E9E5B;
+    --green-soft:#E8F6EE;
+    --red:#D94B3E;
+    --cream:#F5F8FC;
+    --card:#ffffff;
+    --bg:#FAF8F5;
+    --fs:26px;
+  }
+  @media (min-width:1600px){ :root{ --fs:40px; } }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;}
+  body{
+    font-family:'Livvic', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size:var(--fs);
+    line-height:1.4;
+    color:var(--ink);
+    background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; height:100vh;
+  }
+
+  .sheet{
+    width:100%; max-width:1600px; margin:0 auto;
+    padding:.5em clamp(14px, 6.5vw, 84px) .5em;
+    display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;
+  }
+
+  .question{
+    font-weight:400;
+    margin-bottom:.35em;
+    flex-shrink:0;
+    text-align:center;
+  }
+
+  /* ---- the table ---- */
+  .table{
+    flex:1; min-height:0;
+    display:grid;
+    grid-template-columns:1.3em .9fr 1.35fr 1fr 1fr 1fr;
+    grid-template-rows:auto 1fr 1fr;
+    border:2px solid var(--blue);
+    border-radius:.35em;
+    overflow:hidden;
+    background:var(--card);
+  }
+  .th{
+    background:var(--cream);
+    font-weight:400; font-size:.62em;
+    display:flex; align-items:center; justify-content:center;
+    border-left:2px solid var(--blue);
+    border-bottom:2px solid var(--blue);
+    padding:.35em .3em;
+    text-align:center;
+  }
+  .th.corner{border-left:none; grid-column:span 2;}
+  .th.tray-h{color:var(--blue);}
+
+  .rowtag{
+    display:flex; align-items:flex-start; justify-content:center;
+    font-size:.7em; font-weight:400; padding-top:.2em;
+    border-bottom:2px solid var(--blue);
+  }
+  .given{
+    display:flex; align-items:center; justify-content:center;
+    border-bottom:2px solid var(--blue);
+    min-height:0;
+  }
+  .row-last .rowtag, .row-last .given, .row-last .cell, .row-last .tray{border-bottom:none;}
+
+  /* ---- the tray of three cards ---- */
+  .tray{
+    border-left:2px solid var(--blue);
+    border-bottom:2px solid var(--blue);
+    background:#FFFDF6;
+    min-height:0; padding:.25em;
+    display:flex; align-items:center; justify-content:center; gap:.3em;
+  }
+  .card{
+    font-size:inherit;
+    height:100%; max-height:3.2em; aspect-ratio:1;
+    background:#fff; border:2.5px solid #E4DDD4; border-radius:.3em;
+    padding:.08em; cursor:pointer;
+    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease, opacity .25s ease;
+  }
+  .card:hover:not(:disabled){border-color:var(--blue); transform:translateY(-4px);}
+  .card.on{
+    border-color:var(--blue);
+    box-shadow:0 0 0 .12em var(--blue-soft), 0 .18em .5em rgba(74,144,217,.28);
+    transform:translateY(-4px);
+  }
+  .card.used{opacity:0; pointer-events:none;}
+
+  /* ---- the three answer boxes ---- */
+  .cell{
+    border-left:2px solid var(--blue);
+    border-bottom:2px solid var(--blue);
+    min-height:0; padding:.3em;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .25s;
+  }
+  .slot{
+    width:100%; height:100%; max-width:3.6em; max-height:3.6em;
+    border:2.5px dashed #E0D8CE; border-radius:.35em;
+    display:flex; align-items:center; justify-content:center;
+    transition:all .2s ease;
+  }
+  .armed .slot{
+    border-color:var(--blue);
+    background:var(--blue-soft);
+    cursor:pointer;
+  }
+  .armed .slot:hover{transform:scale(1.04);}
+  .cell.correct .slot{
+    border:2.5px solid var(--green);
+    background:var(--green-soft);
+    animation:pop .35s cubic-bezier(.2,1.4,.5,1);
+  }
+
+  /* ---- letters drawn as SVG so they can be flipped and turned ---- */
+  .glyph{height:100%; width:100%; display:block;}
+  .glyph text{
+    font-family:'Livvic', sans-serif; font-weight:400; font-size:64px;
+    text-anchor:middle; dominant-baseline:central; fill:var(--ink);
+  }
+  .cell.correct .glyph text{fill:var(--green);}
+
+  #confetti{position:fixed; inset:0; pointer-events:none; z-index:60;}
+  .pop{
+    position:fixed; inset:0; z-index:70;
+    display:none; align-items:center; justify-content:center;
+    background:transparent; pointer-events:none;
+  }
+  .pop.show{display:flex;}
+  .pop-box{
+    background:#fff; border-radius:.5em; padding:1em 1.6em 1.1em;
+    text-align:center; max-width:14em;
+    border-top:.28em solid var(--blue);
+    box-shadow:0 0.4em 2em rgba(0,0,0,.18);
+    animation:pop .35s cubic-bezier(.2,1.4,.5,1);
+    pointer-events:auto;
+  }
+  .pop-box.good{border-top-color:var(--green);}
+  .pop-box.bad{border-top-color:var(--red);}
+  .pop-icon{font-size:1.6em; line-height:1;}
+  .pop-title{font-weight:400; margin:.25em 0 .1em;}
+  .pop-box.good .pop-title{color:var(--green);}
+  .pop-box.bad .pop-title{color:var(--red);}
+  @keyframes pop{from{opacity:0; transform:scale(.7) translateY(1em);} to{opacity:1; transform:none;}}
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <div class="question">Draw the reflection, rotation and translation of the given letters.</div>
+  <div class="table" id="table">
+    <div class="th corner"></div>
+    <div class="th tray-h">Pick a letter</div>
+    <div class="th">Reflection</div>
+    <div class="th">Rotation</div>
+    <div class="th">Translation</div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<div class="pop" id="pop">
+  <div class="pop-box" id="popBox">
+    <div class="pop-icon" id="popIcon">&#127881;</div>
+    <div class="pop-title" id="popTitle">Correct!</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var LETTERS = [{ key:'a', ch:'D' }, { key:'b', ch:'E' }];
+
+  /* the three ways a letter can sit in a box */
+  var FORMS = {
+    reflection : 'translate(100 0) scale(-1 1)',   /* flipped over a vertical line */
+    rotation   : 'rotate(90 50 50)',               /* a quarter turn clockwise */
+    translation: 'translate(0 0)'                  /* slid only: it looks the same */
+  };
+
+  var COLS = ['reflection', 'rotation', 'translation'];
+
+  function glyph(ch, form){
+    return '<svg class="glyph" viewBox="0 0 100 100" role="img" aria-label="letter ' + ch + '">' +
+           '<text x="50" y="52" transform="' + FORMS[form] + '">' + ch + '</text></svg>';
+  }
+
+  function shuffled(a){
+    a = a.slice();
+    for(var i = a.length - 1; i > 0; i--){
+      var j = (Math.random() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  /* ---------- build the table ---------- */
+  var table = document.getElementById('table');
+
+  LETTERS.forEach(function(L, li){
+    var last = (li === LETTERS.length - 1) ? ' row-last' : '';
+
+    var tag = document.createElement('div');
+    tag.className = 'rowtag' + last;
+    tag.textContent = L.key + ')';
+    table.appendChild(tag);
+
+    var given = document.createElement('div');
+    given.className = 'given' + last;
+    given.innerHTML = glyph(L.ch, 'translation');
+    table.appendChild(given);
+
+    /* one tray per row: the three letters, each used exactly once */
+    var tray = document.createElement('div');
+    tray.className = 'tray' + last;
+    tray.setAttribute('data-row', L.key);
+    shuffled(COLS).forEach(function(form){
+      var b = document.createElement('button');
+      b.className = 'card';
+      b.setAttribute('data-form', form);
+      b.setAttribute('data-row', L.key);
+      b.setAttribute('aria-label', form + ' of ' + L.ch);
+      b.innerHTML = glyph(L.ch, form);
+      tray.appendChild(b);
+    });
+    table.appendChild(tray);
+
+    COLS.forEach(function(col){
+      var cell = document.createElement('div');
+      cell.className = 'cell' + last;
+      cell.setAttribute('data-answer', col);
+      cell.setAttribute('data-row', L.key);
+      cell.innerHTML = '<div class="slot"></div>';
+      table.appendChild(cell);
+    });
+  });
+
+  var cells = Array.prototype.slice.call(document.querySelectorAll('.cell'));
+
+  /* ---------- voice: only "Correct!" and "Try again" ---------- */
+  function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-US";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+  if('speechSynthesis' in window){ window.speechSynthesis.getVoices(); }
+
+  /* ---------- popup ---------- */
+  var pop = document.getElementById('pop'), popBox = document.getElementById('popBox');
+  var popIcon = document.getElementById('popIcon'), popTitle = document.getElementById('popTitle');
+  var popTimer = null;
+
+  function showPop(ok, title, ms){
+    QuizPopup.answer(ok, title, '', ms);
+  }
+
+  /* ---------- confetti ---------- */
+  var cv = document.getElementById('confetti'), ctx = cv.getContext('2d');
+  var bits = [], running = false;
+  var colors = ['#F2802C','#2E9E5B','#F5C542','#4A90D9','#D94B3E','#8E5BD9'];
+
+  function sizeCanvas(){ cv.width = window.innerWidth; cv.height = window.innerHeight; }
+  sizeCanvas();
+  window.addEventListener('resize', sizeCanvas);
+
+  function burst(n){
+    var cx = cv.width / 2, cy = cv.height / 2;
+    for(var i = 0; i < n; i++){
+      var a = Math.random() * Math.PI * 2, s = 4 + Math.random() * 11;
+      bits.push({ x:cx, y:cy, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 4,
+                  w:6+Math.random()*8, h:8+Math.random()*10,
+                  rot:Math.random()*Math.PI, vr:(Math.random()-0.5)*0.35,
+                  c:colors[(Math.random()*colors.length)|0], life:1 });
+    }
+    if(!running){ running = true; requestAnimationFrame(tick); }
+  }
+  function tick(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    for(var i = bits.length - 1; i >= 0; i--){
+      var b = bits[i];
+      b.vy += 0.32; b.vx *= 0.995; b.x += b.vx; b.y += b.vy; b.rot += b.vr; b.life -= 0.006;
+      if(b.life <= 0 || b.y > cv.height + 60){ bits.splice(i,1); continue; }
+      ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, b.life));
+      ctx.translate(b.x, b.y); ctx.rotate(b.rot); ctx.fillStyle = b.c;
+      ctx.fillRect(-b.w/2, -b.h/2, b.w, b.h); ctx.restore();
+    }
+    if(bits.length){ requestAnimationFrame(tick); }
+    else { running = false; ctx.clearRect(0,0,cv.width,cv.height); }
+  }
+
+  /* ---------- pick a card, then place it in a box ---------- */
+  var held = null;    /* the selected card */
+  var done = 0;
+
+  function drop(){
+    if(held) held.classList.remove('on');
+    held = null;
+    cells.forEach(function(c){ c.classList.remove('armed'); });
+  }
+
+  function arm(card){
+    drop();
+    held = card;
+    card.classList.add('on');
+    cells.forEach(function(c){
+      if(c.getAttribute('data-row') === card.getAttribute('data-row') &&
+         c.getAttribute('data-done') !== '1'){
+        c.classList.add('armed');
+      }
+    });
+  }
+
+  table.addEventListener('click', function(e){
+    var card = e.target.closest ? e.target.closest('.card') : null;
+    if(card){
+      if(card === held) drop(); else arm(card);
+      return;
+    }
+
+    var cell = e.target.closest ? e.target.closest('.cell') : null;
+    if(!cell || !held) return;
+    if(cell.getAttribute('data-done') === '1') return;
+    if(cell.getAttribute('data-row') !== held.getAttribute('data-row')) return;
+
+    if(held.getAttribute('data-form') === cell.getAttribute('data-answer')){
+      var placed = held;
+      cell.setAttribute('data-done','1');
+      cell.classList.add('correct');
+      cell.querySelector('.slot').innerHTML = placed.innerHTML;
+      placed.classList.add('used');
+      drop();
+      done++;
+      burst(110);
+      showPop(true, 'Correct!', 2200);
+      speak('Correct!');
+
+      if(done === cells.length){
+        setTimeout(function(){ burst(240); QuizPopup.final(cells.length, cells.length); }, 2400);
+      }
+    }else{
+      drop();                      /* card goes back to the tray, nothing is marked */
+      showPop(false, 'Try Again', 1800);
+      speak('Try again');
+    }
+  });
+})();
+</script>
+</body>
+</html>

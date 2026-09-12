@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Multiples &amp; 100-Grid Coloring · Chapter 5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#7C3AED;     --brand-dark:#6D28D9;  --brand-light:#F5F3FF;
+  --emerald:#10B981;   --orange:#FF7A00;       --yellow:#FFD000;    --pink:#FF2E93;
+  --ink:#2D241E;       --ink-soft:#5C4D42;
+  --good:#10B981;      --good-light:#ECFDF5;
+  --bad:#EF4444;       --bad-light:#FEF2F2;
+}
+
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+
+*{ font-family:'Livvic'; font-weight:400; font-style:normal; }
+
+html, body{
+  width:100%; height:100vh; overflow:hidden; margin:0; padding:0;
+}
+
+body{
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 8% 8%,   rgba(251,191,36,.15), transparent 32%),
+    radial-gradient(circle at 92% 14%, rgba(249,115,22,.10), transparent 28%),
+    radial-gradient(circle at 85% 90%, rgba(168,85,247,.10), transparent 30%),
+    linear-gradient(150deg, #FFFDF9 0%, #FFF8EF 50%, #FAF4EB 100%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------------- 100vh Screen-Fit Container ---------------- */
+.page-container{
+  width:100%; max-width:1440px; height:100vh; max-height:100vh;
+  display:flex; flex-direction:column; justify-content:space-between;
+  padding:clamp(4px,0.8vh,8px) clamp(16px,2vw,36px);
+  margin:0 auto; overflow:hidden; gap:clamp(2px,0.4vh,6px);
+}
+
+/* ---------------- Home button ----------------
+   Sits directly on the page background, not inside a header strip, and is
+   the SAME size on every Chapter 5 quiz — fixed px, not vh-scaled clamps,
+   so it cannot drift from page to page. */
+.home-btn{
+  position:fixed; top:14px; left:16px; z-index:60;
+  display:inline-flex; align-items:center; gap:7px;
+  padding:9px 16px; border-radius:12px;
+  border:2px solid var(--brand-dark);
+  background:linear-gradient(160deg,#8B5CF6,var(--brand));
+  color:#fff; font-size:15px; line-height:1; text-decoration:none;
+  box-shadow:0 3px 0 var(--brand-dark),0 6px 14px rgba(124,58,237,.25);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.home-btn:hover{ transform:translateY(-2px); box-shadow:0 5px 0 var(--brand-dark),0 10px 18px rgba(124,58,237,.3); }
+.home-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--brand-dark); }
+.home-btn svg{ width:15px; height:15px; fill:currentColor; display:block; }
+
+.header-title{ font-size:clamp(17px,2vh,22px); color:var(--ink); margin:0; }
+
+.dots{ display:flex; gap:6px; align-items:center; }
+.dot{
+  width:clamp(24px,3.2vh,28px); height:clamp(24px,3.2vh,28px); border-radius:50%;
+  background:#fff; border:2px solid #E6D8C8;
+  color:var(--ink-soft); font-size:clamp(11px,1.4vh,13px);
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .2s ease; outline:none;
+}
+.dot:hover{ border-color:var(--brand); color:var(--brand); }
+.dot.at{ background:var(--brand); border-color:var(--brand-dark); color:#fff; transform:scale(1.12); box-shadow:0 4px 10px rgba(124,58,237,0.3); }
+.dot.ok{ background:var(--good); border-color:var(--good); color:#fff; }
+.dot.no{ background:var(--bad); border-color:var(--bad); color:#fff; }
+.dot.locked, .dot:disabled{ opacity:.35; cursor:not-allowed; }
+.dot.locked:hover, .dot:disabled:hover{ border-color:#E6D8C8; color:var(--ink-soft); }
+
+/* ---------------- QUESTION AT TOP MIDDLE ---------------- */
+.q-middle-container{
+  flex:0 0 auto;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; gap:2px; margin:2px 0;
+}
+
+.q-stem-text{
+  font-size:30px !important; line-height:1.2;
+  color:#1A1A1A; margin:0; text-align:center; font-weight:400 !important;
+}
+@media (min-width:1440px){ .q-stem-text{ font-size:40px !important; } }
+.q-stem-text span.hl{ color:var(--brand-dark); }
+
+/* ---------------- TIGHT CENTERED LAYOUT ---------------- */
+.main-split{
+  flex:1 1 auto; min-height:0; overflow:hidden;
+  display:flex; justify-content:center; align-items:center;
+  gap:clamp(16px, 2vw, 28px); margin:0 auto;
+}
+
+.left-controls{
+  height:100%; display:flex; flex-direction:column; justify-content:center;
+  gap:clamp(10px, 1.6vh, 16px);
+  width:240px; min-width:240px; flex-shrink:0; margin:0; padding:4px;
+}
+
+.cartoon-num-wrapper{
+  width:100%; display:flex; justify-content:center; align-items:center;
+  padding:4px 0; margin-bottom:4px;
+}
+.cartoon-num-wrapper svg, .cartoon-num-wrapper .tf-img{
+  max-height:clamp(170px, 26vh, 240px); width:auto; max-width:100%; object-fit:contain;
+  mix-blend-mode:multiply;
+}
+
+.tool-group-title{
+  font-size:13px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.06em;
+  text-align:center; display:block; margin-bottom:6px; margin-top:-4px;
+}
+
+.swatches-stack{ display:flex; flex-direction:column; gap:8px; width:100%; }
+
+.swatch-btn{
+  width:100%; display:flex; align-items:center; justify-content:center; gap:12px;
+  padding:clamp(12px,1.6vh,16px) 16px; border-radius:16px; border:2.5px solid #F3E8DC; cursor:pointer;
+  font-size:17px; background:#fff; color:var(--ink); text-align:center;
+  transition:all .18s ease; user-select:none; box-shadow:0 4px 12px rgba(180,83,9,0.06);
+}
+.swatch-btn:hover{ transform:translateY(-2px); border-color:var(--brand); }
+.swatch-btn.active{ border-color:var(--brand-dark); transform:scale(1.03); box-shadow:0 6px 18px rgba(124,58,237,0.22); }
+
+.icon-box{ width:24px; height:24px; border-radius:7px; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.14); }
+.box-green{ background:#10B981; }
+.box-orange{ background:#FF7A00; }
+.box-yellow{ background:#FFD000; }
+.box-pink{ background:#FF2E93; }
+
+.extra-area{
+  display:flex; flex-direction:column; gap:4px; text-align:center;
+  background:var(--brand-light); border:1.5px solid #E9D8FD; border-radius:14px;
+  padding:clamp(8px,1.2vh,12px) 14px; font-size:14px; color:var(--brand-dark);
+}
+.extra-area input{
+  font:inherit; font-size:22px; text-align:center;
+  padding:6px 12px; border-radius:10px; border:2.5px solid var(--brand);
+  background:#fff; color:var(--ink); outline:none; width:100%; margin-top:2px;
+}
+
+.action-buttons-stack{
+  display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; margin-top:4px;
+}
+.action-row-split{ display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; }
+
+.btn-big{
+  font:inherit; font-size:17px; padding:clamp(12px,1.6vh,15px) 14px;
+  border-radius:16px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  transition:all .15s ease; outline:none; border:none; text-decoration:none; text-align:center;
+}
+
+.btn-check{
+  background:#D6F3E7; color:#1F5346; border:2.5px solid #9BDCC5; font-size:17px;
+  width:100%; max-width:200px; box-shadow:0 4px 0 #B8E6D3; margin:0 auto;
+}
+.btn-check:hover{
+  transform:translateY(-2px);
+  border-color:#2FB58C; background:#C5EEDD;
+  box-shadow:0 6px 0 #9BDCC5, 0 8px 18px rgba(47,181,140,0.28);
+}
+.btn-check:disabled{ opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.btn-check:disabled:hover{ border-color:#9BDCC5; background:#D6F3E7; }
+
+.btn-nav{
+  width:100%; background:#7C3AED; color:#fff; border:2.5px solid #6D28D9; box-shadow:0 4px 0 #6D28D9;
+}
+.btn-nav:hover{ transform:translateY(-2px); box-shadow:0 6px 0 #6D28D9; }
+
+.btn-prev-style{
+  width:100%; background:#fff; color:var(--ink); border:2.5px solid #E6D8C8; box-shadow:0 4px 0 #E6D8C8;
+}
+.btn-prev-style:hover{ transform:translateY(-2px); border-color:var(--brand); }
+
+/* ---------------- RIGHT COLUMN: 100-GRID ---------------- */
+.right-col{
+  min-height:0; height:100%; flex:0 0 auto; display:flex; justify-content:center; align-items:center; overflow:hidden;
+}
+.grid-card{
+  background:#FFFFFF; border:2.5px solid #F3E8DC; border-radius:26px;
+  padding:clamp(10px, 1.4vh, 16px); height:100%; max-height:min(100%, 82vh); aspect-ratio:1 / 1;
+  box-shadow:0 20px 48px rgba(180,83,9,0.08); display:flex; justify-content:center; align-items:center;
+}
+
+.hundred-grid{
+  display:grid; grid-template-columns:repeat(10, 1fr); grid-template-rows:repeat(10, 1fr);
+  gap:clamp(3px, 0.5vh, 6px); width:100%; height:100%; aspect-ratio:1 / 1;
+}
+
+.cell{
+  background:#FFFDF9; border:1.5px solid #E6D8C8; border-radius:clamp(4px,0.7vh,7px);
+  font-size:clamp(15px, min(1.9vw, 2.3vh), 22px); font-weight:400 !important; color:var(--ink);
+  display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; transition:all .15s ease;
+}
+.cell:hover{ transform:scale(1.22); z-index:10; border-color:var(--brand); box-shadow:0 6px 16px rgba(124,58,237,0.25); }
+
+.cell.c-green{ background:#10B981 !important; color:#FFFFFF !important; font-weight:400 !important; border-color:#047857 !important; }
+.cell.c-orange{ background:#FF7A00 !important; color:#FFFFFF !important; font-weight:400 !important; border-color:#C2410C !important; }
+.cell.c-yellow{ background:#FFD000 !important; color:var(--ink) !important; font-weight:400 !important; border-color:#B45309 !important; }
+.cell.c-pink{ background:#FF2E93 !important; color:#FFFFFF !important; font-weight:400 !important; border-color:#BE185D !important; }
+
+/* ---------------- NO BLUR & NO DARK OVERLAY ---------------- */
+.popup-overlay{
+  position:fixed; inset:0; z-index:120; display:none; align-items:center; justify-content:center;
+  padding:20px; background:transparent !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  pointer-events:none;
+}
+.popup-overlay.show{ display:flex; pointer-events:auto; }
+
+.finish-overlay{
+  position:fixed; inset:0; z-index:130; display:none; place-items:center; padding:20px;
+  background:transparent !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  pointer-events:none;
+}
+.finish-overlay.show{ display:grid; pointer-events:auto; }
+
+.answer-popup{
+  position:relative; z-index:2; width:min(90vw, 400px); padding:24px 24px 20px; overflow:hidden;
+  text-align:center; background:#FFFFFF; border-radius:24px; box-shadow:0 16px 48px rgba(60,45,30,0.24);
+}
+.popup-overlay.show .answer-popup{ animation:popupCardIn 550ms cubic-bezier(.22,1.3,.36,1) forwards; }
+
+.finish-card{
+  width:min(90vw,480px); background:#fff; border:3px solid #F3E8DC; border-radius:26px; padding:32px 28px;
+  text-align:center; box-shadow:0 24px 60px rgba(60,45,30,.24); display:flex; flex-direction:column; align-items:center; gap:16px;
+}
+.finish-overlay.show .finish-card{ animation:popupCardIn 550ms cubic-bezier(.22,1.3,.36,1) forwards; }
+
+.answer-popup.correct{ border:3px solid #10B981; }
+.answer-popup.correct .popup-icon{ background:#ECFDF5; color:#10B981; }
+.answer-popup.correct .popup-label{ color:#047857; background:#ECFDF5; }
+.answer-popup.correct .popup-title{ color:#047857; }
+.answer-popup.correct .popup-bar{ background:#10B981; }
+
+.answer-popup.wrong{ border:3px solid #EF4444; }
+.answer-popup.wrong .popup-icon{ background:#FEF2F2; color:#EF4444; }
+.answer-popup.wrong .popup-label{ color:#991B1B; background:#FEF2F2; }
+.answer-popup.wrong .popup-title{ color:#991B1B; }
+.answer-popup.wrong .popup-bar{ background:#EF4444; }
+
+.popup-body{ position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:6px; }
+
+.popup-icon{
+  display:grid; width:60px; height:60px; margin:0 auto 4px; place-items:center;
+  border-radius:50%; font-size:28px; font-weight:400;
+}
+.popup-overlay.show .popup-icon{ animation:popupIconBounce 750ms ease 180ms both; }
+
+.popup-label{
+  display:inline-block; margin-bottom:4px; padding:4px 12px; border-radius:20px;
+  font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:400;
+}
+.popup-title{ margin:0 0 4px; font-size:24px; font-weight:400 !important; }
+.popup-message{ margin:0; color:#5C4D42; font-size:16px; line-height:1.4; font-weight:400; }
+
+.popup-track{ width:100%; height:5px; margin-top:16px; overflow:hidden; background:#EEE9E2; border-radius:10px; }
+.popup-bar{ width:100%; height:100%; border-radius:inherit; transform-origin:left; }
+.popup-overlay.show .popup-bar{ animation:popupTimerLine 2s linear forwards; }
+
+@keyframes popupCardIn{
+  0%{opacity:0;transform:translateY(25px) scale(.72)}
+  55%{opacity:1;transform:translateY(-7px) scale(1.06)}
+  75%{transform:translateY(2px) scale(.98)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes popupIconBounce{
+  0%{opacity:0;transform:rotate(-15deg) scale(.3)}
+  55%{opacity:1;transform:rotate(10deg) scale(1.2)}
+  75%{transform:rotate(-5deg) scale(.95)}
+  100%{opacity:1;transform:rotate(0) scale(1)}
+}
+@keyframes popupTimerLine{ from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
+/* ------------------------------------------------------------
+   Big monitors (1600px and wider). The card spreads out to use
+   the room at the sides instead of leaving it empty. Laptops sit
+   below this width and are left exactly as they are.
+   ------------------------------------------------------------ */
+@media (min-width: 1600px){
+  .page-container{ max-width:min(1880px, 97vw); }
+  .main-split{ max-width:min(1820px, 96vw); width:100%; gap:clamp(28px, 3vw, 56px); }
+  .left-controls{ width:320px; min-width:320px; }
+  .cartoon-num-wrapper svg, .cartoon-num-wrapper .tf-img{ max-height:clamp(220px, 32vh, 330px); }
+}
+</style>
+</head>
+<body>
+
+<a href="../newindex.html" class="home-btn">
+  <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+  Home
+</a>
+<div class="page-container">
+
+
+  <!-- TOP MIDDLE QUESTION AREA -->
+  <div class="q-middle-container">
+    <h2 class="q-stem-text" id="q-stem">Question prompt text</h2>
+  </div>
+
+  <!-- TIGHT CENTERED LAYOUT -->
+  <main class="main-split">
+
+    <!-- LEFT CONTROLS -->
+    <div class="left-controls">
+
+      <!-- Cartoon Superhero Number Character Display -->
+      <div class="cartoon-num-wrapper" id="cartoon-num-wrapper"></div>
+
+      <!-- Colour Swatches Palette Stack -->
+      <div>
+        <span class="tool-group-title">Colour Tool:</span>
+        <div class="swatches-stack" id="swatches-container"></div>
+      </div>
+
+      <!-- ACTION BUTTONS BELOW SWATCHES -->
+      <div class="action-buttons-stack">
+        <button class="btn-big btn-check" id="check-btn">Check Answer</button>
+        <div class="action-row-split">
+          <button class="btn-big btn-prev-style" id="prev-btn">← Prev</button>
+          <button class="btn-big btn-nav" id="next-btn">Next →</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: 100-GRID CARD -->
+    <div class="right-col">
+      <div class="grid-card">
+        <div class="hundred-grid" id="hundred-grid"></div>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<!-- FLOATING CORRECT POPUP -->
+<div class="popup-overlay" id="popup-correct-overlay">
+  <section class="answer-popup correct">
+    <div class="popup-body">
+      <div class="popup-icon">🎉</div>
+      <div class="popup-label">Correct Answer</div>
+      <h2 class="popup-title">Correct!</h2>
+      <p class="popup-message" id="popup-correct-msg">Great job! You coloured all the multiples correctly!</p>
+      <div class="popup-track">
+        <div class="popup-bar"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FLOATING INCORRECT POPUP -->
+<div class="popup-overlay" id="popup-incorrect-overlay">
+  <section class="answer-popup wrong">
+    <div class="popup-body">
+      <div class="popup-icon">💡</div>
+      <div class="popup-label">Keep Learning</div>
+      <h2 class="popup-title">Try Again!</h2>
+      <p class="popup-message">Some numbers are missed or incorrectly coloured. Please try again!</p>
+      <div class="popup-track">
+        <div class="popup-bar"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FINISH OVERLAY MODAL: PLAY AGAIN & MENU -->
+<div class="finish-overlay" id="finish-overlay">
+<div class="finish-card">
+    <div style="font-size:42px;color:#F59E0B;letter-spacing:8px;">&#9733; &#9733; &#9733;</div>
+    <h2 style="font-size:26px;color:#6D28D9;font-weight:400;">Well done!</h2>
+    <p style="color:#5C4D42;font-size:16px;">You&rsquo;ve finished this activity. Great work!</p>
+    <div style="display:flex;gap:12px;margin-top:8px;width:100%;">
+      <button class="btn-big btn-prev-style" id="again-btn">Play Again</button>
+      <a class="btn-big btn-nav" href="../newindex.html">Menu</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   SHARED CANVAS CONFETTI ENGINE (Same as Chapter 4 / Project)
+   ============================================================ */
+(function (global) {
+  'use strict';
+  var COLORS = ['#7C3AED', '#10B981', '#FF7A00', '#FFD000', '#FF2E93', '#3B82F6', '#EF4444'];
+  var canvas = null, ctx = null, parts = [], raf = null;
+
+  function size() {
+    var d = global.devicePixelRatio || 1;
+    canvas.width = global.innerWidth * d;
+    canvas.height = global.innerHeight * d;
+    canvas.style.width = global.innerWidth + 'px';
+    canvas.style.height = global.innerHeight + 'px';
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+
+  function ensure() {
+    if (canvas) return;
+    canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-hidden', 'true');
+    canvas.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:9998;';
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext('2d');
+    size();
+    global.addEventListener('resize', size);
+  }
+
+  function spawn(n, x, y, power, angle, spread) {
+    for (var i = 0; i < n; i++) {
+      var a = angle == null ? Math.random() * Math.PI * 2 : angle + (Math.random() - 0.5) * spread;
+      var v = power * (0.45 + Math.random() * 0.9);
+      parts.push({
+        x: x, y: y,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v - 3.2,
+        w: 6 + Math.random() * 7,
+        h: 5 + Math.random() * 8,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - 0.5) * 0.55,
+        colour: COLORS[(Math.random() * COLORS.length) | 0],
+        life: 0,
+        max: 70 + Math.random() * 60
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+
+  function tick() {
+    ctx.clearRect(0, 0, global.innerWidth, global.innerHeight);
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.life++;
+      p.vy += 0.3;
+      p.vx *= 0.99;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+
+      var fadeFrom = p.max * 0.7;
+      var alpha = p.life > fadeFrom ? Math.max(0, 1 - (p.life - fadeFrom) / (p.max - fadeFrom)) : 1;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.colour;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+
+      if (p.life >= p.max || p.y > global.innerHeight + 60) parts.splice(i, 1);
+    }
+    if (parts.length) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      raf = null;
+      ctx.clearRect(0, 0, global.innerWidth, global.innerHeight);
+    }
+  }
+
+  global.confetti = {
+    burst: function (o) {
+      o = o || {};
+      ensure();
+      spawn(
+        o.count || 80,
+        o.x == null ? global.innerWidth / 2 : o.x,
+        o.y == null ? global.innerHeight / 2 : o.y,
+        o.power || 9,
+        o.angle,
+        o.spread || Math.PI
+      );
+    },
+    rain: function () {
+      ensure();
+      var w = global.innerWidth;
+      spawn(70, w * 0.2, -20, 11, Math.PI / 2.6, 1.1);
+      spawn(70, w * 0.8, -20, 11, Math.PI - Math.PI / 2.6, 1.1);
+      setTimeout(function () { spawn(60, w / 2, global.innerHeight * 0.35, 11); }, 160);
+    }
+  };
+})(window);
+
+(function () {
+  'use strict';
+
+  var AudioCtx = window.AudioContext || window.webkitAudioContext;
+  var audioCtx = null;
+  function ensureAudio(){ if(!audioCtx) audioCtx = new AudioCtx(); }
+  
+  function speak(text) {
+    ensureAudio();
+    var synth = window.speechSynthesis;
+    if (!synth) return;
+    synth.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.rate = 1;
+    synth.speak(u);
+  }
+
+  function playTone(freq, dur, type){
+    ensureAudio();
+    try {
+      var osc = audioCtx.createOscillator(); var gain = audioCtx.createGain();
+      osc.type = type || 'sine'; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + dur);
+    } catch(e){}
+  }
+
+  function soundCorrectVoice() {
+    playTone(523, 0.12);
+    setTimeout(function(){ playTone(659, 0.12); }, 100);
+    setTimeout(function(){ playTone(784, 0.2); }, 200);
+    speak('Correct!');
+    window.confetti.burst({ count: 80 });
+  }
+
+  function soundWrongVoice() {
+    playTone(330, 0.25, 'square');
+    setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
+    speak('Try again!');
+  }
+
+  var ITEMS = [
+    {
+      stem: 'Colour all the multiples of <span class="hl">3</span> in Yellow on the 100-grid.',
+      img: '../assets/mult_3.jpg',
+      colors: [{ id: 'yellow', label: 'Table of 3' }],
+      validate: function (cells) {
+        for (var i = 1; i <= 100; i++) {
+          var isMult3 = (i % 3 === 0);
+          var hasYellow = cells[i].classList.contains('c-yellow');
+          if (isMult3 && !hasYellow) return false;
+          if (!isMult3 && hasYellow) return false;
+        }
+        return true;
+      },
+      reveal: function (cells) {
+        for (var i = 1; i <= 100; i++) {
+          cells[i].className = 'cell';
+          if (i % 3 === 0) cells[i].classList.add('c-yellow');
+        }
+      },
+      why: 'Multiples of 3 are 3, 6, 9, 12, 15, 18, 21, 24, 27, 30... up to 99!'
+    },
+    {
+      stem: 'Colour all the multiples of <span class="hl">7</span> in Orange on the 100-grid.',
+      img: '../assets/mult_7.jpg',
+      colors: [{ id: 'orange', label: 'Table of 7' }],
+      validate: function (cells) {
+        for (var i = 1; i <= 100; i++) {
+          var isMult7 = (i % 7 === 0);
+          var hasOrange = cells[i].classList.contains('c-orange');
+          if (isMult7 && !hasOrange) return false;
+          if (!isMult7 && hasOrange) return false;
+        }
+        return true;
+      },
+      reveal: function (cells) {
+        for (var i = 1; i <= 100; i++) {
+          cells[i].className = 'cell';
+          if (i % 7 === 0) cells[i].classList.add('c-orange');
+        }
+      },
+      why: 'Multiples of 7 are 7, 14, 21, 28, 35, 42, 49, 56, 63, 70, 77, 84, 91, 98.'
+    },
+    {
+      stem: 'Colour all the multiples of <span class="hl">9</span> in Pink on the 100-grid.',
+      img: '../assets/mult_9.jpg',
+      colors: [{ id: 'pink', label: 'Table of 9' }],
+      validate: function (cells) {
+        for (var i = 1; i <= 100; i++) {
+          var isMult9 = (i % 9 === 0);
+          var hasPink = cells[i].classList.contains('c-pink');
+          if (isMult9 && !hasPink) return false;
+          if (!isMult9 && hasPink) return false;
+        }
+        return true;
+      },
+      reveal: function (cells) {
+        for (var i = 1; i <= 100; i++) {
+          cells[i].className = 'cell';
+          if (i % 9 === 0) cells[i].classList.add('c-pink');
+        }
+      },
+      why: 'Multiples of 9 are 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99.'
+    },
+    {
+      stem: 'Colour all the multiples of <span class="hl">2</span> in Green on the 100-grid.',
+      img: '../assets/2.png',
+      colors: [{ id: 'green', label: 'Table of 2' }],
+      validate: function (cells) {
+        for (var i = 1; i <= 100; i++) {
+          var isMult2 = (i % 2 === 0);
+          var hasGreen = cells[i].classList.contains('c-green');
+          if (isMult2 && !hasGreen) return false;
+          if (!isMult2 && hasGreen) return false;
+        }
+        return true;
+      },
+      reveal: function (cells) {
+        for (var i = 1; i <= 100; i++) {
+          cells[i].className = 'cell';
+          if (i % 2 === 0) cells[i].classList.add('c-green');
+        }
+      },
+      why: 'Multiples of 2 are the even numbers: 2, 4, 6, 8, 10 ... all the way up to 100.'
+    }
+  ];
+
+  var at = 0;
+  var state = ITEMS.map(function () { return { solved: false, clean: true }; });
+  var activeColor = 'green';
+  var gridCells = {};
+  var popupTimer = null;
+
+  var gridEl = document.getElementById('hundred-grid');
+  for (var i = 1; i <= 100; i++) {
+    (function (num) {
+      var cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.textContent = num;
+      cell.onclick = function () {
+        if (state[at].solved) return;
+        var currentColors = ['c-green', 'c-orange', 'c-yellow', 'c-pink'];
+        var hasAnyColor = currentColors.some(function(c) { return cell.classList.contains(c); });
+        
+        if (hasAnyColor) {
+          cell.className = 'cell';
+        } else if (activeColor) {
+          cell.className = 'cell';
+          cell.classList.add('c-' + activeColor);
+        }
+      };
+      gridCells[num] = cell;
+      gridEl.appendChild(cell);
+    })(i);
+  }
+
+  function drawDots() {
+    var container = document.getElementById('dots-container');
+    if (!container) return;          /* the dots strip was removed */
+    container.innerHTML = '';
+    ITEMS.forEach(function (it, idx) {
+      var d = document.createElement('button');
+      d.className = 'dot' + (idx === at ? ' at' : '');
+      if (state[idx].solved) d.classList.add(state[idx].clean ? 'ok' : 'no');
+      d.textContent = idx + 1;
+      /* a number only opens once the one before it has been finished */
+      var unlocked = (idx === 0) || state[idx - 1].solved;
+      d.disabled = !unlocked;
+      if (!unlocked) d.classList.add('locked');
+      d.onclick = function () { if (!unlocked) return; at = idx; draw(); };
+      container.appendChild(d);
+    });
+  }
+
+  function clearActiveSwatches() {
+    var swBtns = document.querySelectorAll('.swatch-btn');
+    swBtns.forEach(function (b) { b.classList.remove('active'); });
+  }
+
+  function draw() {
+    var q = ITEMS[at];
+    document.getElementById('q-stem').innerHTML = q.stem;
+    document.getElementById('cartoon-num-wrapper').innerHTML = '<img src="' + q.img + '" alt="Cartoon" class="tf-img">';
+
+    var swContainer = document.getElementById('swatches-container');
+    swContainer.innerHTML = '';
+    activeColor = q.colors[0].id;
+
+    q.colors.forEach(function (col, idx) {
+      var btn = document.createElement('button');
+      btn.className = 'swatch-btn' + (idx === 0 ? ' active' : '');
+      btn.innerHTML = '<div class="icon-box box-' + col.id + '"></div><span>' + col.label + '</span>';
+      btn.onclick = function () {
+        clearActiveSwatches();
+        btn.classList.add('active');
+        activeColor = col.id;
+      };
+      swContainer.appendChild(btn);
+    });
+
+    for (var k in gridCells) {
+      gridCells[k].className = 'cell';
+    }
+
+    drawDots();
+
+    var s = state[at];
+    document.getElementById('prev-btn').disabled = (at === 0);
+    document.getElementById('next-btn').disabled = !s.solved;
+    document.getElementById('next-btn').textContent = (at === ITEMS.length - 1 ? 'Finish →' : 'Next →');
+
+    if (s.solved) {
+      q.reveal(gridCells);
+      document.getElementById('check-btn').disabled = true;
+    } else {
+      document.getElementById('check-btn').disabled = false;
+    }
+  }
+
+  function check() {
+    var q = ITEMS[at];
+    var s = state[at];
+    var ok = q.validate(gridCells);
+
+    if (popupTimer) clearTimeout(popupTimer);
+
+    if (ok) {
+      s.solved = true;
+      document.getElementById('check-btn').disabled = true;
+      drawDots();
+      document.getElementById('next-btn').disabled = false;
+      
+      document.getElementById('popup-correct-msg').textContent = q.why || 'Great job! You coloured all the multiples correctly!';
+      var overlay = document.getElementById('popup-correct-overlay');
+      overlay.classList.remove('show');
+      void overlay.offsetWidth;
+      overlay.classList.add('show');
+      soundCorrectVoice();
+
+      popupTimer = setTimeout(function () {
+        overlay.classList.remove('show');
+        if (at === ITEMS.length - 1 && ITEMS.every(function(it, i){ return state[i].solved; })) {
+          showFinish();   /* last item — go straight to the finish screen */
+        } else {
+          draw();         /* stay on this item — the child taps Next to move on */
+        }
+      }, 2000);
+    } else {
+      s.clean = false;
+      var overlayErr = document.getElementById('popup-incorrect-overlay');
+      overlayErr.classList.remove('show');
+      void overlayErr.offsetWidth;
+      overlayErr.classList.add('show');
+      soundWrongVoice();
+
+      popupTimer = setTimeout(function () {
+        overlayErr.classList.remove('show');
+      }, 2000);
+    }
+  }
+
+  function showFinish() {
+    document.getElementById('finish-overlay').classList.add('show');
+    window.confetti.rain();
+    playTone(523, 0.12); setTimeout(function(){ playTone(659, 0.12); }, 120); setTimeout(function(){ playTone(784, 0.12); }, 240); setTimeout(function(){ playTone(1047, 0.35); }, 360);
+    speak('Congratulations!');
+  }
+
+  document.getElementById('check-btn').onclick = check;
+  document.getElementById('prev-btn').onclick = function () { if (at > 0) { at--; draw(); } };
+  document.getElementById('next-btn').onclick = function () {
+    if (at < ITEMS.length - 1) { at++; draw(); }
+    else showFinish();
+  };
+  document.getElementById('again-btn').onclick = function () {
+    document.getElementById('finish-overlay').classList.remove('show');
+    at = 0;
+    state = ITEMS.map(function () { return { solved: false, clean: true }; });
+    draw();
+  };
+
+  draw();
+})();
+</script>
+</body>
+</html>

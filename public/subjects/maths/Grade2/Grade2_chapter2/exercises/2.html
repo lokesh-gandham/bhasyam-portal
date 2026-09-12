@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Join the dots 301 to 400 and colour the picture</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<style>
+/* ===================== RESET / BASE ===================== */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;overscroll-behavior:none;}
+body{
+  font-family:'Livvic',sans-serif;
+  background:
+    radial-gradient(circle at 15% 10%, #fff7e6 0%, transparent 55%),
+    radial-gradient(circle at 85% 90%, #eaf6ff 0%, transparent 55%),
+    #fdf6ec;
+  max-width:100vw;
+}
+button{font-family:inherit;}
+
+/* ===================== PAGE SHELL ===================== */
+.game-wrap{
+  width:100%;max-width:100vw;
+  height:100vh;height:100dvh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  padding:clamp(6px,1.4vh,14px) clamp(10px,2.5vw,34px) clamp(6px,1.2vh,12px);
+  gap:clamp(4px,1vh,10px);
+}
+
+/* ===================== TOP BAR (home / title / hint) ===================== */
+.quiz-top{
+  width:100%;max-width:100%;
+  flex:0 0 auto;
+  display:grid;
+  grid-template-columns:90px minmax(0,1fr) 90px;
+  align-items:start;
+  gap:10px;
+}
+.quiz-icon-btn{
+  width:100%;height:62px;margin:0;padding:0;border:0;outline:none;
+  background:transparent!important;
+  display:flex;align-items:flex-start;position:relative;z-index:100;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+}
+.home-btn{justify-content:flex-start;}
+.hint-btn{justify-content:flex-end;}
+.quiz-icon-circle{
+  width:clamp(44px,4.2vw,62px);height:clamp(44px,4.2vw,62px);
+  min-width:clamp(44px,4.2vw,62px);min-height:clamp(44px,4.2vw,62px);
+  flex-shrink:0;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:clamp(19px,1.8vw,27px);line-height:1;position:relative;z-index:101;
+  box-sizing:border-box;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.home-icon{
+  background:linear-gradient(145deg,#8b6fe0,#6f42c1)!important;
+  box-shadow:0 4px 0 #5a349e, 0 7px 14px rgba(90,52,158,.25)!important;
+}
+.hint-icon{
+  background:linear-gradient(145deg,#ffc94d,#f7a800)!important;
+  box-shadow:0 4px 0 #c17e00, 0 7px 14px rgba(193,126,0,.25)!important;
+}
+.quiz-icon-circle i{display:inline-block!important;color:#fff!important;line-height:1;}
+.quiz-icon-btn:hover .quiz-icon-circle{transform:translateY(-2px) scale(1.06);}
+.quiz-icon-btn:active .quiz-icon-circle{transform:translateY(2px) scale(.97);}
+
+.quiz-title{
+  width:100%;max-width:100%;margin:0;text-align:center;
+  font-size:30px;line-height:1.12;font-weight:400;color:#1f2d3d;
+  transform:translateY(12px);
+  overflow-wrap:normal;
+}
+
+/* ===================== PROGRESS PILL ===================== */
+.progress-row{flex:0 0 auto;display:flex;justify-content:center;}
+.progress-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 16px;border-radius:999px;
+  background:#ffffffcc;border:2px solid #ffe0a3;
+  font-size:clamp(12px,1.4vw,15px);font-weight:600;color:#a9660b;
+  box-shadow:0 3px 8px rgba(0,0,0,.06);
+  transition:transform .25s ease, background .25s ease, color .25s ease, border-color .25s ease;
+}
+.progress-pill.done{
+  background:#e8fbe9cc;border-color:#a7e6ab;color:#2b8a3e;
+  transform:scale(1.05);
+}
+
+/* ===================== MAIN AREA ===================== */
+.main-area{
+  flex:1 1 auto;min-height:0;min-width:0;
+  display:flex;flex-direction:row;
+  gap:clamp(8px,1.6vw,22px);
+  overflow:hidden;
+}
+
+.canvas-area{
+  flex:1 1 auto;min-width:0;min-height:0;
+  display:flex;align-items:center;justify-content:center;
+  background:#ffffffb0;
+  border-radius:26px;
+  box-shadow:0 6px 20px rgba(0,0,0,.05);
+  padding:clamp(4px,1vw,14px);
+  position:relative;
+}
+#birdSvg{width:100%;height:100%;display:block;max-width:100%;max-height:100%;}
+
+/* dots */
+.dot{cursor:pointer;transform-box:fill-box;transform-origin:center;}
+.dot-hit{fill:transparent;}
+.dot-visible{fill:#ffffff;stroke:#5c6b7a;stroke-width:1.8;transition:fill .2s ease, stroke .2s ease;}
+.dot-num{font-size:12px;font-weight:700;fill:#3a4552;pointer-events:none;font-family:'Livvic',sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round;}
+.dot.done .dot-visible{fill:#7bd389;stroke:#3fa856;}
+.dot.done .dot-num{fill:#2b8a3e;}
+.dot.hint-pulse .dot-visible{animation:hintPulse 1.4s ease 2;}
+.dot.wrong-flash .dot-visible{fill:#ffd2d2;stroke:#e5484d;}
+.dot.shake{animation:wobble .4s ease;}
+
+#dotsLayer.solved{opacity:0;pointer-events:none;transition:opacity .6s ease;}
+#linesLayer{pointer-events:none;}
+.stitch-line{stroke:#3a4552;stroke-width:2.6;stroke-linecap:round;opacity:0;animation:lineIn .25s ease forwards;}
+
+@keyframes lineIn{from{opacity:0;}to{opacity:1;}}
+@keyframes wobble{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}50%{transform:translateX(3px);}75%{transform:translateX(-2px);}}
+@keyframes hintPulse{0%,100%{r:4.2;opacity:1;}50%{r:9;opacity:.55;}}
+
+/* coloring regions */
+.region-fill{
+  fill:transparent;stroke:none;
+  transform-box:fill-box;transform-origin:center;
+  transition:fill .25s ease, stroke .25s ease, stroke-width .25s ease;
+  cursor:pointer;
+}
+#regionsLayer.ready .region-fill{fill:#ffffff;stroke:#cfd6dd;stroke-width:1.2;}
+#regionsLayer.ready .region-fill:hover{stroke:#a9b4bf;}
+.region-fill.region-done{cursor:default;}
+.region-fill.flash-success{stroke:#3fa856!important;stroke-width:3.5!important;}
+.region-fill.wrong-flash{stroke:#e5484d!important;stroke-width:3!important;}
+.region-fill.shake{animation:wobble .4s ease;}
+.region-fill.hint-pulse{animation:regionHintPulse 1.4s ease 2;}
+@keyframes regionHintPulse{0%,100%{stroke-width:1.2;}50%{stroke:#f7a800;stroke-width:4;}}
+
+/* ===================== PALETTE ===================== */
+.palette-panel{
+  flex:0 0 auto;width:clamp(96px,10.5vw,150px);
+  display:flex;flex-direction:column;align-items:center;
+  background:#ffffffcc;border-radius:24px;
+  padding:12px 8px;gap:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,.05);
+  position:relative;
+  transition:transform .3s ease;
+}
+.palette-panel.unlock-bounce{animation:paletteBounce .5s ease;}
+@keyframes paletteBounce{0%{transform:scale(1);}40%{transform:scale(1.06);}100%{transform:scale(1);}}
+
+.palette-title{font-size:clamp(13px,1.3vw,16px);font-weight:600;color:#4a4038;}
+.palette-status{font-size:clamp(10px,1vw,12px);color:#8a8178;text-align:center;line-height:1.3;}
+
+.palette-grid{
+  display:flex;flex-direction:column;align-items:center;
+  gap:10px;width:100%;
+  overflow-y:auto;overflow-x:hidden;
+  flex:1 1 auto;min-height:0;
+  padding:2px 0;
+}
+.swatch{
+  width:clamp(30px,3.2vw,42px);height:clamp(30px,3.2vw,42px);
+  border-radius:50%;border:3px solid #fff;
+  box-shadow:0 3px 8px rgba(0,0,0,.15);
+  cursor:grab;flex-shrink:0;
+  transition:transform .18s ease, box-shadow .18s ease;
+  touch-action:none;
+}
+.swatch:hover{transform:translateY(-2px) scale(1.08);}
+.swatch.selected{box-shadow:0 0 0 3px #fff, 0 0 0 6px #f7a800, 0 3px 8px rgba(0,0,0,.2);transform:scale(1.1);}
+.swatch:active{cursor:grabbing;}
+
+.palette-panel.locked .swatch{opacity:.35;filter:grayscale(45%);pointer-events:none;cursor:not-allowed;}
+.palette-lock-overlay{
+  position:absolute;inset:0;border-radius:24px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.35);
+  color:#a9660b;font-size:clamp(20px,2.4vw,28px);
+  opacity:1;transition:opacity .35s ease;
+  pointer-events:none;
+}
+.palette-panel:not(.locked) .palette-lock-overlay{opacity:0;}
+
+.drag-ghost{
+  position:fixed;width:34px;height:34px;border-radius:50%;
+  border:3px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.25);
+  pointer-events:none;z-index:9999;transform:translate(-50%,-50%);
+}
+
+/* ===================== HINT OVERLAY ===================== */
+.hint-overlay{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.25);}
+.hint-overlay.show{display:flex;}
+.hint-box{width:min(420px,calc(100vw - 30px));max-height:calc(100dvh - 30px);overflow:auto;padding:25px;border-radius:22px;background:#fff;text-align:center;box-shadow:0 12px 35px rgba(0,0,0,.2);}
+.hint-box h3{margin:0 0 10px;font-size:clamp(22px,3vw,30px);color:#e49a00;}
+.hint-box p{margin:0;font-size:clamp(16px,1.7vw,21px);line-height:1.4;color:#3a4552;}
+.hint-swatch{display:inline-block;width:22px;height:22px;border-radius:50%;vertical-align:middle;margin-left:6px;border:2px solid #eee;}
+.hint-close{margin-top:18px;min-width:105px;height:42px;border:0;border-radius:22px;background:linear-gradient(145deg,#ffc94d,#f6a900);color:#fff;font-size:16px;font-weight:700;cursor:pointer;}
+
+/* ===================== FINAL POPUP ===================== */
+#finalPopup{position:fixed;inset:0;z-index:6000;display:none;align-items:center;justify-content:center;background:rgba(20,20,30,.4);padding:20px;}
+#finalPopup.show{display:flex;}
+.final-kid-box{
+  width:min(420px,calc(100vw - 30px));
+  background:#fff;border-radius:28px;padding:32px 26px;text-align:center;
+  box-shadow:0 18px 45px rgba(0,0,0,.25);
+}
+.final-kid-box h2{margin:0 0 8px;font-size:clamp(26px,3.4vw,34px);color:#2b8a3e;}
+.final-kid-box p{margin:0 0 14px;font-size:clamp(16px,1.8vw,20px);color:#3a4552;}
+#stars{font-size:clamp(24px,3vw,32px);margin-bottom:16px;}
+.playAgain-btn{border:0;border-radius:22px;padding:12px 26px;font-size:16px;font-weight:700;color:#fff;
+  background:linear-gradient(145deg,#8b6fe0,#6f42c1);cursor:pointer;box-shadow:0 4px 0 #5a349e;}
+.playAgain-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #5a349e;}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width:760px){
+  .quiz-top{grid-template-columns:42px minmax(0,1fr) 42px;gap:4px;}
+  .quiz-title{font-size:16px;transform:translateY(6px);}
+  .quiz-icon-btn{height:42px;}
+  .quiz-icon-circle{width:38px;height:38px;min-width:38px;min-height:38px;font-size:15px;}
+  .main-area{flex-direction:column;}
+  .canvas-area{border-radius:20px;flex:1 1 auto;}
+  .palette-panel{
+    width:100%;flex-direction:row;align-items:center;
+    max-height:78px;border-radius:20px;padding:6px 10px;gap:8px;
+  }
+  .palette-title{display:none;}
+  .palette-status{white-space:nowrap;font-size:10px;}
+  .palette-grid{flex-direction:row;overflow-x:auto;overflow-y:hidden;gap:8px;justify-content:flex-start;}
+  .swatch{width:34px;height:34px;}
+}
+@media (min-width:1440px){
+  .quiz-title{font-size:34px;}
+  .palette-panel{width:170px;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="game-wrap">
+
+  <div class="quiz-top">
+    <button type="button" id="homeBtn" class="quiz-icon-btn home-btn" aria-label="Home">
+      <span class="quiz-icon-circle home-icon"><i class="fa-solid fa-house"></i></span>
+    </button>
+
+    <div>
+      <h1 class="quiz-title">Join the dots 301 to 400 and colour the picture.</h1>
+    </div>
+
+    <button type="button" id="hintBtn" class="quiz-icon-btn hint-btn" aria-label="Hint">
+      <span class="quiz-icon-circle hint-icon"><i class="fa-solid fa-lightbulb"></i></span>
+    </button>
+  </div>
+
+  <div class="progress-row">
+    <div class="progress-pill" id="progressPill">Dot 301 of 400</div>
+  </div>
+
+  <div class="main-area">
+
+    <div class="canvas-area">
+      <svg id="birdSvg" viewBox="0 0 460 650" xmlns="http://www.w3.org/2000/svg">
+        <g id="regionsLayer"></g>
+        <g id="linesLayer"></g>
+        <g id="dotsLayer"></g>
+      </svg>
+    </div>
+
+    <div class="palette-panel locked" id="palettePanel">
+      <div class="palette-lock-overlay"><i class="fa-solid fa-lock"></i></div>
+      <div class="palette-title">Colours</div>
+      <div class="palette-grid" id="paletteGrid"></div>
+      <div class="palette-status" id="paletteStatus">Finish the dots first</div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- HINT -->
+<div class="hint-overlay" id="hintOverlay">
+  <div class="hint-box">
+    <h3>Hint</h3>
+    <p id="hintText"></p>
+    <button class="hint-close" id="closeHintBtn">Got it!</button>
+  </div>
+</div>
+
+<!-- FINAL POPUP -->
+<div id="finalPopup">
+  <div class="final-kid-box">
+    <h2>🎉 Great Job!</h2>
+    <p id="finalMsg">You finished the dot-to-dot and coloured the whole picture!</p>
+    <div id="stars">⭐⭐⭐</div>
+    <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   GEOMETRY: build the bird from simple regions.
+   Each region is a closed set of points. Points are sampled
+   evenly around/through each region and numbered 301-400 in
+   region order, so the dot-to-dot line IS the region outline
+   that later gets coloured in.
+   ========================================================= */
+
+function ellipsePoints(cx, cy, rx, ry, n, startDeg){
+  const pts = [];
+  for(let i=0;i<n;i++){
+    const a = (startDeg + i*(360/n)) * Math.PI/180;
+    pts.push([+(cx+rx*Math.cos(a)).toFixed(1), +(cy+ry*Math.sin(a)).toFixed(1)]);
+  }
+  return pts;
+}
+
+const REGIONS = {
+  body:  ellipsePoints(230, 380, 115, 150, 20, -90),
+  head:  ellipsePoints(210, 170, 78, 78, 14, -90),
+  comb:  [[165,110],[150,50],[178,105],[195,25],[215,100],[238,30],[258,102],[270,55],[255,112],[210,115]],
+  eye:   ellipsePoints(245, 150, 20, 20, 4, -90),
+  beak:  [[280,165],[335,158],[350,180],[305,205],[275,208],[272,182]],
+  tongue:[[292,188],[315,188],[302,205]],
+  wingL: [[165,255],[125,270],[95,315],[85,370],[100,420],[130,450],[155,410],[150,340],[145,290]],
+  wingR: [[300,300],[340,310],[360,350],[358,400],[338,440],[305,435],[295,390],[300,345],[295,320]],
+  legL:  [[195,500],[210,500],[214,555],[228,570],[213,578],[197,568],[188,555],[185,520]],
+  legR:  [[260,500],[275,500],[280,520],[277,555],[293,568],[278,578],[262,570],[258,555]],
+  tail:  [[190,480],[150,505],[165,525],[115,545],[135,560],[90,585],[120,590],[150,575],[180,540]]
+};
+
+const REGION_ORDER = ['body','head','comb','eye','beak','tongue','wingL','wingR','legL','legR','tail'];
+
+const REGION_NAMES = {
+  body:'Body', head:'Head', comb:'Comb', eye:'Eye', beak:'Beak', tongue:'Tongue',
+  wingL:'Left Wing', wingR:'Right Wing', legL:'Left Leg', legR:'Right Leg', tail:'Tail Feathers'
+};
+
+const REGION_COLORS = {
+  body:'#FFD966', head:'#FFD966', comb:'#FF6B81', eye:'#222222', beak:'#FFA94D',
+  tongue:'#FF8FA3', wingL:'#F4A73B', wingR:'#F4A73B', legL:'#FFC078', legR:'#FFC078', tail:'#C1732F'
+};
+
+const PALETTE = [
+  {name:'Sunny Yellow', color:'#FFD966'},
+  {name:'Blush Red',    color:'#FF6B81'},
+  {name:'Tangerine',    color:'#FFA94D'},
+  {name:'Petal Pink',   color:'#FF8FA3'},
+  {name:'Soft Orange',  color:'#FFC078'},
+  {name:'Amber Gold',   color:'#F4A73B'},
+  {name:'Cocoa Brown',  color:'#C1732F'},
+  {name:'Midnight',     color:'#222222'}
+];
+
+const FIRST_DOT = 301, LAST_DOT = 400, TOTAL_REGIONS = REGION_ORDER.length;
+
+/* build dotsMap: num -> {x,y,region} */
+const dotsMap = {};
+(function buildDots(){
+  let num = FIRST_DOT;
+  REGION_ORDER.forEach(key=>{
+    REGIONS[key].forEach(p=>{
+      dotsMap[num] = {x:p[0], y:p[1], region:key};
+      num++;
+    });
+  });
+})();
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let currentTarget = FIRST_DOT;
+let phase = 'dots'; // 'dots' | 'coloring'
+let selectedColor = null;
+let completedRegions = 0;
+const regionDone = {};
+REGION_ORDER.forEach(k => regionDone[k] = false);
+
+/* =========================================================
+   AUDIO (self-contained, no external files)
+   ========================================================= */
+let audioCtx = null;
+function ensureAudio(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playTone(freq, dur=0.15, type='sine', vol=0.2, delay=0){
+  try{
+    ensureAudio();
+    const t0 = audioCtx.currentTime + delay;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(vol, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }catch(e){/* audio not available, ignore */}
+}
+function playCorrect(){ playTone(880,0.1,'sine',0.18); playTone(1175,0.14,'sine',0.16,0.09); }
+function playWrong(){ playTone(190,0.22,'sawtooth',0.13); }
+function playUnlock(){ [660,880,1046].forEach((f,i)=>playTone(f,0.16,'triangle',0.15,i*0.1)); }
+function playFinalJingle(){ [523,659,784,1046,1318].forEach((f,i)=>playTone(f,0.2,'sine',0.2,i*0.13)); }
+
+/* =========================================================
+   BUILD SVG
+   ========================================================= */
+const svgNS = 'http://www.w3.org/2000/svg';
+const regionsLayer = document.getElementById('regionsLayer');
+const linesLayer = document.getElementById('linesLayer');
+const dotsLayer = document.getElementById('dotsLayer');
+
+function pointsToStr(arr){ return arr.map(p=>p[0]+','+p[1]).join(' '); }
+
+REGION_ORDER.forEach(key=>{
+  const poly = document.createElementNS(svgNS,'polygon');
+  poly.setAttribute('points', pointsToStr(REGIONS[key]));
+  poly.setAttribute('class','region-fill');
+  poly.setAttribute('id','region-'+key);
+  poly.dataset.expected = REGION_COLORS[key];
+  poly.dataset.region = key;
+  poly.style.pointerEvents = 'none';
+  poly.addEventListener('click', ()=> onRegionTap(poly));
+  regionsLayer.appendChild(poly);
+});
+
+function centroid(arr){
+  let x=0,y=0;
+  arr.forEach(p=>{x+=p[0];y+=p[1];});
+  return [x/arr.length, y/arr.length];
+}
+const regionCentroids = {};
+REGION_ORDER.forEach(k=> regionCentroids[k] = centroid(REGIONS[k]));
+
+/* Offset each dot's number OUTWARD along the local edge normal (not just
+   toward the region centroid) so labels on zig-zag shapes like the comb
+   and tail don't stack on top of each other. Even/odd dots get a slightly
+   different distance so tightly-packed numbers stagger apart. */
+function outwardOffset(arr, i, dist){
+  const n = arr.length;
+  const prev = arr[(i - 1 + n) % n];
+  const next = arr[(i + 1) % n];
+  let nx = -(next[1] - prev[1]);
+  let ny = (next[0] - prev[0]);
+  const len = Math.hypot(nx, ny) || 1;
+  nx /= len; ny /= len;
+  const c = centroid(arr);
+  const toX = arr[i][0] - c[0], toY = arr[i][1] - c[1];
+  if (nx * toX + ny * toY < 0) { nx = -nx; ny = -ny; }
+  return [arr[i][0] + nx * dist, arr[i][1] + ny * dist];
+}
+
+for(let num = FIRST_DOT; num <= LAST_DOT; num++){
+  const d = dotsMap[num];
+  const arr = REGIONS[d.region];
+  const idx = arr.findIndex(p => p[0] === d.x && p[1] === d.y);
+  const dist = 15 + (idx % 2 ? 6 : 0);
+  const [ox, oy] = outwardOffset(arr, idx, dist);
+
+  const g = document.createElementNS(svgNS,'g');
+  g.setAttribute('class','dot');
+  g.dataset.num = num;
+
+  const hit = document.createElementNS(svgNS,'circle');
+  hit.setAttribute('class','dot-hit');
+  hit.setAttribute('cx', d.x); hit.setAttribute('cy', d.y); hit.setAttribute('r', 13);
+
+  const vis = document.createElementNS(svgNS,'circle');
+  vis.setAttribute('class','dot-visible');
+  vis.setAttribute('cx', d.x); vis.setAttribute('cy', d.y); vis.setAttribute('r', 4.2);
+
+  const txt = document.createElementNS(svgNS,'text');
+  txt.setAttribute('class','dot-num');
+  txt.setAttribute('x', ox); txt.setAttribute('y', oy);
+  txt.textContent = num;
+
+  g.appendChild(hit); g.appendChild(vis); g.appendChild(txt);
+  g.addEventListener('click', ()=> onDotTap(num, g));
+  dotsLayer.appendChild(g);
+}
+
+/* =========================================================
+   DOT-TO-DOT LOGIC
+   ========================================================= */
+const progressPill = document.getElementById('progressPill');
+
+function updateProgress(){
+  const shown = Math.min(currentTarget, LAST_DOT);
+  progressPill.textContent = 'Dot ' + shown + ' of ' + LAST_DOT;
+  if(currentTarget > LAST_DOT){
+    progressPill.textContent = LAST_DOT + ' / ' + LAST_DOT + ' \u2713';
+    progressPill.classList.add('done');
+  }
+}
+updateProgress();
+
+function shakeEl(el){
+  el.classList.remove('shake'); void el.getBBox && el.getBBox();
+  el.classList.add('shake');
+  setTimeout(()=> el.classList.remove('shake'), 400);
+}
+
+function onDotTap(num, g){
+  if(phase !== 'dots') return;
+  if(num < currentTarget) return; // already completed, ignore
+  if(num > currentTarget){
+    g.classList.add('wrong-flash');
+    shakeEl(g);
+    playWrong();
+    setTimeout(()=> g.classList.remove('wrong-flash'), 400);
+    return;
+  }
+  // correct dot
+  g.classList.add('done');
+  g.classList.remove('hint-pulse');
+  if(currentTarget > FIRST_DOT){
+    drawLine(currentTarget - 1, currentTarget);
+  }
+  playCorrect();
+  currentTarget++;
+  updateProgress();
+  if(currentTarget > LAST_DOT){
+    setTimeout(completeDotToDot, 350);
+  }
+}
+
+function drawLine(fromNum, toNum){
+  const a = dotsMap[fromNum], b = dotsMap[toNum];
+  const line = document.createElementNS(svgNS,'line');
+  line.setAttribute('class','stitch-line');
+  line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+  line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+  linesLayer.appendChild(line);
+}
+
+function completeDotToDot(){
+  phase = 'coloring';
+  dotsLayer.classList.add('solved');
+  regionsLayer.classList.add('ready');
+  REGION_ORDER.forEach(key=>{
+    document.getElementById('region-'+key).style.pointerEvents = 'auto';
+  });
+  const panel = document.getElementById('palettePanel');
+  panel.classList.remove('locked');
+  panel.classList.add('unlock-bounce');
+  setTimeout(()=> panel.classList.remove('unlock-bounce'), 550);
+  document.getElementById('paletteStatus').textContent = '0 / ' + TOTAL_REGIONS + ' coloured';
+  playUnlock();
+}
+
+/* =========================================================
+   COLORING LOGIC
+   ========================================================= */
+const paletteGrid = document.getElementById('paletteGrid');
+const paletteStatus = document.getElementById('paletteStatus');
+
+PALETTE.forEach(entry=>{
+  const sw = document.createElement('button');
+  sw.type = 'button';
+  sw.className = 'swatch';
+  sw.style.background = entry.color;
+  sw.dataset.color = entry.color;
+  sw.dataset.name = entry.name;
+  sw.setAttribute('aria-label', entry.name);
+  paletteGrid.appendChild(sw);
+
+  let dragging = false, moved = false, startX = 0, startY = 0, ghost = null;
+
+  sw.addEventListener('pointerdown', e=>{
+    if(phase !== 'coloring') return;
+    dragging = true; moved = false;
+    startX = e.clientX; startY = e.clientY;
+    sw.setPointerCapture(e.pointerId);
+  });
+
+  sw.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if(Math.hypot(dx,dy) > 6){
+      moved = true;
+      if(!ghost){
+        ghost = document.createElement('div');
+        ghost.className = 'drag-ghost';
+        ghost.style.background = entry.color;
+        document.body.appendChild(ghost);
+      }
+      ghost.style.left = e.clientX + 'px';
+      ghost.style.top = e.clientY + 'px';
+    }
+  });
+
+  sw.addEventListener('pointerup', e=>{
+    if(!dragging) return;
+    dragging = false;
+    if(moved && ghost){
+      const target = document.elementFromPoint(e.clientX, e.clientY);
+      if(target && target.classList.contains('region-fill')){
+        applyColor(target, entry.color);
+      }
+      ghost.remove(); ghost = null;
+    } else {
+      selectColor(entry.color, sw);
+    }
+    moved = false;
+  });
+
+  sw.addEventListener('pointercancel', ()=>{
+    dragging = false; moved = false;
+    if(ghost){ ghost.remove(); ghost = null; }
+  });
+});
+
+function selectColor(color, swatchEl){
+  selectedColor = color;
+  document.querySelectorAll('.swatch').forEach(s=> s.classList.remove('selected'));
+  swatchEl.classList.add('selected');
+}
+
+function onRegionTap(poly){
+  if(phase !== 'coloring') return;
+  if(poly.classList.contains('region-done')) return;
+  if(!selectedColor){
+    shakeEl(poly);
+    return;
+  }
+  applyColor(poly, selectedColor);
+}
+
+function applyColor(poly, color){
+  if(poly.classList.contains('region-done')) return;
+  const expected = poly.dataset.expected;
+  if(color.toLowerCase() === expected.toLowerCase()){
+    poly.setAttribute('fill', color);
+    poly.classList.add('region-done','flash-success');
+    setTimeout(()=> poly.classList.remove('flash-success'), 550);
+    playCorrect();
+    regionDone[poly.dataset.region] = true;
+    completedRegions++;
+    paletteStatus.textContent = completedRegions + ' / ' + TOTAL_REGIONS + ' coloured';
+    if(completedRegions >= TOTAL_REGIONS){
+      setTimeout(triggerFinalCelebration, 500);
+    }
+  } else {
+    poly.classList.add('wrong-flash');
+    shakeEl(poly);
+    playWrong();
+    setTimeout(()=> poly.classList.remove('wrong-flash'), 400);
+  }
+}
+
+/* =========================================================
+   FINAL CELEBRATION
+   ========================================================= */
+function triggerFinalCelebration(){
+  playFinalJingle();
+  if(window.confetti){
+    confetti({particleCount:150, spread:100, origin:{y:.5}});
+    setTimeout(()=> confetti({particleCount:100, spread:70, origin:{y:.6}}), 300);
+  }
+  document.getElementById('finalPopup').classList.add('show');
+}
+
+/* =========================================================
+   HINT
+   ========================================================= */
+const hintOverlay = document.getElementById('hintOverlay');
+const hintText = document.getElementById('hintText');
+
+document.getElementById('hintBtn').addEventListener('click', ()=>{
+  document.querySelectorAll('.hint-pulse').forEach(el=> el.classList.remove('hint-pulse'));
+
+  if(phase === 'dots'){
+    const target = Math.min(currentTarget, LAST_DOT);
+    hintText.innerHTML = 'Look for dot number <b>' + target + '</b> next!';
+    const g = dotsLayer.querySelector('[data-num="'+target+'"]');
+    if(g) g.classList.add('hint-pulse');
+  } else {
+    const nextKey = REGION_ORDER.find(k=> !regionDone[k]);
+    if(!nextKey){
+      hintText.textContent = 'You\'ve coloured the whole picture!';
+    } else {
+      const color = REGION_COLORS[nextKey];
+      const paletteEntry = PALETTE.find(p=> p.color.toLowerCase() === color.toLowerCase());
+      const colorName = paletteEntry ? paletteEntry.name : 'this colour';
+      hintText.innerHTML = 'Try colouring the <b>' + REGION_NAMES[nextKey] + '</b> with ' + colorName +
+        '<span class="hint-swatch" style="background:' + color + '"></span>';
+      const poly = document.getElementById('region-'+nextKey);
+      if(poly) poly.classList.add('hint-pulse');
+    }
+  }
+  hintOverlay.classList.add('show');
+});
+
+document.getElementById('closeHintBtn').addEventListener('click', ()=>{
+  hintOverlay.classList.remove('show');
+});
+hintOverlay.addEventListener('click', e=>{
+  if(e.target === hintOverlay) hintOverlay.classList.remove('show');
+});
+
+/* =========================================================
+   HOME
+   ========================================================= */
+document.getElementById('homeBtn').addEventListener('click', ()=>{
+  window.location.href = "../Grade2_chapter2.html";
+});
+</script>
+
+</body>
+</html>

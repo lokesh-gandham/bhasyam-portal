@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subtraction Adventure</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/shared/quiz-ui.css">
+  <link rel="stylesheet" href="../assets/shared/grade3-chapter1.css">
+  <script src="../assets/shared/quiz-ui.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Livvic', sans-serif;
+      font-weight: 400;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+      color: #29223d;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background:
+        radial-gradient(circle at 5% 10%, rgba(247, 185, 229, .48) 0 7%, transparent 19%),
+        radial-gradient(circle at 98% 17%, rgba(255, 224, 175, .48) 0 7%, transparent 18%),
+        radial-gradient(circle at 7% 92%, rgba(204, 188, 247, .42) 0 9%, transparent 22%),
+        radial-gradient(circle at 95% 94%, rgba(186, 222, 249, .42) 0 9%, transparent 22%),
+        linear-gradient(135deg, #fffaff 0%, #f8f7ff 48%, #f4fbff 100%);
+    }
+
+    .page {
+      width: min(1180px, 100%);
+      padding: clamp(28px, 4vw, 52px) 24px 35px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* =========================
+       HEADER
+    ========================== */
+
+    .heading {
+      text-align: center;
+      margin-bottom: clamp(30px, 4vw, 48px);
+      position: relative;
+      z-index: 2;
+    }
+
+    .heading h1 {
+      color: #5521d4;
+      font-size: clamp(40px, 5.8vw, 58px);
+      font-weight: 800;
+      line-height: .95;
+      letter-spacing: .2px;
+      text-shadow: 0 7px 15px rgba(83, 35, 194, .13);
+      display: none;
+    }
+
+    .heading h2 {
+      margin-top: 12px;
+      color: #1a2547;
+      font-size: clamp(23px, 3vw, 38px);
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    @media screen and (min-width: 1025px) and (max-width: 1440px) {
+      .heading h1 {
+        font-size: 30px;
+      }
+    }
+
+    @media screen and (min-width: 1441px) {
+      .heading h1 {
+        font-size: 40px;
+      }
+    }
+
+    /* =========================
+       QUIZ AREA
+    ========================== */
+
+    .quiz-grid {
+      width: min(1080px, 100%);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 80px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .quiz-card {
+      width: min(390px, 100%);
+      aspect-ratio: 1;
+      justify-self: center;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+      cursor: pointer;
+
+      border: 8px solid rgba(255, 255, 255, .96);
+
+      box-shadow:
+        0 24px 40px -17px rgba(69, 52, 119, .25),
+        0 8px 18px rgba(69, 52, 119, .08),
+        inset 0 0 35px rgba(255, 255, 255, .30);
+
+      transition:
+        transform .38s cubic-bezier(.34, 1.56, .64, 1),
+        box-shadow .3s ease;
+    }
+
+    /* Same size + different soft pastel colors */
+    .quiz-card.pink {
+      background:
+        radial-gradient(circle at 50% 35%, rgba(255, 255, 255, .46), transparent 30%),
+        linear-gradient(145deg, #fff1f8 0%, #ffdff0 55%, #f8c8e1 100%);
+      border-color: #fff;
+    }
+
+    .quiz-card.blue {
+      background:
+        radial-gradient(circle at 50% 35%, rgba(255, 255, 255, .50), transparent 30%),
+        linear-gradient(145deg, #eefaff 0%, #d9efff 55%, #c5e4fa 100%);
+      border-color: #fff;
+    }
+
+    .quiz-card:hover {
+      transform: translateY(-10px) scale(1.025);
+      box-shadow:
+        0 34px 50px -18px rgba(69, 52, 119, .32),
+        0 10px 22px rgba(69, 52, 119, .09),
+        inset 0 0 35px rgba(255, 255, 255, .40);
+    }
+
+    .quiz-card.active {
+      transform: translateY(-8px) scale(1.035);
+    }
+
+    /* subtle curved highlight at bottom */
+    .quiz-card::after {
+      content: "";
+      position: absolute;
+      width: 125%;
+      height: 38%;
+      left: -12%;
+      bottom: -18%;
+      border-radius: 50% 50% 0 0;
+      background: rgba(255, 255, 255, .20);
+      pointer-events: none;
+    }
+
+    /* =========================
+       ICONS
+    ========================== */
+
+    .icon-wrap {
+      width: 102px;
+      height: 102px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+      margin-bottom: 14px;
+      animation: gentleFloat 3.2s ease-in-out infinite;
+    }
+
+    .blue .icon-wrap {
+      animation-delay: -.9s;
+    }
+
+    @keyframes gentleFloat {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(-2deg);
+      }
+
+      50% {
+        transform: translateY(-7px) rotate(2deg);
+      }
+    }
+
+    /* Pencil icon */
+    .pencil {
+      width: 34px;
+      height: 105px;
+      border-radius: 11px 11px 7px 7px;
+      background: linear-gradient(90deg, #ffb900, #ffc92e 55%, #f7a900);
+      transform: rotate(38deg);
+      position: relative;
+      box-shadow: 0 10px 17px rgba(192, 128, 0, .22);
+    }
+
+    .pencil::before {
+      content: "";
+      position: absolute;
+      top: -23px;
+      left: 0;
+      border-left: 17px solid transparent;
+      border-right: 17px solid transparent;
+      border-bottom: 24px solid #f3d2ad;
+    }
+
+    .pencil::after {
+      content: "";
+      position: absolute;
+      top: -23px;
+      left: 11px;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 9px solid #383042;
+    }
+
+    .pencil-rubber {
+      position: absolute;
+      bottom: -9px;
+      left: -2px;
+      width: 38px;
+      height: 17px;
+      border-radius: 5px;
+      background: #ee82a9;
+      box-shadow: inset 0 -3px rgba(190, 80, 120, .14);
+    }
+
+    .pencil-band {
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      width: 34px;
+      height: 7px;
+      background: #bfc3d6;
+    }
+
+    /* Number tiles icon */
+    .number-icon {
+      width: 100px;
+      height: 80px;
+      position: relative;
+    }
+
+    .tile {
+      position: absolute;
+      width: 62px;
+      height: 57px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 29px;
+      box-shadow:
+        0 9px 15px rgba(66, 80, 145, .16),
+        inset 0 2px rgba(255, 255, 255, .35);
+    }
+
+    .tile.minus {
+      left: 7px;
+      top: 4px;
+      background: #f286ae;
+      transform: rotate(-8deg);
+    }
+
+    .tile.equals {
+      right: 5px;
+      bottom: 5px;
+      background: #8669db;
+      transform: rotate(7deg);
+    }
+
+    .tile.minus::after {
+      content: "−";
+    }
+
+    .tile.equals::after {
+      content: "=";
+    }
+
+    /* =========================
+       CARD TEXT
+    ========================== */
+
+    .quiz-card h3 {
+      position: relative;
+      z-index: 3;
+      color: #2f2742;
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 600;
+      line-height: 1.08;
+      max-width: 330px;
+    }
+
+    .pink h3 {
+      color: #c82c70;
+    }
+
+    .blue h3 {
+      color: #287ac4;
+    }
+
+    .start-btn {
+      position: relative;
+      z-index: 4;
+      margin-top: 22px;
+      min-width: 190px;
+      padding: 13px 23px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: #fff;
+      color: #241e31;
+      text-decoration: none;
+      font-size: 19px;
+      font-weight: 800;
+      box-shadow:
+        0 10px 18px -10px rgba(57, 38, 105, .35),
+        0 2px 4px rgba(57, 38, 105, .06);
+      transition: transform .18s ease, box-shadow .2s ease;
+    }
+
+    .start-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow:
+        0 14px 22px -10px rgba(57, 38, 105, .40);
+    }
+
+    .start-btn:active {
+      transform: scale(.98);
+    }
+
+    .start-btn span {
+      font-size: 25px;
+      line-height: 1;
+    }
+
+    /* =========================
+       QUIZ OVERLAY
+    ========================== */
+
+    .quiz-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      background: #fff;
+    }
+
+    .quiz-overlay.active {
+      display: block;
+      animation: overlayIn .28s ease;
+    }
+
+    @keyframes overlayIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .quiz-iframe {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 0;
+      background: #f4fffd;
+    }
+
+    .quiz-home-btn {
+      position: absolute;
+      z-index: 1001;
+      top: 18px;
+      right: 18px;
+      width: 54px;
+      height: 54px;
+      border: 0;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(145deg, #a77aff, #6a33d0);
+      box-shadow: 0 12px 22px -10px rgba(70, 30, 150, .5);
+      font-size: 20px;
+      cursor: pointer;
+      transition: transform .2s ease;
+    }
+
+    .quiz-home-btn:hover {
+      transform: scale(1.08);
+    }
+
+    /* =========================
+       RESPONSIVE
+    ========================== */
+
+    @media (max-width: 780px) {
+      body {
+        overflow-y: auto;
+      }
+
+      .page {
+        padding-top: 35px;
+      }
+
+      .quiz-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .quiz-card {
+        width: min(330px, 82vw);
+      }
+
+      .heading {
+        margin-bottom: 28px;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .page {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .heading h1 {
+        font-size: 39px;
+      }
+
+      .heading h2 {
+        font-size: 22px;
+      }
+
+      .quiz-card {
+        width: 290px;
+        border-width: 7px;
+        padding: 40px 28px;
+      }
+
+      .icon-wrap {
+        transform: scale(.82);
+        margin-bottom: 3px;
+      }
+
+      .quiz-card h3 {
+        font-size: 23px;
+      }
+
+      .start-btn {
+        min-width: 160px;
+        font-size: 16px;
+        padding: 11px 18px;
+        margin-top: 15px;
+      }
+
+      .quiz-home-btn {
+        width: 46px;
+        height: 46px;
+        top: 12px;
+        right: 12px;
+      }
+    }
+
+
+    /* =========================
+       MONITOR RESPONSIVE ONLY
+       Keeps the original desktop/laptop look.
+    ========================== */
+
+    @media screen and (min-width: 1025px) and (max-width: 1440px) {
+      .page {
+        width: min(1180px, 100%);
+        margin: 0 auto;
+      }
+
+      .quiz-grid {
+        width: min(980px, 100%);
+        grid-template-columns: repeat(2, minmax(0, 410px));
+        justify-content: center;
+        gap: 80px;
+        margin: 0 auto;
+      }
+
+      .quiz-card {
+        width: 410px;
+      }
+    }
+
+    @media screen and (min-width: 1441px) and (max-width: 1920px) {
+      .page {
+        width: min(1240px, 100%);
+        margin: 0 auto;
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .quiz-grid {
+        width: min(1080px, 100%);
+        grid-template-columns: repeat(2, 440px);
+        justify-content: center;
+        gap: 80px;
+        margin: 0 auto;
+      }
+
+      .quiz-card {
+        width: 440px;
+      }
+    }
+
+    @media screen and (min-width: 1921px) {
+      .page {
+        width: min(1320px, 100%);
+        margin: 0 auto;
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .quiz-grid {
+        width: min(1160px, 100%);
+        grid-template-columns: repeat(2, 470px);
+        justify-content: center;
+        gap: 100px;
+        margin: 0 auto;
+      }
+
+      .quiz-card {
+        width: 470px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .icon-wrap,
+      .quiz-card,
+      .quiz-overlay,
+      .start-btn {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+
+    <header class="heading">
+      <h1>Subtraction Adventure</h1>
+      <h2>Choose an Activity, Start the Quest</h2>
+    </header>
+
+    <section class="quiz-grid" aria-label="Subtraction quizzes">
+
+      <!-- Fill in the Boxes -->
+      <article class="quiz-card pink" tabindex="0" aria-label="Fill in the Boxes quiz">
+        <div class="icon-wrap" aria-hidden="true">
+          <div class="pencil">
+            <span class="pencil-band"></span>
+            <span class="pencil-rubber"></span>
+          </div>
+        </div>
+
+        <h3>Fill in<br>the Boxes</h3>
+
+        <a class="start-btn" href="./exercises/FTB.html" data-href="./exercises/FTB.html">
+          Play <span>▶</span>
+        </a>
+      </article>
+
+      <!-- Match the Following -->
+      <article class="quiz-card blue" tabindex="0" aria-label="Match the Following quiz">
+        <div class="icon-wrap" aria-hidden="true">
+          <div class="number-icon">
+            <div class="tile minus"></div>
+            <div class="tile equals"></div>
+          </div>
+        </div>
+
+        <h3>Match the<br>Following</h3>
+
+        <a class="start-btn" href="./exercises/matching.html" data-href="./exercises/matching.html">
+         Play <span>▶</span>
+        </a>
+      </article>
+
+    </section>
+  </main>
+
+  <!-- Full-screen quiz -->
+  <div class="quiz-overlay" id="quizOverlay">
+    <button class="quiz-home-btn" id="quizHomeBtn" aria-label="Back to quizzes">
+      <i class="fa-solid fa-house"></i>
+    </button>
+    <iframe class="quiz-iframe" id="quizFrame" title="Quiz" src="about:blank"></iframe>
+  </div>
+
+  <script>
+    const overlay = document.getElementById("quizOverlay");
+    const frame = document.getElementById("quizFrame");
+    const home = document.getElementById("quizHomeBtn");
+
+    document.querySelectorAll(".start-btn").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+
+        const card = button.closest(".quiz-card");
+        card.classList.remove("active");
+        void card.offsetWidth;
+        card.classList.add("active");
+
+        setTimeout(() => {
+          frame.src = button.dataset.href;
+          overlay.classList.add("active");
+          document.body.style.overflow = "hidden";
+        }, 180);
+      });
+    });
+
+    document.querySelectorAll(".quiz-card").forEach((card) => {
+      card.addEventListener("click", (event) => {
+        if (!event.target.closest(".start-btn")) {
+          document.querySelectorAll(".quiz-card").forEach(c => c.classList.remove("active"));
+          card.classList.add("active");
+        }
+      });
+
+      card.addEventListener("keydown", (event) => {
+        if ((event.key === "Enter" || event.key === " ") &&
+          !event.target.closest(".start-btn")) {
+          event.preventDefault();
+          card.querySelector(".start-btn").click();
+        }
+      });
+    });
+
+    function closeQuiz() {
+      overlay.classList.remove("active");
+      frame.src = "about:blank";
+      document.body.style.overflow = "";
+    }
+
+    home.addEventListener("click", closeQuiz);
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && overlay.classList.contains("active")) {
+        closeQuiz();
+      }
+    });
+  </script>
+</body>
+
+</html>

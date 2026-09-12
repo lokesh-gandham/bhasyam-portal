@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Join the dots 301 to 400 and colour the picture</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#fffdf0;font-family:Arial,Helvetica,sans-serif;color:#111;}
+.page{width:min(900px,96vw);margin:16px auto}
+h1{font-size:clamp(17px,2.2vw,25px);margin:0 0 12px;font-weight:700}
+.board{position:relative;width:100%;aspect-ratio:630/736;background:#fff;border:2px solid #555;border-radius:9px;overflow:hidden;touch-action:none}
+#dotImage{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;user-select:none}
+svg{position:absolute;inset:0;width:100%;height:100%}
+#lines{pointer-events:none}
+.target{fill:transparent;stroke:transparent;pointer-events:all;cursor:pointer}
+.target.active{fill:rgba(0,164,90,.18);stroke:#00a45a;stroke-width:2}
+.target.wrong{animation:wrong .28s}
+@keyframes wrong{0%{fill:rgba(220,30,30,.55)}100%{fill:transparent}}
+.num-bg{fill:white;fill-opacity:.92;pointer-events:none}
+.num{font:700 10px Arial,sans-serif;fill:#111;stroke:white;stroke-width:2.5px;paint-order:stroke fill;pointer-events:none}
+.num.active{fill:#008c4b;font-size:12px}
+.dot{fill:#111;pointer-events:none}
+.controls{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px}
+button{border:0;border-radius:9px;padding:10px 18px;font-weight:700;font-size:16px;cursor:pointer}
+#reset,#startColoring,#playAgain{background:#05a85d;color:#fff}
+.counter{min-width:140px;text-align:center;padding:9px 14px;border-radius:9px;background:#eef9f1;border:1px solid #9dddb5;font-weight:700}
+.popupLayer{position:absolute;inset:0;z-index:10;display:none;align-items:center;justify-content:center;background:rgba(255,255,255,.76)}
+.popupLayer.show{display:flex}
+.popup{background:#fff;border:2px solid #05a85d;border-radius:16px;padding:24px 28px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.popup h2{margin:0 0 8px;font-size:28px}
+.popup p{margin:0 0 16px}
+#colorStage{position:absolute;inset:0;z-index:20;display:none;background:#fff}
+#colorStage.show{display:block}
+#colorCanvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+#answerImage{display:none}
+.instructions{position:absolute;top:9px;left:50%;transform:translateX(-50%);z-index:25;background:rgba(255,255,255,.95);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700;white-space:nowrap}
+#colorStatus{position:absolute;top:9px;right:9px;z-index:25;background:rgba(255,255,255,.95);border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700}
+.palette{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:25;display:flex;gap:8px;align-items:center;padding:8px 10px;background:rgba(255,255,255,.97);border:1px solid #aaa;border-radius:12px;box-shadow:0 3px 12px rgba(0,0,0,.18)}
+.swatch{width:30px;height:30px;border-radius:50%;border:2px solid #777;cursor:grab;touch-action:none}
+.swatch.selected{outline:3px solid #111;outline-offset:2px}
+@media(max-width:520px){
+ body{padding:0}.page{width:96vw;margin:10px auto}h1{font-size:17px}
+ .num{font-size:8px}.num.active{font-size:10px}
+ .instructions{font-size:10px;top:6px}.palette{gap:5px;padding:6px 7px;bottom:6px}
+ .swatch{width:24px;height:24px}button,.counter{font-size:14px;padding:8px 12px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<h1>2. Join the dots 301 to 400 and colour the picture.</h1>
+
+<div class="board" id="board">
+  <img id="dotImage" src="line_art_board.png" alt="">
+  <svg id="dotSvg" viewBox="0 0 630 736" preserveAspectRatio="none">
+    <g id="lines" fill="none" stroke="#111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></g>
+    <g id="targets"></g>
+    <g id="labels"></g>
+  </svg>
+
+  <div class="popupLayer" id="success">
+    <div class="popup">
+      <h2>Great job!</h2>
+      <p>You joined all the dots from 301 to 400.</p>
+      <button id="startColoring">Start Coloring</button>
+    </div>
+  </div>
+
+  <div id="colorStage">
+    <canvas id="colorCanvas"></canvas>
+    <img id="answerImage" src="colored_reference.png" alt="">
+    <div class="instructions">Drag a colour onto a picture area</div>
+    <div id="colorStatus">0 coloured</div>
+    <div class="palette" id="palette">
+      <div class="swatch" draggable="true" data-color="#83d3f5" style="background:#83d3f5" title="Sky blue"></div>
+      <div class="swatch" draggable="true" data-color="#1979e8" style="background:#1979e8" title="Blue"></div>
+      <div class="swatch" draggable="true" data-color="#ffd21f" style="background:#ffd21f" title="Yellow"></div>
+      <div class="swatch" draggable="true" data-color="#55bf35" style="background:#55bf35" title="Green"></div>
+      <div class="swatch" draggable="true" data-color="#f23832" style="background:#f23832" title="Red"></div>
+      <div class="swatch" draggable="true" data-color="#f6a21a" style="background:#f6a21a" title="Orange"></div>
+    </div>
+    <div class="popupLayer" id="colorDone">
+      <div class="popup">
+        <h2>Excellent!</h2>
+        <p>The picture is coloured correctly.</p>
+        <button id="playAgain">Play Again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button id="reset">↻ Reset</button>
+  <div class="counter" id="counter">301 / 400</div>
+</div>
+</div>
+
+<script>
+const P={"301":[151.0,13.0],"302":[163.34,39.34],"303":[125.34,30.66],"304":[91.0,25.0],"305":[64.0,49.0],"306":[82.0,73.0],"307":[103.0,97.0],"308":[103.0,122.0],"309":[76.66,123.34],"310":[59.34,139.34],"311":[65.0,161.0],"312":[78.66,172.66],"313":[96.0,183.0],"314":[92.66,205.34],"315":[73.0,218.0],"316":[61.0,239.0],"317":[86.0,257.0],"318":[111.0,294.0],"319":[106.66,312.66],"320":[115.34,333.34],"321":[129.0,385.0],"322":[121.0,413.0],"323":[104.0,426.0],"324":[116.66,442.66],"325":[93.0,460.0],"326":[67.34,472.66],"327":[41.0,499.0],"328":[26.0,529.0],"329":[23.34,549.34],"330":[31.34,575.34],"331":[51.0,593.0],"332":[59.0,622.0],"333":[92.0,641.0],"334":[110.66,638.66],"335":[131.0,646.0],"336":[145.0,666.0],"337":[170.0,657.0],"338":[194.0,666.0],"339":[219.0,679.0],"340":[252.0,683.0],"341":[273.0,666.0],"342":[277.0,638.0],"343":[275.0,609.0],"344":[272.66,581.34],"345":[271.0,561.0],"346":[319.0,564.0],"347":[296.0,517.0],"348":[300.0,502.0],"349":[360.66,456.66],"350":[352.0,442.0],"351":[380.0,451.0],"352":[374.0,420.0],"353":[370.0,414.0],"354":[426.0,391.0],"355":[440.66,371.34],"356":[445.0,350.0],"357":[446.0,311.0],"358":[474.0,303.0],"359":[490.0,281.0],"360":[479.34,270.66],"361":[485.34,251.34],"362":[489.34,232.66],"363":[508.0,219.0],"364":[533.0,210.0],"365":[551.0,203.0],"366":[545.0,180.0],"367":[526.0,148.0],"368":[551.0,137.0],"369":[567.0,110.0],"370":[544.66,92.66],"371":[525.34,75.34],"372":[553.0,55.0],"373":[563.0,34.0],"374":[556.66,16.66],"375":[537.0,0.0],"376":[513.0,21.0],"377":[434.66,15.34],"378":[399.34,46.66],"379":[380.0,83.0],"380":[363.0,117.0],"381":[343.0,158.0],"382":[350.0,196.0],"383":[323.0,212.0],"384":[301.0,191.0],"385":[302.66,164.66],"386":[297.0,133.0],"387":[287.0,98.0],"388":[269.34,68.66],"389":[235.0,22.0],"390":[207.34,3.34],"391":[129.34,116.66],"392":[123.34,200.66],"393":[131.34,259.34],"394":[135.34,275.34],"395":[167.0,264.0],"396":[249.0,313.0],"397":[322.0,347.0],"398":[506.0,183.0],"399":[124.0,496.0],"400":[126.0,618.0]};
+const START=301, END=400, HIT=11;
+const svg=document.querySelector("#dotSvg");
+const lines=document.querySelector("#lines");
+const targets=document.querySelector("#targets");
+const labels=document.querySelector("#labels");
+const counter=document.querySelector("#counter");
+const success=document.querySelector("#success");
+const dotImage=document.querySelector("#dotImage");
+
+let next=START, previous=null;
+
+function el(tag,attrs={}){
+  const x=document.createElementNS("http://www.w3.org/2000/svg",tag);
+  for(const [k,v] of Object.entries(attrs)) x.setAttribute(k,v);
+  return x;
+}
+function draw(a,b){
+  lines.appendChild(el("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1]}));
+}
+function refresh(){
+  counter.textContent=next<=END?`${next} / 400`:"400 / 400";
+  document.querySelectorAll(".target").forEach(t=>t.classList.toggle("active",+t.dataset.n===next));
+  document.querySelectorAll(".num").forEach(t=>t.classList.toggle("active",+t.dataset.n===next));
+}
+function connect(n,t){
+  if(n!==next){
+    t.classList.remove("wrong"); void t.offsetWidth; t.classList.add("wrong"); return;
+  }
+  const p=P[n];
+  if(previous) draw(previous,p);
+  previous=p;
+  next++;
+  refresh();
+  if(next>END) success.classList.add("show");
+}
+function build(){
+  for(let n=START;n<=END;n++){
+    const p=P[n];
+    const t=el("circle",{class:"target",cx:p[0],cy:p[1],r:HIT,"data-n":n});
+    t.addEventListener("pointerdown",e=>{e.preventDefault();connect(n,t);});
+    targets.appendChild(t);
+
+    const bg=el("rect",{class:"num-bg",x:p[0]+5,y:p[1]-11,width:25,height:13,rx:2});
+    const text=el("text",{class:"num",x:p[0]+6.5,y:p[1]-1.5,"data-n":n});
+    text.textContent=n;
+    labels.appendChild(bg); labels.appendChild(text);
+
+    labels.appendChild(el("circle",{class:"dot",cx:p[0],cy:p[1],r:2.8}));
+  }
+}
+function reset(){
+  next=START; previous=null; lines.innerHTML=""; success.classList.remove("show");
+  document.querySelectorAll(".target").forEach(t=>t.classList.remove("wrong"));
+  document.querySelector("#colorStage").classList.remove("show");
+  dotImage.style.display="block"; svg.style.display="block";
+  refresh();
+}
+document.querySelector("#reset").onclick=reset;
+document.querySelector("#startColoring").onclick=()=>{
+  success.classList.remove("show");
+  dotImage.style.display="none"; svg.style.display="none";
+  document.querySelector("#colorStage").classList.add("show");
+  initColoring();
+};
+document.querySelector("#playAgain").onclick=reset;
+build(); refresh();
+
+/* ---------------- Coloring ---------------- */
+const colorCanvas=document.querySelector("#colorCanvas");
+const ctx=colorCanvas.getContext("2d",{willReadFrequently:true});
+const outline=new Image(), answer=new Image();
+outline.src="coloring_outline.png";
+answer.src="colored_reference.png";
+
+const W=1061,H=1305;
+const paint=document.createElement("canvas");
+paint.width=W; paint.height=H;
+const pc=paint.getContext("2d",{willReadFrequently:true});
+const key=document.createElement("canvas");
+key.width=W; key.height=H;
+const kc=key.getContext("2d",{willReadFrequently:true});
+
+let selected=null, dragColor=null, coloredRegions=new Set();
+
+const PALETTE=["#83d3f5","#1979e8","#ffd21f","#55bf35","#f23832","#f6a21a"];
+
+function hex(c){
+  c=c.slice(1); return {r:parseInt(c.slice(0,2),16),g:parseInt(c.slice(2,4),16),b:parseInt(c.slice(4,6),16)};
+}
+function near(a,b,t=80){return Math.hypot(a.r-b.r,a.g-b.g,a.b-b.b)<=t;}
+function rgbAt(c,x,y){
+  const d=c.getImageData(Math.max(0,Math.min(W-1,Math.round(x))),Math.max(0,Math.min(H-1,Math.round(y))),1,1).data;
+  return {r:d[0],g:d[1],b:d[2],a:d[3]};
+}
+function linePixel(p){return p.r<85&&p.g<85&&p.b<85;}
+function nearestColor(p){
+  let best=PALETTE[0],bd=1e9;
+  for(const c of PALETTE){const q=hex(c);const d=Math.hypot(p.r-q.r,p.g-q.g,p.b-q.b);if(d<bd){bd=d;best=c;}}
+  return best;
+}
+function render(){
+  const r=colorCanvas.getBoundingClientRect(), d=devicePixelRatio||1;
+  colorCanvas.width=Math.round(r.width*d); colorCanvas.height=Math.round(r.height*d);
+  ctx.setTransform(d,0,0,d,0,0);
+  ctx.clearRect(0,0,r.width,r.height);
+  const s=Math.min(r.width/W,r.height/H),ox=(r.width-W*s)/2,oy=(r.height-H*s)/2;
+  ctx.drawImage(paint,ox,oy,W*s,H*s);
+}
+function point(e){
+  const r=colorCanvas.getBoundingClientRect(),s=Math.min(r.width/W,r.height/H);
+  return {x:(e.clientX-r.left-(r.width-W*s)/2)/s,y:(e.clientY-r.top-(r.height-H*s)/2)/s};
+}
+function fillRegion(x,y,color){
+  x=Math.round(x);y=Math.round(y);
+  if(x<0||y<0||x>=W||y>=H)return false;
+  const img=pc.getImageData(0,0,W,H),d=img.data;
+  const i0=(y*W+x)*4,sp={r:d[i0],g:d[i0+1],b:d[i0+2]};
+  if(linePixel(sp))return false;
+  if(sp.r<225||sp.g<225||sp.b<225)return false;
+
+  const fill=hex(color), seen=new Uint8Array(W*H), stack=[[x,y]];
+  let count=0;
+  const match=(px,py)=>{
+    if(px<0||py<0||px>=W||py>=H)return false;
+    const k=py*W+px;if(seen[k])return false;
+    const i=k*4;return d[i]>225&&d[i+1]>225&&d[i+2]>225;
+  };
+  while(stack.length){
+    const [px,py]=stack.pop(),k=py*W+px;
+    if(!match(px,py))continue;
+    seen[k]=1;const i=k*4;
+    d[i]=fill.r;d[i+1]=fill.g;d[i+2]=fill.b;d[i+3]=255;count++;
+    stack.push([px+1,py],[px-1,py],[px,py+1],[px,py-1]);
+  }
+  if(count<30)return false;
+  pc.putImageData(img,0,0);
+  return true;
+}
+function expectedColor(x,y){
+  const p=rgbAt(kc,x,y);
+  /* White/black areas are not fillable. For colored regions use nearest palette colour. */
+  if(p.r>240&&p.g>240&&p.b>240)return null;
+  if(linePixel(p))return null;
+  return nearestColor(p);
+}
+function tryColor(x,y,color){
+  const expected=expectedColor(x,y);
+  if(!expected)return;
+  const chosen=nearestColor(hex(color));
+  const status=document.querySelector("#colorStatus");
+  if(chosen!==expected){
+    status.textContent="Wrong colour — try again";
+    status.style.color="#b00020";
+    setTimeout(()=>{status.style.color="";updateStatus();},700);
+    return;
+  }
+  if(fillRegion(x,y,chosen)){
+    coloredRegions.add(regionId(x,y));
+    updateStatus();
+    render();
+    if(coloredRegions.size>=12) document.querySelector("#colorDone").classList.add("show");
+  }
+}
+function regionId(x,y){
+  /* Use a coarse spatial key; each distinct bounded picture area gets one key. */
+  const p=rgbAt(kc,x,y), c=nearestColor(p);
+  return c+"_"+Math.round(x/18)+"_"+Math.round(y/18);
+}
+function updateStatus(){
+  document.querySelector("#colorStatus").textContent=`${coloredRegions.size} coloured`;
+}
+function initColoring(){
+  if(!outline.complete||!answer.complete){setTimeout(initColoring,100);return;}
+  pc.clearRect(0,0,W,H);pc.drawImage(outline,0,0,W,H);
+  kc.clearRect(0,0,W,H);kc.drawImage(answer,0,0,W,H);
+  coloredRegions.clear();selected=null;
+  document.querySelectorAll(".swatch").forEach(s=>s.classList.remove("selected"));
+  document.querySelector("#colorDone").classList.remove("show");
+  updateStatus();render();
+}
+document.querySelectorAll(".swatch").forEach(s=>{
+  s.addEventListener("click",()=>{selected=s.dataset.color;document.querySelectorAll(".swatch").forEach(x=>x.classList.remove("selected"));s.classList.add("selected");});
+  s.addEventListener("dragstart",e=>{dragColor=s.dataset.color;e.dataTransfer.setData("text/plain",dragColor);});
+});
+colorCanvas.addEventListener("dragover",e=>e.preventDefault());
+colorCanvas.addEventListener("drop",e=>{
+  e.preventDefault();const c=dragColor||e.dataTransfer.getData("text/plain");if(c){const p=point(e);tryColor(p.x,p.y,c);}dragColor=null;
+});
+colorCanvas.addEventListener("pointerdown",e=>{
+  if(!selected)return;e.preventDefault();const p=point(e);tryColor(p.x,p.y,selected);
+});
+window.addEventListener("resize",()=>{if(document.querySelector("#colorStage").classList.contains("show"))render();});
+</script>
+</body>
+</html>

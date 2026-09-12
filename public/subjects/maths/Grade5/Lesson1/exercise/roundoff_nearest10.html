@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Number Bowling</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Livvic", sans-serif;
+            font-weight: 400;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden
+        }
+
+        body {
+            color: #2f4f4f
+        }
+
+        .game-page {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background: #f4f1f7
+        }
+
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 94px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 150px;
+            z-index: 20
+        }
+
+        .heading {
+            font-size: 22px;
+            font-weight: 400;
+            color: #2f4f4f;
+            text-align: center;
+            line-height: 1.35
+        }
+
+        .main-area {
+            position: absolute;
+            top: 94px;
+            bottom: 77px;
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 5vw
+        }
+
+        .game-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            padding: 7px 23px;
+            margin-bottom: 10px;
+            border-radius: 20px 20px 7px 7px;
+            background: #dcecf6;
+            border: 2px solid #86afca;
+            color: #496b7c;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 0 rgba(76, 119, 144, .12)
+        }
+
+        .question {
+            font-size: 30px;
+            font-weight: 400;
+            color: #2f4f4f;
+            text-align: center;
+            margin-bottom: 12px
+        }
+
+        .bowling-area {
+            width: min(930px, 94vw);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 28px;
+            position: relative;
+            margin-bottom: 11px
+        }
+
+        .scoreboard {
+            width: 190px;
+            min-height: 118px;
+            padding: 13px 15px;
+            background: #f3e8f5;
+            border: 3px solid #b28fbe;
+            border-radius: 13px;
+            box-shadow: 0 7px 0 rgba(105, 75, 119, .12), 0 12px 20px rgba(70, 55, 78, .07);
+            transform: rotate(-2deg);
+            position: relative;
+            z-index: 5
+        }
+
+        .scoreboard::before {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            top: 8px;
+            left: 12px;
+            background: #ef9dae;
+            box-shadow: 14px 0 #edc46b, 28px 0 #8fc3bc
+        }
+
+        .score-title {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #72567e;
+            margin-bottom: 8px
+        }
+
+        .score-display {
+            height: 61px;
+            border-radius: 9px;
+            background: #5b5065;
+            border: 4px solid #91829b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f9eeb4;
+            font-size: 29px;
+            font-weight: 400;
+            letter-spacing: 2px;
+            box-shadow: inset 0 4px 8px rgba(0, 0, 0, .18)
+        }
+
+        .score-small {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 7px;
+            color: #766878
+        }
+
+        .lane-wrap {
+            width: min(570px, 58vw);
+            position: relative;
+            min-height: 210px
+        }
+
+        .lane {
+            width: 100%;
+            height: 205px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 80px 80px 15px 15px;
+            background: linear-gradient(90deg, #e6d8c5 0%, #f6ead8 14%, #fff3df 50%, #f6ead8 86%, #e6d8c5 100%);
+            border: 4px solid #d2b999;
+            box-shadow: 0 8px 0 rgba(145, 112, 75, .13), 0 15px 25px rgba(89, 74, 55, .09)
+        }
+
+        .lane::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 14%;
+            right: 14%;
+            background: repeating-linear-gradient(90deg, rgba(185, 153, 112, .13) 0 3px, transparent 3px 26px)
+        }
+
+        .lane::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 18px;
+            bottom: 13px;
+            width: 3px;
+            transform: translateX(-50%);
+            background: repeating-linear-gradient(180deg, rgba(199, 161, 115, .45) 0 12px, transparent 12px 22px)
+        }
+
+        .number10-image {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 145px;
+            height: 145px;
+            object-fit: contain;
+            transform: translate(-50%, -50%);
+            z-index: 8;
+            filter: drop-shadow(0 8px 7px rgba(80, 70, 60, .14));
+            animation: number10Float 2.8s ease-in-out infinite
+        }
+
+        @keyframes number10Float {
+            50% {
+                transform: translate(-50%, -54%) rotate(-2deg)
+            }
+        }
+
+        .pins {
+            position: absolute;
+            top: 27px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 190px;
+            height: 125px;
+            z-index: 5
+        }
+
+        .pin {
+            position: absolute;
+            width: 38px;
+            height: 68px;
+            background: linear-gradient(90deg, #fff 0%, #fff9f2 50%, #eadfd5 100%);
+            border: 2px solid #d3c1b4;
+            border-radius: 20px 20px 12px 12px;
+            box-shadow: 0 4px 0 rgba(132, 103, 86, .12)
+        }
+
+        .pin::before {
+            content: "";
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            left: 50%;
+            top: -13px;
+            transform: translateX(-50%);
+            border-radius: 50%;
+            background: #fffdf9;
+            border: 2px solid #d3c1b4
+        }
+
+        .pin::after {
+            content: "";
+            position: absolute;
+            left: 4px;
+            right: 4px;
+            top: 17px;
+            height: 8px;
+            border-radius: 5px;
+            background: #e99aae
+        }
+
+        .pin1 {
+            left: 76px;
+            top: 3px
+        }
+
+        .pin2 {
+            left: 44px;
+            top: 31px
+        }
+
+        .pin3 {
+            left: 108px;
+            top: 31px
+        }
+
+        .pin4 {
+            left: 12px;
+            top: 62px
+        }
+
+        .pin5 {
+            left: 76px;
+            top: 62px
+        }
+
+        .pin6 {
+            left: 140px;
+            top: 62px
+        }
+
+        .ball {
+            position: absolute;
+            left: 50%;
+            bottom: -16px;
+            transform: translateX(-50%);
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 33% 27%, #c6a7d3 0 8%, #a181b2 9% 48%, #89669d 49% 100%);
+            border: 4px solid #75548c;
+            box-shadow: 0 7px 0 rgba(86, 57, 103, .18), 0 10px 18px rgba(75, 57, 86, .15);
+            z-index: 8;
+            animation: ballBounce 3s ease-in-out infinite
+        }
+
+        .ball-hole {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #5f466d
+        }
+
+        .ball-hole.one {
+            left: 17px;
+            top: 18px
+        }
+
+        .ball-hole.two {
+            left: 31px;
+            top: 13px
+        }
+
+        .ball-hole.three {
+            left: 34px;
+            top: 27px
+        }
+
+        @keyframes ballBounce {
+            50% {
+                transform: translateX(-50%) translateY(-5px)
+            }
+        }
+
+        .answer-panel {
+            width: min(360px, 34vw);
+            min-height: 118px;
+            padding: 14px 18px;
+            border-radius: 13px;
+            background: #fff0f3;
+            border: 3px solid #d79baa;
+            box-shadow: 0 7px 0 rgba(135, 82, 99, .10), 0 12px 20px rgba(84, 62, 70, .07);
+            transform: rotate(2deg);
+            position: relative;
+            z-index: 5
+        }
+
+        .answer-panel::before {
+            content: "";
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            top: 9px;
+            right: 12px;
+            background: #8fc5be;
+            box-shadow: -15px 0 #edc66d
+        }
+
+        .answer-title {
+            text-align: center;
+            font-size: 15px;
+            font-weight: 700;
+            color: #865969;
+            margin-bottom: 7px
+        }
+
+        .answer-help {
+            text-align: center;
+            font-size: 11px;
+            color: #8c767d;
+            margin-bottom: 8px
+        }
+
+        .answer-input {
+            width: 100%;
+            height: 48px;
+            border-radius: 9px;
+            border: 3px solid #d99bab;
+            background: #fffafc;
+            outline: none;
+            text-align: center;
+            color: #2f4f4f;
+            font-size: 25px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            transition: .2s ease
+        }
+
+        .answer-input:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(87, 64, 72, .12)
+        }
+
+        .answer-input.correct-input {
+            background: #e4f7eb;
+            border: 3px solid #16834f
+        }
+
+        .answer-input:disabled {
+            opacity: 1;
+            cursor: not-allowed
+        }
+
+        .round-label {
+            position: absolute;
+            left: 50%;
+            bottom: -13px;
+            transform: translateX(-50%);
+            padding: 4px 15px;
+            border-radius: 12px;
+            background: #f4d878;
+            border: 2px solid #d3ae43;
+            color: #6e5725;
+            font-size: 11px;
+            font-weight: 700;
+            z-index: 15
+        }
+
+        .submit-btn {
+            position: absolute;
+            left: 50%;
+            bottom: 17px;
+            transform: translateX(-50%);
+            min-width: 155px;
+            height: 50px;
+            padding: 0 28px;
+            border: none;
+            border-radius: 17px;
+            background: #2f4f4f;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 8px 0 rgba(20, 57, 57, .18), 0 13px 24px rgba(47, 79, 79, .18);
+            transition: .2s ease;
+            z-index: 30
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateX(-50%) translateY(-3px)
+        }
+
+        .submit-btn:active:not(:disabled) {
+            transform: translateX(-50%) translateY(2px)
+        }
+
+        .submit-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        .nav-btn {
+            position: absolute;
+            bottom: 20px;
+            min-width: 126px;
+            height: 46px;
+            padding: 0 18px;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: 400;
+            color: #2f4f4f;
+            cursor: pointer;
+            transition: .2s ease;
+            box-shadow: 0 8px 18px rgba(47, 79, 79, .12);
+            z-index: 30
+        }
+
+        #prevBtn {
+            left: clamp(20px, 4vw, 70px);
+            background: #a9cbe2;
+            border: 2px solid #79a9c7
+        }
+
+        #nextBtn {
+            right: clamp(20px, 4vw, 70px);
+            background: #efbca6;
+            border: 2px solid #d99074
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            transform: translateY(-3px)
+        }
+
+        .nav-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            z-index: 100;
+            width: min(440px, 88vw);
+            min-height: 215px;
+            padding: 26px 30px 28px;
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(.7) rotate(-4deg);
+            transition: .28s cubic-bezier(.2, .9, .25, 1.25);
+            box-shadow: 0 20px 50px rgba(32, 57, 57, .22)
+        }
+
+        .feedback.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1) rotate(0)
+        }
+
+        .correct-popup {
+            background: linear-gradient(135deg, #e2f6e9, #f4fcf6);
+            border: 5px solid #16834f
+        }
+
+        .wrong-popup {
+            background: linear-gradient(135deg, #fde6e2, #fff7f5);
+            border: 5px solid #c94740
+        }
+
+        .feedback-icon {
+            width: 68px;
+            height: 68px;
+            display: grid;
+            place-items: center;
+            border-radius: 24px 24px 24px 8px;
+            font-size: 34px;
+            color: white;
+            box-shadow: 0 5px 0 rgba(0, 0, 0, .08)
+        }
+
+        .correct-popup .feedback-icon {
+            background: #16834f
+        }
+
+        .wrong-popup .feedback-icon {
+            background: #c94740
+        }
+
+        .feedback h3 {
+            font-size: 28px;
+            font-weight: 600
+        }
+
+        .feedback p {
+            font-size: 17px;
+            color: #607878
+        }
+
+        .final-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            z-index: 200;
+            width: min(520px, 91vw);
+            padding: 38px 36px 32px;
+            text-align: center;
+            border-radius: 34px;
+            background: radial-gradient(circle at 14% 15%, rgba(255, 255, 255, .70) 0 8px, transparent 9px), radial-gradient(circle at 87% 18%, rgba(255, 222, 115, .78) 0 12px, transparent 13px), linear-gradient(145deg, #eadcff, #cbb5f4 58%, #b89ae8);
+            border: 5px solid #7350a8;
+            box-shadow: 0 10px 0 rgba(83, 55, 126, .18), 0 28px 70px rgba(55, 38, 80, .30);
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(.72) rotate(-3deg);
+            transition: .34s cubic-bezier(.2, .9, .25, 1.25)
+        }
+
+        .final-popup.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1) rotate(0)
+        }
+
+        .final-emoji {
+            font-size: 78px;
+            margin-bottom: 8px
+        }
+
+        .final-popup h2 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #4c3272;
+            margin-bottom: 8px
+        }
+
+        .final-popup p {
+            font-size: 18px;
+            font-weight: 500;
+            color: #5f4a7a;
+            margin-bottom: 24px
+        }
+
+        .play-again-btn {
+            min-width: 185px;
+            height: 52px;
+            padding: 0 28px;
+            border: none;
+            border-radius: 17px;
+            background: #68449a;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 7px 0 rgba(70, 44, 106, .20), 0 13px 24px rgba(89, 59, 131, .24);
+            transition: .2s ease
+        }
+
+        .play-again-btn:hover {
+            transform: translateY(-3px)
+        }
+
+        @media (min-width:1400px) {
+            .heading {
+                font-size: 30px
+            }
+        }
+
+        @media (max-width:900px) {
+            .bowling-area {
+                gap: 14px
+            }
+
+            .scoreboard {
+                width: 155px
+            }
+
+            .answer-panel {
+                width: 260px
+            }
+
+            .lane-wrap {
+                width: 48vw
+            }
+        }
+
+        @media (max-width:650px) {
+            .header {
+                height: 74px;
+                padding: 7px 12px
+            }
+
+            .heading {
+                font-size: 16px
+            }
+
+            .main-area {
+                top: 74px;
+                bottom: 69px;
+                padding: 3px 8px
+            }
+
+            .game-badge {
+                font-size: 11px;
+                padding: 5px 14px;
+                margin-bottom: 5px
+            }
+
+            .question {
+                font-size: 21px;
+                margin-bottom: 6px
+            }
+
+            .bowling-area {
+                width: 96vw;
+                gap: 5px;
+                margin-bottom: 5px
+            }
+
+            .scoreboard {
+                width: 105px;
+                min-height: 78px;
+                padding: 7px 6px;
+                border-width: 2px;
+                border-radius: 9px
+            }
+
+            .score-title {
+                font-size: 9px;
+                margin-bottom: 4px
+            }
+
+            .score-display {
+                height: 39px;
+                font-size: 17px;
+                border-width: 2px
+            }
+
+            .score-small {
+                display: none
+            }
+
+            .lane-wrap {
+                width: 43vw;
+                min-height: 150px
+            }
+
+            .lane {
+                height: 145px;
+                border-width: 3px
+            }
+
+            .number10-image {
+                width: 105px;
+                height: 105px
+            }
+
+            .pins {
+                transform: translateX(-50%) scale(.65);
+                transform-origin: top center;
+                top: 13px
+            }
+
+            .ball {
+                width: 42px;
+                height: 42px;
+                bottom: -9px;
+                border-width: 3px
+            }
+
+            .ball-hole {
+                width: 5px;
+                height: 5px
+            }
+
+            .ball-hole.one {
+                left: 11px;
+                top: 12px
+            }
+
+            .ball-hole.two {
+                left: 20px;
+                top: 9px
+            }
+
+            .ball-hole.three {
+                left: 22px;
+                top: 18px
+            }
+
+            .round-label {
+                font-size: 8px;
+                padding: 3px 8px;
+                bottom: -8px
+            }
+
+            .answer-panel {
+                width: 105px;
+                min-height: 78px;
+                padding: 7px 6px;
+                border-width: 2px;
+                border-radius: 9px
+            }
+
+            .answer-title {
+                font-size: 10px;
+                margin-bottom: 3px
+            }
+
+            .answer-help {
+                display: none
+            }
+
+            .answer-input {
+                height: 39px;
+                font-size: 17px;
+                border-width: 2px
+            }
+
+            .submit-btn {
+                bottom: 9px;
+                min-width: 130px;
+                height: 43px;
+                font-size: 17px
+            }
+
+            .nav-btn {
+                bottom: 10px;
+                min-width: 85px;
+                height: 40px;
+                padding: 0 8px;
+                font-size: 15px
+            }
+
+            #prevBtn {
+                left: 8px
+            }
+
+            #nextBtn {
+                right: 8px
+            }
+
+            .feedback {
+                width: min(440px, 90vw);
+                min-height: 205px
+            }
+
+            .final-popup {
+                width: 91vw;
+                padding: 30px 22px
+            }
+
+            .final-popup h2 {
+                font-size: 30px
+            }
+
+            .final-emoji {
+                font-size: 64px
+            }
+        }
+
+        /* Clean single-color background */
+        .confetti,
+        .star {
+            display: none !important;
+        }
+
+        /* Keep the central bowling lane visually centered on laptop/desktop */
+        @media (min-width:651px) {
+            .bowling-area {
+                width: min(1180px, 94vw);
+                display: grid;
+                grid-template-columns: minmax(190px, 1fr) minmax(570px, 570px) minmax(260px, 1fr);
+                align-items: end;
+                justify-content: center;
+                gap: 28px;
+            }
+
+            .scoreboard {
+                justify-self: end;
+            }
+
+            .lane-wrap {
+                justify-self: center;
+            }
+
+            .answer-panel {
+                justify-self: start;
+            }
+        }
+
+        /* Large monitor */
+        @media (min-width:1400px) {
+
+            .header {
+                height: 100px;
+                padding: 10px 120px;
+            }
+
+            .heading {
+                font-size: 30px;
+                font-weight: 400;
+                line-height: 1.3;
+            }
+
+            .main-area {
+                top: 100px;
+                bottom: 90px;
+                padding: 10px 4vw;
+            }
+
+            .game-badge {
+                font-size: 18px;
+                padding: 8px 26px;
+                margin-bottom: 14px;
+            }
+
+            .question {
+                font-size: 40px;
+                font-weight: 400;
+                margin-bottom: 18px;
+            }
+
+            .bowling-area {
+                width: min(1280px, 92vw);
+                grid-template-columns: minmax(220px, 1fr) minmax(650px, 650px) minmax(300px, 1fr);
+                gap: 30px;
+                margin-bottom: 18px;
+            }
+
+            .scoreboard {
+                width: 210px;
+                min-height: 130px;
+                padding: 15px 17px;
+            }
+
+            .score-title {
+                font-size: 14px;
+                margin-bottom: 9px;
+            }
+
+            .score-display {
+                height: 68px;
+                font-size: 31px;
+            }
+
+            .score-small {
+                font-size: 13px;
+                margin-top: 8px;
+            }
+
+            .lane-wrap {
+                width: 650px;
+                min-height: 225px;
+            }
+
+            .lane {
+                height: 220px;
+            }
+
+            .number10-image {
+                width: 150px;
+                height: 150px;
+            }
+
+            .pins {
+                width: 200px;
+                height: 130px;
+            }
+
+            .answer-panel {
+                width: 300px;
+                min-height: 130px;
+                padding: 15px 18px;
+            }
+
+            .answer-title {
+                font-size: 16px;
+            }
+
+            .answer-help {
+                font-size: 12px;
+            }
+
+            .answer-input {
+                height: 52px;
+                font-size: 27px;
+            }
+
+            .submit-btn,
+            .nav-btn {
+                width: 200px;
+                min-width: 200px;
+                height: 60px;
+                font-size: 30px;
+                padding: 0;
+            }
+
+            .submit-btn {
+                bottom: 18px;
+            }
+
+            .nav-btn {
+                bottom: 20px;
+            }
+
+            #prevBtn {
+                left: clamp(20px, 4vw, 80px);
+            }
+
+            #nextBtn {
+                right: clamp(20px, 4vw, 80px);
+            }
+
+            .feedback {
+                width: min(500px, 42vw);
+                min-height: 240px;
+            }
+
+            .feedback h3 {
+                font-size: 30px;
+            }
+
+            .feedback p {
+                font-size: 19px;
+            }
+
+            .final-popup {
+                width: min(580px, 45vw);
+            }
+
+            .final-popup h2 {
+                font-size: 40px;
+            }
+        }
+
+        /* Clean single-color background */
+        .game-page {
+            background: #f4f1f7;
+        }
+
+        .confetti,
+        .star {
+            display: none !important;
+        }
+
+        /* Prevent right-side overlap on laptop/desktop screens */
+        @media (min-width:651px) {
+
+            .bowling-area {
+                width: min(1180px, 94vw);
+                display: grid;
+                grid-template-columns: 180px minmax(0, 1fr) 280px;
+                align-items: end;
+                justify-content: center;
+                gap: 24px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .scoreboard {
+                width: 100%;
+                justify-self: stretch;
+            }
+
+            .lane-wrap {
+                width: 100%;
+                min-width: 0;
+                justify-self: stretch;
+            }
+
+            .answer-panel {
+                width: 100%;
+                min-width: 0;
+                justify-self: stretch;
+            }
+        }
+
+        /* Large monitor */
+        @media (min-width:1400px) {
+
+            .header {
+                height: 100px;
+                padding: 10px 120px;
+            }
+
+            .heading {
+                font-size: 30px;
+                font-weight: 400;
+                line-height: 1.3;
+            }
+
+            .main-area {
+                top: 100px;
+                bottom: 90px;
+                padding: 10px 4vw;
+            }
+
+            .game-badge {
+                font-size: 18px;
+                padding: 8px 26px;
+                margin-bottom: 14px;
+            }
+
+            .question {
+                font-size: 40px;
+                font-weight: 400;
+                margin-bottom: 18px;
+            }
+
+            .bowling-area {
+                width: min(1280px, 92vw);
+                grid-template-columns: 290px minmax(0, 1fr) 300px;
+                gap: 30px;
+                margin-bottom: 18px;
+            }
+
+            .scoreboard {
+                width: 100%;
+                min-height: 130px;
+                padding: 15px 17px;
+            }
+
+            .score-title {
+                font-size: 14px;
+                margin-bottom: 9px;
+            }
+
+            .score-display {
+                height: 68px;
+                font-size: 31px;
+            }
+
+            .score-small {
+                font-size: 13px;
+                margin-top: 8px;
+            }
+
+            .lane-wrap {
+                width: 100%;
+                min-height: 225px;
+            }
+
+            .lane {
+                height: 220px;
+            }
+
+            .number10-image {
+                width: 150px;
+                height: 150px;
+            }
+
+            .pins {
+                width: 200px;
+                height: 130px;
+            }
+
+            .answer-panel {
+                width: 100%;
+                min-height: 130px;
+                padding: 15px 18px;
+            }
+
+            .answer-title {
+                font-size: 16px;
+            }
+
+            .answer-help {
+                font-size: 12px;
+            }
+
+            .answer-input {
+                height: 52px;
+                font-size: 27px;
+            }
+
+            .submit-btn,
+            .nav-btn {
+                width: 200px;
+                min-width: 200px;
+                height: 60px;
+                font-size: 30px;
+                padding: 0;
+            }
+
+            .submit-btn {
+                bottom: 18px;
+            }
+
+            .nav-btn {
+                bottom: 20px;
+            }
+
+            #prevBtn {
+                left: clamp(20px, 4vw, 80px);
+            }
+
+            #nextBtn {
+                right: clamp(20px, 4vw, 80px);
+            }
+
+            .feedback {
+                width: min(500px, 42vw);
+                min-height: 240px;
+            }
+
+            .feedback h3 {
+                font-size: 30px;
+            }
+
+            .feedback p {
+                font-size: 19px;
+            }
+
+            .final-popup {
+                width: min(580px, 45vw);
+            }
+
+            .final-popup h2 {
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-page">
+        <header class="header">
+            <div class="heading">Round off the following numbers to the nearest 10.
+            </div>
+        </header>
+        <main class="main-area">
+            <div class="game-badge">🎳 NUMBER BOWLING
+            </div>
+            <div id="questionText" class="question"></div>
+            <div class="bowling-area">
+                <div class="scoreboard">
+                    <div class="score-title">NUMBER SCORE
+                    </div>
+                    <div id="numberDisplay" class="score-display"></div>
+                    <div class="score-small">ROUND TARGET
+                    </div>
+                </div>
+                <div class="lane-wrap">
+                    <div class="lane"><img class="number10-image" src="../images/number10_cartoon.png" alt="10 cartoon">
+                    </div>
+                    <div class="round-label">ROUND <span id="roundNumber"></span></div>
+                </div>
+                <div class="answer-panel">
+                    <div class="answer-title">🎯 YOUR SCORE
+                    </div>
+                    <div class="answer-help">Enter the rounded number
+                    </div><input id="answerInput" class="answer-input" type="text" inputmode="numeric"
+                        autocomplete="off" placeholder="Answer">
+                </div>
+            </div>
+        </main><button id="submitBtn" class="submit-btn">Submit ✓
+        </button><button id="prevBtn" class="nav-btn" disabled>← Back
+        </button><button id="nextBtn" class="nav-btn" disabled>Next →
+        </button>
+        <div id="correctPopup" class="feedback correct-popup">
+            <div class="feedback-icon">🎉
+            </div>
+            <h3>Perfect!
+            </h3>
+            <p>Great bowling! Your answer is correct.
+            </p>
+        </div>
+        <div id="wrongPopup" class="feedback wrong-popup">
+            <div class="feedback-icon">😕
+            </div>
+            <h3>Try Again!
+            </h3>
+            <p>Check the ones digit and round carefully.
+            </p>
+        </div>
+        <div id="finalPopup" class="final-popup">
+            <div class="final-emoji">🏆</div>
+            <h2>Awesome!
+            </h2>
+            <p>You knocked down every rounding challenge!
+            </p><button id="playAgainBtn" class="play-again-btn">↻ Play Again
+            </button>
+        </div>
+    </div>
+    <script>function speak(t) { speechSynthesis.cancel(); const msg = new SpeechSynthesisUtterance(t); msg.lang = "en-US"; msg.volume = 0.25; msg.rate = 1; msg.pitch = 1; speechSynthesis.speak(msg) } const questions = [{ label: "a)", number: "735", answer: "740" }, { label: "b)", number: "4531", answer: "4530" }, { label: "c)", number: "765823", answer: "765820" }, { label: "d)", number: "54298", answer: "54300" }]; let currentQuestion = 0; const savedAnswers = questions.map(() => ({ answer: "", completed: false })); const questionText =
+            document.getElementById("questionText"); const numberDisplay =
+                document.getElementById("numberDisplay"); const roundNumber =
+                    document.getElementById("roundNumber"); const answerInput =
+                        document.getElementById("answerInput"); const submitBtn =
+                            document.getElementById("submitBtn"); const prevBtn =
+                                document.getElementById("prevBtn"); const nextBtn =
+                                    document.getElementById("nextBtn"); const correctPopup =
+                                        document.getElementById("correctPopup"); const wrongPopup =
+                                            document.getElementById("wrongPopup"); const finalPopup =
+                                                document.getElementById("finalPopup"); const playAgainBtn =
+                                                    document.getElementById("playAgainBtn"); answerInput.addEventListener(
+                                                        "input", function () {
+                                                            this.value =
+                                                            this.value.replace(/[^0-9]/g, "")
+                                                        }); function loadQuestion() {
+                                                            correctPopup.classList.remove("show"); wrongPopup.classList.remove("show"); const question =
+                                                                questions[currentQuestion]; const saved =
+                                                                    savedAnswers[currentQuestion]; questionText.textContent =
+                                                                        question.label + "  Round " + question.number + " to the nearest 10"; numberDisplay.textContent =
+                                                                            question.number; roundNumber.textContent =
+                                                                                currentQuestion + 1; answerInput.value =
+                                                                                    saved.answer; answerInput.classList.remove(
+                                                                                        "correct-input"
+                                                                                    ); if (saved.completed) {
+                                                                                        answerInput.disabled = true; answerInput.classList.add(
+                                                                                            "correct-input"
+                                                                                        ); submitBtn.disabled = true; nextBtn.disabled =
+                                                                                            currentQuestion ===
+                                                                                            questions.length - 1
+                                                                                    } else { answerInput.disabled = false; submitBtn.disabled = false; nextBtn.disabled = true } prevBtn.disabled =
+                                                                                        currentQuestion === 0
+                                                        } function submitAnswer() {
+                                                            if (!answerInput.value.trim()) { return } const question =
+                                                                questions[currentQuestion]; const correct =
+                                                                    answerInput.value ===
+                                                                    question.answer; if (correct) {
+                                                                        savedAnswers[currentQuestion] = { answer: question.answer, completed: true }; answerInput.disabled = true; answerInput.classList.add(
+                                                                            "correct-input"
+                                                                        ); submitBtn.disabled = true; correctPopup.classList.add(
+                                                                            "show"
+                                                                        ); speak(
+                                                                            "Correct!"
+                                                                        ); setTimeout(() => {
+                                                                            correctPopup.classList.remove(
+                                                                                "show"
+                                                                            ); if (
+                                                                                currentQuestion ===
+                                                                                questions.length - 1
+                                                                            ) {
+                                                                                finalPopup.classList.add(
+                                                                                    "show"
+                                                                                );
+                                                                            } else { nextBtn.disabled = false }
+                                                                        }, 1500)
+                                                                    } else {
+                                                                        wrongPopup.classList.add(
+                                                                            "show"
+                                                                        ); speak(
+                                                                            "Try again."
+                                                                        ); setTimeout(() => {
+                                                                            wrongPopup.classList.remove(
+                                                                                "show"
+                                                                            ); answerInput.value = ""; answerInput.focus()
+                                                                        }, 1500)
+                                                            }
+                                                        } submitBtn.addEventListener(
+                                                            "click", submitAnswer
+                                                        ); nextBtn.addEventListener(
+                                                            "click", function () {
+                                                                if (
+                                                                    savedAnswers[currentQuestion]
+                                                                        .completed
+                                                                    &&
+                                                                    currentQuestion <
+                                                                    questions.length - 1
+                                                                ) { currentQuestion++; loadQuestion() }
+                                                            }); prevBtn.addEventListener(
+                                                                "click", function () { if (currentQuestion > 0) { currentQuestion--; loadQuestion() } }); playAgainBtn.addEventListener(
+                                                                    "click", function () {
+                                                                        currentQuestion = 0; savedAnswers.forEach(item => { item.answer = ""; item.completed = false }); finalPopup.classList.remove(
+                                                                            "show"
+                                                                        ); loadQuestion()
+                                                                    }); loadQuestion();</script>
+<script>
+/* ===== CONFETTI CELEBRATION (right & final popups) ===== */
+(function () {
+  let canvas, ctx, pieces = [], raf = null;
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    resize();
+    window.addEventListener("resize", resize);
+  }
+  function resize() {
+    if (!canvas) return;
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  const colors = ["#16834f", "#d99c36", "#7350a8", "#c94740", "#3a8fb7", "#e86ea4", "#ffd257"];
+  function burst(count) {
+    ensureCanvas();
+    for (let i = 0; i < count; i++) {
+      pieces.push({
+        x: innerWidth / 2 + (Math.random() - .5) * 180,
+        y: innerHeight / 2 + (Math.random() - .5) * 90,
+        vx: (Math.random() - .5) * 11,
+        vy: Math.random() * -13 - 4,
+        g: 0.30 + Math.random() * 0.14,
+        s: 6 + Math.random() * 7,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - .5) * 0.4,
+        color: colors[i % colors.length],
+        life: 0
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces = pieces.filter(p => p.life < 280 && p.y < innerHeight + 40);
+    pieces.forEach(p => {
+      p.life++;
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.99;
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6);
+      ctx.restore();
+    });
+    if (pieces.length) { raf = requestAnimationFrame(tick); }
+    else { raf = null; ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  }
+  window.fireConfetti = function (big) {
+    if (big) {
+      burst(170);
+      let n = 0;
+      const iv = setInterval(() => { burst(90); if (++n >= 4) clearInterval(iv); }, 400);
+    } else {
+      burst(90);
+    }
+  };
+  function watch(id, big) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let was = el.classList.contains("show");
+    new MutationObserver(() => {
+      const now = el.classList.contains("show");
+      if (now && !was) window.fireConfetti(big);
+      was = now;
+    }).observe(el, { attributes: true, attributeFilter: ["class"] });
+  }
+  function init() { watch("correctPopup", false); watch("finalPopup", true); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+
+
+</html>

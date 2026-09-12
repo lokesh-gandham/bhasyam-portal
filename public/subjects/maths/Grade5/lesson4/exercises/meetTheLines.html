@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Find the Following</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../assets/css/reuse.css">
+
+<style>
+/* =========================================================
+   BASE STYLES
+   Page-specific layout only.
+   Shared Prev/Next + answer/final popups are supplied by
+   ../assets/css/reuse.css and are NOT restyled here.
+   ========================================================= */
+
+*{
+    box-sizing:border-box;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+}
+
+body{
+    font-family:"Livvic",sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#33424f;
+    background:#fffdf8;
+}
+
+.quiz{
+    width:100%;
+    height:100vh;
+    height:100dvh;
+    padding:clamp(8px,1.4vh,18px) clamp(14px,3vw,48px) clamp(8px,1.2vh,16px);
+    display:flex;
+    flex-direction:column;
+    gap:clamp(6px,1vh,14px);
+    overflow:hidden;
+    background:
+        radial-gradient(circle at 7% 5%,rgba(238,232,255,.72),transparent 24%),
+        radial-gradient(circle at 93% 8%,rgba(222,245,233,.68),transparent 23%),
+        linear-gradient(180deg,#fffefb 0%,#fffaf2 100%);
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.topbar{
+    width:100%;
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:90px minmax(0,1fr) 90px;
+    align-items:start;
+    gap:10px;
+}
+
+.icon-btn{
+    background:none;
+    border:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    cursor:pointer;
+}
+
+.icon-circle{
+    width:clamp(42px,4.2vw,62px);
+    height:clamp(42px,4.2vw,62px);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:clamp(18px,1.8vw,27px);
+    transition:transform .2s ease;
+}
+
+.icon-btn:hover .icon-circle{
+    transform:scale(1.06);
+}
+
+.icon-circle.home{
+    background:linear-gradient(145deg,#8b6fe0,#6f42c1);
+    box-shadow:0 4px 0 #4f2e93;
+}
+
+.title-block{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.title{
+    margin:0;
+    text-align:center;
+    color:#1f2d3d;
+    font-size:26px;
+    line-height:1.12;
+    /* font-weight:400; */
+}
+
+/* =========================================================
+   MAIN QUESTION
+   ========================================================= */
+
+.quiz-layout{
+    flex:1 1 auto;
+    min-height:0;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(9px,1.25vh,16px);
+    overflow:hidden;
+}
+
+.question-line{
+    width:min(1100px,92vw);
+    flex:0 0 auto;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    gap:clamp(7px,1vw,14px);
+    text-align:left;
+}
+
+.question-number{
+    flex:0 0 auto;
+    margin:0;
+    color:#33424f;
+    font-size:26px;
+    line-height:1.15;
+    white-space:nowrap;
+    /* font-weight:400; */
+}
+
+.question-statement{
+    min-width:0;
+    margin:0;
+    color:#2f4f4f;
+    font-size:30px;
+    line-height:1.2;
+    text-align:left;
+    /* font-weight:400; */
+}
+
+/* Small instruction shown only for the two-answer question */
+.answer-stage{
+    min-height:clamp(24px,3vh,34px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#75678e;
+    font-size:clamp(13px,1.25vw,18px);
+    text-align:center;
+}
+
+.answer-stage:empty{
+    min-height:0;
+}
+
+/* =========================================================
+   OPTIONS
+   Each option is one column with:
+   row 1 = visual
+   row 2 = answer text
+   ========================================================= */
+
+.options{
+    width:min(850px,78vw);
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:clamp(16px,2.2vw,30px);
+    align-items:stretch;
+    justify-content:center;
+}
+
+.option-btn{
+    min-width:0;
+    height:clamp(135px,18vh,175px);
+    padding:clamp(9px,1vh,13px);
+    border:3px solid #d8cbe9;
+    border-radius:24px;
+    display:grid;
+    grid-template-rows:minmax(65px,1fr) auto;
+    align-items:center;
+    justify-items:center;
+    gap:7px;
+    background:linear-gradient(145deg,#ffffff,#f6f1ff);
+    color:#3e4350;
+    font-family:"Livvic",sans-serif;
+    font-size:clamp(16px,1.55vw,23px);
+    cursor:pointer;
+    box-shadow:0 5px 0 #d0c1e4,0 8px 18px rgba(111,66,193,.08);
+    transition:transform .18s ease,box-shadow .18s ease,background .18s ease,border-color .18s ease;
+}
+
+.option-btn:nth-child(1){
+    background:linear-gradient(145deg,#fff8e9,#fff0ca);
+    border-color:#efd79c;
+    box-shadow:0 5px 0 #dfc27c,0 8px 18px rgba(210,166,70,.09);
+}
+
+.option-btn:nth-child(2){
+    background:linear-gradient(145deg,#eef9ff,#def1fb);
+    border-color:#b9dcea;
+    box-shadow:0 5px 0 #9bc9dc,0 8px 18px rgba(80,150,185,.09);
+}
+
+.option-btn:nth-child(3){
+    background:linear-gradient(145deg,#fdf3ff,#f3e1fb);
+    border-color:#ddc0e8;
+    box-shadow:0 5px 0 #c5a0d6,0 8px 18px rgba(150,80,180,.09);
+}
+
+.option-btn:hover:not(:disabled){
+    transform:translateY(-3px);
+}
+
+.option-btn:active:not(:disabled){
+    transform:translateY(3px);
+}
+
+.option-btn.correct{
+    border-color:#62aa7c;
+    background:linear-gradient(145deg,#eafff0,#d8f2e1);
+    color:#397553;
+    box-shadow:0 5px 0 #67a87f;
+}
+
+.option-btn.wrong{
+    border-color:#df8f95;
+    background:linear-gradient(145deg,#fff0f0,#ffe0e0);
+    color:#a94e57;
+    animation:optionShake .42s ease;
+}
+
+.option-btn.selected-first{
+    border-color:#8d76cf;
+    background:linear-gradient(145deg,#f0ebff,#e3dcff);
+    color:#5d47a0;
+    box-shadow:0 5px 0 #7561b7,0 8px 18px rgba(111,66,193,.13);
+}
+
+.option-visual{
+    width:100%;
+    height:100%;
+    min-height:62px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.option-visual img{
+    width:100%;
+    height:100%;
+    max-width:115px;
+    max-height:75px;
+    object-fit:contain;
+    display:block;
+}
+
+.option-label{
+    min-height:27px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    line-height:1.05;
+}
+
+.sequence-badge{
+    position:absolute;
+    top:7px;
+    right:8px;
+    min-width:25px;
+    height:25px;
+    padding:0 6px;
+    border-radius:50%;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:#8068c7;
+    color:#fff;
+    font-size:13px;
+}
+
+.option-btn{
+    position:relative;
+}
+
+.option-btn.selected-first .sequence-badge{
+    display:flex;
+}
+
+@keyframes optionShake{
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-7px)}
+    50%{transform:translateX(7px)}
+    75%{transform:translateX(-4px)}
+}
+
+/* =========================================================
+   HINT
+   ========================================================= */
+
+/* =========================================================
+   RESPONSIVE MEDIA QUERIES
+   Ordered from smallest to largest.
+   Shared Prev/Next and popup styles are NOT changed here.
+   ========================================================= */
+
+@media (max-width:400px){
+    .quiz{
+        padding:5px 7px;
+        gap:3px;
+    }
+
+    .topbar{
+        grid-template-columns:42px minmax(0,1fr) 42px;
+    }
+
+    .icon-circle{
+        width:34px;
+        height:34px;
+        font-size:14px;
+    }
+
+    .title{
+        font-size:15px;
+    }
+
+    .quiz-layout{
+        gap:5px;
+    }
+
+    .question-line{
+        width:96vw;
+        gap:5px;
+    }
+
+    .question-number{
+        font-size:15px;
+    }
+
+    .question-statement{
+        font-size:12.5px;
+    }
+
+    .answer-stage{
+        font-size:11px;
+    }
+
+    .options{
+        width:96vw;
+        gap:7px;
+    }
+
+    .option-btn{
+        height:94px;
+        padding:5px 3px;
+        border-width:2px;
+        border-radius:14px;
+        grid-template-rows:55px auto;
+        gap:3px;
+        font-size:11px;
+    }
+
+    .option-visual{
+        min-height:48px;
+    }
+
+    .option-visual img{
+        max-width:70px;
+        max-height:48px;
+    }
+
+    .option-label{
+        min-height:19px;
+    }
+
+    .sequence-badge{
+        top:4px;
+        right:4px;
+        min-width:19px;
+        height:19px;
+        font-size:10px;
+    }
+}
+
+@media (max-width:600px){
+    .quiz{
+        padding:6px 9px;
+        gap:4px;
+    }
+
+    .topbar{
+        grid-template-columns:46px minmax(0,1fr) 46px;
+    }
+
+    .icon-circle{
+        width:37px;
+        height:37px;
+        font-size:15px;
+    }
+
+    .title{
+        font-size:clamp(16px,4.5vw,21px);
+    }
+
+    .quiz-layout{
+        gap:6px;
+    }
+
+    .question-line{
+        width:94vw;
+        gap:6px;
+    }
+
+    .question-number{
+        font-size:16px;
+    }
+
+    .question-statement{
+        font-size:13.5px;
+    }
+
+    .answer-stage{
+        font-size:12px;
+    }
+
+    .options{
+        width:94vw;
+        gap:9px;
+    }
+
+    .option-btn{
+        height:110px;
+        border-radius:16px;
+        font-size:13px;
+        grid-template-rows:63px auto;
+    }
+
+    .option-visual img{
+        max-width:82px;
+        max-height:55px;
+    }
+
+    .sequence-badge{
+        min-width:21px;
+        height:21px;
+        font-size:11px;
+    }
+}
+
+@media (max-width:900px){
+    .quiz{
+        padding:8px 12px;
+        gap:5px;
+    }
+
+    .topbar{
+        grid-template-columns:55px minmax(0,1fr) 55px;
+    }
+
+    .quiz-layout{
+        gap:8px;
+    }
+
+    .question-line{
+        width:92vw;
+        gap:8px;
+    }
+
+    .question-number{
+        font-size:30px;
+    }
+
+    .question-statement{
+        font-size:30px;
+    }
+
+    .answer-stage{
+        font-size:24px;
+    }
+
+    .options{
+        width:min(650px,88vw);
+        gap:12px;
+    }
+
+    .option-btn{
+        height:200px;
+        border-radius:18px;
+        font-size:16px;
+        grid-template-rows:76px auto;
+    }
+
+    .option-visual img{
+        max-width:95px;
+        max-height:65px;
+    }
+}
+
+@media (min-width:1200px){
+    .quiz{
+        padding-left:40px;
+        padding-right:40px;
+    }
+
+    .question-line{
+        width:min(1100px,88vw);
+    }
+
+    .question-number{
+        font-size:30px;
+    }
+
+    .question-statement{
+        font-size:30px;
+    }
+
+    .options{
+        width:760px;
+        gap:24px;
+    }
+
+    .option-btn{
+        height:200px;
+        font-size:22px;
+    }
+}
+
+@media (min-width:1600px){
+    .title{
+        font-size:40px;
+    }
+    .question-number{
+        font-size:40px;
+    }
+    .question-statement{
+        font-size:40px;
+    }
+}
+
+@media (min-width:1440px){
+    .question-line{
+        width:1150px;
+    }
+
+    .options{
+        width:800px;
+        gap:28px;
+    }
+
+    .option-btn{
+        height:250px;
+        font-size:26px;
+        border-radius:24px;
+    }
+
+    .option-visual img{
+        max-width:120px;
+        max-height:78px;
+    }
+}
+
+@media (max-height:600px){
+    .quiz{
+        padding-top:4px;
+        padding-bottom:4px;
+    }
+
+    .topbar{
+        min-height:40px;
+    }
+
+    .icon-circle{
+        width:34px;
+        height:34px;
+        font-size:14px;
+    }
+
+    .title{
+        font-size:26px;
+    }
+
+    .quiz-layout{
+        gap:4px;
+    }
+
+    .question-number{
+        font-size:30px;
+    }
+
+    .question-statement{
+        font-size:30px;
+    }
+
+    .answer-stage{
+        min-height:18px;
+        font-size:11px;
+    }
+
+    .options{
+        gap:8px;
+    }
+
+    .option-btn{
+        height:200px;
+        grid-template-rows:58px auto;
+        font-size:20px;
+    }
+
+    .option-visual img{
+        max-height:50px;
+    }
+}
+</style>
+</head>
+
+<body>
+<!--
+OPTION IMAGE PATHS:
+../assets/images/point.png
+../assets/images/ray.png
+../assets/images/line.png
+../assets/images/parallel-lines.png
+../assets/images/line-segment.png
+../assets/images/vertex.png
+../assets/images/protractor.png
+../assets/images/angle.png
+../assets/images/ruler.png
+../assets/images/compass.png
+../assets/images/degrees.png
+../assets/images/centimetres.png
+../assets/images/metres.png
+../assets/images/angle-symbol.png
+../assets/images/perpendicular.png
+../assets/images/point-m.png
+../assets/images/point-n.png
+../assets/images/point-o.png
+../assets/images/angle-mno.png
+../assets/images/angle-mon.png
+../assets/images/angle-nom.png
+-->
+
+
+<div class="quiz" id="quizCard">
+
+    <div class="topbar">
+
+        <button class="icon-btn" id="homeBtn" aria-label="Home">
+            <span class="icon-circle home">
+                <i class="fa-solid fa-house"></i>
+            </span>
+        </button>
+
+        <div class="title-block">
+            <p class="title">Find the Following</p>
+        </div>
+
+    </div>
+
+    <div class="quiz-layout">
+
+        <div class="question-line">
+            <p class="question-number" id="questionNumber">Q1.</p>
+            <p class="question-statement" id="questionStatement"></p>
+        </div>
+
+        <div class="answer-stage" id="answerStage"></div>
+
+        <div class="options" id="options"></div>
+
+    </div>
+
+    <div class="controls">
+
+        <button class="prev" id="prevBtn" disabled>
+            <i class="fa-solid fa-circle-arrow-left"></i>
+            Prev
+        </button>
+
+        <button class="next" id="nextBtn" disabled>
+            Next
+            <i class="fa-solid fa-circle-arrow-right"></i>
+        </button>
+
+    </div>
+
+</div>
+
+<!-- Shared popup markup used by reuse.css -->
+<div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+        <div class="kid-icon" id="popupIcon"></div>
+        <h3 id="popupTitle"></h3>
+        <p id="popupMsg"></p>
+    </div>
+</div>
+
+<!-- Shared final popup markup used by reuse.css -->
+<div id="finalPopup">
+    <div class="final-kid-box">
+        <h2>🎉 Congratulations!</h2>
+        <p id="finalScore"></p>
+        <div id="stars"></div>
+        <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+/*
+=========================================================
+QUESTION DATA FROM THE SUPPLIED WORKSHEETS
+=========================================================
+Q1  -> Vertex
+Q2  -> Protractor
+Q3  -> Degrees
+Q4  -> ∠
+Q5  -> Angle
+Q6  -> N, ∠MNO
+
+Q6 intentionally requires TWO answers in sequence.
+*/
+
+const QUESTIONS = [
+    {
+        label:"Q1.",
+        text:"Which has no length, breadth and height?",
+        answers:["Ray","Point","Line"],
+        correct:["Point","Line"],
+        hints:"A point shows an exact location and has no length, breadth or height.",
+        imagePaths:[
+            "../assets/images/ray.png",
+            "../assets/images/point.png",
+            "../assets/images/line.png"
+        ]
+    },
+    {
+        label:"Q2.",
+        text:"A pair of lines that are equidistant from each other and never intersect.",
+        answers:["Ray","Parallel lines","Line segment"],
+        correct:["Parallel lines"],
+        hints:"These lines stay the same distance apart and never meet.",
+        imagePaths:[
+            "../assets/images/ray.png",
+            "../assets/images/parallel.png",
+            "../assets/images/linesegment.png"
+        ]
+    },
+    {
+        label:"Q3.",
+        text:"A line that has one end point and extends endlessly on the other side.",
+        answers:["Line segment","Line","Ray"],
+        correct:["Ray"],
+        hints:"A ray has one endpoint and continues endlessly in one direction.",
+        imagePaths:[
+            "../assets/images/linesegment.png",
+            "../assets/images/line.png",
+            "../assets/images/ray.png"
+        ]
+    },
+    {
+        label:"Q4.",
+        text:"A part of line that can be measured.",
+        answers:["Line segment","Ray","Line"],
+        correct:["Line segment"],
+        hints:"A line segment has two endpoints and can be measured.",
+        imagePaths:[
+            "../assets/images/linesegment.png",
+            "../assets/images/ray.png",
+            "../assets/images/line.png"
+        ]
+    },
+    {
+        label:"Q5.",
+        text:"A group of points in a straight path that are endless in both the directions.",
+        answers:["Line","Ray","Line segment"],
+        correct:["Line"],
+        hints:"A line extends endlessly in both directions.",
+        imagePaths:[
+            "../assets/images/line.png",
+            "../assets/images/ray.png",
+            "../assets/images/linesegment.png"
+        ]
+    },
+    {
+        label:"Q6.",
+        text:"The point where the two rays intersect is called ________.",
+        answers:["Protractor","Angle","Vertex"],
+        correct:["Vertex"],
+        hints:"It is the common point where two rays meet.",
+        imagePaths:[
+            "../assets/images/protractor.png",
+            "../assets/images/angle.png",
+            "../assets/images/vertex.png"
+        ]
+    },
+    {
+        label:"Q7.",
+        text:"The instrument used to measure an angle is ________.",
+        answers:["Compass","Ruler","Protractor"],
+        correct:["Protractor"],
+        hints:"It is the instrument used to measure an angle.",
+        imagePaths:[
+            "../assets/images/compass.png",
+            "../assets/images/ruler.png",
+            "../assets/images/protractor.png"
+        ]
+    },
+    {
+        label:"Q8.",
+        text:"The angle is measured in ________.",
+        answers:["Centimetres","Degrees","Metres"],
+        correct:["Degrees"],
+        hints:"Angles are measured in degrees.",
+        imagePaths:[
+            "../assets/images/degree.png",
+            "../assets/images/centi.png",
+            "../assets/images/meter.png"
+        ]
+    },
+    {
+        label:"Q9.",
+        text:"The symbol used for angle is ________.",
+        answers:["∠","⊥","∥"],
+        correct:["∠"],
+        hints:"The first symbol is the symbol used to represent an angle.",
+        imagePaths:[
+            "../assets/images/angle.png",
+            "../assets/images/9(2).png",
+            "../assets/images/parallel.png"
+        ]
+    },
+    {
+        label:"Q10.",
+        text:"When two rays meet an ________ is formed.",
+        answers:["Line","Angle","Point"],
+        correct:["Angle"],
+        hints:"Two rays meeting at a common endpoint form an angle.",
+        imagePaths:[
+            "../assets/images/line.png",
+            "../assets/images/angle.png",
+            "../assets/images/point.png"
+        ]
+    },
+    {
+        label:"Q11.",
+        text:"If the two rays are MN and NO, the angle is formed at ________ and is represented as ________.",
+        answers:[
+            ["M","N","O"],
+            ["∠MNO","∠MON","∠NOM"]
+        ],
+        correct:["N","∠MNO"],
+        hints:"The common endpoint of MN and NO is N. Then choose the angle name with N in the middle.",
+        imagePaths:[
+            [
+                "../assets/images/point(m).png",
+                "../assets/images/point(n).png",
+                "../assets/images/point(o).png"
+            ],
+            [
+                "../assets/images/mno.png",
+                "../assets/images/mon.png",
+                "../assets/images/nom.png"
+            ]
+        ],
+        twoStep:true
+    }
+];
+
+const total=QUESTIONS.length;
+
+let current=0;
+let score=0;
+
+const answered=QUESTIONS.map(()=>false);
+const sequenceAnswers=QUESTIONS.map(()=>[]);
+let finalShown=false;
+
+const questionNumber=document.getElementById("questionNumber");
+const questionStatement=document.getElementById("questionStatement");
+const answerStage=document.getElementById("answerStage");
+const optionsBox=document.getElementById("options");
+
+const prevBtn=document.getElementById("prevBtn");
+const nextBtn=document.getElementById("nextBtn");
+
+const correctSound=document.getElementById("correctSound");
+const wrongSound=document.getElementById("wrongSound");
+
+const homeBtn=document.getElementById("homeBtn");
+if(window.top!==window.self)homeBtn.style.visibility="hidden";
+
+function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-US";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+function smallConfetti(){
+    if(!window.confetti)return;
+
+    confetti({
+        particleCount:40,
+        spread:60,
+        origin:{y:.7},
+        scalar:.8
+    });
+}
+
+function showPopup(isCorrect){
+    const popup=document.getElementById("answerPopup");
+    const icon=document.getElementById("popupIcon");
+    const title=document.getElementById("popupTitle");
+    const msg=document.getElementById("popupMsg");
+
+    popup.className="kid-popup "+(isCorrect?"kid-correct":"kid-wrong");
+    popup.style.display="flex";
+
+    if(isCorrect){
+        icon.textContent="🎉";
+        title.textContent="Correct!";
+        msg.textContent="";
+    }else{
+        icon.textContent="🥲";
+        title.textContent="Try again";
+        msg.textContent="";
+    }
+
+    clearTimeout(showPopup._t);
+
+    showPopup._t=setTimeout(()=>{
+        popup.style.display="none";
+    },1400);
+}
+
+function showFinal(){
+    if(finalShown)return;
+
+    finalShown=true;
+
+    const popup=document.getElementById("finalPopup");
+
+    document.getElementById("finalScore").textContent=
+        `Your Score: ${score} / ${total}`;
+
+    document.getElementById("stars").textContent=
+        "⭐⭐⭐⭐";
+
+    popup.style.display="flex";
+
+    if(window.confetti){
+
+        confetti({
+            particleCount:150,
+            spread:100,
+            origin:{y:.5}
+        });
+
+        setTimeout(()=>{
+            confetti({
+                particleCount:100,
+                spread:70,
+                origin:{y:.6}
+            });
+        },300);
+    }
+
+    if(window.parent && window.parent!==window){
+        try{
+            window.parent.postMessage({
+                type:"activityCompleted",
+                section:4
+            },"*");
+        }catch(e){}
+    }
+}
+
+/* =========================================================
+   OPTION VISUALS
+   Each option uses an image path supplied in QUESTIONS.
+   Replace the paths in QUESTIONS with your actual assets.
+   ========================================================= */
+
+function optionButton(value,imagePath){
+    const button=document.createElement("button");
+
+    button.type="button";
+    button.className="option-btn";
+    button.dataset.value=value;
+
+    button.innerHTML=`
+        <span class="sequence-badge"></span>
+        <span class="option-visual">
+            <img src="${imagePath}" alt="">
+        </span>
+        <span class="option-label">${value}</span>
+    `;
+
+    return button;
+}
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+
+function renderOptions(){
+
+    optionsBox.innerHTML="";
+
+    const q=QUESTIONS[current];
+
+    if(q.twoStep){
+
+        const stage=sequenceAnswers[current].length;
+
+        answerStage.textContent =
+            stage===0
+            ? "Choose the point first."
+            : "Now choose the angle name.";
+
+        q.answers[stage].forEach((answer,index)=>{
+
+            const button=optionButton(
+                answer,
+                q.imagePaths[stage][index]
+            );
+
+            button.addEventListener("click",()=>{
+                selectTwoStep(answer,button);
+            });
+
+            optionsBox.appendChild(button);
+        });
+
+        return;
+    }
+
+    answerStage.textContent="";
+
+    q.answers.forEach((answer,index)=>{
+
+        const button=optionButton(
+            answer,
+            q.imagePaths[index]
+        );
+
+        if(answered[current]){
+            button.disabled=true;
+
+            if(q.correct.includes(answer)){
+                button.classList.add("correct");
+            }
+        }
+
+        button.addEventListener("click",()=>{
+            selectSingleAnswer(answer,button);
+        });
+
+        optionsBox.appendChild(button);
+    });
+}
+
+function selectSingleAnswer(value,button){
+
+    if(answered[current])return;
+
+    const q=QUESTIONS[current];
+
+    if(q.correct.includes(value)){
+
+        button.classList.add("correct");
+        button.disabled=true;
+
+        optionsBox.querySelectorAll(".option-btn")
+            .forEach(btn=>btn.disabled=true);
+
+        answered[current]=true;
+        score++;
+
+        correctSound.currentTime=0;
+        correctSound.play().catch(()=>{});
+
+        speak("Correct");
+        showPopup(true);
+        smallConfetti();
+
+        nextBtn.disabled=false;
+
+        if(current===total-1){
+            nextBtn.disabled=true;
+            setTimeout(showFinal,1000);
+        }
+
+    }else{
+
+        button.classList.remove("wrong");
+        void button.offsetWidth;
+        button.classList.add("wrong");
+
+        wrongSound.currentTime=0;
+        wrongSound.play().catch(()=>{});
+
+        speak("Try again");
+        showPopup(false);
+
+        setTimeout(()=>{
+            if(!answered[current]){
+                button.classList.remove("wrong");
+            }
+        },450);
+    }
+}
+
+function selectTwoStep(value,button){
+
+    const q=QUESTIONS[current];
+    const stage=sequenceAnswers[current].length;
+
+    if(value!==q.correct[stage]){
+
+        button.classList.remove("wrong");
+        void button.offsetWidth;
+        button.classList.add("wrong");
+
+        wrongSound.currentTime=0;
+        wrongSound.play().catch(()=>{});
+
+        speak("Try again");
+        showPopup(false);
+
+        setTimeout(()=>{
+            button.classList.remove("wrong");
+        },450);
+
+        return;
+    }
+
+    /* First correct answer */
+    if(stage===0){
+
+        sequenceAnswers[current].push(value);
+
+        button.classList.add("selected-first");
+        button.querySelector(".sequence-badge").textContent="1";
+
+        optionsBox.querySelectorAll(".option-btn")
+            .forEach(btn=>btn.disabled=true);
+
+        correctSound.currentTime=0;
+        correctSound.play().catch(()=>{});
+
+        speak("Correct");
+        showPopup(true);
+        smallConfetti();
+
+        setTimeout(()=>{
+            renderOptions();
+        },700);
+
+        return;
+    }
+
+    /* Second correct answer */
+    sequenceAnswers[current].push(value);
+
+    answered[current]=true;
+    score++;
+
+    button.classList.add("correct");
+
+    const circleBadge=button.querySelector(".sequence-badge");
+    circleBadge.style.display="flex";
+    circleBadge.textContent="2";
+
+    optionsBox.querySelectorAll(".option-btn")
+        .forEach(btn=>btn.disabled=true);
+
+    correctSound.currentTime=0;
+    correctSound.play().catch(()=>{});
+
+    speak("Correct");
+    showPopup(true);
+    smallConfetti();
+
+    nextBtn.disabled=false;
+
+    if(current===total-1){
+
+        nextBtn.disabled=true;
+
+        setTimeout(showFinal,1000);
+    }
+}
+
+function renderQuestion(){
+
+    const q=QUESTIONS[current];
+
+    questionNumber.textContent=q.label;
+    questionStatement.textContent=q.text;
+
+    renderOptions();
+
+    prevBtn.disabled=current===0;
+    nextBtn.disabled=!answered[current] || current===total-1;
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+prevBtn.addEventListener("click",()=>{
+
+    if(current===0)return;
+
+    current--;
+    renderQuestion();
+});
+
+nextBtn.addEventListener("click",()=>{
+
+    if(nextBtn.disabled)return;
+
+    if(current<total-1){
+
+        current++;
+        renderQuestion();
+    }
+});
+
+/* =========================================================
+   HOME / HINT
+   ========================================================= */
+
+homeBtn.addEventListener("click",()=>{
+    window.location.href="../Grade2_chapter1.html";
+});
+
+/* Initial render */
+renderQuestion();
+</script>
+
+</body>
+</html>

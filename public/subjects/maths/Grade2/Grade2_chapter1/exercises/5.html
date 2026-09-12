@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Write the Number Formed</title>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --rod-w: clamp(26px, 4.6vw, 50px);
+      --rod-gap: clamp(34px, 10vw, 100px);
+      --bead-size: clamp(14px, 3.2vh, 30px);
+      --vh: 1vh;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: "Livvic", "Segoe UI", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      height: calc(var(--vh, 1vh) * 100);
+      overflow: hidden;
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, #fdf6ec 0%, #f7efe0 100%);
+      touch-action: none;
+      overscroll-behavior: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .quiz-card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-height: calc(var(--vh, 1vh) * 100);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: clamp(8px, 1.6vh, 20px) clamp(12px, 2.4vw, 30px);
+      gap: clamp(4px, 1vh, 10px);
+    }
+
+    .home-btn {
+      position: absolute;
+      left: 14px;
+      top: 18px;
+      width: 46px;
+      height: 46px;
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #8b6fe0, #6f42c1);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 100;
+      box-shadow:
+        0 4px 0 #4f2e93,
+        0 6px 10px rgba(79, 46, 147, 0.22);
+      transition: all .15s ease;
+      display: none;
+    }
+
+    .home-btn:hover {
+      transform: translateY(-3px) scale(1.06);
+    }
+
+    .home-btn:active {
+      transform: translateY(2px) scale(.96);
+      box-shadow: 0 2px 0 #4f2e93;
+    }
+
+    .home-btn i {
+      font-size: 21px;
+      line-height: 1;
+    }
+
+    /* ===== HEADER : title always first, Q-label always right under it ===== */
+    .heading {
+      order: 1;
+      margin: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 30px;
+      color: #2f2f2f;
+      line-height: 1.25;
+      flex: 0 0 auto;
+    }
+
+    .qlabel {
+      order: 2;
+      align-self: flex-start;
+      margin: 0;
+      position: relative;
+      left: 20px;
+      top: 40px;
+      font-size: 30px;
+      color: #2f2f2f;
+      flex: 0 0 auto;
+    }
+
+    /* ===== MAIN CONTENT ROW ===== */
+    .content-row {
+      order: 3;
+      width: 100%;
+      max-width: 900px;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: clamp(10px, 4vw, 40px);
+    }
+
+    /* ---- abacus side ---- */
+    .abacus-wrap {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(4px, 1vh, 10px);
+    }
+
+    .abacus-core {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .rods-row {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: var(--rod-gap);
+      padding-bottom: 2px;
+    }
+
+    .rod-col {
+      position: relative;
+      width: var(--rod-w);
+      height: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .rod-line {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 3px;
+      margin-left: -1.5px;
+      background: #3a3a3a;
+      border-radius: 2px;
+    }
+
+    .beads-stack {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+    }
+
+    .bead {
+      width: var(--bead-size);
+      height: var(--bead-size);
+      border-radius: 50%;
+      box-shadow: 0 2px 3px rgba(0, 0, 0, 0.28), inset 0 -2px 3px rgba(0, 0, 0, 0.15);
+      margin-top: -5px;
+      flex-shrink: 0;
+    }
+
+    .bead:first-child {
+      margin-top: 0;
+    }
+
+    .bead.red {
+      background: radial-gradient(circle at 35% 28%, #ff9a9a, #d63c3c 72%);
+    }
+
+    .bead.green {
+      background: radial-gradient(circle at 35% 28%, #93e8a8, #2fa855 72%);
+    }
+
+    .base-row {
+      flex: 0 0 auto;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .base-plaque {
+      display: flex;
+      justify-content: center;
+      gap: var(--rod-gap);
+      padding: clamp(6px, 1.2vh, 12px) clamp(16px, 3vw, 30px);
+      background: linear-gradient(180deg, #f0b878, #cf8b46);
+      border: 2px solid #b5723a;
+      border-radius: clamp(10px, 1.6vh, 16px);
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12), 0 6px 10px rgba(0, 0, 0, 0.10);
+    }
+
+    .base-label {
+      width: var(--rod-w);
+      text-align: center;
+      font-weight: 800;
+      font-size: clamp(13px, 1.8vw, 20px);
+      color: #5c3313;
+    }
+
+    .answer-label {
+      margin: 0;
+      font-weight: 400;
+      color: #33302f;
+      font-size: clamp(10px, 1.4vw, 15px);
+      flex: 0 0 auto;
+    }
+
+    .answer-box {
+      display: block;
+      flex: 0 0 auto;
+      min-width: clamp(90px, 14vw, 140px);
+      padding: clamp(6px, 1vh, 10px) clamp(14px, 2vw, 22px);
+      border: 3px solid #cdb8f2;
+      border-radius: 14px;
+      background: #fff;
+      text-align: center;
+      font-weight: 400;
+      letter-spacing: 3px;
+      font-size: clamp(15px, 2vw, 22px);
+      color: #4b2f8f;
+      transition: all .25s ease;
+    }
+
+    .answer-box:focus {
+      outline: none;
+    }
+
+    .answer-box.filled {
+      border-color: #4fbf74;
+      background: linear-gradient(180deg, #f2fff5, #e2f9e8);
+      color: #1c7a3d;
+    }
+
+    /* ---- answer options side ---- */
+    .answers {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: clamp(8px, 2vh, 18px);
+    }
+
+    .opt {
+      display: flex;
+      align-items: center;
+      gap: clamp(10px, 1.6vw, 16px);
+      background: #fff;
+      border: 3px solid #ddd;
+      border-radius: 999px;
+      padding: clamp(6px, 1.3vh, 12px) clamp(14px, 2.4vw, 26px);
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.08), 0 6px 10px rgba(0, 0, 0, 0.06);
+      transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease, background .2s ease;
+
+      pointer-events: auto;
+      position: relative;
+      z-index: 10;
+      touch-action: manipulation;
+    }
+
+    .opt-badge {
+      flex-shrink: 0;
+      width: clamp(24px, 3.2vw, 38px);
+      height: clamp(24px, 3.2vw, 38px);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: clamp(11px, 1.5vw, 17px);
+    }
+
+    .opt-value {
+      color: #2f2f2f;
+      font-size: 24px;
+    }
+
+    .opt.green {
+      border-color: #4fbf74;
+    }
+
+    .opt.green .opt-badge {
+      background: #2fa855;
+    }
+
+    .opt.pink {
+      border-color: #e8607f;
+    }
+
+    .opt.pink .opt-badge {
+      background: #e0447c;
+    }
+
+    .opt.blue {
+      border-color: #4fa3e0;
+    }
+
+    .opt.blue .opt-badge {
+      background: #2f8fd6;
+    }
+
+    .opt:hover:not(.locked-out) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.1), 0 9px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    .opt.correct-locked {
+      background: linear-gradient(180deg, #e3fbe9, #c7f3d3);
+      border-color: #4fbf74;
+      pointer-events: none;
+    }
+
+    .opt.locked-out {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .opt.wrong-flash {
+      animation: shakeCard .42s ease;
+    }
+
+    @keyframes shakeCard {
+      20% {
+        transform: translateX(-8px);
+      }
+
+      40% {
+        transform: translateX(8px);
+      }
+
+      60% {
+        transform: translateX(-6px);
+      }
+
+      80% {
+        transform: translateX(6px);
+      }
+
+      100% {
+        transform: translateX(0);
+      }
+    }
+
+    /* ===== NAV ===== */
+    .nav {
+      order: 4;
+      flex: 0 0 auto;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      gap: 18px;
+      margin-top: 10px;
+      padding-bottom: 4px;
+    }
+
+    .nav button {
+      position: relative;
+      min-width: 132px;
+      height: 50px;
+      padding: 0 22px;
+
+      border: 4px solid #ffffff;
+      border-radius: 18px;
+
+      font-family: 'Livvic', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+
+      color: #ffffff;
+      cursor: pointer;
+
+      box-shadow:
+        0 6px 0 rgba(0, 0, 0, 0.18),
+        0 9px 14px rgba(0, 0, 0, 0.15);
+
+      transition: all 0.15s ease;
+    }
+
+    .nav button {
+      padding: 10px 25px;
+      border: none;
+      border-radius: 15px;
+      font-size: clamp(17px, 1.5vw, 20px);
+      cursor: pointer;
+      color: #fff;
+      font-weight: 500;
+      transition: 0.15s;
+    }
+
+    .prev {
+      background: linear-gradient(180deg, #ff8fb3 0%, #f0447c 100%);
+    }
+
+    /* NEXT BUTTON */
+    .next {
+      background: linear-gradient(180deg, #55d9f5 0%, #009dcc 100%);
+    }
+
+    /* Hover */
+    .nav button:not(:disabled):hover {
+      transform: translateY(-3px);
+      box-shadow:
+        0 9px 0 rgba(0, 0, 0, 0.18),
+        0 13px 18px rgba(0, 0, 0, 0.16);
+    }
+
+    /* Click */
+    .nav button:not(:disabled):active {
+      transform: translateY(4px);
+      box-shadow:
+        0 2px 0 rgba(0, 0, 0, 0.18),
+        0 4px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Disabled */
+    .nav button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow:
+        0 4px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    /* Arrow */
+    .prev,
+    .next {
+      letter-spacing: 0.3px;
+    }
+
+    /* ================================================
+     POPUP (correct / wrong)
+  =================================================== */
+    .popup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      /* background: rgba(30, 35, 70, 0.35); */
+      /* backdrop-filter: blur(7px); */
+      z-index: 2000;
+    }
+
+    .popup-content {
+      position: relative;
+      width: min(400px, 88%);
+      padding: 32px 35px 28px;
+      text-align: center;
+      border: 5px solid #ffffff;
+      border-radius: 28px;
+      box-shadow: 0 8px 0 rgba(0, 0, 0, 0.15), 0 18px 35px rgba(0, 0, 0, 0.20);
+      animation: gamingPopup 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow: hidden;
+    }
+
+    .popup.correct .popup-content {
+      background: linear-gradient(180deg, #bff7d0 0%, #72d995 100%);
+      border-color: #ffffff;
+      box-shadow: 0 8px 0 #48ae6d, 0 18px 35px rgba(40, 130, 75, 0.25);
+    }
+
+    .popup.wrong .popup-content {
+      background: linear-gradient(180deg, #ffd0d8 0%, #ff8296 100%);
+      border-color: #ffffff;
+      box-shadow: 0 8px 0 #df526b, 0 18px 35px rgba(180, 60, 80, 0.25);
+    }
+
+    .popup-icon {
+      font-size: 68px;
+      line-height: 1;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 5px 4px rgba(0, 0, 0, 0.15));
+      animation: gamingIcon 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .popup-content h3 {
+      margin: 5px 0 10px;
+      font-family: "Livvic", sans-serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: #176b3c;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.65);
+    }
+
+    .popup.wrong .popup-content h3 {
+      color: #a8324b;
+    }
+
+    .popup-content p {
+      display: inline-block;
+      margin: 0;
+      padding: 8px 18px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.65);
+      font-family: "Livvic", sans-serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: #234052;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    @keyframes gamingPopup {
+      0% {
+        opacity: 0;
+        transform: scale(0.55) rotate(-5deg);
+      }
+
+      60% {
+        opacity: 1;
+        transform: scale(1.08) rotate(2deg);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    @keyframes gamingIcon {
+      0% {
+        transform: scale(0) rotate(-20deg);
+      }
+
+      50% {
+        transform: scale(1.25) rotate(10deg);
+      }
+
+      75% {
+        transform: scale(0.9) rotate(-5deg);
+      }
+
+      100% {
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    /* ================================================
+     FINAL POPUP
+  =================================================== */
+    #finalPopup {
+      position: fixed;
+      inset: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      /* background: rgba(30, 35, 70, 0.40); */
+      /* backdrop-filter: blur(8px); */
+      z-index: 3000;
+    }
+
+    .finalpopup-box {
+      position: relative;
+      width: min(470px, 90%);
+      padding: 34px 38px 32px;
+      text-align: center;
+      background: linear-gradient(180deg, #d8c7ff 0%, #a88bea 100%);
+      border: 5px solid #ffffff;
+      border-radius: 30px;
+      box-shadow: 0 9px 0 #7655b5, 0 22px 45px rgba(50, 35, 100, 0.30);
+      animation: finalGamingPopup 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      overflow: hidden;
+      max-height: calc(var(--vh, 1vh) * 92);
+    }
+
+    .finalpopup-box::before {
+      content: "✨";
+      position: absolute;
+      top: 18px;
+      left: 22px;
+      font-size: 28px;
+      animation: sparkleFloat 1.5s ease-in-out infinite;
+    }
+
+    .finalpopup-box::after {
+      content: "⭐";
+      position: absolute;
+      top: 24px;
+      right: 22px;
+      font-size: 25px;
+      animation: sparkleFloat 1.8s ease-in-out infinite;
+    }
+
+    .final-heading {
+      position: relative;
+      z-index: 2;
+      margin: 4px 0 14px;
+      font-family: "Livvic", sans-serif;
+      font-size: 38px;
+      font-weight: 500;
+      color: #000000;
+      ;
+    }
+
+    #finalScore {
+      display: inline-block;
+      margin: 5px 0 12px;
+      padding: 10px 28px;
+      border-radius: 25px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 3px solid #ffffff;
+      font-family: "Livvic", sans-serif;
+      font-size: 27px;
+      font-weight: 500;
+      color: #57368e;
+      box-shadow: 0 5px 0 rgba(90, 60, 140, 0.20);
+    }
+
+    #stars {
+      margin: 8px 0 18px;
+      font-size: 48px;
+      line-height: 1;
+      letter-spacing: 8px;
+      filter: drop-shadow(0 5px 4px rgba(120, 80, 20, 0.25));
+      animation: starsBounce 0.7s 0.25s both cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .playAgain-btn {
+      position: relative;
+      min-width: 190px;
+      padding: 13px 32px;
+      border: 4px solid #ffffff;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #7bea91 0%, #35b957 100%);
+      font-family: "Livvic", sans-serif;
+      font-size: 21px;
+      font-weight: 700;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #299044, 0 10px 18px rgba(35, 130, 65, 0.25);
+      text-shadow: 0 2px 0 rgba(30, 120, 50, 0.5);
+      transition: all 0.15s ease;
+    }
+
+    .playAgain-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 0 #299044, 0 15px 22px rgba(35, 130, 65, 0.30);
+    }
+
+    .playAgain-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #299044, 0 5px 10px rgba(35, 130, 65, 0.20);
+    }
+
+    @keyframes finalGamingPopup {
+      0% {
+        opacity: 0;
+        transform: scale(0.55) rotate(-6deg);
+      }
+
+      55% {
+        opacity: 1;
+        transform: scale(1.08) rotate(2deg);
+      }
+
+      75% {
+        transform: scale(0.97) rotate(-1deg);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+      }
+    }
+
+    @keyframes starsBounce {
+      0% {
+        opacity: 0;
+        transform: scale(0);
+      }
+
+      60% {
+        opacity: 1;
+        transform: scale(1.25) rotate(5deg);
+      }
+
+      80% {
+        transform: scale(0.92);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes sparkleFloat {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-7px) rotate(12deg);
+      }
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width:640px) {
+      .content-row {
+        gap: clamp(8px, 4vw, 20px);
+      }
+
+      :root {
+        --rod-gap: clamp(24px, 14vw, 60px);
+        --rod-w: clamp(20px, 8vw, 36px);
+      }
+    }
+
+    @media (max-width:420px) {
+      .heading {
+        font-size: 11.5px;
+      }
+
+      .qlabel {
+        font-size: 16px;
+      }
+
+      :root {
+        --rod-gap: clamp(18px, 14vw, 42px);
+        --rod-w: clamp(16px, 8vw, 28px);
+        --bead-size: clamp(11px, 2.6vh, 22px);
+      }
+
+      .opt {
+        padding: 6px 12px;
+        gap: 8px;
+      }
+
+      .opt-value {
+        font-size: 14px;
+      }
+    }
+
+    @media (max-height:640px) {
+      :root {
+        --bead-size: clamp(11px, 2.6vh, 22px);
+      }
+
+      .quiz-card {
+        padding: 6px clamp(12px, 2.4vw, 30px);
+        gap: 3px;
+      }
+
+      .home-btn {
+        width: 38px;
+        height: 38px;
+        left: 8px;
+        top: 12px;
+        border-width: 2px;
+      }
+
+      .home-btn i {
+        font-size: 17px;
+      }
+    }
+
+    @media (max-height:480px) {
+      :root {
+        --bead-size: clamp(9px, 2.2vh, 18px);
+      }
+
+      .heading {
+        font-size: 10.5px;
+      }
+
+      .qlabel {
+        font-size: 11px;
+      }
+
+      .answer-label {
+        font-size: 9px;
+      }
+
+      .answer-box {
+        padding: 4px 10px;
+        font-size: 13px;
+      }
+
+      .opt {
+        padding: 4px 10px;
+      }
+
+      .opt-badge {
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+      }
+
+      .opt-value {
+        font-size: 13px;
+      }
+
+      .nav button {
+        padding: 6px 14px;
+        font-size: 11px;
+      }
+    }
+
+    /* CORRECT/WRONG popup + final popup media queries (unchanged sizing rules kept identical across breakpoints on purpose) */
+    @media (max-width:768px) {
+      .popup-content {
+        padding: 20px 24px;
+        max-width: 300px;
+      }
+
+      .popup-icon {
+        font-size: 48px;
+      }
+
+      .popup-content h3 {
+        font-size: 24px;
+      }
+
+      .popup-content p {
+        font-size: 16px;
+      }
+
+      .finalpopup-box {
+        padding: 20px 18px;
+        max-width: 340px;
+      }
+
+      .final-heading {
+        font-size: 26px;
+      }
+
+      #finalScore {
+        font-size: 20px;
+      }
+
+      #stars {
+        font-size: 34px;
+        letter-spacing: 6px;
+      }
+
+      .playAgain-btn {
+        font-size: 16px;
+        padding: 10px 24px;
+      }
+    }
+
+    @media (max-width:480px) {
+      .popup-content {
+        padding: 16px 20px;
+        max-width: 270px;
+      }
+
+      .popup-icon {
+        font-size: 40px;
+      }
+
+      .popup-content h3 {
+        font-size: 20px;
+      }
+
+      .popup-content p {
+        font-size: 14px;
+      }
+
+      .finalpopup-box {
+        padding: 16px 14px;
+        max-width: 290px;
+      }
+
+      .final-heading {
+        font-size: 22px;
+      }
+
+      #finalScore {
+        font-size: 18px;
+      }
+
+      #stars {
+        font-size: 28px;
+        letter-spacing: 4px;
+      }
+
+      .playAgain-btn {
+        font-size: 14px;
+        padding: 8px 20px;
+      }
+    }
+
+    /* =========================================================
+   LAPTOP RESPONSIVE
+   1024px – 1365px
+   ========================================================= */
+    @media (min-width:1024px) and (max-width:1365px) {
+
+      .quiz-card {
+        padding: 12px 35px 10px;
+        gap: 6px;
+      }
+
+      .heading {
+        font-size: 30px;
+      }
+
+      .qlabel {
+        font-size: 30px;
+        margin-left: 5px;
+      }
+
+      .content-row {
+        width: 100%;
+        max-width: 1050px;
+        gap: 45px;
+      }
+
+      .abacus-wrap {
+        gap: 8px;
+      }
+
+      :root {
+        --rod-w: 42px;
+        --rod-gap: 85px;
+        --bead-size: 28px;
+      }
+
+      .base-plaque {
+        padding: 10px 28px;
+        gap: 85px;
+      }
+
+      .base-label {
+        font-size: 20px;
+      }
+
+      .answer-label {
+        font-size: 15px;
+      }
+
+      .answer-box {
+        min-width: 145px;
+        padding: 8px 20px;
+        font-size: 21px;
+      }
+
+      .answers {
+        gap: 16px;
+      }
+
+      .opt {
+        min-height: 68px;
+        padding: 10px 22px;
+        gap: 15px;
+      }
+
+      .opt-badge {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+
+      .opt-value {
+        font-size: 24px;
+      }
+
+      .nav {
+        margin-top: 8px;
+        padding-bottom: 8px;
+        gap: 20px;
+      }
+
+      .nav button {
+        min-width: 145px;
+        height: 52px;
+        padding: 10px 25px;
+        font-size: 19px;
+      }
+    }
+
+
+    /* =========================================================
+   DESKTOP RESPONSIVE
+   1366px and above
+   ========================================================= */
+    /* On a big external monitor there is so much spare height that the
+       rods stretch out very long. Cap the abacus height there. Laptop
+       screens are shorter than this and stay exactly as they were. */
+    @media (min-height:800px) {
+
+      .abacus-core {
+        flex: 0 1 auto;
+        height: min(100%, 360px);
+      }
+    }
+
+    @media (min-width:1366px) {
+
+      .quiz-card {
+        padding: 16px 55px 12px;
+        gap: 8px;
+      }
+
+      .heading {
+        font-size: 40px;
+      }
+
+      .qlabel {
+        font-size: 40px;
+        margin-left: 10px;
+      }
+
+      .content-row {
+        width: 100%;
+        max-width: 1200px;
+        gap: 70px;
+      }
+
+      :root {
+        --rod-w: 50px;
+        --rod-gap: 105px;
+        --bead-size: 31px;
+      }
+
+      .abacus-wrap {
+        gap: 10px;
+      }
+
+      .base-plaque {
+        padding: 12px 32px;
+        gap: 105px;
+      }
+
+      .base-label {
+        font-size: 22px;
+      }
+
+      .answer-label {
+        font-size: 17px;
+      }
+
+      .answer-box {
+        min-width: 165px;
+        padding: 10px 24px;
+        font-size: 23px;
+      }
+
+      .answers {
+        gap: 20px;
+      }
+
+      .opt {
+        min-height: 76px;
+        padding: 12px 28px;
+        gap: 18px;
+      }
+
+      .opt-badge {
+        width: 44px;
+        height: 44px;
+        font-size: 19px;
+      }
+
+      .opt-value {
+        font-size: 30px;
+      }
+
+      .nav {
+        margin-top: 10px;
+        padding-bottom: 10px;
+        gap: 24px;
+      }
+
+      .nav button {
+        min-width: 155px;
+        height: 55px;
+        padding: 11px 28px;
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="quiz-card">
+    <button class="home-btn" id="homeBtn" aria-label="Home" title="Home"
+      onclick="window.location.href='../Grade2_chapter1.html'">
+      <i class="fa-solid fa-house"></i>
+    </button>
+
+    <p class="heading" id="heading">Write the number represented on the abacus scale.</p>
+    <p class="qlabel" id="qLabel">Q1.</p>
+
+    <div class="content-row">
+      <div class="abacus-wrap">
+        <div class="abacus-core">
+          <div class="rods-row">
+            <div class="rod-col">
+              <div class="rod-line"></div>
+              <div class="beads-stack" id="beadsT"></div>
+            </div>
+            <div class="rod-col">
+              <div class="rod-line"></div>
+              <div class="beads-stack" id="beadsO"></div>
+            </div>
+          </div>
+          <div class="base-row">
+            <div class="base-plaque">
+              <span class="base-label">T</span>
+              <span class="base-label">O</span>
+            </div>
+          </div>
+        </div>
+        <p class="answer-label">Your Answer</p>
+        <input class="answer-box" id="answerBox" type="text" value="— —" readonly aria-label="Your answer">
+      </div>
+
+      <div class="answers" id="answersContainer"></div>
+    </div>
+
+    <div class="nav">
+      <button class="prev" id="prevBtn" disabled>← Prev</button>
+      <button class="next" id="nextBtn" disabled>Next →</button>
+    </div>
+
+  </div>
+
+  <!-- CORRECT / WRONG POPUP -->
+  <div id="answerPopup" class="popup">
+    <div class="popup-content">
+      <div class="popup-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <!-- FINAL POPUP -->
+  <div id="finalPopup">
+    <div class="finalpopup-box">
+      <h2 class="final-heading">🎉 Amazing Job!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div><br>
+      <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+    </div>
+  </div>
+
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound"
+    src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+  <script>
+    /* real viewport height fix so mobile browser chrome never causes a scrollbar */
+    function setRealVH() { document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px'); }
+    setRealVH();
+    window.addEventListener('resize', setRealVH);
+    window.addEventListener('orientationchange', setRealVH);
+
+    /* ===================== QUESTION DATA (from reference sheet a-d) ===================== */
+    const QUESTIONS = [
+      { tens: 3, ones: 0, correct: 30, distractors: [3, 13] },
+      { tens: 5, ones: 2, correct: 52, distractors: [25, 5] },
+      { tens: 6, ones: 7, correct: 67, distractors: [76, 6] },
+      { tens: 8, ones: 7, correct: 87, distractors: [78, 8] },
+    ];
+
+    const OPT_STYLES = [
+      { letter: "A", cls: "green" },
+      { letter: "B", cls: "pink" },
+      { letter: "C", cls: "blue" },
+    ];
+    function speak(t) {
+      speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance(t);
+      msg.lang = "en-US";
+      msg.volume = 0.25;
+      msg.rate = 1;
+      msg.pitch = 1;
+      speechSynthesis.speak(msg);
+    }
+
+    const total = QUESTIONS.length;
+    let current = 0;
+    let wrongAttempts = 0;
+    const state = QUESTIONS.map(() => ({ answered: false, order: null }));
+
+    const heading = document.getElementById("heading");
+    const qLabel = document.getElementById("qLabel");
+    const beadsT = document.getElementById("beadsT");
+    const beadsO = document.getElementById("beadsO");
+    const answerBox = document.getElementById("answerBox");
+    const answersEl = document.getElementById("answersContainer");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    const correctSound = document.getElementById("correctSound");
+    const wrongSound = document.getElementById("wrongSound");
+
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
+      return a;
+    }
+
+    function buildBeads(container, count, colorClass) {
+      container.innerHTML = "";
+      for (let i = 0; i < count; i++) {
+        const b = document.createElement("div");
+        b.className = "bead " + colorClass;
+        container.appendChild(b);
+      }
+    }
+
+    function renderQuestion() {
+      const q = QUESTIONS[current];
+      const st = state[current];
+
+      qLabel.textContent = `Q${current + 1}.`;
+
+      buildBeads(beadsT, q.tens, "red");
+      buildBeads(beadsO, q.ones, "green");
+
+      // build (or reuse) the shuffled option order for this question
+      if (!st.order) {
+        const values = shuffle([
+          { value: q.correct, isCorrect: true },
+          { value: q.distractors[0], isCorrect: false },
+          { value: q.distractors[1], isCorrect: false },
+        ]);
+        st.order = values;
+      }
+
+      answersEl.innerHTML = "";
+      st.order.forEach((opt, i) => {
+        const style = OPT_STYLES[i];
+        const el = document.createElement("div");
+        el.className = "opt " + style.cls;
+        el.dataset.correct = opt.isCorrect ? "1" : "0";
+        el.setAttribute("role", "button");
+        el.tabIndex = st.answered ? -1 : 0;
+        el.innerHTML = `<span class="opt-badge">${style.letter}</span><span class="opt-value">${opt.value}</span>`;
+        if (st.answered) {
+          if (opt.isCorrect) el.classList.add("correct-locked");
+          else el.classList.add("locked-out");
+        } else {
+          el.addEventListener("click", () => onOptionClick(el, opt));
+          el.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              onOptionClick(el, opt);
+            }
+          });
+        }
+        answersEl.appendChild(el);
+      });
+
+      if (st.answered) {
+        answerBox.value = String(q.correct);
+        answerBox.classList.add("filled");
+      } else {
+        answerBox.value = "— —";
+        answerBox.classList.remove("filled");
+      }
+
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = !st.answered;
+      nextBtn.textContent = current === total - 1 ? "Finish ✓" : "Next →";
+    }
+
+    function onOptionClick(el, opt) {
+
+      if (el.classList.contains("locked-out") ||
+        el.classList.contains("correct-locked")) {
+        return;
+      }
+
+      if (opt.isCorrect) {
+
+        correctSound.currentTime = 0;
+        correctSound.play().catch(() => { });
+
+        try {
+          speak("correct");
+        } catch (e) { }
+
+        state[current].answered = true;
+
+        // SHOW CORRECT ANSWER IN ANSWER BOX
+        const q = QUESTIONS[current];
+        answerBox.value = String(q.correct);
+        answerBox.classList.add("filled");
+
+        // LOCK CORRECT ANSWER
+        el.classList.add("correct-locked");
+
+        // LOCK OTHER ANSWERS
+        document.querySelectorAll(".opt").forEach(o => {
+          if (o !== el) {
+            o.classList.add("locked-out");
+          }
+        });
+
+        showPopup(true);
+
+        nextBtn.disabled = false;
+
+        fireConfettiAt(el);
+
+        if (current === total - 1) {
+          setTimeout(() => {
+            fireBigConfetti();
+            showFinal();
+          }, 900);
+        }
+
+      } else {
+
+        wrongAttempts++;
+
+        wrongSound.currentTime = 0;
+        wrongSound.play().catch(() => { });
+
+        try {
+          speak("wrong");
+        } catch (e) { }
+
+        showPopup(false);
+
+        el.classList.remove("wrong-flash");
+
+        void el.offsetWidth;
+
+        el.classList.add("wrong-flash");
+
+        setTimeout(() => {
+          el.classList.remove("wrong-flash");
+        }, 420);
+      }
+    }
+    function fireConfettiAt(el) {
+      if (!window.confetti) return;
+      const rect = el.getBoundingClientRect();
+      confetti({
+        particleCount: 24, spread: 55, startVelocity: 26,
+        origin: { x: (rect.left + rect.width / 2) / window.innerWidth, y: (rect.top + rect.height / 2) / window.innerHeight },
+        colors: ["#e6473f", "#3a6fd8", "#f7b733", "#8bba8a", "#c9a8e0"],
+      });
+    }
+    function fireBigConfetti() {
+      if (!window.confetti) return;
+      const end = Date.now() + 1800;
+      (function frame() {
+        confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 } });
+        confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
+    }
+
+    function showPopup(isCorrect) {
+      const popup = document.getElementById("answerPopup");
+      const icon = document.getElementById("popupIcon");
+      const title = document.getElementById("popupTitle");
+      const msg = document.getElementById("popupMsg");
+
+      popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+      popup.style.display = "flex";
+
+      if (isCorrect) { icon.textContent = "🎉"; title.textContent = "Correct!"; msg.textContent = "Great job!"; }
+      else { icon.textContent = "❌"; title.textContent = "Try Again!"; msg.textContent = "That's not quite right."; }
+
+      clearTimeout(showPopup._t);
+      showPopup._t = setTimeout(() => { popup.style.display = "none"; }, 1100);
+    }
+
+    function showFinal() {
+      const finalPopup = document.getElementById("finalPopup");
+      finalPopup.style.display = "flex";
+
+      document.getElementById("finalScore").textContent =
+        `${total} / ${total} Completed`;
+
+      // Always show 3 stars
+      document.getElementById("stars").textContent = "⭐⭐⭐";
+    }
+
+    prevBtn.addEventListener("click", () => { if (current > 0) { current--; renderQuestion(); } });
+    nextBtn.addEventListener("click", () => {
+      if (current < total - 1) { current++; renderQuestion(); }
+      else if (!nextBtn.disabled) { fireBigConfetti(); showFinal(); }
+    });
+
+    renderQuestion();
+  </script>
+</body>
+
+</html>

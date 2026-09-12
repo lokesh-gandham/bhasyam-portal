@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Subtraction Match Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0}
+body{
+  overflow:hidden;
+  font-family:"Livvic",sans-serif;
+  color:#34484d;
+  background:#f2eee7;
+}
+.game{
+  position:relative;
+  width:100%;
+  height:100vh;
+  min-height:600px;
+  overflow:hidden;
+  padding:18px 28px;
+ 
+}
+
+.decor{
+  position:absolute;pointer-events:none;z-index:1;
+}
+.star{font-size:38px;color:#dca67e}
+.star.one{left:3%;top:24%}.star.two{right:4%;top:28%;color:#86b9a6}
+.arc{
+  width:190px;height:190px;border:4px dashed rgba(213,164,123,.35);
+  border-radius:50%;left:-95px;bottom:8%;
+}
+.leaf{
+  width:110px;height:55px;border-radius:100% 0 100% 0;
+  border:3px solid rgba(110,158,144,.22);right:-35px;bottom:15%;
+  transform:rotate(-20deg);
+}
+
+/* single heading */
+.header{
+  position:relative;z-index:20;height:68px;
+  display:flex;justify-content:center;align-items:center;
+}
+.title{
+  display:flex;align-items:center;gap:13px;
+  padding:10px 26px;
+ 
+ 
+}
+.title-icon{
+  width:42px;height:42px;border-radius:11px;
+  display:grid;place-items:center;
+  background:#f3c994;border:2px solid #d99e61;
+  font-size:22px;
+}
+h1{margin:0;font-size:22px;font-weight:400;color:#2f4f4f}
+
+/* board */
+.board{
+  position:relative;z-index:5;
+  width:min(1500px,96vw);
+  height:calc(100vh - 104px);
+  min-height:500px;
+  margin:2px auto 0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 230px minmax(0,1fr);
+  align-items:stretch;
+}
+
+/* clean box design with small borders */
+.side{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:7px 0;
+}
+.left-side{padding-right:28px}
+.right-side{padding-left:28px}
+
+.match-card{
+  position:relative;
+  min-height:0;
+  flex:1 1 0;
+  margin:3px 0;
+  padding:5px 30px;
+  display:flex;
+  align-items:center;
+  cursor:pointer;
+  user-select:none;
+  background:rgba(255,255,255,.91);
+  border:2px solid #d7bda9;
+  border-radius:12px;
+  box-shadow:4px 5px 0 rgba(91,77,69,.08);
+  transition:transform .18s,box-shadow .18s,background .18s,border-color .18s;
+}
+.right-side .match-card{border-color:#a9c9c1}
+.match-card:hover:not(.matched){
+  transform:translateY(-2px);
+  box-shadow:5px 7px 0 rgba(91,77,69,.11);
+}
+.match-card.selected{
+  background:#fff4d8;
+  border-color:#d9a34f;
+  box-shadow:0 0 0 4px rgba(217,163,79,.14),5px 7px 0 rgba(91,77,69,.10);
+  transform:translateY(-2px);
+}
+.right-side .match-card.selected{
+  background:#edf8f3;
+  border-color:#63a28f;
+  box-shadow:0 0 0 4px rgba(99,162,143,.14),5px 7px 0 rgba(91,77,69,.10);
+}
+.match-card.correct{
+  background:#e7f6ed!important;
+  border-color:#55a878!important;
+  box-shadow:0 4px 0 rgba(70,135,94,.12);
+}
+.match-card.wrong{
+  background:#fde8ee!important;
+  border-color:#cf6e88!important;
+  animation:shake .28s ease-in-out;
+}
+.match-card.matched{cursor:default}
+.card-text{
+  width:100%;
+  font-size:20px;
+  line-height:1.05;
+  font-weight:400;
+  color:#40555b;
+}
+@keyframes shake{
+  25%{transform:translateX(-5px)}
+  50%{transform:translateX(5px)}
+  75%{transform:translateX(-3px)}
+}
+
+/* small connection dots */
+.anchor{
+  position:absolute;
+  top:50%;
+  width:16px;height:16px;
+  transform:translateY(-50%);
+  border-radius:50%;
+  background:#fffdf8;
+  z-index:4;
+}
+.left-side .anchor{right:-9px;border:3px solid #d9a34f}
+.right-side .anchor{left:-9px;border:3px solid #63a28f}
+.selected .anchor{background:#ffe1a7;border-color:#bd7e2d}
+.matched .anchor{background:#bde4c9!important;border-color:#55a878!important}
+
+/* center: no circle, no drag instruction */
+.center{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.center-mark{
+  width:54px;height:190px;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.center-mark:before,.center-mark:after{
+  content:"";position:absolute;left:50%;
+  width:2px;height:62px;
+  background:#d8c7b5;
+  transform:translateX(-50%);
+}
+.center-mark:before{top:0}
+.center-mark:after{bottom:0}
+.center-symbol{
+  width:48px;height:48px;border-radius:50%;
+  background:#fffaf0;border:2px solid #d8b27c;
+  display:grid;place-items:center;
+  color:#bd8550;font-size:25px;
+  box-shadow:0 4px 0 rgba(95,74,55,.10);
+}
+
+/* SVG drawing layer */
+#lines{
+  position:absolute;inset:0;width:100%;height:100%;
+  overflow:visible;z-index:15;pointer-events:none;
+}
+.connection{
+  fill:none;
+  stroke:#d59a55;
+  stroke-width:5;
+  stroke-linecap:round;
+  stroke-dasharray:2 10;
+  opacity:.92;
+  filter:drop-shadow(0 2px 2px rgba(75,59,45,.13));
+}
+.connection-core{
+  fill:none;stroke:#fffdf6;stroke-width:2;
+  stroke-linecap:round;opacity:.85;
+}
+.preview{
+  fill:none;stroke:#c8a46d;stroke-width:4;
+  stroke-linecap:round;stroke-dasharray:7 10;opacity:.7;
+}
+
+/* same popup family */
+.feedback{
+  position:fixed;top:50%;left:50%;z-index:100;
+  width:min(440px,88vw);min-height:215px;padding:26px 30px 28px;
+  border-radius:30px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;text-align:center;
+  opacity:0;pointer-events:none;
+  transform:translate(-50%,-50%) scale(.7);
+  transition:.28s cubic-bezier(.2,.9,.25,1.25);
+  box-shadow:0 20px 50px rgba(32,57,57,.22);
+}
+.feedback.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.correct-popup{background:linear-gradient(135deg,#e2f6e9,#f4fcf6);border:5px solid #16834f}
+.wrong-popup{background:linear-gradient(135deg,#fde6e2,#fff7f5);border:5px solid #c94740}
+.feedback-icon{
+  width:68px;height:68px;display:grid;place-items:center;
+  border-radius:24px 24px 24px 8px;font-size:34px;color:#fff;
+  box-shadow:0 5px 0 rgba(0,0,0,.08)
+}
+.correct-popup .feedback-icon{background:#16834f}
+.wrong-popup .feedback-icon{background:#c94740}
+.feedback h3{font-size:28px;font-weight:600;color:#2f4f4f;margin:0}
+.feedback p{font-size:17px;color:#607878;margin:0}
+
+.final-popup{
+  position:fixed;top:50%;left:50%;z-index:200;
+  width:min(520px,91vw);padding:38px 36px 32px;text-align:center;
+  border-radius:34px;
+  background:linear-gradient(145deg,#eadcff,#cbb5f4 58%,#b89ae8);
+  border:5px solid #7350a8;
+  box-shadow:0 10px 0 rgba(83,55,126,.18),0 28px 70px rgba(55,38,80,.30);
+  opacity:0;pointer-events:none;
+  transform:translate(-50%,-50%) scale(.72);transition:.34s;
+}
+.final-popup.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.final-emoji{font-size:78px;margin-bottom:8px}
+.final-popup h2{font-size:36px;font-weight:600;color:#4c3272;margin:0 0 8px}
+.final-popup p{font-size:18px;color:#5f4a7a;margin:0 0 24px}
+.play-again-btn{
+  min-width:185px;height:52px;padding:0 28px;border:0;border-radius:17px;
+  background:#68449a;color:#fff;font-size:20px;font-weight:500;
+  cursor:pointer;box-shadow:0 7px 0 rgba(70,44,106,.20),0 13px 24px rgba(89,59,131,.24)
+}
+
+/* monitor */
+@media(min-width:1400px){
+  .game{padding:20px 40px}
+  .header{height:78px}
+  .title{padding:12px 30px;border-width:4px}
+  .title-icon{width:50px;height:50px;font-size:26px}
+  h1{font-size:30px}
+  .board{
+    width:min(1740px,96vw);
+    height:calc(100vh - 112px);
+    grid-template-columns:minmax(0,1fr) 290px minmax(0,1fr);
+  }
+  .left-side{padding-right:34px}.right-side{padding-left:34px}
+  .match-card{
+    margin:4px 0;padding:7px 38px;
+    border-width:3px;border-radius:15px;
+    box-shadow:5px 6px 0 rgba(91,77,69,.08);
+  }
+  .card-text{font-size:30px}
+  .anchor{width:22px;height:22px;border-width:4px}
+  .left-side .anchor{right:-12px}.right-side .anchor{left:-12px}
+  .center-mark{width:64px;height:230px}
+  .center-symbol{width:58px;height:58px;font-size:30px}
+  .connection{stroke-width:7}.connection-core{stroke-width:2.5}
+  .feedback{width:min(560px,42vw);min-height:270px;padding:32px 40px 36px;border-radius:36px;border-width:6px}
+  .feedback-icon{width:82px;height:82px;font-size:40px}
+  .feedback h3{font-size:34px}.feedback p{font-size:20px}
+  .final-popup{width:min(650px,48vw);padding:46px 48px 40px;border-radius:40px;border-width:6px}
+  .final-emoji{font-size:92px}.final-popup h2{font-size:44px}.final-popup p{font-size:21px}
+  .play-again-btn{min-width:215px;height:60px;border-radius:20px;font-size:23px}
+}
+
+/* laptop */
+@media(max-width:1100px){
+  .game{padding:12px 16px}
+  .board{width:97vw;grid-template-columns:minmax(0,1fr) 170px minmax(0,1fr)}
+  .left-side{padding-right:12px}.right-side{padding-left:12px}
+  .match-card{padding:5px 20px;border-radius:10px}
+  .card-text{font-size:18px}
+  .anchor{width:15px;height:15px;border-width:3px}
+  .left-side .anchor{right:-8px}.right-side .anchor{left:-8px}
+  .center-mark{height:180px}.center-symbol{width:42px;height:42px;font-size:21px}
+}
+
+/* mobile */
+@media(max-width:700px){
+  body{overflow:auto}
+  .game{height:auto;min-height:100vh;overflow:hidden;padding:9px 7px 14px}
+  .header{height:52px}
+  .title{padding:7px 13px;gap:8px;border-width:2px;border-radius:16px 8px 16px 8px}
+  .title-icon{width:31px;height:31px;font-size:16px}
+  h1{font-size:18px}
+  .board{
+    width:100%;height:auto;min-height:calc(100vh - 68px);
+    grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr);
+  }
+  .side{padding:4px 0}.left-side{padding-right:4px}.right-side{padding-left:4px}
+  .match-card{margin:2px 0;padding:3px 7px;border-width:1.5px;border-radius:7px}
+  .card-text{font-size:10.5px;line-height:1.04}
+  .anchor{width:10px;height:10px;border-width:2px}
+  .left-side .anchor{right:-5px}.right-side .anchor{left:-5px}
+  .center-mark{display:none}
+  #lines{display:none}
+}
+</style>
+</head>
+
+<body>
+<main class="game">
+  
+  <div class="decor arc"></div>
+  <div class="decor leaf"></div>
+
+  <header class="header">
+    <div class="title">
+      <div class="title-icon">➖</div>
+      <h1>Subtraction Match Challenge</h1>
+    </div>
+  </header>
+
+  <section class="board" id="board">
+    <div class="side left-side" id="leftSide">
+      <div class="match-card" data-id="q1"><span class="card-text">10000 − 1</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q2"><span class="card-text">82463 − 0</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q3"><span class="card-text">99999 − largest 5 digit number</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q4"><span class="card-text">The number from which subtraction is done</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q5"><span class="card-text">Subtraction is not</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q6"><span class="card-text">Smallest 4 digit number less by 1</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q7"><span class="card-text">The number that is subtracted</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q8"><span class="card-text">The result of subtraction</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q9"><span class="card-text">46573 − 1500</span><span class="anchor"></span></div>
+    </div>
+
+    <svg id="lines" aria-hidden="true">
+      <g id="lockedLines"></g>
+    </svg>
+
+    <div class="center">
+    
+    </div>
+
+    <div class="side right-side" id="rightSide">
+      <div class="match-card" data-id="q7"><span class="card-text">Subtrahend</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q9"><span class="card-text">45073</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q5"><span class="card-text">Commutative</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q8"><span class="card-text">Difference</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q2"><span class="card-text">82463</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q4"><span class="card-text">Minuend</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q3"><span class="card-text">0</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q1"><span class="card-text">9999</span><span class="anchor"></span></div>
+      <div class="match-card" data-id="q6"><span class="card-text">Largest 3 digit number</span><span class="anchor"></span></div>
+    </div>
+  </section>
+
+  <div id="correctPopup" class="feedback correct-popup">
+    <div class="feedback-icon">🎉</div>
+    <h3>Perfect!</h3>
+    <p>Correct match!</p>
+  </div>
+
+  <div id="wrongPopup" class="feedback wrong-popup">
+    <div class="feedback-icon">😕</div>
+    <h3>Try Again!</h3>
+    <p>That's not the matching pair.</p>
+  </div>
+
+  <div id="finalPopup" class="final-popup">
+    <div class="final-emoji">🏆</div>
+    <h2>Math Champion!</h2>
+    <p>You matched every subtraction pair!</p>
+    <button id="playAgainBtn" class="play-again-btn">↻ Play Again</button>
+  </div>
+</main>
+
+<script>
+const board=document.getElementById("board");
+const leftCards=[...document.querySelectorAll("#leftSide .match-card")];
+const rightCards=[...document.querySelectorAll("#rightSide .match-card")];
+const lockedLines=document.getElementById("lockedLines");
+const correctPopup=document.getElementById("correctPopup");
+const wrongPopup=document.getElementById("wrongPopup");
+const finalPopup=document.getElementById("finalPopup");
+const playAgainBtn=document.getElementById("playAgainBtn");
+
+let selected=null;
+let matched=new Set();
+
+function speak(text){
+  if(!("speechSynthesis" in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="en-US";u.volume=.25;u.rate=1;u.pitch=1;
+  speechSynthesis.speak(u);
+}
+function popup(el,time=1050){
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),time);
+}
+function centerPoint(el,side){
+  const r=el.getBoundingClientRect(),b=board.getBoundingClientRect();
+  return {
+    x:(side==="left"?r.right:r.left)-b.left,
+    y:r.top+r.height/2-b.top
+  };
+}
+function makePath(a,b){
+  const dx=Math.abs(b.x-a.x);
+  const bend=Math.max(55,dx*.28);
+  return `M ${a.x} ${a.y} C ${a.x+bend} ${a.y}, ${b.x-bend} ${b.y}, ${b.x} ${b.y}`;
+}
+function addLine(left,right){
+  const a=centerPoint(left,"left"),b=centerPoint(right,"right");
+  const d=makePath(a,b);
+
+  const glow=document.createElementNS("http://www.w3.org/2000/svg","path");
+  glow.setAttribute("d",d);
+  glow.setAttribute("class","connection");
+
+  const core=document.createElementNS("http://www.w3.org/2000/svg","path");
+  core.setAttribute("d",d);
+  core.setAttribute("class","connection-core");
+
+  lockedLines.append(glow,core);
+}
+
+/*
+  New functionality:
+  1. Click a left box.
+  2. It becomes the active "drawing point".
+  3. Click the matching right box.
+  4. A curved line is drawn and locked.
+  There is NO dragging and NO drag-and-drop.
+*/
+function chooseLeft(card){
+  if(finalPopup.classList.contains("show")||card.classList.contains("matched"))return;
+  leftCards.forEach(c=>c.classList.remove("selected"));
+  rightCards.forEach(c=>c.classList.remove("selected"));
+  selected=card;
+  card.classList.add("selected");
+}
+function chooseRight(card){
+  if(!selected||card.classList.contains("matched"))return;
+
+  const source=selected;
+
+  if(source.dataset.id===card.dataset.id){
+    source.classList.remove("selected");
+    source.classList.add("correct","matched");
+    card.classList.add("correct","matched");
+    addLine(source,card);
+    matched.add(source.dataset.id);
+    selected=null;
+
+    popup(correctPopup);
+    speak("Correct!");
+
+    if(matched.size===leftCards.length){
+      setTimeout(()=>finalPopup.classList.add("show"),900);
+    }
+  }else{
+    source.classList.add("wrong");
+    card.classList.add("wrong");
+    popup(wrongPopup);
+    speak("Try again!");
+
+    setTimeout(()=>{
+      source.classList.remove("wrong","selected");
+      card.classList.remove("wrong");
+      selected=null;
+    },550);
+  }
+}
+
+leftCards.forEach(card=>{
+  card.addEventListener("click",()=>chooseLeft(card));
+});
+rightCards.forEach(card=>{
+  card.addEventListener("click",()=>chooseRight(card));
+});
+
+window.addEventListener("resize",()=>{
+  lockedLines.innerHTML="";
+  matched.forEach(id=>{
+    const l=leftCards.find(c=>c.dataset.id===id);
+    const r=rightCards.find(c=>c.dataset.id===id);
+    if(l&&r)addLine(l,r);
+  });
+});
+
+playAgainBtn.addEventListener("click",()=>{
+  matched.clear();
+  selected=null;
+  lockedLines.innerHTML="";
+  [...leftCards,...rightCards].forEach(c=>{
+    c.classList.remove("matched","correct","wrong","selected");
+  });
+  finalPopup.classList.remove("show");
+});
+</script>
+<script>
+/* ===== CONFETTI CELEBRATION (right & final popups) ===== */
+(function () {
+  let canvas, ctx, pieces = [], raf = null;
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    resize();
+    window.addEventListener("resize", resize);
+  }
+  function resize() {
+    if (!canvas) return;
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  const colors = ["#16834f", "#d99c36", "#7350a8", "#c94740", "#3a8fb7", "#e86ea4", "#ffd257"];
+  function burst(count) {
+    ensureCanvas();
+    for (let i = 0; i < count; i++) {
+      pieces.push({
+        x: innerWidth / 2 + (Math.random() - .5) * 180,
+        y: innerHeight / 2 + (Math.random() - .5) * 90,
+        vx: (Math.random() - .5) * 11,
+        vy: Math.random() * -13 - 4,
+        g: 0.30 + Math.random() * 0.14,
+        s: 6 + Math.random() * 7,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - .5) * 0.4,
+        color: colors[i % colors.length],
+        life: 0
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces = pieces.filter(p => p.life < 280 && p.y < innerHeight + 40);
+    pieces.forEach(p => {
+      p.life++;
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.99;
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6);
+      ctx.restore();
+    });
+    if (pieces.length) { raf = requestAnimationFrame(tick); }
+    else { raf = null; ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  }
+  window.fireConfetti = function (big) {
+    if (big) {
+      burst(170);
+      let n = 0;
+      const iv = setInterval(() => { burst(90); if (++n >= 4) clearInterval(iv); }, 400);
+    } else {
+      burst(90);
+    }
+  };
+  function watch(id, big) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let was = el.classList.contains("show");
+    new MutationObserver(() => {
+      const now = el.classList.contains("show");
+      if (now && !was) window.fireConfetti(big);
+      was = now;
+    }).observe(el, { attributes: true, attributeFilter: ["class"] });
+  }
+  function init() { watch("correctPopup", false); watch("finalPopup", true); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+
+</html>

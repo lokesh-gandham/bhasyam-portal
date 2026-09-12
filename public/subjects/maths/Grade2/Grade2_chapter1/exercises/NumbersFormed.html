@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Write the Number Formed</title>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link rel="stylesheet" href="../assets/css/tf.css">
+<style>
+html,
+body,
+.quiz-card,
+.quiz-card *{
+  cursor:default !important;
+}
+
+/* ===== HOME + HINT ===== */
+
+.topbar{
+  position: fixed;
+  top: 10px;
+  left: 48px;
+  right: 48px;
+  width: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 5000;
+  padding: 0;
+  pointer-events: none;
+}
+
+.topbar-right{
+  display:flex;
+  align-items:center;
+  pointer-events:auto;
+}
+
+.icon-flat{
+  width: 50px;
+  height: 50px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:0;
+  border:3px solid #ffffff;
+  border-radius:50%;
+
+  font-size:27px;
+  line-height:1;
+
+  cursor:pointer !important;
+  pointer-events:auto;
+
+  box-shadow:
+    0 5px 0 rgba(0,0,0,.18),
+    0 7px 14px rgba(0,0,0,.18);
+
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease;
+}
+
+/* HOME */
+#homeBtn{
+  background:linear-gradient(
+    180deg,
+    #ff8fb3 0%,
+    #f0447c 100%
+  );
+}
+
+/* HINT */
+#hintBtn{
+  background:linear-gradient(
+    180deg,
+    #55d9f5 0%,
+    #009dcc 100%
+  );
+}
+
+/* Hover */
+.icon-flat:hover{
+  transform:translateY(-3px) scale(1.05);
+  box-shadow:
+    0 8px 0 rgba(0,0,0,.18),
+    0 12px 18px rgba(0,0,0,.18);
+}
+
+/* Press */
+.icon-flat:active{
+  transform:translateY(3px);
+  box-shadow:
+    0 2px 0 rgba(0,0,0,.18),
+    0 4px 8px rgba(0,0,0,.12);
+}
+
+@media (min-width:769px){
+  .topbar{
+    top:14px;
+    left:18px;
+    right:18px;
+  }
+
+  .icon-flat{
+    width:56px;
+    height:56px;
+    font-size:30px;
+  }
+}
+.hint-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.35);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+}
+
+.hint-overlay.show{
+  display:flex;
+}
+
+.hint-box{
+  width:min(90%,420px);
+  background:#fff;
+  border-radius:20px;
+  padding:24px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+
+.hint-box h3{
+  margin:0 0 10px;
+  font-size:26px;
+  color:#2f2f2f;
+}
+
+.hint-box p{
+  margin:0 0 20px;
+  font-size:18px;
+  color:#2f2f2f;
+}
+
+.popup-btn{
+  border:none;
+  border-radius:12px;
+  padding:10px 22px;
+  font-size:17px;
+  cursor:pointer;
+}
+.visuals{
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+}
+
+.tens-card{
+  margin-left:0;
+}
+
+.ones-card{
+  margin-right:0;
+}
+
+/* =========================================
+   FIT THE CARD INSIDE THE WINDOW
+
+   The card was taller than the viewport, and the body
+   clips its overflow, so the Prev / Next row slid under
+   the bottom edge of the screen. Vertical spacing now
+   scales with the window height, and the page can scroll
+   as a fallback on very short screens.
+   ========================================= */
+
+body{
+  overflow:auto;
+  align-items:center;
+  padding:8px 10px 14px;
+}
+
+.quiz-card{
+  padding-top:10px;
+  padding-bottom:8px;
+}
+
+.heading{
+  margin:2px 0 clamp(4px,1vh,10px);
+}
+
+.visual-card{
+  min-height:clamp(118px,20vh,185px);
+  padding:clamp(8px,1.6vh,18px) 12px clamp(8px,1.4vh,16px);
+}
+
+.bundle-slot{
+  height:clamp(56px,9vh,78px);
+}
+
+.arrow-wrap{
+  margin:clamp(4px,1.4vh,18px) 0;
+}
+
+.arrow-shape{
+  width:clamp(34px,4vw,50px);
+  height:clamp(34px,6vh,58px);
+}
+
+.magnet-option,
+.answers.later-questions .magnet-option{
+  height:clamp(90px,17vh,130px);
+}
+
+.option-magnet{
+  height:clamp(52px,9vh,72px);
+}
+
+.answers.later-questions .option-magnet{
+  height:clamp(62px,12vh,100px);
+}
+
+.nav{
+  margin-top:clamp(10px,2.2vh,22px);
+}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <button class="icon-flat" id="homeBtn" style="visibility: hidden;" title="Home" aria-label="Home">🏠</button>
+
+    <div class="topbar-right">
+      <button class="icon-flat" id="hintBtn" title="Hint" aria-label="Hint">💡</button>
+    </div>
+  </div>
+
+  <div class="quiz-card">
+
+    <p class="heading" id="heading">Write the number formed</p>
+    <div class="progress" id="progress">Question 1 of 6</div>
+
+    <div class="visuals">
+      <div class="visual-card tens-card">
+        <div class="bundles" id="bundlesContainer"></div>
+        <p class="visual-label" id="tensLabel"></p>
+      </div>
+
+      <div class="visual-card ones-card">
+        <div class="ones-wrap" id="onesContainer"></div>
+        <p class="visual-label" id="onesLabel"></p>
+      </div>
+    </div>
+
+    <div class="arrow-wrap">
+      <div class="arrow-shape"></div>
+    </div>
+
+    <div class="answers" id="answersContainer"></div>
+
+    <div class="nav">
+      <button class="prev" id="prevBtn" disabled>← Prev</button>
+      <button class="next" id="nextBtn" disabled>Next →</button>
+    </div>
+
+  </div>
+
+  <!-- HINT POPUP -->
+  <div class="hint-overlay" id="hintOverlay" aria-live="polite">
+    <div class="hint-box">
+      <h3>Hint</h3>
+      <p id="hintText">Count the objects from left to right, then tap the right one.</p>
+      <button class="popup-btn" id="closeHintBtn">Got it!</button>
+    </div>
+  </div>
+
+  <!-- CORRECT / WRONG POPUP -->
+  <div id="answerPopup" class="popup">
+    <div class="popup-content">
+      <div class="popup-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <!-- FINAL POPUP -->
+  <div id="finalPopup">
+    <div class="finalpopup-box">
+      <h2 class="final-heading">🎉 Amazing Job!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div><br>
+      <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+    </div>
+  </div>
+
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+  <script src="../assets/js/tf.js"></script>
+ 
+
+<script>
+const homeBtn      = document.getElementById("homeBtn");
+const hintBtn      = document.getElementById("hintBtn");
+const hintOverlay  = document.getElementById("hintOverlay");
+const closeHintBtn = document.getElementById("closeHintBtn");
+const hintText     = document.getElementById("hintText");
+
+homeBtn.addEventListener("click", () => {
+  window.location.href = "../Grade2_chapter1.html";
+});
+
+hintBtn.addEventListener("click", () => {
+  hintText.textContent =
+    "Look at the tens and ones shown above, then choose the number they form.";
+
+  hintOverlay.classList.add("show");
+});
+
+closeHintBtn.addEventListener("click", () => {
+  hintOverlay.classList.remove("show");
+});
+
+hintOverlay.addEventListener("click", (event) => {
+  if(event.target === hintOverlay){
+    hintOverlay.classList.remove("show");
+  }
+});
+</script>
+
+</body>
+</html>

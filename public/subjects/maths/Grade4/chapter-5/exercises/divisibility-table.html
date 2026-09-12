@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Divisibility Rules · Chapter 5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#7C3AED;     --brand-dark:#6D28D9;  --brand-light:#F5F3FF;
+  --emerald:#10B981;   --orange:#FF7A00;       --yellow:#FFD000;    --pink:#FF2E93;
+  --ink:#2D241E;       --ink-soft:#5C4D42;
+  --good:#10B981;      --good-light:#ECFDF5;
+  --bad:#EF4444;       --bad-light:#FEF2F2;
+}
+
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+
+*{ font-family:'Livvic'; font-weight:400; font-style:normal; }
+
+html, body{
+  width:100%; height:100vh; overflow:hidden; margin:0; padding:0;
+}
+
+body{
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 8% 8%,   rgba(251,191,36,.15), transparent 32%),
+    radial-gradient(circle at 92% 14%, rgba(249,115,22,.10), transparent 28%),
+    radial-gradient(circle at 85% 90%, rgba(168,85,247,.10), transparent 30%),
+    linear-gradient(150deg, #FFFDF9 0%, #FFF8EF 50%, #FAF4EB 100%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------------- 100vh Screen-Fit Container: NO SCROLLBARS ---------------- */
+.page-container{
+  width:100%; max-width:1440px; height:100vh; max-height:100vh;
+  display:flex; flex-direction:column; justify-content:space-between;
+  padding:clamp(6px,1.2vh,14px) clamp(16px,2.2vw,38px);
+  margin:0 auto; overflow:hidden; gap:clamp(4px,0.8vh,10px);
+}
+
+/* ---------------- Home button ----------------
+   Sits directly on the page background, not inside a header strip, and is
+   the SAME size on every Chapter 5 quiz — fixed px, not vh-scaled clamps,
+   so it cannot drift from page to page. */
+.home-btn{
+  position:fixed; top:14px; left:16px; z-index:60;
+  display:inline-flex; align-items:center; gap:7px;
+  padding:9px 16px; border-radius:12px;
+  border:2px solid var(--brand-dark);
+  background:linear-gradient(160deg,#8B5CF6,var(--brand));
+  color:#fff; font-size:15px; line-height:1; text-decoration:none;
+  box-shadow:0 3px 0 var(--brand-dark),0 6px 14px rgba(124,58,237,.25);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.home-btn:hover{ transform:translateY(-2px); box-shadow:0 5px 0 var(--brand-dark),0 10px 18px rgba(124,58,237,.3); }
+.home-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--brand-dark); }
+.home-btn svg{ width:15px; height:15px; fill:currentColor; display:block; }
+
+.header-title{ font-size:clamp(18px,2.2vh,24px); color:var(--ink); margin:0; }
+
+.dots{ display:flex; gap:8px; align-items:center; }
+.dot{
+  width:clamp(26px,3.4vh,32px); height:clamp(26px,3.4vh,32px); border-radius:50%;
+  background:#fff; border:2px solid #E6D8C8;
+  color:var(--ink-soft); font-size:clamp(12px,1.5vh,14px); font-weight:400;
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .2s ease; outline:none;
+}
+.dot:hover{ border-color:var(--brand); color:var(--brand); }
+.dot.at{ background:var(--brand); border-color:var(--brand-dark); color:#fff; transform:scale(1.15); box-shadow:0 4px 10px rgba(124,58,237,0.3); }
+.dot.ok{ background:var(--good); border-color:var(--good); color:#fff; }
+.dot.locked, .dot:disabled{ opacity:.35; cursor:not-allowed; }
+.dot.locked:hover, .dot:disabled:hover{ border-color:#E6D8C8; color:var(--ink-soft); }
+.dot.no{ background:var(--bad); border-color:var(--bad); color:#fff; }
+
+/* ---------------- QUESTION AT TOP MIDDLE ---------------- */
+.q-middle-container{
+  flex:0 0 auto;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; gap:2px; margin:4px 0;
+}
+
+.q-stem-text{
+  font-size:30px !important; line-height:1.2;
+  color:#1A1A1A; margin:0; text-align:center; font-weight:400 !important;
+}
+@media (min-width:1440px){ .q-stem-text{ font-size:40px !important; } }
+
+/* ---------------- MAIN STAGE AREA: FULL VERTICAL SPACE UTILIZATION ---------------- */
+.main-stage-wrap{
+  flex:1 1 auto; min-height:0; overflow:hidden;
+  display:flex; justify-content:center; align-items:center;
+  width:100%; max-width:1200px; margin:0 auto;
+}
+.div-prompt-text{
+  font-size:30px !important; line-height:1.3; color:var(--ink);
+  text-align:center; font-weight:400 !important; margin:0;
+}
+@media (min-width: 1440px){
+  .div-prompt-text{ font-size:40px !important; }
+}
+.div-prompt-num{ font-weight:400 !important; color:var(--brand-dark); }
+.div-highlight-num{ font-weight:400 !important; color:#7C3AED; background:#F5F3FF; padding:2px 14px; border-radius:14px; border:2px solid #DDD6FE; }
+
+.div-img-wrapper{
+  flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center;
+  width:100%; overflow:hidden;
+}
+.div-img-wrapper svg, .tf-img{
+  max-height:clamp(220px, 36vh, 360px); width:auto; max-width:90%; object-fit:contain;
+  mix-blend-mode:multiply;
+}
+
+.single-num-card{
+  background:#FFFFFF; border:2.5px solid #F3E8DC; border-radius:32px;
+  padding:clamp(16px, 2.5vh, 32px) clamp(24px, 3vw, 56px);
+  box-shadow:0 24px 54px rgba(180,83,9,0.08);
+  display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+  width:100%; max-width:1120px; height:100%; max-height:76vh;
+  gap:clamp(12px, 1.8vh, 24px); overflow:hidden;
+}
+
+/* Big Vibrant Target Number Display */
+.target-num-badge{
+  font-size:clamp(42px, 5.8vh, 64px); font-weight:400; color:#FFFFFF;
+  background:linear-gradient(160deg, #7C3AED, #6D28D9);
+  padding:clamp(12px, 1.8vh, 20px) clamp(36px, 4.2vw, 72px); border-radius:34px;
+  box-shadow:0 8px 0 #5B21B6, 0 14px 28px rgba(124,58,237,0.3);
+  display:inline-flex; align-items:center; gap:16px;
+}
+
+.target-num-label{
+  font-size:clamp(17px, 2.2vh, 24px); text-transform:uppercase; letter-spacing:0.1em;
+  color:#E9D8FD; font-weight:400;
+}
+
+/* Divisibility Checker Grid Cards */
+.divisors-grid{
+  display:grid; grid-template-columns:repeat(7, 1fr); gap:clamp(10px, 1.5vw, 20px); width:100%;
+}
+
+.divisor-card{
+  background:#FFFDF9; border:2.5px solid #F3E8DC; border-radius:24px;
+  padding:clamp(16px, 2.5vh, 28px) 8px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.04); transition:all .2s ease;
+}
+.divisor-card:hover{ border-color:var(--brand); transform:translateY(-3px); }
+
+.divisor-badge{
+  font-size:clamp(19px, 2.4vh, 26px); font-weight:400; color:var(--brand-dark);
+  background:#F5F3FF; padding:6px 16px; border-radius:14px; border:1.5px solid #DDD6FE;
+}
+
+.choice-btns-row{
+  display:flex; gap:8px; align-items:center; justify-content:center; width:100%;
+}
+
+.choice-btn{
+  flex:1; aspect-ratio:1 / 1; max-width:52px; max-height:52px; border-radius:16px;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:clamp(24px, 3vh, 32px); font-weight:400; cursor:pointer;
+  border:2.5px solid #E6D8C8; background:#FFFFFF; color:#94A3B8;
+  transition:all .18s ease; user-select:none; outline:none;
+}
+.choice-btn:hover{ transform:scale(1.12); }
+.choice-btn:active{ transform:scale(0.92); }
+
+.choice-btn.btn-tick:hover{ border-color:#10B981; color:#10B981; }
+.choice-btn.btn-tick.active{
+  background:#ECFDF5; border-color:#10B981; color:#10B981;
+  box-shadow:0 4px 12px rgba(16,185,129,0.3); transform:scale(1.1);
+}
+
+.choice-btn.btn-cross:hover{ border-color:#EF4444; color:#EF4444; }
+.choice-btn.btn-cross.active{
+  background:#FEF2F2; border-color:#EF4444; color:#EF4444;
+  box-shadow:0 4px 12px rgba(239,68,68,0.3); transform:scale(1.1);
+}
+
+/* Bottom Action Bar: PREV, CHECK ANSWER, NEXT */
+.bottom-action-bar{
+  flex:0 0 auto; display:flex; justify-content:center; align-items:center; gap:16px;
+  width:100%; max-width:600px; margin:4px auto 0;
+}
+
+.btn-big{
+  flex:1 1 0px; font:inherit; font-size:18px; font-weight:400;
+  padding:clamp(12px,1.6vh,16px) 14px; min-width:140px; white-space:nowrap;
+  border-radius:18px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  transition:all .15s ease; outline:none; border:none; text-decoration:none; text-align:center;
+}
+
+.btn-check{
+  background:#10B981; color:#fff; border:2.5px solid #047857; font-size:18px; font-weight:400;
+  width:100%; box-shadow:0 4px 0 #047857; margin:0 auto; white-space:nowrap;
+}
+.btn-check:hover{ transform:translateY(-2px); box-shadow:0 6px 0 #047857; }
+.btn-check:disabled{ opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+
+.btn-nav{
+  width:100%; background:#7C3AED; color:#fff; border:2.5px solid #6D28D9; box-shadow:0 4px 0 #6D28D9;
+}
+.btn-nav:hover{ transform:translateY(-2px); box-shadow:0 6px 0 #6D28D9; }
+.btn-nav:disabled{ opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+.btn-prev-style{
+  width:100%; background:#fff; color:var(--ink); border:2.5px solid #E6D8C8; box-shadow:0 4px 0 #E6D8C8;
+}
+.btn-prev-style:hover{ transform:translateY(-2px); border-color:var(--brand); }
+.btn-prev-style:disabled{ opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* ---------------- NO BLUR & NO DARK OVERLAY ---------------- */
+.popup-overlay{
+  position:fixed; inset:0; z-index:120; display:none; align-items:center; justify-content:center;
+  padding:20px; background:transparent !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  pointer-events:none;
+}
+.popup-overlay.show{ display:flex; pointer-events:auto; }
+
+.finish-overlay{
+  position:fixed; inset:0; z-index:130; display:none; place-items:center; padding:20px;
+  background:transparent !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  pointer-events:none;
+}
+.finish-overlay.show{ display:grid; pointer-events:auto; }
+
+.answer-popup{
+  position:relative; z-index:2; width:min(90vw, 400px); padding:24px 24px 20px; overflow:hidden;
+  text-align:center; background:#FFFFFF; border-radius:24px; box-shadow:0 16px 48px rgba(60,45,30,0.24);
+}
+.popup-overlay.show .answer-popup{ animation:popupCardIn 550ms cubic-bezier(.22,1.3,.36,1) forwards; }
+
+.finish-card{
+  width:min(90vw,480px); background:#fff; border:3px solid #F3E8DC; border-radius:26px; padding:32px 28px;
+  text-align:center; box-shadow:0 24px 60px rgba(60,45,30,.24); display:flex; flex-direction:column; align-items:center; gap:16px;
+}
+.finish-overlay.show .finish-card{ animation:popupCardIn 550ms cubic-bezier(.22,1.3,.36,1) forwards; }
+
+.answer-popup.correct{ border:3px solid #10B981; }
+.answer-popup.correct .popup-icon{ background:#ECFDF5; color:#10B981; }
+.answer-popup.correct .popup-label{ color:#047857; background:#ECFDF5; }
+.answer-popup.correct .popup-title{ color:#047857; }
+.answer-popup.correct .popup-bar{ background:#10B981; }
+
+.answer-popup.wrong{ border:3px solid #EF4444; }
+.answer-popup.wrong .popup-icon{ background:#FEF2F2; color:#EF4444; }
+.answer-popup.wrong .popup-label{ color:#991B1B; background:#FEF2F2; }
+.answer-popup.wrong .popup-title{ color:#991B1B; }
+.answer-popup.wrong .popup-bar{ background:#EF4444; }
+
+.popup-body{ position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:6px; }
+
+.popup-icon{
+  display:grid; width:60px; height:60px; margin:0 auto 4px; place-items:center;
+  border-radius:50%; font-size:28px; font-weight:400;
+}
+.popup-overlay.show .popup-icon{ animation:popupIconBounce 750ms ease 180ms both; }
+
+.popup-label{
+  display:inline-block; margin-bottom:4px; padding:4px 12px; border-radius:20px;
+  font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:400;
+}
+.popup-title{ margin:0 0 4px; font-size:24px; font-weight:400 !important; }
+.popup-message{ margin:0; color:#5C4D42; font-size:16px; line-height:1.4; font-weight:400; }
+
+.popup-track{ width:100%; height:5px; margin-top:16px; overflow:hidden; background:#EEE9E2; border-radius:10px; }
+.popup-bar{ width:100%; height:100%; border-radius:inherit; transform-origin:left; }
+.popup-overlay.show .popup-bar{ animation:popupTimerLine 2s linear forwards; }
+
+@keyframes popupCardIn{
+  0%{opacity:0;transform:translateY(25px) scale(.72)}
+  55%{opacity:1;transform:translateY(-7px) scale(1.06)}
+  75%{transform:translateY(2px) scale(.98)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes popupIconBounce{
+  0%{opacity:0;transform:rotate(-15deg) scale(.3)}
+  55%{opacity:1;transform:rotate(10deg) scale(1.2)}
+  75%{transform:rotate(-5deg) scale(.95)}
+  100%{opacity:1;transform:rotate(0) scale(1)}
+}
+@keyframes popupTimerLine{ from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
+/* ------------------------------------------------------------
+   Big monitors (1600px and wider). The card and the row of
+   divisors spread out to use the space at the sides, and the
+   number pictures grow with them. Laptops sit below this width
+   and are left exactly as they are.
+   ------------------------------------------------------------ */
+@media (min-width: 1600px){
+  .page-container{ max-width:min(1880px, 97vw); }
+  .main-stage-wrap{ max-width:min(1780px, 95vw); }
+  .single-num-card{ max-width:min(1740px, 94vw); }
+  .bottom-action-bar{ max-width:900px; }
+
+  .divisors-grid{ gap:clamp(18px, 1.7vw, 32px); }
+  .divisor-card{ padding:clamp(20px, 3vh, 34px) 12px; gap:18px; }
+  .divisor-badge{ font-size:30px; padding:8px 22px; }
+  .choice-btn{ max-width:70px; max-height:70px; font-size:38px; border-radius:20px; }
+
+  .div-img-wrapper svg, .tf-img{ max-height:clamp(300px, 44vh, 480px); max-width:96%; }
+  .target-num-badge{ font-size:clamp(52px, 6.4vh, 76px); }
+}
+</style>
+</head>
+<body>
+
+<a href="../newindex.html" class="home-btn">
+  <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+  Home
+</a>
+<div class="page-container">
+
+
+  <!-- QUESTION AT TOP MIDDLE -->
+  <div class="q-middle-container">
+    <h2 class="q-stem-text">Tap (✓) if divisible or (✕) if not divisible for each divisor.</h2>
+  </div>
+
+  <!-- MAIN STAGE AREA: SINGLE NUMBER AT A TIME -->
+  <main class="main-stage-wrap">
+    <div class="single-num-card" id="card-stage">
+      <!-- Rendered via JS -->
+    </div>
+  </main>
+
+  <!-- BOTTOM ACTION BAR: PREV, CHECK ANSWER, NEXT -->
+  <div class="bottom-action-bar">
+    <button class="btn-big btn-prev-style" id="prev-btn">← Prev</button>
+    <button class="btn-big btn-check" id="check-btn">Check Answer</button>
+    <button class="btn-big btn-nav" id="next-btn">Next →</button>
+  </div>
+
+</div>
+
+<!-- FLOATING CHAPTER 1 STYLE POPUPS -->
+<div class="popup-overlay" id="popup-correct-overlay">
+  <section class="answer-popup correct">
+    <div class="popup-body">
+      <div class="popup-icon">🎉</div>
+      <div class="popup-label">Correct Answer</div>
+      <h2 class="popup-title">Correct!</h2>
+      <p class="popup-message" id="popup-correct-msg">Great job testing all divisibility rules for this number!</p>
+      <div class="popup-track"><div class="popup-bar"></div></div>
+    </div>
+  </section>
+</div>
+
+<div class="popup-overlay" id="popup-incorrect-overlay">
+  <section class="answer-popup wrong">
+    <div class="popup-body">
+      <div class="popup-icon">💡</div>
+      <div class="popup-label">Keep Learning</div>
+      <h2 class="popup-title">Try Again!</h2>
+      <p class="popup-message">Some ticks or crosses are incorrect. Please tap to adjust!</p>
+      <div class="popup-track"><div class="popup-bar"></div></div>
+    </div>
+  </section>
+</div>
+
+<!-- FINISH OVERLAY MODAL: PLAY AGAIN & MENU -->
+<div class="finish-overlay" id="finish-overlay">
+<div class="finish-card">
+    <div style="font-size:42px;color:#F59E0B;letter-spacing:8px;">&#9733; &#9733; &#9733;</div>
+    <h2 style="font-size:26px;color:#6D28D9;font-weight:400;">Well done!</h2>
+    <p style="color:#5C4D42;font-size:16px;">You&rsquo;ve finished this activity. Great work!</p>
+    <div style="display:flex;gap:12px;margin-top:8px;width:100%;">
+      <button class="btn-big btn-prev-style" id="again-btn">Play Again</button>
+      <a class="btn-big btn-nav" href="../newindex.html">Menu</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   SHARED CANVAS CONFETTI ENGINE (Same as Chapter 4 / Project)
+   ============================================================ */
+(function (global) {
+  'use strict';
+  var COLORS = ['#7C3AED', '#10B981', '#FF7A00', '#FFD000', '#FF2E93', '#3B82F6', '#EF4444'];
+  var canvas = null, ctx = null, parts = [], raf = null;
+
+  function size() {
+    var d = global.devicePixelRatio || 1;
+    canvas.width = global.innerWidth * d;
+    canvas.height = global.innerHeight * d;
+    canvas.style.width = global.innerWidth + 'px';
+    canvas.style.height = global.innerHeight + 'px';
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+
+  function ensure() {
+    if (canvas) return;
+    canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-hidden', 'true');
+    canvas.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:9998;';
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext('2d');
+    size();
+    global.addEventListener('resize', size);
+  }
+
+  function spawn(n, x, y, power, angle, spread) {
+    for (var i = 0; i < n; i++) {
+      var a = angle == null ? Math.random() * Math.PI * 2 : angle + (Math.random() - 0.5) * spread;
+      var v = power * (0.45 + Math.random() * 0.9);
+      parts.push({
+        x: x, y: y,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v - 3.2,
+        w: 6 + Math.random() * 7,
+        h: 5 + Math.random() * 8,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - 0.5) * 0.55,
+        colour: COLORS[(Math.random() * COLORS.length) | 0],
+        life: 0,
+        max: 70 + Math.random() * 60
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+
+  function tick() {
+    ctx.clearRect(0, 0, global.innerWidth, global.innerHeight);
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.life++;
+      p.vy += 0.3;
+      p.vx *= 0.99;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+
+      var fadeFrom = p.max * 0.7;
+      var alpha = p.life > fadeFrom ? Math.max(0, 1 - (p.life - fadeFrom) / (p.max - fadeFrom)) : 1;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.colour;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+
+      if (p.life >= p.max || p.y > global.innerHeight + 60) parts.splice(i, 1);
+    }
+    if (parts.length) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      raf = null;
+      ctx.clearRect(0, 0, global.innerWidth, global.innerHeight);
+    }
+  }
+
+  global.confetti = {
+    burst: function (o) {
+      o = o || {};
+      ensure();
+      spawn(
+        o.count || 80,
+        o.x == null ? global.innerWidth / 2 : o.x,
+        o.y == null ? global.innerHeight / 2 : o.y,
+        o.power || 9,
+        o.angle,
+        o.spread || Math.PI
+      );
+    },
+    rain: function () {
+      ensure();
+      var w = global.innerWidth;
+      spawn(70, w * 0.2, -20, 11, Math.PI / 2.6, 1.1);
+      spawn(70, w * 0.8, -20, 11, Math.PI - Math.PI / 2.6, 1.1);
+      setTimeout(function () { spawn(60, w / 2, global.innerHeight * 0.35, 11); }, 160);
+    }
+  };
+})(window);
+
+(function () {
+  'use strict';
+
+  var AudioCtx = window.AudioContext || window.webkitAudioContext;
+  var audioCtx = null;
+  function ensureAudio(){ if(!audioCtx) audioCtx = new AudioCtx(); }
+  
+  function speak(text) {
+    ensureAudio();
+    var synth = window.speechSynthesis;
+    if (!synth) return;
+    synth.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.rate = 1;
+    synth.speak(u);
+  }
+
+  function playTone(freq, dur, type){
+    ensureAudio();
+    try {
+      var osc = audioCtx.createOscillator(); var gain = audioCtx.createGain();
+      osc.type = type || 'sine'; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + dur);
+    } catch(e){}
+  }
+
+  function soundCorrectVoice() {
+    playTone(523, 0.12); setTimeout(function(){ playTone(659, 0.12); }, 100); setTimeout(function(){ playTone(784, 0.2); }, 200);
+    speak('Correct!');
+    window.confetti.burst({ count: 80 });
+  }
+
+  function soundWrongVoice() {
+    playTone(330, 0.25, 'square'); setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
+    speak('Try again!');
+  }
+
+  var QUESTIONS = [
+    { label: 'Q1', val: '5792',  ans: { 2:true,  3:false, 4:true,  5:false, 6:false, 9:false, 10:false }, img: '../assets/div_5792.jpg' },
+    { label: 'Q2', val: '80450', ans: { 2:true,  3:false, 4:false, 5:true,  6:false, 9:false, 10:true  }, img: '../assets/div_80450.jpg' },
+    { label: 'Q3', val: '45054', ans: { 2:true,  3:true,  4:false, 5:false, 6:true,  9:true,  10:false }, img: '../assets/div_45054.jpg' }
+  ];
+  var divisors = [2, 3, 4, 5, 6, 9, 10];
+
+  var at = 0;
+  var userState = QUESTIONS.map(function() {
+    var obj = {};
+    divisors.forEach(function(d){ obj[d] = 'none'; });
+    return { choices: obj, solved: false };
+  });
+  var popupTimer = null;
+
+  function drawDots() {
+    var container = document.getElementById('dots-container');
+    if (!container) return;          /* the dots strip was removed */
+    container.innerHTML = '';
+    QUESTIONS.forEach(function (q, idx) {
+      var d = document.createElement('button');
+      d.className = 'dot' + (idx === at ? ' at' : '');
+      if (userState[idx].solved) d.classList.add('ok');
+      d.textContent = idx + 1;
+      /* a number only opens once the one before it has been finished */
+      var unlocked = (idx === 0) || userState[idx - 1].solved;
+      d.disabled = !unlocked;
+      if (!unlocked) d.classList.add('locked');
+      d.onclick = function () { if (!unlocked) return; at = idx; draw(); };
+      container.appendChild(d);
+    });
+  }
+
+  function draw() {
+    var q = QUESTIONS[at];
+    var st = userState[at];
+    drawDots();
+
+    var stage = document.getElementById('card-stage');
+    stage.innerHTML = '';
+
+    /* Prompt Text at Top: 30px on Laptops, 40px on Monitors */
+    var promptEl = document.createElement('h3');
+    promptEl.className = 'div-prompt-text';
+    promptEl.innerHTML = '<span class="div-prompt-num">Q' + (at + 1) + '.</span> Test divisibility of <span class="div-highlight-num">' + q.val + '</span>:';
+    stage.appendChild(promptEl);
+
+    /* Real Cartoon Character JPEG Image in Middle */
+    var imgWrap = document.createElement('div');
+    imgWrap.className = 'div-img-wrapper';
+    imgWrap.innerHTML = '<img src="' + q.img + '" alt="Cartoon" class="tf-img">';
+    stage.appendChild(imgWrap);
+
+    /* Divisors Grid */
+    var grid = document.createElement('div');
+    grid.className = 'divisors-grid';
+
+    divisors.forEach(function(d) {
+      var card = document.createElement('div');
+      card.className = 'divisor-card';
+
+      var badge = document.createElement('div');
+      badge.className = 'divisor-badge';
+      badge.textContent = 'By ' + d;
+
+      var row = document.createElement('div');
+      row.className = 'choice-btns-row';
+
+      /* Tick Button (✓) */
+      var btnTick = document.createElement('button');
+      btnTick.className = 'choice-btn btn-tick' + (st.choices[d] === 'tick' ? ' active' : '');
+      btnTick.textContent = '✓';
+
+      /* Cross Button (✕) */
+      var btnCross = document.createElement('button');
+      btnCross.className = 'choice-btn btn-cross' + (st.choices[d] === 'cross' ? ' active' : '');
+      btnCross.textContent = '✕';
+
+      if (st.solved) {
+        btnTick.disabled = true;
+        btnCross.disabled = true;
+      }
+
+      if (st.solved) {
+        btnTick.disabled = true;
+        btnCross.disabled = true;
+      }
+
+      btnTick.onclick = function() {
+        if (st.solved) return;
+        st.choices[d] = 'tick';
+        btnTick.classList.add('active');
+        btnCross.classList.remove('active');
+        playTone(520, 0.08);
+        updateCheckBtn();
+      };
+
+      btnCross.onclick = function() {
+        if (st.solved) return;
+        st.choices[d] = 'cross';
+        btnCross.classList.add('active');
+        btnTick.classList.remove('active');
+        playTone(360, 0.08);
+        updateCheckBtn();
+      };
+
+      row.appendChild(btnTick);
+      row.appendChild(btnCross);
+
+      card.appendChild(badge);
+      card.appendChild(row);
+      grid.appendChild(card);
+    });
+
+    stage.appendChild(grid);
+
+    document.getElementById('prev-btn').disabled = (at === 0);
+    document.getElementById('next-btn').disabled = !st.solved;
+    document.getElementById('next-btn').textContent = (at === QUESTIONS.length - 1 ? 'Finish →' : 'Next →');
+    updateCheckBtn();
+  }
+
+  function updateCheckBtn() {
+    var st = userState[at];
+    var unanswered = divisors.some(function(d) { return st.choices[d] === 'none'; });
+    document.getElementById('check-btn').disabled = st.solved || unanswered;
+  }
+
+  function check() {
+    var q = QUESTIONS[at];
+    var st = userState[at];
+    var ok = true;
+
+    divisors.forEach(function(d) {
+      var userChoice = st.choices[d];
+      var expected = q.ans[d];
+      if (expected && userChoice !== 'tick') ok = false;
+      if (!expected && userChoice !== 'cross') ok = false;
+    });
+
+    if (popupTimer) clearTimeout(popupTimer);
+
+    if (ok) {
+      st.solved = true;
+      document.getElementById('check-btn').disabled = true;
+      drawDots();
+      document.getElementById('next-btn').disabled = false;
+
+      document.getElementById('popup-correct-msg').textContent = 'Correct! All divisibility rules for ' + q.val + ' are correct!';
+      var overlay = document.getElementById('popup-correct-overlay');
+      overlay.classList.remove('show'); void overlay.offsetWidth; overlay.classList.add('show');
+      soundCorrectVoice();
+
+      popupTimer = setTimeout(function () {
+        overlay.classList.remove('show');
+        if (at === QUESTIONS.length - 1 && QUESTIONS.every(function(q, i){ return userState[i].solved; })) {
+          showFinish();   /* last question — go straight to the finish screen */
+        } else {
+          draw();         /* stay on this question — the child taps Next to move on */
+        }
+      }, 2000);
+    } else {
+      var overlayErr = document.getElementById('popup-incorrect-overlay');
+      overlayErr.classList.remove('show'); void overlayErr.offsetWidth; overlayErr.classList.add('show');
+      soundWrongVoice();
+
+      popupTimer = setTimeout(function () {
+        overlayErr.classList.remove('show');
+      }, 2000);
+    }
+  }
+
+  function showFinish() {
+    document.getElementById('finish-overlay').classList.add('show');
+    window.confetti.rain();
+    playTone(523, 0.12); setTimeout(function(){ playTone(659, 0.12); }, 120); setTimeout(function(){ playTone(784, 0.12); }, 240); setTimeout(function(){ playTone(1047, 0.35); }, 360);
+    speak('Congratulations!');
+  }
+
+  document.getElementById('check-btn').onclick = check;
+  document.getElementById('prev-btn').onclick = function () { if (at > 0) { at--; draw(); } };
+  document.getElementById('next-btn').onclick = function () {
+    if (at < QUESTIONS.length - 1) { at++; draw(); }
+    else showFinish();
+  };
+  document.getElementById('again-btn').onclick = function () {
+    document.getElementById('finish-overlay').classList.remove('show');
+    at = 0;
+    userState = QUESTIONS.map(function() {
+      var obj = {};
+      divisors.forEach(function(d){ obj[d] = 'none'; });
+      return { choices: obj, solved: false };
+    });
+    draw();
+  };
+
+  draw();
+})();
+</script>
+</body>
+</html>

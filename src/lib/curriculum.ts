@@ -136,6 +136,197 @@ const socialHtmlPath = (grade: number, lesson: number): string | undefined => {
   return paths[grade]?.[lesson];
 };
 
+const mathsHtmlPath = (grade: number, lesson: number): string | undefined => {
+  const paths: Record<number, Record<number, string>> = {
+    1: {
+      1: "/subjects/maths/Grade1/Lesson1/newindex.html",
+      2: "/subjects/maths/Grade1/Lesson2/newindex.html",
+      3: "/subjects/maths/Grade1/Lesson3/newindex.html",
+      4: "/subjects/maths/Grade1/Lesson4/newindex.html",
+      5: "/subjects/maths/Grade1/Lesson5/newindex.html",
+    },
+    2: {
+      1: "/subjects/maths/Grade2/Grade2_chapter1/maths-fun-kids-menu.html",
+      2: "/subjects/maths/Grade2/Grade2_chapter2/maths-adventure-zone.html",
+      3: "/subjects/maths/Grade2/Grade2_chapter3/Grade2_chapter3.html",
+      4: "/subjects/maths/Grade2/Grade2_chapter4/newindex.html",
+      5: "/subjects/maths/Grade2/Grade2_chapter5/multiply-and-conquer.html",
+    },
+    3: {
+      1: "/subjects/maths/Grade3/Grade3_Lesson1/newindex.html",
+      2: "/subjects/maths/Grade3/Grade3_Lesson2/Grade3_Lesson2.html",
+      3: "/subjects/maths/Grade3/Grade3_Lesson3/Grade3_Lesson3.html",
+      4: "/subjects/maths/Grade3/Grade3_Lesson4/newindex.html",
+      5: "/subjects/maths/Grade3/Grade3_Lesson5/newindex.html",
+    },
+    4: {
+      1: "/subjects/maths/Grade4/chapter-1/newindex.html",
+      2: "/subjects/maths/Grade4/chapter-2/index.html",
+      3: "/subjects/maths/Grade4/chapter-3/index.html",
+      4: "/subjects/maths/Grade4/chapter-4/newindex.html",
+      5: "/subjects/maths/Grade4/chapter-5/newindex.html",
+    },
+    5: {
+      1: "/subjects/maths/Grade5/Lesson1/newindex.html",
+      2: "/subjects/maths/Grade5/Lesson2/grade5_lesson2.html",
+      3: "/subjects/maths/Grade5/Lesson3/grade5_lesson3.html",
+      4: "/subjects/maths/Grade5/lesson4/Grade5_chapter4.html",
+      5: "/subjects/maths/Grade5/Lesson5/grade5_lesson5.html",
+    },
+  };
+  return paths[grade]?.[lesson];
+};
+
+const mathsLessonsFor = (grade: number): Lesson[] => {
+  if (grade === 5) {
+    return [
+      mkLesson(`g${grade}-mat-1`, "Numbers", "Place value, Roman numerals and rounding off.", [
+        "Place and face value",
+        "Roman numerals",
+        "Rounding off numbers",
+      ], mathsHtmlPath(grade, 1)),
+      mkLesson(`g${grade}-mat-2`, "Addition", "Solving and finding missing values in addition.", [
+        "Addition mission",
+        "Find the value",
+        "Missing digit arcade",
+      ], mathsHtmlPath(grade, 2)),
+      mkLesson(`g${grade}-mat-3`, "Multiplication & Division", "Multiplication and division properties.", [
+        "Multiplication property quest",
+        "Multiply the following",
+        "Division truth scanner",
+      ], mathsHtmlPath(grade, 3)),
+      mkLesson(`g${grade}-mat-4`, "Geometry", "Lines, symmetry and transformations.", [
+        "Meet the lines",
+        "Symmetry and rotations",
+        "Patterns and transformations",
+      ], mathsHtmlPath(grade, 4)),
+      mkLesson(`g${grade}-mat-5`, "Prime & Composite Numbers", "Identifying prime and composite numbers.", [
+        "Prime and composite numbers",
+        "Fill in the blanks",
+        "Multiple choice quiz",
+      ], mathsHtmlPath(grade, 5)),
+    ].filter((l) => l.htmlPath);
+  }
+
+  if (grade === 4) {
+    return [
+      mkLesson(`g${grade}-mat-1`, "Numbers", "Place value, Roman numerals and rounding off.", [
+        "Six-rod abacus and place value",
+        "Roman numerals",
+        "Rounding to the nearest 10 and 100",
+      ], mathsHtmlPath(grade, 1)),
+      mkLesson(`g${grade}-mat-2`, "Addition & Subtraction", "Properties and practice of addition and subtraction.", [
+        "Properties of addition",
+        "Subtraction practice",
+        "Missing digits quiz",
+      ], mathsHtmlPath(grade, 2)),
+      mkLesson(`g${grade}-mat-3`, "Multiplication & Division", "Multiplying and dividing by tens.", [
+        "Multiplication properties",
+        "Division properties",
+        "Quotient and remainder",
+      ], mathsHtmlPath(grade, 3)),
+      mkLesson(`g${grade}-mat-4`, "Geometry & Patterns", "Lines, shapes, symmetry and patterns.", [
+        "Lines, rays and curves",
+        "Angles and solids",
+        "Symmetry and patterns",
+      ], mathsHtmlPath(grade, 4)),
+      mkLesson(`g${grade}-mat-5`, "Factors & Multiples", "Multiples, factors and prime numbers.", [
+        "Multiples and factors",
+        "Divisibility rules",
+        "Prime and composite numbers",
+      ], mathsHtmlPath(grade, 5)),
+    ].filter((l) => l.htmlPath);
+  }
+
+  if (grade === 3) {
+    return [
+      mkLesson(`g${grade}-mat-1`, "Numbers", "Place value, comparing and Roman numerals.", [
+        "Place value and forms",
+        "Comparing and ordering numbers",
+        "Roman numerals and rounding",
+      ], mathsHtmlPath(grade, 1)),
+      mkLesson(`g${grade}-mat-2`, "Addition", "Adding numbers and finding sums.", [
+        "Finding the following",
+        "Fill in the boxes",
+        "Addition practice",
+      ], mathsHtmlPath(grade, 2)),
+      mkLesson(`g${grade}-mat-3`, "Subtraction", "Subtraction concepts through activities.", [
+        "Choose an activity",
+        "Fill in the boxes",
+        "Matching practice",
+      ], mathsHtmlPath(grade, 3)),
+      mkLesson(`g${grade}-mat-4`, "Multiplication & Patterns", "Multiplication facts and number patterns.", [
+        "Addition and fact practice",
+        "Patterns and sequences",
+        "Multiplication marvels",
+      ], mathsHtmlPath(grade, 4)),
+      mkLesson(`g${grade}-mat-5`, "Shapes & Symmetry", "Recognising shapes and lines of symmetry.", [
+        "Shape recognition",
+        "Patterns and visual reasoning",
+        "Symmetry",
+      ], mathsHtmlPath(grade, 5)),
+    ].filter((l) => l.htmlPath);
+  }
+
+  if (grade === 2) {
+    return [
+      mkLesson(`g${grade}-mat-1`, "Numbers", "Forming, ordering and comparing numbers.", [
+        "Forming numbers",
+        "Ordering and sorting numbers",
+        "Number games",
+      ], mathsHtmlPath(grade, 1)),
+      mkLesson(`g${grade}-mat-2`, "Numbers up to 1000", "Place value and patterns with bigger numbers.", [
+        "Counting with the abacus",
+        "Joining the dots by number pattern",
+        "Matching numbers",
+      ], mathsHtmlPath(grade, 2)),
+      mkLesson(`g${grade}-mat-3`, "Addition", "Adding numbers with pictures and puzzles.", [
+        "Joining the dots",
+        "Finding the sum",
+        "Fill the boxes",
+      ], mathsHtmlPath(grade, 3)),
+      mkLesson(`g${grade}-mat-4`, "Subtraction", "Understanding and practising subtraction.", [
+        "Understand subtraction",
+        "Practice subtraction",
+        "Subtraction games",
+      ], mathsHtmlPath(grade, 4)),
+      mkLesson(`g${grade}-mat-5`, "Multiplication", "Discovering multiplication through play.", [
+        "Discover multiplication",
+        "Multiplication practice",
+        "Multiplication games",
+      ], mathsHtmlPath(grade, 5)),
+    ].filter((l) => l.htmlPath);
+  }
+
+  return [
+    mkLesson(`g${grade}-mat-1`, "Shapes & Comparisons", "Comparing sizes, distances and quantities.", [
+      "Big and small, far and near",
+      "Heavy and light, thick and thin",
+      "Many and less, matching shapes",
+    ], mathsHtmlPath(grade, 1)),
+    mkLesson(`g${grade}-mat-2`, "Numbers 1 to 9", "Counting, ordering and naming numbers.", [
+      "Counting with the abacus",
+      "Number line and ordinal numbers",
+      "Matching numbers to names",
+    ], mathsHtmlPath(grade, 2)),
+    mkLesson(`g${grade}-mat-3`, "Addition", "Adding numbers using pictures and beads.", [
+      "Counting on with the abacus",
+      "Addition on the number line",
+      "Fun addition games",
+    ], mathsHtmlPath(grade, 3)),
+    mkLesson(`g${grade}-mat-4`, "Subtraction", "Taking away and finding the difference.", [
+      "Subtraction with the abacus",
+      "Number line subtraction",
+      "Fill in the missing number",
+    ], mathsHtmlPath(grade, 4)),
+    mkLesson(`g${grade}-mat-5`, "Numbers up to 20", "Place value, face value and comparing numbers.", [
+      "Numbers before, after and between",
+      "Greater and smaller numbers",
+      "Place value and face value",
+    ], mathsHtmlPath(grade, 5)),
+  ].filter((l) => l.htmlPath);
+};
+
 const englishHtmlPath = (grade: number, lesson: number): string | undefined => {
   const paths: Record<number, Record<number, string>> = {
     1: {
@@ -328,6 +519,14 @@ const subjectsFor = (grade: number): Subject[] => [
     iconImage: "/images/englishicon1.png",
     color: "bg-rose-500/10 text-rose-700",
     lessons: englishLessonsFor(grade),
+  },
+  {
+    id: "maths",
+    name: "Maths",
+    description: "Numbers & puzzles",
+    icon: "🔢",
+    color: "bg-sky-500/10 text-sky-700",
+    lessons: mathsLessonsFor(grade),
   },
 ];
 

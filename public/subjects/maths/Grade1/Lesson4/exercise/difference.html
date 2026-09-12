@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pastel Zero Portal Game</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Livvic',sans-serif}
+
+body{
+    min-height:100vh;width:100vw;overflow:hidden;
+    /* background:
+        radial-gradient(circle at 10% 15%,rgba(255,220,235,.65) 0 9%,transparent 10%),
+        radial-gradient(circle at 88% 18%,rgba(207,240,255,.75) 0 10%,transparent 11%),
+        radial-gradient(circle at 82% 82%,rgba(224,247,225,.8) 0 10%,transparent 11%),
+        linear-gradient(135deg,#fffaf0,#f9f7ff 48%,#f2fbff); */
+    color:#475569;
+    display:flex;flex-direction:column;
+    justify-content:space-between;
+    padding:2vh 2vw;
+}
+
+header{text-align:center;z-index:5;flex-shrink:0}
+h1{
+    font-size:22px;
+    font-weight:400;color:#334155;
+    margin-bottom:7px;
+}
+.instruction{
+    display:inline-flex;align-items:center;gap:9px;
+   font-size: 20px;
+}
+.instruction i{color:#a78bfa}
+
+.game-stage{
+    width:100%;flex:1;min-height:0;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+}
+
+/* ================= SIMPLE KIDS GAME ================= */
+.portal-game{
+    width:min(1120px,94vw);
+    display:grid;
+    grid-template-columns:minmax(190px,1fr) auto minmax(190px,1fr) auto minmax(190px,1fr);
+    align-items:center;
+    justify-content:center;
+    gap:clamp(18px,3vw,48px);
+    position:relative;
+}
+
+.number-zone{
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:12px;
+}
+
+.zone-title{
+    width:100%;
+    box-sizing:border-box;
+    text-align:center;
+    font-size:17px;
+    font-weight:400;
+    color:#315b63;
+    background:#ffffff;
+    border:2px solid #cfe5e9;
+    border-radius:14px;
+    padding:8px 12px;
+    box-shadow:0 4px 0 #e5f1f3;
+}
+
+.plain-number{
+    width:100%;
+    height:190px;
+    box-sizing:border-box;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    background:linear-gradient(145deg,#fff9e8 0%,#f6f0ff 48%,#eafaff 100%);
+    border:3px solid #b9a9df;
+    border-radius:18px;
+    box-shadow:
+        0 8px 0 #d8cfee,
+        0 14px 24px rgba(91,76,132,.14);
+    clip-path:polygon(0 10px,10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px));
+}
+.plain-number::before{
+    content:'';
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    height:9px;
+    background:#d9cdf5;
+    box-shadow:0 3px 0 rgba(255,255,255,.75) inset;
+}
+.plain-number::after{
+    content:'';
+    position:absolute;
+    width:34px;
+    height:34px;
+    right:14px;
+    bottom:13px;
+    border-radius:8px;
+    border:3px solid #b9a9df;
+    background:rgba(255,255,255,.55);
+    transform:rotate(45deg);
+}
+.plain-number .number{
+    position:relative;
+    z-index:2;
+    font-size:30px !important;
+    line-height:1;
+    font-weight:400 !important;
+    color:#5d5573 !important;
+}
+.operation{
+    font-size:42px;
+    font-weight:400 !important;
+    color:#607784;
+    line-height:1;
+    margin-top:34px;
+}
+
+.answer-console{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:transparent;
+    border:0;
+    padding:0;
+    box-shadow:none;
+}
+
+.equation-line{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.answer-input{
+    width:100%;
+    height:100%;
+    box-sizing:border-box;
+    border:0;
+    border-radius:24px;
+    text-align:center;
+    font-size:clamp(48px,5.5vw,76px) !important;
+    font-weight:400 !important;
+    color:#2f4f4f !important;
+    background:transparent;
+    outline:none;
+    box-shadow:none;
+}
+
+.answer-input:focus{
+    outline:none;
+}
+
+.answer-input:disabled{
+    background:transparent;
+    color:#4c8b60 !important;
+}
+
+.answer-hint{display:none}
+.portal-core,.beam,.status-chip{display:none !important;}
+
+@media(max-width:760px){
+    body{overflow:auto;min-height:100vh}
+    .portal-game{
+        width:min(500px,92vw);
+        grid-template-columns:1fr;
+        gap:10px;
+        padding:8px 0 14px;
+    }
+    .number-zone{gap:8px}
+    .zone-title{font-size:15px;padding:6px 10px}
+    .plain-number{height:105px;border-radius:16px;border:3px solid #b9a9df;box-shadow:0 6px 0 #d8cfee,0 10px 18px rgba(91,76,132,.12)}
+    .plain-number .number,.answer-input{font-size:30px !important}
+    .operation{font-size:34px;margin:0}
+    .bottom-controls{padding-top:10px}
+    .nav-btn,.submit-btn,.replay-btn{font-size:15px;padding:10px 18px}
+}
+
+/* ================= MONITOR RESPONSIVE ================= */
+/* ================= LAPTOP ================= */
+@media screen and (min-width:761px) and (max-width:1499px){
+    h1{
+        font-size:22px;
+        font-weight:400;
+    }
+
+    .instruction{
+        font-size:20px;
+    }
+
+    .portal-game{
+        width:min(1040px,92vw);
+        grid-template-columns:minmax(180px,1fr) 48px minmax(180px,1fr) 48px minmax(180px,1fr);
+        gap:clamp(14px,2.4vw,30px);
+    }
+
+    .number-zone{gap:11px}
+    .zone-title{font-size:16px}
+    .plain-number{
+        height:155px;
+        border-radius:22px;
+        background:linear-gradient(145deg,#fffdf7 0%,#f7f2ff 52%,#effbff 100%);
+        border:3px solid #cfd9f2;
+        box-shadow:
+            0 6px 0 #dfe5f5,
+            0 10px 18px rgba(103,91,145,.12);
+    }
+    .plain-number .number,
+    .answer-input{
+        font-size:40px !important;
+    }
+    .operation{
+        font-size:42px;
+        font-weight:400 !important;
+        margin-top:34px;
+    }
+}
+
+/* ================= MONITOR ================= */
+@media screen and (min-width:1500px){
+    h1{
+        font-size:30px;
+        font-weight:400;
+    }
+
+    .instruction{
+        font-size:22px;
+    }
+
+    .portal-game{
+        width:min(1380px,92vw);
+        grid-template-columns:minmax(270px,1fr) 64px minmax(270px,1fr) 64px minmax(270px,1fr);
+        gap:clamp(30px,3.2vw,60px);
+    }
+
+    .number-zone{gap:14px}
+    .zone-title{
+        font-size:20px;
+        padding:9px 16px;
+    }
+    .plain-number{
+        height:195px;
+        border-radius:22px;
+        border-width:4px;
+        background:linear-gradient(145deg,#fffdf7 0%,#f7f2ff 52%,#effbff 100%);
+        box-shadow:
+            0 8px 0 #dfe5f5,
+            0 13px 22px rgba(103,91,145,.13);
+    }
+    .plain-number .number,
+    .answer-input{
+        font-size:50px !important;
+    }
+    .operation{
+        font-size:54px;
+        font-weight:400 !important;
+        margin-top:40px;
+    }
+}
+
+@media screen and (min-width:1900px){
+    .portal-game{
+        width:min(1500px,88vw);
+        grid-template-columns:minmax(300px,1fr) 72px minmax(300px,1fr) 72px minmax(300px,1fr);
+    }
+
+    .plain-number{
+        height:270px;
+    }
+}
+
+/* ================= HEAVY & LIGHT NAV BUTTON SYSTEM ================= */
+.bottom-controls{
+    width:100%;
+    max-width:1100px;
+    margin-left:auto;
+    margin-right:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:5px 0;
+    z-index:20;
+    flex-shrink:0;
+}
+.left-control,.center-control,.right-control{
+    justify-self:auto;
+}
+
+.nav-btn,.submit-btn,.replay-btn{
+    background:#e67e22;
+    color:#ffffff;
+    border:none;
+       min-width:178px;height:45px;
+    font-size:20px;
+    font-weight:500;
+    border-radius:40px;
+    cursor:pointer;
+    box-shadow:0 6px 0 #d35400;
+    transition:all .1s ease;
+    font-family:'Livvic',sans-serif;
+    display:block;
+}
+
+.nav-btn:active:not(:disabled),
+.submit-btn:active:not(:disabled),
+.replay-btn:active{
+    transform:translateY(4px);
+    box-shadow:0 2px 0 #d35400;
+}
+
+.nav-btn:disabled,
+.submit-btn:disabled{
+    background:#b2bec3;
+    box-shadow:0 6px 0 #636e72;
+    cursor:not-allowed;
+    opacity:.7;
+}
+
+.submit-btn{
+    background:#00b894;
+    box-shadow:0 6px 0 #008f72;
+}
+
+.submit-btn:active:not(:disabled){
+    box-shadow:0 2px 0 #008f72;
+}
+
+.replay-btn{
+    background:#0984e3;
+    box-shadow:0 6px 0 #0975c7;
+    margin-top:20px;
+    z-index:5;
+}
+
+.replay-btn:active{
+    box-shadow:0 2px 0 #0975c7;
+}
+
+@media screen and (min-width:1600px){
+    h1{
+        font-size:30px;
+    }
+    .nav-btn,.submit-btn,.replay-btn{
+        width:200px;
+        min-width:200px;
+        height:60px;
+        font-size:30px;
+        padding:0;
+        border-radius:50px;
+    }
+    .instruction{
+        font-size: 25px;
+    }
+}
+
+
+/* ================= EXACT SHARED CONFETTI ================= */
+#confettiContainer{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:9999;
+}
+
+.confetti-piece{
+    position:absolute;
+    width:9px;
+    height:14px;
+    border-radius:2px;
+    opacity:0;
+    animation:pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+    will-change:transform,opacity;
+}
+
+.final-confetti-piece{
+    width:10px;
+    height:16px;
+    animation-duration:2300ms;
+}
+
+.final-confetti-piece:nth-child(3n){
+    border-radius:50%;
+}
+
+.final-confetti-piece:nth-child(4n){
+    width:7px;
+    height:19px;
+    border-radius:1px;
+}
+
+.final-confetti-piece:nth-child(5n){
+    width:13px;
+    height:8px;
+    border-radius:2px;
+}
+
+@keyframes pageConfetti{
+    0%{
+        opacity:1;
+        transform:translate3d(0,0,0) rotate(0deg) scale(1);
+    }
+    55%{opacity:1}
+    100%{
+        opacity:0;
+        transform:translate3d(var(--x),var(--y),0) rotate(var(--r)) scale(.72);
+    }
+}
+
+.popup-card.complete{
+    box-shadow:
+        0 20px 45px rgba(108,92,231,.18),
+        0 0 0 8px rgba(162,155,254,.12);
+}
+
+.popup-card.complete .replay-btn{
+    margin-top:12px;
+}
+
+.popup-card.complete .popup-icon{
+    animation:finalTrophyBounce 1.2s ease-in-out infinite;
+}
+
+@keyframes finalTrophyBounce{
+    0%,100%{
+        transform:translateY(0) rotate(0deg) scale(1);
+    }
+    50%{
+        transform:translateY(-5px) rotate(-4deg) scale(1.06);
+    }
+}
+
+/* ================= EXACT HEAVY & LIGHT POPUP STYLE ================= */
+.popup-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+    z-index:100;
+}
+
+.popup-overlay.active{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.popup-card{
+    position:relative;
+    width:90%;
+    max-width:520px;
+    padding:40px 30px;
+    border-radius:36px;
+    text-align:center;
+    box-shadow:0 20px 40px rgba(0,0,0,.1);
+    transform:scale(.8);
+    transition:transform .35s cubic-bezier(.175,.885,.32,1.275);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+
+.popup-card::before,
+.popup-card::after{
+    content:'';
+    position:absolute;
+    border-radius:50%;
+    pointer-events:none;
+}
+
+.popup-card::before{
+    width:220px;
+    height:220px;
+    top:-60px;
+    right:-50px;
+}
+
+.popup-card::after{
+    width:180px;
+    height:180px;
+    bottom:-70px;
+    left:-40px;
+}
+
+.popup-card.correct{
+    background:#edfbf4;
+    border:6px solid #00c885;
+}
+
+.popup-card.correct::before,
+.popup-card.correct::after{
+    background:rgba(162,245,209,.45);
+}
+
+.popup-card.correct .popup-title{color:#00a86b}
+.popup-card.correct .popup-subtitle{color:#2e7d5b}
+
+.popup-card.wrong{
+    background:#fff0f2;
+    border:6px solid #ff6b7a;
+}
+
+.popup-card.wrong::before,
+.popup-card.wrong::after{
+    background:rgba(255,196,203,.45);
+}
+
+.popup-card.wrong .popup-title{color:#d33847}
+.popup-card.wrong .popup-subtitle{color:#a33b45}
+
+.popup-card.complete{
+    background:#f0f3ff;
+    border:6px solid #6c5ce7;
+}
+
+.popup-card.complete::before,
+.popup-card.complete::after{
+    background:rgba(162,155,254,.35);
+}
+
+.popup-card.complete .popup-title{color:#6c5ce7}
+.popup-card.complete .popup-subtitle{color:#4834d4}
+
+.popup-overlay.active .popup-card{
+    transform:scale(1);
+}
+
+.popup-icon{
+    font-size:4.8rem;
+    margin-bottom:12px;
+    z-index:2;
+    line-height:1;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.1));
+}
+
+.popup-title{
+    font-size:3rem;
+    font-weight:600;
+    margin-bottom:8px;
+    z-index:2;
+    letter-spacing:-.5px;
+}
+
+.popup-subtitle{
+    font-size:1.4rem;
+    font-weight:500;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+</style>
+</head>
+
+<body>
+<header>
+    <h1>Find the difference</h1>
+    <div class="instruction">Subtract the two numbers and type the answer.</div>
+</header>
+
+<main class="game-stage" id="stage"></main>
+
+<div class="bottom-controls">
+    <div class="left-control"><button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button></div>
+    <div class="center-control"><button class="submit-btn" id="submitBtn" onclick="checkAnswers()" disabled>SUBMIT</button></div>
+    <div class="right-control"><button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button></div>
+</div>
+
+<div id="confettiContainer"></div>
+
+<div class="popup-overlay" id="popup">
+    <div class="popup-card" id="popupCard">
+        <div class="popup-icon" id="popupIcon">⭐</div>
+        <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+        <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+        <button class="replay-btn" id="playAgainBtn" style="display:none" onclick="restartGame()">Play Again</button>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    {label:"", num:8, targetAns:0},
+    {label:"", num:18, targetAns:0},
+    {label:"", num:11, targetAns:0},
+    {label:"", num:20, targetAns:0}
+];
+
+let quizState = quizData.map(()=>({isSolved:false,userAns:"",portalUsed:false}));
+let currentIndex=0, popupTimer=null, finalTimer=null, audioCtx=null;
+
+const stageEl=document.getElementById("stage");
+const submitBtn=document.getElementById("submitBtn");
+const prevBtn=document.getElementById("prevBtn");
+const nextBtn=document.getElementById("nextBtn");
+const playAgainBtn=document.getElementById("playAgainBtn");
+
+function playTone(type){
+    try{
+        if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+        if(audioCtx.state==="suspended") audioCtx.resume();
+        const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+        osc.connect(gain);gain.connect(audioCtx.destination);
+
+        if(type==="correct"){
+            osc.type="sine";osc.frequency.setValueAtTime(587,audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880,audioCtx.currentTime+.22);
+            gain.gain.setValueAtTime(.16,audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(.01,audioCtx.currentTime+.34);
+            osc.start();osc.stop(audioCtx.currentTime+.35);
+        }else if(type==="wrong"){
+            osc.type="sawtooth";osc.frequency.setValueAtTime(200,audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(120,audioCtx.currentTime+.2);
+            gain.gain.setValueAtTime(.12,audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(.01,audioCtx.currentTime+.25);
+            osc.start();osc.stop(audioCtx.currentTime+.28);
+        }else{
+            osc.type="sine";osc.frequency.setValueAtTime(380,audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(760,audioCtx.currentTime+.2);
+            gain.gain.setValueAtTime(.12,audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(.01,audioCtx.currentTime+.25);
+            osc.start();osc.stop(audioCtx.currentTime+.28);
+        }
+    }catch(e){}
+}
+function speak(text){
+    if("speechSynthesis" in window){
+        speechSynthesis.cancel();
+        const msg=new SpeechSynthesisUtterance(text);
+        msg.lang="en-US";msg.volume=.8;msg.rate=1;msg.pitch=1.15;
+        speechSynthesis.speak(msg);
+    }
+}
+
+function loadQuestion(){
+    const q=quizData[currentIndex], state=quizState[currentIndex];
+
+    stageEl.innerHTML=`
+      <div class="portal-game">
+
+        <div class="number-zone">
+          <div class="zone-title">First Number</div>
+          <div class="plain-number"><span class="number">${q.num}</span></div>
+        </div>
+
+        <div class="operation">−</div>
+
+        <div class="number-zone">
+          <div class="zone-title">Second Number</div>
+          <div class="plain-number"><span class="number">${q.num}</span></div>
+        </div>
+
+        <div class="operation">=</div>
+
+        <div class="number-zone">
+          <div class="zone-title">Your Answer</div>
+          <div class="plain-number">
+            <div class="answer-console">
+              <div class="equation-line">
+                <input class="answer-input" id="finalInput" type="text"
+                       inputmode="numeric" maxlength="2"
+                       value="${state.userAns}"
+                       aria-label="Your answer">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    `;
+
+    const input=document.getElementById("finalInput");
+
+    if(state.isSolved) input.disabled=true;
+
+    input.addEventListener("input",e=>{
+        e.target.value=e.target.value.replace(/[^0-9]/g,"");
+        state.userAns=e.target.value;
+        checkSubmitState();
+    });
+
+    checkSubmitState();
+    prevBtn.disabled=currentIndex===0;
+    nextBtn.disabled=!state.isSolved || currentIndex===quizData.length-1;
+
+    if(!state.isSolved){
+        setTimeout(()=>input.focus(),100);
+    }
+}
+
+function checkSubmitState(){
+    const state=quizState[currentIndex];
+    submitBtn.disabled =
+        state.isSolved ||
+        state.userAns.trim()==="";
+}
+
+function navigate(direction){
+    if(direction===1&&!quizState[currentIndex].isSolved)return;
+    currentIndex=Math.max(0,Math.min(quizData.length-1,currentIndex+direction));
+    loadQuestion();
+}
+
+
+function showSmallConfetti(isFinal=false){
+    const confettiContainer=document.getElementById("confettiContainer");
+    if(!confettiContainer)return;
+
+    confettiContainer.innerHTML="";
+
+    const count=isFinal?95:42;
+
+    const colors=[
+        "#00b894",
+        "#e67e22",
+        "#6c5ce7",
+        "#0984e3",
+        "#fdcb6e",
+        "#ff6b7a",
+        "#00cec9",
+        "#a29bfe"
+    ];
+
+    for(let i=0;i<count;i++){
+        const piece=document.createElement("span");
+
+        piece.className=
+            isFinal
+                ?"confetti-piece final-confetti-piece"
+                :"confetti-piece";
+
+        const startX=Math.random()*100;
+        const startY=-8+Math.random()*10;
+
+        const drift=
+            (Math.random()*520-260)*
+            (isFinal?1.15:.9);
+
+        const fall=
+            window.innerHeight*
+            (.82+Math.random()*.48);
+
+        const rotation=
+            Math.random()*1400-700;
+
+        piece.style.left=startX+"%";
+        piece.style.top=startY+"%";
+
+        piece.style.setProperty("--x",drift+"px");
+        piece.style.setProperty("--y",fall+"px");
+        piece.style.setProperty("--r",rotation+"deg");
+
+        piece.style.background=
+            colors[Math.floor(Math.random()*colors.length)];
+
+        piece.style.animationDelay=
+            (Math.random()*(isFinal?500:220))+"ms";
+
+        confettiContainer.appendChild(piece);
+
+        setTimeout(
+            ()=>piece.remove(),
+            isFinal?2900:2050
+        );
+    }
+}
+
+function checkAnswers(){
+    const q=quizData[currentIndex], state=quizState[currentIndex];
+    const value=parseInt(state.userAns);
+
+    if(value!==q.targetAns){
+        showPopup("wrong","😟","Keep Going!","Try again, you can do it! 🌈",false);
+        playTone("wrong");speak("Wrong");
+        state.userAns="";
+        loadQuestion();
+        return;
+    }
+
+    state.isSolved=true;
+    loadQuestion();
+    playTone("correct");
+
+    showSmallConfetti(false);
+    showPopup("correct","🌟","Amazing!","You got it right! ✨",false);
+    speak("Correct");
+
+    if(currentIndex===quizData.length-1){
+        clearTimeout(finalTimer);
+        finalTimer=setTimeout(()=>{
+            closePopup();
+            showSmallConfetti(true);
+            showPopup("complete","🏆","Congratulations!","Fantastic job! You solved all questions! 🎉",true);
+            
+        },1800);
+    }
+}
+
+function showPopup(status,icon,title,subtitle,isFinal=false){
+    const popup=document.getElementById("popup");
+    const card=document.getElementById("popupCard");
+    card.className=`popup-card ${status}${isFinal?" complete":""}`;
+    document.getElementById("popupIcon").textContent=icon;
+    document.getElementById("popupTitle").textContent=title;
+    document.getElementById("popupSubtitle").textContent=subtitle;
+    playAgainBtn.style.display=isFinal?"inline-block":"none";
+    popup.classList.add("active");
+    if(!isFinal){
+        clearTimeout(popupTimer);
+        popupTimer=setTimeout(closePopup,1800);
+    }
+}
+function closePopup(){document.getElementById("popup").classList.remove("active")}
+function restartGame(){
+    clearTimeout(popupTimer);
+    clearTimeout(finalTimer);
+    closePopup();
+
+    const confettiContainer=document.getElementById("confettiContainer");
+    if(confettiContainer) confettiContainer.innerHTML="";
+
+    quizState=quizData.map(()=>({isSolved:false,userAns:"",portalUsed:false}));
+    currentIndex=0;loadQuestion();
+}
+window.onload=loadQuestion;
+</script>
+</body>
+</html>

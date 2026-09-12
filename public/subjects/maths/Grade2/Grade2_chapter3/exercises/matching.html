@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Match the numbers and their number names</title>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <link rel="stylesheet" href="../assets/css/reuse.css">
+
+
+    <style>
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden
+        }
+
+        body {
+            font-family: "Livvic", sans-serif;
+            color: #263238;
+            background: radial-gradient(circle at 8% 12%, rgba(255, 220, 150, .25), transparent 28%), radial-gradient(circle at 92% 88%, rgba(145, 210, 255, .22), transparent 30%), #fbfcff
+        }
+
+        button {
+            font-family: "Livvic", sans-serif
+        }
+
+        .quiz {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: clamp(8px, 1.5vh, 16px) clamp(14px, 4vw, 55px) clamp(6px, 1vh, 12px)
+        }
+
+        .topbar {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 70px minmax(0, 1fr) 70px;
+            align-items: start;
+            flex: 0 0 auto
+        }
+
+        .icon-btn {
+            border: 0;
+            background: transparent;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer
+        }
+
+        .icon-circle {
+            width: clamp(40px, 4vw, 58px);
+            height: clamp(40px, 4vw, 58px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: clamp(17px, 1.7vw, 25px);
+            transition: transform .2s ease
+        }
+
+        .icon-circle.home {
+            background: linear-gradient(145deg, #8b6fe0, #6f42c1);
+            box-shadow: 0 4px 0 #4f2e93
+        }
+
+        .icon-circle.hint {
+            background: linear-gradient(145deg, #ffc94d, #f7a800);
+            box-shadow: 0 4px 0 #c17e00
+        }
+
+        .icon-btn:hover .icon-circle {
+            transform: scale(1.05)
+        }
+
+        .title-block {
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .title {
+            width: 100%;
+            margin: 0;
+            text-align: center;
+            font-size: clamp(21px, 2.5vw, 36px);
+            line-height: 1.15;
+            font-weight: 400;
+            color: #263238
+        }
+
+        .matching-area {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden
+        }
+
+        .matching-board {
+            position: relative;
+            width: min(1240px, 100%);
+            height: min(82vh, 720px);
+            padding: clamp(18px, 3vw, 38px) clamp(16px, 3vw, 42px);
+            /* border-radius: 34px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, .99), rgba(245, 249, 255, .98));
+            border: 2px solid #dfe7f2;
+            box-shadow: 0 18px 45px rgba(52, 72, 104, .12), inset 0 1px 0 rgba(255, 255, 255, .95) */
+        }
+
+        .matching-board:before,
+        .matching-board:after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: .6
+        }
+
+        .matching-board:before {
+            width: 190px;
+            height: 190px;
+            top: -100px;
+            left: -70px;
+            background: #fff0c7
+        }
+
+        .matching-board:after {
+            width: 230px;
+            height: 230px;
+            bottom: -130px;
+            right: -80px;
+            background: #dff3ff
+        }
+
+        #lineCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            overflow: visible
+        }
+
+        .matching-rows {
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 0;
+            gap: 5px;
+        }
+
+        .match-row {
+            position: relative;
+            width: 100%;
+            min-height: clamp(66px, 10vh, 92px);
+            flex: 0 0 auto;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) clamp(110px, 13vw, 170px) minmax(0, 1fr);
+            align-items: center
+        }
+
+        .match-item {
+            position: relative;
+            width: min(480px, 96%);
+            min-height: clamp(58px, 8vh, 78px);
+            display: flex;
+            align-items: center;
+            padding: 12px clamp(18px, 2.2vw, 30px);
+            color: #263238;
+            font-size: clamp(17px, 1.55vw, 23px);
+            line-height: 1.2;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            user-select: none;
+            transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, background .22s ease
+        }
+
+        .number-item {
+            justify-self: end;
+            justify-content: center;
+            border: 2px solid #8ec3ef;
+            border-radius: 24px 44px 24px 44px;
+            background: linear-gradient(135deg, #eaf6ff, #fff);
+            box-shadow: 8px 8px 0 #d7e9f8, 0 9px 20px rgba(75, 130, 180, .10)
+        }
+
+        .word-item {
+            justify-self: start;
+            justify-content: center;
+            border: 2px solid #efbd6d;
+            border-radius: 44px 24px 44px 24px;
+            background: linear-gradient(135deg, #fff6df, #fff);
+            box-shadow: -8px 8px 0 #f8e4c1, 0 9px 20px rgba(190, 137, 54, .10)
+        }
+
+        .match-item:hover {
+            transform: translateY(-4px) scale(1.02)
+        }
+
+        .number-item:hover {
+            border-color: #5ca7e8;
+            box-shadow: 8px 11px 0 #d7e9f8, 0 14px 24px rgba(75, 130, 180, .16)
+        }
+
+        .word-item:hover {
+            border-color: #df9d36;
+            box-shadow: -8px 11px 0 #f8e4c1, 0 14px 24px rgba(190, 137, 54, .16)
+        }
+
+        .match-item.selected {
+            transform: translateY(-4px) scale(1.035);
+            box-shadow: 0 0 0 5px rgba(105, 175, 232, .18), 0 12px 22px rgba(45, 90, 130, .15)
+        }
+
+        .number-item.selected {
+            background: linear-gradient(135deg, #dff2ff, #fff);
+            border-color: #4198e4
+        }
+
+        .word-item.selected {
+            background: linear-gradient(135deg, #fff0c7, #fff);
+            border-color: #e2a02e
+        }
+
+        .match-item.matched {
+            cursor: default;
+            transform: scale(.985);
+            opacity: .96
+        }
+
+        .number-item.matched,
+        .word-item.matched {
+            background: linear-gradient(135deg, #e5f8ea, #fff);
+            border-color: #67b878;
+            color: #347542
+        }
+
+        .number-item.matched {
+            box-shadow: 8px 8px 0 #d8f0de, 0 8px 18px rgba(72, 145, 85, .10)
+        }
+
+        .word-item.matched {
+            box-shadow: -8px 8px 0 #d8f0de, 0 8px 18px rgba(72, 145, 85, .10)
+        }
+
+        .match-item.wrong {
+            border-color: #eb7770 !important;
+            background: #fff0ee !important;
+            animation: shakeItem .4s ease
+        }
+
+        @keyframes shakeItem {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25% {
+                transform: translateX(-7px)
+            }
+
+            50% {
+                transform: translateX(7px)
+            }
+
+            75% {
+                transform: translateX(-5px)
+            }
+        }
+
+        .match-dot {
+            position: absolute;
+            top: 50%;
+            width: clamp(18px, 1.7vw, 24px);
+            height: clamp(18px, 1.7vw, 24px);
+            border-radius: 50%;
+            background: #fff;
+            border: 4px solid #72afe3;
+            box-shadow: 0 3px 7px rgba(0, 0, 0, .12);
+            transform: translateY(-50%);
+            z-index: 25
+        }
+
+        .number-item .match-dot {
+            right: clamp(-13px, -1vw, -9px)
+        }
+
+        .word-item .match-dot {
+            left: clamp(-13px, -1vw, -9px);
+            border-color: #e9ae4e
+        }
+
+        .match-item.selected .match-dot {
+            border-color: #4e99dd;
+            box-shadow: 0 0 0 6px rgba(78, 153, 221, .14)
+        }
+
+        .match-item.matched .match-dot {
+            background: #72bf80;
+            border-color: #fff
+        }
+
+        .hint-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 3500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, .22);
+            padding: 20px
+        }
+
+        .hint-overlay.show {
+            display: flex
+        }
+
+        .hint-box {
+            width: min(420px, 100%);
+            padding: 26px;
+            border-radius: 24px;
+            background: #fff;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, .18)
+        }
+
+        .hint-box h3 {
+            margin: 0 0 10px;
+            font-size: 28px;
+            color: #d99114
+        }
+
+        .hint-box p {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.45
+        }
+
+        .hint-close {
+            margin-top: 18px;
+            min-width: 110px;
+            min-height: 44px;
+            border: 0;
+            border-radius: 24px;
+            background: #f5ae2f;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer
+        }
+
+        /* MEDIA QUERY 1 */
+        @media (min-width:769px) and (max-width:1024px) {
+            .quiz {
+                padding: 7px 18px 7px
+            }
+
+            .topbar {
+                grid-template-columns: 60px minmax(0, 1fr) 60px
+            }
+
+            .matching-board {
+                width: 100%;
+                height: min(78vh, 620px);
+                padding: 22px 24px;
+                border-radius: 28px
+            }
+
+            .match-row {
+                min-height: clamp(55px, 9vh, 72px);
+                grid-template-columns: minmax(0, 1fr) 82px minmax(0, 1fr)
+            }
+
+            .match-item {
+                width: 94%;
+                min-height: 56px;
+                font-size: 18px;
+                padding: 10px 18px
+            }
+        }
+
+        /* MEDIA QUERY 2 */
+        @media (min-width:481px) and (max-width:768px) {
+            .quiz {
+                padding: 6px 10px 5px
+            }
+
+            .topbar {
+                grid-template-columns: 48px minmax(0, 1fr) 48px
+            }
+
+            .icon-circle {
+                width: 38px;
+                height: 38px;
+                font-size: 16px
+            }
+
+            .title {
+                font-size: 20px
+            }
+
+            .matching-board {
+                height: min(77vh, 520px);
+                padding: 16px 12px;
+                border-radius: 22px
+            }
+
+            .match-row {
+                min-height: clamp(44px, 10vh, 60px);
+                grid-template-columns: minmax(0, 1fr) 45px minmax(0, 1fr)
+            }
+
+            .match-item {
+                width: 96%;
+                min-height: 44px;
+                padding: 7px 10px;
+                border-width: 1.5px;
+                border-radius: 16px 28px 16px 28px;
+                font-size: 15px
+            }
+
+            .word-item {
+                border-radius: 28px 16px 28px 16px
+            }
+
+            .match-dot {
+                width: 14px;
+                height: 14px;
+                border-width: 2px
+            }
+        }
+
+        /* MEDIA QUERY 3 */
+        @media (min-width:361px) and (max-width:480px) {
+            .quiz {
+                padding: 5px 7px 4px
+            }
+
+            .topbar {
+                grid-template-columns: 40px minmax(0, 1fr) 40px
+            }
+
+            .icon-circle {
+                width: 34px;
+                height: 34px;
+                font-size: 14px
+            }
+
+            .title {
+                font-size: 16px
+            }
+
+            .matching-board {
+                height: min(79vh, 475px);
+                padding: 10px 7px;
+                border-radius: 18px
+            }
+
+            .match-row {
+                min-height: clamp(39px, 11vh, 53px);
+                grid-template-columns: minmax(0, 1fr) 25px minmax(0, 1fr)
+            }
+
+            .match-item {
+                width: 98%;
+                min-height: 38px;
+                padding: 5px 6px;
+                border-width: 1.5px;
+                border-radius: 12px 20px 12px 20px;
+                font-size: 13px
+            }
+
+            .word-item {
+                border-radius: 20px 12px 20px 12px
+            }
+
+            .match-dot {
+                width: 12px;
+                height: 12px;
+                border-width: 2px
+            }
+
+            .number-item .match-dot {
+                right: -6px
+            }
+
+            .word-item .match-dot {
+                left: -6px
+            }
+        }
+
+        /* MEDIA QUERY 4 */
+        @media (max-width:360px) {
+            .quiz {
+                padding: 4px 5px 3px
+            }
+
+            .topbar {
+                grid-template-columns: 34px minmax(0, 1fr) 34px
+            }
+
+            .icon-circle {
+                width: 30px;
+                height: 30px;
+                font-size: 12px
+            }
+
+            .title {
+                font-size: 14px
+            }
+
+            .matching-board {
+                height: min(79vh, 425px);
+                padding: 8px 4px;
+                border-radius: 15px
+            }
+
+            .match-row {
+                min-height: clamp(35px, 12vh, 46px);
+                grid-template-columns: minmax(0, 1fr) 19px minmax(0, 1fr)
+            }
+
+            .match-item {
+                width: 99%;
+                min-height: 34px;
+                padding: 3px 4px;
+                border-width: 1px;
+                border-radius: 10px 16px 10px 16px;
+                font-size: 11px
+            }
+
+            .word-item {
+                border-radius: 16px 10px 16px 10px
+            }
+
+            .match-dot {
+                width: 10px;
+                height: 10px;
+                border-width: 1.5px
+            }
+
+            .number-item .match-dot {
+                right: -5px
+            }
+
+            .word-item .match-dot {
+                left: -5px
+            }
+        }
+
+        /* MEDIA QUERY 5 */
+        @media (max-height:520px) {
+            .quiz {
+                padding-top: 4px;
+                padding-bottom: 3px
+            }
+
+            .matching-board {
+                height: calc(100dvh - 65px);
+                padding-top: 10px;
+                padding-bottom: 10px
+            }
+
+            .match-row {
+                min-height: clamp(36px, 12vh, 52px)
+            }
+
+            .match-item {
+                min-height: 34px;
+                font-size: clamp(11px, 1.5vw, 16px)
+            }
+        }
+
+        /* MEDIA QUERY 6 */
+        @media (min-width:1200px) {
+            .matching-board {
+                width: min(1320px, 100%);
+                height: min(82vh, 760px);
+                padding: 34px 40px
+            }
+
+            .match-row {
+                min-height: clamp(70px, 9vh, 96px);
+                grid-template-columns: minmax(0, 1fr) 150px minmax(0, 1fr)
+            }
+
+            .match-item {
+                width: min(520px, 96%);
+                min-height: 68px;
+                font-size: 23px;
+                padding: 14px 28px
+            }
+        }
+
+        /* MEDIA QUERY 7 */
+        @media (min-width:1440px) {
+            .matching-board {
+                width: min(1420px, 100%);
+                height: min(83vh, 790px);
+                padding: 40px 50px
+            }
+
+            .match-row {
+                min-height: 92px;
+                grid-template-columns: minmax(0, 1fr) 180px minmax(0, 1fr)
+            }
+
+            .match-item {
+                width: min(570px, 96%);
+                min-height: 76px;
+                font-size: 25px
+            }
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <div class="quiz" id="quizCard">
+
+
+        <!-- =====================================================
+         TOP BAR
+         ===================================================== -->
+
+        <div class="topbar">
+
+
+            <button class="icon-btn" id="homeBtn" aria-label="Home">
+
+                <span class="icon-circle home">
+
+                    <i class="fa-solid fa-house"></i>
+
+                </span>
+
+            </button>
+
+
+            <div class="title-block">
+
+                <h1 class="title">
+                    Match the following.
+                </h1>
+
+            </div>
+
+
+            <button class="icon-btn" id="hintBtn" aria-label="Hint">
+
+                <span class="icon-circle hint">
+
+                    <i class="fa-solid fa-lightbulb"></i>
+
+                </span>
+
+            </button>
+
+
+        </div>
+
+
+        <!-- =====================================================
+         MATCHING AREA
+         ===================================================== -->
+
+        <main class="matching-area">
+
+
+            <div class="matching-board" id="matchingBoard">
+
+
+                <svg id="lineCanvas" aria-hidden="true">
+                </svg>
+
+
+                <div class="matching-rows" id="matchingRows">
+                </div>
+
+
+            </div>
+
+
+        </main>
+
+
+    </div>
+
+
+    <!-- =========================================================
+     HINT
+     ========================================================= -->
+
+    <div class="hint-overlay" id="hintOverlay">
+
+
+        <div class="hint-box">
+
+
+            <h3>
+                Hint
+            </h3>
+
+
+            <p id="hintText">
+                Match each number with the number name
+                that represents the same value.
+            </p>
+
+
+            <button type="button" class="hint-close" id="closeHintBtn">
+
+                Got it!
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =========================================================
+     EXISTING CORRECT / WRONG POPUP
+     ========================================================= -->
+
+    <div id="answerPopup" class="kid-popup">
+
+
+        <div class="kid-card">
+
+
+            <div class="kid-icon" id="popupIcon">
+            </div>
+
+
+            <h3 id="popupTitle"></h3>
+
+
+            <p id="popupMsg"></p>
+
+
+        </div>
+
+
+    </div>
+
+
+    <!-- =========================================================
+     EXISTING FINAL POPUP
+     ========================================================= -->
+
+    <div id="finalPopup">
+
+
+        <div class="final-kid-box">
+
+
+            <h2>
+                🎉
+                <span>Congratulations!</span>
+            </h2>
+
+
+            <p id="finalScore"></p>
+
+
+            <div id="stars"></div>
+
+
+            <button class="playAgain-btn" onclick="location.reload()">
+
+                Play Again
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3">
+    </audio>
+
+
+    <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3">
+    </audio>
+
+
+    <script>
+
+
+        /* =========================================================
+           DATA FROM THE IMAGE
+        
+           314  -> Three hundred fourteen
+           970  -> Nine hundred seventy
+           537  -> Five hundred thirty seven
+           241  -> Two hundred forty one
+           486  -> Four hundred eighty six
+           619  -> Six hundred nineteen
+           ========================================================= */
+
+        const pairs = [
+            { id: "p1", number: "11 + 8", words: "19" },
+            { id: "p2", number: "Addend 1 + Addend 2", words: "Addend 2 + Addend 1, Commutative property" },
+            { id: "p3", number: "27 + 0", words: "27" },
+            { id: "p4", number: "19 + 1", words: "20" },
+            { id: "p5", number: "Addend 1 + 0", words: "Addend 1" },
+            { id: "p6", number: "Addend 1 + 1", words: "Successor of addend 1" }
+        ];
+
+
+        /* =========================================================
+           DOM
+           ========================================================= */
+
+        const matchingRows =
+            document.getElementById(
+                "matchingRows"
+            );
+
+
+        const board =
+            document.getElementById(
+                "matchingBoard"
+            );
+
+
+        const lineCanvas =
+            document.getElementById(
+                "lineCanvas"
+            );
+
+
+        const homeBtn =
+            document.getElementById(
+                "homeBtn"
+            );
+
+
+        const hintBtn =
+            document.getElementById(
+                "hintBtn"
+            );
+
+
+        const hintOverlay =
+            document.getElementById(
+                "hintOverlay"
+            );
+
+
+        const closeHintBtn =
+            document.getElementById(
+                "closeHintBtn"
+            );
+
+
+        const correctSound =
+            document.getElementById(
+                "correctSound"
+            );
+
+
+        const wrongSound =
+            document.getElementById(
+                "wrongSound"
+            );
+
+
+        /* =========================================================
+           STATE
+           ========================================================= */
+
+        let selectedNumber = null;
+
+        let matchesFound = 0;
+
+        let score = 0;
+
+        let connections = [];
+
+
+        /* =========================================================
+           SOUND
+           ========================================================= */
+
+        function playSound(audio) {
+
+            audio.currentTime = 0;
+
+            audio.play().catch(() => { });
+
+        }
+
+
+        /* =========================================================
+           SPEECH
+           ========================================================= */
+
+        function speak(text) {
+
+            if (!window.speechSynthesis) {
+                return;
+            }
+
+
+            speechSynthesis.cancel();
+
+
+            const message =
+                new SpeechSynthesisUtterance(
+                    text
+                );
+
+
+            message.lang = "en-UK";
+
+            message.volume = 0.25;
+
+            message.rate = 1;
+
+            message.pitch = 1;
+
+
+            speechSynthesis.speak(
+                message
+            );
+
+        }
+
+
+        /* =========================================================
+           CONFETTI
+           ========================================================= */
+
+        function smallConfetti() {
+
+            if (!window.confetti) {
+                return;
+            }
+
+
+            confetti({
+
+                particleCount: 35,
+
+                spread: 70,
+
+                origin: {
+                    y: 0.7
+                },
+
+                scalar: 0.8
+
+            });
+
+        }
+
+
+        /* =========================================================
+           CORRECT / WRONG POPUP
+           ========================================================= */
+
+        function showPopup(correct) {
+
+            const popup =
+                document.getElementById(
+                    "answerPopup"
+                );
+
+
+            const icon =
+                document.getElementById(
+                    "popupIcon"
+                );
+
+
+            const title =
+                document.getElementById(
+                    "popupTitle"
+                );
+
+
+            const message =
+                document.getElementById(
+                    "popupMsg"
+                );
+
+
+            popup.style.display =
+                "flex";
+
+
+            if (correct) {
+
+                popup.className =
+                    "kid-popup kid-correct";
+
+
+                icon.textContent =
+                    "🎉";
+
+
+                title.textContent =
+                    "Great Job!";
+
+
+                message.textContent =
+                    "You matched it correctly!";
+
+            }
+
+            else {
+
+                popup.className =
+                    "kid-popup kid-wrong";
+
+
+                icon.textContent =
+                    "🥲";
+
+
+                title.textContent =
+                    "Oops!";
+
+
+                message.textContent =
+                    "Try again!";
+
+            }
+
+
+            clearTimeout(
+                showPopup.timer
+            );
+
+
+            showPopup.timer =
+                setTimeout(
+                    () => {
+
+                        popup.style.display =
+                            "none";
+
+                    },
+                    1200
+                );
+
+        }
+
+
+        /* =========================================================
+           SHUFFLE
+           ========================================================= */
+
+        function shuffle(array) {
+
+            const result =
+                [...array];
+
+
+            for (
+                let i = result.length - 1;
+                i > 0;
+                i--
+            ) {
+
+                const j =
+                    Math.floor(
+                        Math.random() * (i + 1)
+                    );
+
+
+                [
+                    result[i],
+                    result[j]
+                ] =
+                    [
+                        result[j],
+                        result[i]
+                    ];
+
+            }
+
+
+            return result;
+
+        }
+
+
+        /* =========================================================
+           CREATE MATCH ITEM
+           ========================================================= */
+
+        function createMatchItem(
+            text,
+            pairId,
+            type
+        ) {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+
+            item.className =
+                "match-item";
+
+
+            item.dataset.pair =
+                pairId;
+
+
+            item.dataset.type =
+                type;
+
+
+            if (type === "number") {
+
+                item.classList.add(
+                    "number-item"
+                );
+
+            }
+
+            else {
+
+                item.classList.add(
+                    "word-item"
+                );
+
+            }
+
+
+            const textSpan =
+                document.createElement(
+                    "span"
+                );
+
+
+            textSpan.textContent =
+                text;
+
+
+            const dot =
+                document.createElement(
+                    "span"
+                );
+
+
+            dot.className =
+                "match-dot";
+
+
+            item.appendChild(
+                textSpan
+            );
+
+
+            item.appendChild(
+                dot
+            );
+
+
+            return item;
+
+        }
+
+
+        /* =========================================================
+           INITIALIZE GAME
+           ========================================================= */
+
+        function init() {
+
+            matchingRows.innerHTML =
+                "";
+
+
+            lineCanvas.innerHTML =
+                "";
+
+
+            selectedNumber =
+                null;
+
+
+            matchesFound =
+                0;
+
+
+            score =
+                0;
+
+
+            connections =
+                [];
+
+
+            const shuffledNumbers =
+                shuffle(pairs);
+
+
+            const shuffledWords =
+                shuffle(pairs);
+
+
+            /*
+             * Six rows.
+             *
+             * Each row contains:
+             *
+             * number     center space     number name
+             *
+             * The items themselves are independently shuffled,
+             * so the child must actually match them.
+             */
+
+            for (
+                let i = 0;
+                i < pairs.length;
+                i++
+            ) {
+
+                const row =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                row.className =
+                    "match-row";
+
+
+                const numberPair =
+                    shuffledNumbers[i];
+
+
+                const wordPair =
+                    shuffledWords[i];
+
+
+                const numberItem =
+                    createMatchItem(
+                        numberPair.number,
+                        numberPair.id,
+                        "number"
+                    );
+
+
+                const wordItem =
+                    createMatchItem(
+                        wordPair.words,
+                        wordPair.id,
+                        "word"
+                    );
+
+
+                numberItem.addEventListener(
+                    "click",
+                    () => {
+
+                        selectNumber(
+                            numberItem
+                        );
+
+                    }
+                );
+
+
+                wordItem.addEventListener(
+                    "click",
+                    () => {
+
+                        selectWord(
+                            wordItem
+                        );
+
+                    }
+                );
+
+
+                row.appendChild(
+                    numberItem
+                );
+
+
+                /*
+                 * Empty center grid cell.
+                 * This keeps both cards on the same row
+                 * and leaves space for the matching line.
+                 */
+
+
+                const center =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                row.appendChild(
+                    center
+                );
+
+
+                row.appendChild(
+                    wordItem
+                );
+
+
+                matchingRows.appendChild(
+                    row
+                );
+
+            }
+
+        }
+
+
+        /* =========================================================
+           SELECT NUMBER
+           ========================================================= */
+
+        function selectNumber(item) {
+
+            if (
+                item.classList.contains(
+                    "matched"
+                )
+            ) {
+                return;
+            }
+
+
+            document
+                .querySelectorAll(
+                    ".number-item"
+                )
+                .forEach(
+                    element => {
+
+                        element.classList.remove(
+                            "selected"
+                        );
+
+                    }
+                );
+
+
+            item.classList.add(
+                "selected"
+            );
+
+
+            selectedNumber =
+                item;
+
+        }
+
+
+        /* =========================================================
+           SELECT WORD
+           ========================================================= */
+
+        function selectWord(item) {
+
+            if (
+                item.classList.contains(
+                    "matched"
+                )
+            ) {
+                return;
+            }
+
+
+            if (!selectedNumber) {
+                return;
+            }
+
+
+            const numberPair =
+                selectedNumber.dataset.pair;
+
+
+            const wordPair =
+                item.dataset.pair;
+
+
+            if (
+                numberPair === wordPair
+            ) {
+
+                handleCorrectMatch(
+                    selectedNumber,
+                    item
+                );
+
+            }
+
+            else {
+
+                handleWrongMatch(
+                    item
+                );
+
+            }
+
+        }
+
+
+        /* =========================================================
+           CORRECT MATCH
+           ========================================================= */
+
+        function handleCorrectMatch(
+            numberItem,
+            wordItem
+        ) {
+
+            numberItem.classList.remove(
+                "selected"
+            );
+
+
+            numberItem.classList.add(
+                "matched"
+            );
+
+
+            wordItem.classList.add(
+                "matched"
+            );
+
+
+            drawConnection(
+                numberItem,
+                wordItem
+            );
+
+
+            connections.push({
+
+                number:
+                    numberItem,
+
+                word:
+                    wordItem
+
+            });
+
+
+            selectedNumber =
+                null;
+
+
+            matchesFound++;
+
+
+            score++;
+
+
+
+
+
+            speak(
+                "Correct"
+            );
+
+
+            showPopup(
+                true
+            );
+
+
+            smallConfetti();
+
+
+            /*
+             * Final popup appears automatically.
+             * There is no Next button.
+             */
+
+            if (
+                matchesFound ===
+                pairs.length
+            ) {
+
+                setTimeout(
+                    showFinal,
+                    900
+                );
+
+            }
+
+        }
+
+
+        /* =========================================================
+           WRONG MATCH
+           ========================================================= */
+
+        function handleWrongMatch(item) {
+
+            item.classList.remove(
+                "wrong"
+            );
+
+
+            void item.offsetWidth;
+
+
+            item.classList.add(
+                "wrong"
+            );
+
+
+            playSound(
+                wrongSound
+            );
+
+
+            speak(
+                "Try again"
+            );
+
+
+            showPopup(
+                false
+            );
+
+
+            setTimeout(
+                () => {
+
+                    item.classList.remove(
+                        "wrong"
+                    );
+
+                },
+                500
+            );
+
+        }
+
+
+        /* =========================================================
+           DRAW MATCHING LINE
+           ========================================================= */
+
+        function drawConnection(
+            numberItem,
+            wordItem
+        ) {
+
+            const numberDot =
+                numberItem.querySelector(
+                    ".match-dot"
+                );
+
+
+            const wordDot =
+                wordItem.querySelector(
+                    ".match-dot"
+                );
+
+
+            const boardRect =
+                board.getBoundingClientRect();
+
+
+            const numberRect =
+                numberDot.getBoundingClientRect();
+
+
+            const wordRect =
+                wordDot.getBoundingClientRect();
+
+
+            const x1 =
+                numberRect.left +
+                numberRect.width / 2 -
+                boardRect.left;
+
+
+            const y1 =
+                numberRect.top +
+                numberRect.height / 2 -
+                boardRect.top;
+
+
+            const x2 =
+                wordRect.left +
+                wordRect.width / 2 -
+                boardRect.left;
+
+
+            const y2 =
+                wordRect.top +
+                wordRect.height / 2 -
+                boardRect.top;
+
+
+            const middleX =
+                (x1 + x2) / 2;
+
+
+            const path =
+                document.createElementNS(
+                    "http://www.w3.org/2000/svg",
+                    "path"
+                );
+
+
+            const pathData =
+                `M ${x1} ${y1}
+         C ${middleX} ${y1},
+           ${middleX} ${y2},
+           ${x2} ${y2}`;
+
+
+            path.setAttribute(
+                "d",
+                pathData
+            );
+
+
+            path.setAttribute(
+                "fill",
+                "none"
+            );
+
+
+            path.setAttribute(
+                "stroke",
+                "#6c6258"
+            );
+
+
+            path.setAttribute(
+                "stroke-width",
+                "3"
+            );
+
+
+            path.setAttribute(
+                "stroke-linecap",
+                "round"
+            );
+
+
+            path.setAttribute(
+                "opacity",
+                ".9"
+            );
+
+
+            lineCanvas.appendChild(
+                path
+            );
+
+        }
+
+
+        /* =========================================================
+           REDRAW LINES AFTER RESIZE
+           ========================================================= */
+
+        function redrawConnections() {
+
+            lineCanvas.innerHTML =
+                "";
+
+
+            connections.forEach(
+                connection => {
+
+                    drawConnection(
+                        connection.number,
+                        connection.word
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =========================================================
+           HOME
+           ========================================================= */
+
+        homeBtn.addEventListener(
+            "click",
+            () => {
+                window.top.location.href = "../Grade2_chapter3.html";
+
+
+            }
+        );
+
+
+        /* =========================================================
+           HINT
+           ========================================================= */
+
+        hintBtn.addEventListener(
+            "click",
+            () => {
+
+                hintText.textContent =
+                    "Match each number with the number name that represents the same value.";
+
+
+                hintOverlay.classList.add(
+                    "show"
+                );
+
+            }
+        );
+
+
+        closeHintBtn.addEventListener(
+            "click",
+            () => {
+
+                hintOverlay.classList.remove(
+                    "show"
+                );
+
+            }
+        );
+
+
+        hintOverlay.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target ===
+                    hintOverlay
+                ) {
+
+                    hintOverlay.classList.remove(
+                        "show"
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* =========================================================
+           FINAL POPUP
+           ========================================================= */
+
+        function showFinal() {
+
+            const finalPopup =
+                document.getElementById(
+                    "finalPopup"
+                );
+
+
+            document.getElementById(
+                "finalScore"
+            ).textContent =
+                `Your Score: ${score} / ${pairs.length}`;
+
+
+            document.getElementById(
+                "stars"
+            ).textContent =
+                "⭐⭐⭐";
+
+
+            finalPopup.style.display =
+                "flex";
+
+
+            if (window.confetti) {
+
+                confetti({
+
+                    particleCount: 150,
+
+                    spread: 100,
+
+                    origin: {
+                        y: 0.5
+                    }
+
+                });
+
+
+                setTimeout(
+                    () => {
+
+                        confetti({
+
+                            particleCount: 100,
+
+                            spread: 70,
+
+                            origin: {
+                                y: 0.6
+                            }
+
+                        });
+
+                    },
+                    300
+                );
+
+            }
+
+        }
+
+
+        /* =========================================================
+           RESIZE
+           ========================================================= */
+
+        window.addEventListener(
+            "resize",
+            () => {
+
+                requestAnimationFrame(
+                    redrawConnections
+                );
+
+            }
+        );
+
+
+        /* =========================================================
+           START
+           ========================================================= */
+
+        init();
+
+
+    </script>
+
+
+</body>
+
+</html>

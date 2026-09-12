@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Number Types &amp; Next Topic · Chapter 5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#7C3AED;     --brand-dark:#6D28D9;  --brand-light:#F5F3FF;
+  --emerald:#10B981;   --orange:#FF7A00;       --yellow:#FFD000;    --pink:#FF2E93;
+  --ink:#2D241E;       --ink-soft:#5C4D42;
+  --good:#10B981;      --good-light:#ECFDF5;
+  --bad:#EF4444;       --bad-light:#FEF2F2;
+}
+
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+
+*{ font-family:'Livvic'; font-weight:400; font-style:normal; }
+
+html, body{
+  width:100%; height:100vh; overflow:hidden; margin:0; padding:0;
+}
+
+body{
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 8% 8%,   rgba(251,191,36,.15), transparent 32%),
+    radial-gradient(circle at 92% 14%, rgba(249,115,22,.10), transparent 28%),
+    radial-gradient(circle at 85% 90%, rgba(168,85,247,.10), transparent 30%),
+    linear-gradient(150deg, #FFFDF9 0%, #FFF8EF 50%, #FAF4EB 100%);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------------- 100vh Screen-Fit Container ---------------- */
+.page-container{
+  width:100%; max-width:1440px; height:100vh; max-height:100vh;
+  display:flex; flex-direction:column; justify-content:space-between;
+  padding:clamp(4px,0.8vh,8px) clamp(18px,2.2vw,40px);
+  margin:0 auto; overflow:hidden; gap:clamp(4px,0.6vh,8px);
+}
+
+/* ---------------- Home button ----------------
+   Sits directly on the page background, not inside a header strip, and is
+   the SAME size on every Chapter 5 quiz — fixed px, not vh-scaled clamps,
+   so it cannot drift from page to page. */
+.home-btn{
+  position:fixed; top:14px; left:16px; z-index:60;
+  display:inline-flex; align-items:center; gap:7px;
+  padding:9px 16px; border-radius:12px;
+  border:2px solid var(--brand-dark);
+  background:linear-gradient(160deg,#8B5CF6,var(--brand));
+  color:#fff; font-size:15px; line-height:1; text-decoration:none;
+  box-shadow:0 3px 0 var(--brand-dark),0 6px 14px rgba(124,58,237,.25);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.home-btn:hover{ transform:translateY(-2px); box-shadow:0 5px 0 var(--brand-dark),0 10px 18px rgba(124,58,237,.3); }
+.home-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--brand-dark); }
+.home-btn svg{ width:15px; height:15px; fill:currentColor; display:block; }
+
+.header-title{ font-size:clamp(18px,2.2vh,24px); color:var(--ink); margin:0; }
+
+/* ---------------- QUESTION AT TOP MIDDLE ---------------- */
+.q-middle-container{
+  flex:0 0 auto;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; gap:2px; margin:2px 0;
+}
+
+.q-stem-text{
+  font-size:30px !important; line-height:1.2;
+  color:#1A1A1A; margin:0; text-align:center; font-weight:400 !important;
+}
+@media (min-width:1440px){ .q-stem-text{ font-size:40px !important; } }
+
+/* ---------------- MAIN STAGE AREA ---------------- */
+.main-stage-wrap{
+  flex:1 1 auto; min-height:0; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center; align-items:center;
+  width:100%; max-width:1240px; margin:0 auto; gap:clamp(8px, 1vh, 12px);
+}
+
+.activity-card{
+  background:#FFFFFF; border:2.5px solid #F3E8DC; border-radius:24px;
+  padding:clamp(14px, 1.8vh, 24px) clamp(20px, 2.2vw, 36px);
+  box-shadow:0 18px 44px rgba(180,83,9,0.07);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  width:100%; flex:1 1 auto; overflow:hidden; gap:clamp(8px, 1.2vh, 14px);
+}
+
+.classification-list{
+  display:flex; flex-direction:column; gap:clamp(8px, 1.2vh, 12px); width:100%;
+}
+
+.class-item{
+  display:flex; align-items:center; flex-wrap:nowrap; justify-content:space-between; gap:16px;
+  background:#FFFDF9; border:2px solid #F3E8DC; border-radius:20px;
+  padding:clamp(8px, 1.2vh, 14px) clamp(16px, 2vw, 28px);
+  font-size:clamp(18px, 2.2vh, 24px); font-weight:400; color:var(--ink);
+  transition:border-color .18s ease;
+}
+.class-item.active-slot{ border-color:var(--brand); background:#F5F3FF; }
+
+.q-seq-num{
+  font-size:clamp(22px, 2.6vh, 28px); font-weight:400; color:var(--brand-dark);
+  min-width:32px; flex-shrink:0;
+}
+
+.num-bubbles{ display:flex; align-items:center; gap:8px; flex-wrap:nowrap; }
+
+.num-bubble{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:clamp(34px, 4.2vh, 42px); height:clamp(34px, 4.2vh, 42px); border-radius:50%;
+  background:linear-gradient(160deg, #F5F3FF, #EDE9FE); border:2.5px solid var(--brand);
+  color:var(--brand-dark); font-size:clamp(16px, 2vh, 22px); font-weight:400;
+  box-shadow:0 3px 8px rgba(124,58,237,0.12); flex-shrink:0;
+}
+
+.slot-drop{
+  min-width:190px; padding:clamp(8px, 1vh, 12px) clamp(16px, 2vw, 24px); border-radius:18px;
+  border:2.5px dashed #FF7A00; background:#FFF4E2; color:#C2410C;
+  font-size:clamp(17px, 2.1vh, 22px); font-weight:400; text-align:center;
+  cursor:pointer; transition:all .2s ease; user-select:none; flex-shrink:0;
+}
+.slot-drop:hover{ border-color:var(--brand-dark); transform:scale(1.03); }
+.slot-drop.filled{
+  border-style:solid; border-color:var(--brand); background:var(--brand-light); color:var(--brand-dark);
+  box-shadow:0 3px 10px rgba(124,58,237,0.15);
+}
+.slot-drop.correct{
+  border-style:solid; border-color:#10B981; background:#ECFDF5; color:#047857;
+  box-shadow:0 3px 10px rgba(16,185,129,0.2); cursor:default;
+}
+.slot-drop.wrong{
+  border-style:solid; border-color:#EF4444; background:#FEF2F2; color:#991B1B;
+  box-shadow:0 3px 10px rgba(239,68,68,0.18);
+}
+
+/* KIDS WORD BANK PALETTE */
+.word-bank-panel{
+  flex:0 0 auto; width:100%; background:#FFFFFF; border:2.5px solid #F3E8DC; border-radius:22px;
+  padding:clamp(8px, 1.1vh, 12px) clamp(18px, 2.2vw, 32px);
+  box-shadow:0 10px 24px rgba(180,83,9,0.05);
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+
+.word-bank-title{
+  font-size:12px; font-weight:400; text-transform:uppercase; letter-spacing:0.08em; color:var(--brand-dark);
+}
+
+.word-chips{
+  display:flex; flex-wrap:wrap; gap:clamp(8px, 1.2vw, 16px); justify-content:center; align-items:center;
+}
+
+.word-chip{
+  font-size:clamp(16px, 1.9vh, 21px); font-weight:400; color:#2D241E;
+  padding:clamp(8px, 1vh, 12px) clamp(18px, 2.2vw, 28px); border-radius:20px;
+  border:2px solid transparent; cursor:pointer; user-select:none; transition:all .2s ease;
+  box-shadow:0 3px 8px rgba(0,0,0,0.06); outline:none;
+}
+.word-chip:hover{ transform:translateY(-2px) scale(1.04); }
+.word-chip:active{ transform:scale(0.95); }
+
+/* soft pastel options — light fill, muted matching text */
+.chip-even{ background:#D6F3E7; border-color:#9BDCC5; color:#1F5346; box-shadow:0 3px 0 #B8E6D3; }
+.chip-odd{ background:#FFE7D1; border-color:#F3C9A3; color:#9A4B14; box-shadow:0 3px 0 #F6D5B6; }
+.chip-natural{ background:#E9E2FB; border-color:#C9BCF0; color:#4C3A8C; box-shadow:0 3px 0 #D5CAF3; }
+.chip-whole{ background:#FCE0EC; border-color:#F3B9CF; color:#9D2760; box-shadow:0 3px 0 #F6C6D9; }
+
+/* Bottom Action Bar */
+.bottom-action-bar{
+  flex:0 0 auto; display:flex; justify-content:center; align-items:center;
+  width:100%; max-width:300px; margin:clamp(4px, 0.8vh, 8px) auto 2px;
+}
+
+.btn-big{
+  font:inherit; font-size:18px; padding:clamp(10px,1.4vh,14px) 22px;
+  border-radius:18px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  transition:all .15s ease; outline:none; border:none; text-decoration:none; text-align:center;
+}
+
+.btn-check{
+  background:#10B981; color:#fff; border:2.5px solid #047857; font-size:18px;
+  width:100%; max-width:220px; box-shadow:0 4px 0 #047857; margin:0 auto;
+}
+.btn-check:hover{ transform:translateY(-2px); box-shadow:0 6px 0 #047857; }
+.btn-check:disabled{ opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+
+.btn-prev-style{
+  width:100%; background:#fff; color:var(--ink); border:2.5px solid #E6D8C8; box-shadow:0 4px 0 #E6D8C8;
+}
+.btn-prev-style:hover{ transform:translateY(-2px); border-color:var(--brand); }
+
+.btn-nav{
+  width:100%; background:#7C3AED; color:#fff; border:2.5px solid #6D28D9; box-shadow:0 4px 0 #6D28D9;
+}
+.btn-nav:hover{ transform:translateY(-2px); box-shadow:0 6px 0 #6D28D9; }
+
+/* ---------------- NO BLUR & NO DARK OVERLAY ---------------- */
+.popup-overlay{
+  position:fixed; inset:0; z-index:120; display:none; align-items:center; justify-content:center;
+  padding:20px; background:transparent !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  pointer-events:none;
+}
+.popup-overlay.show{ display:flex; pointer-events:auto; }
+
+.finish-overlay{
+  position:fixed; inset:0; z-index:130; display:none; place-items:center; padding:20px;
+  background:transparent !important; backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
+  pointer-events:none;
+}
+.finish-overlay.show{ display:grid; pointer-events:auto; }
+
+.answer-popup{
+  position:relative; z-index:2; width:min(90vw, 400px); padding:24px 24px 20px; overflow:hidden;
+  text-align:center; background:#FFFFFF; border-radius:24px; box-shadow:0 16px 48px rgba(60,45,30,0.24);
+}
+.popup-overlay.show .answer-popup{ animation:popupCardIn 550ms cubic-bezier(.22,1.3,.36,1) forwards; }
+
+.finish-card{
+  width:min(90vw,480px); background:#fff; border:3px solid #F3E8DC; border-radius:26px; padding:32px 28px;
+  text-align:center; box-shadow:0 24px 60px rgba(60,45,30,.24); display:flex; flex-direction:column; align-items:center; gap:16px;
+}
+.finish-overlay.show .finish-card{ animation:popupCardIn 550ms cubic-bezier(.22,1.3,.36,1) forwards; }
+
+.answer-popup.correct{ border:3px solid #10B981; }
+.answer-popup.correct .popup-icon{ background:#ECFDF5; color:#10B981; }
+.answer-popup.correct .popup-label{ color:#047857; background:#ECFDF5; }
+.answer-popup.correct .popup-title{ color:#047857; }
+.answer-popup.correct .popup-bar{ background:#10B981; }
+
+.answer-popup.wrong{ border:3px solid #EF4444; }
+.answer-popup.wrong .popup-icon{ background:#FEF2F2; color:#EF4444; }
+.answer-popup.wrong .popup-label{ color:#991B1B; background:#FEF2F2; }
+.answer-popup.wrong .popup-title{ color:#991B1B; }
+.answer-popup.wrong .popup-bar{ background:#EF4444; }
+
+.popup-body{ position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; gap:6px; }
+
+.popup-icon{
+  display:grid; width:60px; height:60px; margin:0 auto 4px; place-items:center;
+  border-radius:50%; font-size:28px; font-weight:800;
+}
+.popup-overlay.show .popup-icon{ animation:popupIconBounce 750ms ease 180ms both; }
+
+.popup-label{
+  display:inline-block; margin-bottom:4px; padding:4px 12px; border-radius:20px;
+  font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:400;
+}
+.popup-title{ margin:0 0 4px; font-size:24px; font-weight:400 !important; }
+.popup-message{ margin:0; color:#5C4D42; font-size:16px; line-height:1.4; font-weight:400; }
+
+.popup-track{ width:100%; height:5px; margin-top:16px; overflow:hidden; background:#EEE9E2; border-radius:10px; }
+.popup-bar{ width:100%; height:100%; border-radius:inherit; transform-origin:left; }
+.popup-overlay.show .popup-bar{ animation:popupTimerLine 2s linear forwards; }
+
+@keyframes popupCardIn{
+  0%{opacity:0;transform:translateY(25px) scale(.72)}
+  55%{opacity:1;transform:translateY(-7px) scale(1.06)}
+  75%{transform:translateY(2px) scale(.98)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes popupIconBounce{
+  0%{opacity:0;transform:rotate(-15deg) scale(.3)}
+  55%{opacity:1;transform:rotate(10deg) scale(1.2)}
+  75%{transform:rotate(-5deg) scale(.95)}
+  100%{opacity:1;transform:rotate(0) scale(1)}
+}
+@keyframes popupTimerLine{ from{transform:scaleX(1)} to{transform:scaleX(0)} }
+
+/* ------------------------------------------------------------
+   Big monitors (1600px and wider). The card spreads out to use
+   the room at the sides instead of leaving it empty. Laptops sit
+   below this width and are left exactly as they are.
+   ------------------------------------------------------------ */
+@media (min-width: 1600px){
+  .page-container{ max-width:min(1880px, 97vw); }
+  .main-stage-wrap{ max-width:min(1800px, 95vw); }
+
+  /* the four rows grow to fill the card, and the words to place grow with them */
+  .classification-list{ gap:22px; }
+  .class-item{ padding:26px 40px; font-size:28px; border-radius:26px; gap:24px; }
+  .q-seq-num{ font-size:34px; min-width:46px; }
+  .num-bubbles{ gap:12px; }
+  .num-bubble{ width:54px; height:54px; font-size:26px; border-width:3px; }
+  .slot-drop{ min-width:250px; padding:16px 30px; font-size:26px; border-radius:22px; }
+
+  .word-bank-panel{ padding:16px 36px; gap:10px; border-radius:26px; }
+  .word-bank-title{ font-size:16px; }
+  .word-chips{ gap:24px; }
+  .word-chip{ font-size:26px; padding:16px 38px; border-radius:26px; }
+
+  .bottom-action-bar{ max-width:360px; }
+  .btn-check{ font-size:24px; max-width:320px; padding:16px 26px; }
+}
+</style>
+</head>
+<body>
+
+<a href="../newindex.html" class="home-btn">
+  <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+  Home
+</a>
+<div class="page-container">
+
+
+  <div class="q-middle-container">
+    <h2 class="q-stem-text">Are You Ready for the Next Topic?</h2>
+  </div>
+
+  <main class="main-stage-wrap">
+    
+    <!-- ACTIVITY CARD WITH SEQUENCE BUBBLES -->
+    <div class="activity-card">
+      <div class="classification-list">
+
+        <!-- Item 1 -->
+        <div class="class-item" data-slot="1">
+          <div class="num-bubbles">
+            <span class="q-seq-num">1)</span>
+            <span class="num-bubble">2</span>
+            <span class="num-bubble">4</span>
+            <span class="num-bubble">6</span>
+            <span class="num-bubble">8</span>
+            <span class="num-bubble">10</span>
+            <span style="font-size:22px;color:var(--brand-dark);">...</span>
+            <span style="margin-left:4px;">are called</span>
+          </div>
+          <div class="slot-drop" data-slot-id="1" data-ans="even">Tap to Place</div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="class-item" data-slot="2">
+          <div class="num-bubbles">
+            <span class="q-seq-num">2)</span>
+            <span class="num-bubble">1</span>
+            <span class="num-bubble">3</span>
+            <span class="num-bubble">5</span>
+            <span class="num-bubble">7</span>
+            <span class="num-bubble">9</span>
+            <span class="num-bubble">11</span>
+            <span style="font-size:22px;color:var(--brand-dark);">...</span>
+            <span style="margin-left:4px;">are called</span>
+          </div>
+          <div class="slot-drop" data-slot-id="2" data-ans="odd">Tap to Place</div>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="class-item" data-slot="3">
+          <div class="num-bubbles">
+            <span class="q-seq-num">3)</span>
+            <span class="num-bubble">1</span>
+            <span class="num-bubble">2</span>
+            <span class="num-bubble">3</span>
+            <span class="num-bubble">4</span>
+            <span class="num-bubble">5</span>
+            <span class="num-bubble">6</span>
+            <span style="font-size:22px;color:var(--brand-dark);">...</span>
+            <span style="margin-left:4px;">are called</span>
+          </div>
+          <div class="slot-drop" data-slot-id="3" data-ans="natural">Tap to Place</div>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="class-item" data-slot="4">
+          <div class="num-bubbles">
+            <span class="q-seq-num">4)</span>
+            <span class="num-bubble">0</span>
+            <span class="num-bubble">1</span>
+            <span class="num-bubble">2</span>
+            <span class="num-bubble">3</span>
+            <span class="num-bubble">4</span>
+            <span class="num-bubble">5</span>
+            <span style="font-size:22px;color:var(--brand-dark);">...</span>
+            <span style="margin-left:4px;">are called</span>
+          </div>
+          <div class="slot-drop" data-slot-id="4" data-ans="whole">Tap to Place</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- WORD BANK CHIPS PALETTE -->
+    <div class="word-bank-panel">
+      <span class="word-bank-title">Tap a word to place into active slot:</span>
+      <div class="word-chips">
+        <button class="word-chip chip-even" data-type="even">Even numbers</button>
+        <button class="word-chip chip-odd" data-type="odd">Odd numbers</button>
+        <button class="word-chip chip-natural" data-type="natural">Natural numbers</button>
+        <button class="word-chip chip-whole" data-type="whole">Whole numbers</button>
+      </div>
+    </div>
+
+  </main>
+
+  <div class="bottom-action-bar">
+    <button class="btn-big btn-check" id="check-btn" disabled>Check Answer</button>
+  </div>
+
+</div>
+
+<!-- FLOATING CHAPTER 1 STYLE POPUPS -->
+<div class="popup-overlay" id="popup-correct-overlay">
+  <section class="answer-popup correct">
+    <div class="popup-body">
+      <div class="popup-icon">🎉</div>
+      <div class="popup-label">Correct Answer</div>
+      <h2 class="popup-title">Correct!</h2>
+      <p class="popup-message">Even numbers start at 2, Odd numbers start at 1, Natural numbers start at 1, Whole numbers start at 0!</p>
+      <div class="popup-track"><div class="popup-bar"></div></div>
+    </div>
+  </section>
+</div>
+
+<div class="popup-overlay" id="popup-progress-overlay">
+  <section class="answer-popup correct">
+    <div class="popup-body">
+      <div class="popup-icon">👍</div>
+      <div class="popup-label">Right so far</div>
+      <h2 class="popup-title">Nice!</h2>
+      <p class="popup-message">Those are correct. Fill the rest of the slots, then check again.</p>
+      <div class="popup-track"><div class="popup-bar"></div></div>
+    </div>
+  </section>
+</div>
+
+<div class="popup-overlay" id="popup-incorrect-overlay">
+  <section class="answer-popup wrong">
+    <div class="popup-body">
+      <div class="popup-icon">💡</div>
+      <div class="popup-label">Keep Learning</div>
+      <h2 class="popup-title">Try Again!</h2>
+      <p class="popup-message">Some slots are empty or incorrect. Please tap to adjust!</p>
+      <div class="popup-track"><div class="popup-bar"></div></div>
+    </div>
+  </section>
+</div>
+
+<!-- FINISH OVERLAY MODAL: PLAY AGAIN & MENU -->
+<div class="finish-overlay" id="finish-overlay">
+<div class="finish-card">
+    <div style="font-size:42px;color:#F59E0B;letter-spacing:8px;">&#9733; &#9733; &#9733;</div>
+    <h2 style="font-size:26px;color:#6D28D9;font-weight:400;">Well done!</h2>
+    <p style="color:#5C4D42;font-size:16px;">You&rsquo;ve finished this activity. Great work!</p>
+    <div style="display:flex;gap:12px;margin-top:8px;width:100%;">
+      <button class="btn-big btn-prev-style" id="again-btn">Play Again</button>
+      <a class="btn-big btn-nav" href="../newindex.html">Menu</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   SHARED CANVAS CONFETTI ENGINE (Same as Chapter 4 / Project)
+   ============================================================ */
+(function (global) {
+  'use strict';
+  var COLORS = ['#7C3AED', '#10B981', '#FF7A00', '#FFD000', '#FF2E93', '#3B82F6', '#EF4444'];
+  var canvas = null, ctx = null, parts = [], raf = null;
+
+  function size() {
+    var d = global.devicePixelRatio || 1;
+    canvas.width = global.innerWidth * d;
+    canvas.height = global.innerHeight * d;
+    canvas.style.width = global.innerWidth + 'px';
+    canvas.style.height = global.innerHeight + 'px';
+    ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+
+  function ensure() {
+    if (canvas) return;
+    canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-hidden', 'true');
+    canvas.style.cssText = 'position:fixed;left:0;top:0;pointer-events:none;z-index:9998;';
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext('2d');
+    size();
+    global.addEventListener('resize', size);
+  }
+
+  function spawn(n, x, y, power, angle, spread) {
+    for (var i = 0; i < n; i++) {
+      var a = angle == null ? Math.random() * Math.PI * 2 : angle + (Math.random() - 0.5) * spread;
+      var v = power * (0.45 + Math.random() * 0.9);
+      parts.push({
+        x: x, y: y,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v - 3.2,
+        w: 6 + Math.random() * 7,
+        h: 5 + Math.random() * 8,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - 0.5) * 0.55,
+        colour: COLORS[(Math.random() * COLORS.length) | 0],
+        life: 0,
+        max: 70 + Math.random() * 60
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+
+  function tick() {
+    ctx.clearRect(0, 0, global.innerWidth, global.innerHeight);
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.life++;
+      p.vy += 0.3;
+      p.vx *= 0.99;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vr;
+
+      var fadeFrom = p.max * 0.7;
+      var alpha = p.life > fadeFrom ? Math.max(0, 1 - (p.life - fadeFrom) / (p.max - fadeFrom)) : 1;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.colour;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+
+      if (p.life >= p.max || p.y > global.innerHeight + 60) parts.splice(i, 1);
+    }
+    if (parts.length) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      raf = null;
+      ctx.clearRect(0, 0, global.innerWidth, global.innerHeight);
+    }
+  }
+
+  global.confetti = {
+    burst: function (o) {
+      o = o || {};
+      ensure();
+      spawn(
+        o.count || 80,
+        o.x == null ? global.innerWidth / 2 : o.x,
+        o.y == null ? global.innerHeight / 2 : o.y,
+        o.power || 9,
+        o.angle,
+        o.spread || Math.PI
+      );
+    },
+    rain: function () {
+      ensure();
+      var w = global.innerWidth;
+      spawn(70, w * 0.2, -20, 11, Math.PI / 2.6, 1.1);
+      spawn(70, w * 0.8, -20, 11, Math.PI - Math.PI / 2.6, 1.1);
+      setTimeout(function () { spawn(60, w / 2, global.innerHeight * 0.35, 11); }, 160);
+    }
+  };
+})(window);
+
+(function () {
+  'use strict';
+
+  var AudioCtx = window.AudioContext || window.webkitAudioContext;
+  var audioCtx = null;
+  function ensureAudio(){ if(!audioCtx) audioCtx = new AudioCtx(); }
+  
+  function speak(text) {
+    ensureAudio();
+    var synth = window.speechSynthesis;
+    if (!synth) return;
+    synth.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    u.rate = 1;
+    synth.speak(u);
+  }
+
+  function playTone(freq, dur, type){
+    ensureAudio();
+    try {
+      var osc = audioCtx.createOscillator(); var gain = audioCtx.createGain();
+      osc.type = type || 'sine'; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + dur);
+    } catch(e){}
+  }
+
+  function soundCorrectVoice() {
+    playTone(523, 0.12); setTimeout(function(){ playTone(659, 0.12); }, 100); setTimeout(function(){ playTone(784, 0.2); }, 200);
+    speak('Correct!');
+    window.confetti.burst({ count: 80 });
+  }
+
+  function soundWrongVoice() {
+    playTone(330, 0.25, 'square'); setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
+    speak('Try again!');
+  }
+
+  var activeSlotId = 1;
+  var userState = { 1: '', 2: '', 3: '', 4: '' };
+  var isSolved = false;
+  var popupTimer = null;
+
+  var slots = document.querySelectorAll('.slot-drop');
+  var items = document.querySelectorAll('.class-item');
+  var checkBtn = document.getElementById('check-btn');
+  var lockedSlots = {};
+
+  /* Check is live only when there is a NEW, not-yet-locked word to grade.
+     Once a slot is right it locks, so it no longer counts. */
+  function updateCheckBtn() {
+    if (isSolved) { checkBtn.disabled = true; return; }
+    var anyNew = [1, 2, 3, 4].some(function (id) { return userState[id] && !lockedSlots[id]; });
+    checkBtn.disabled = !anyNew;
+  }
+
+  function setActiveSlot(id) {
+    activeSlotId = id;
+    items.forEach(function(it) {
+      if (parseInt(it.getAttribute('data-slot')) === id) it.classList.add('active-slot');
+      else it.classList.remove('active-slot');
+    });
+  }
+
+  slots.forEach(function(slot) {
+    var id = parseInt(slot.getAttribute('data-slot-id'));
+    slot.onclick = function() {
+      if (isSolved || lockedSlots[id]) return;
+      setActiveSlot(id);
+      if (userState[id]) {
+        userState[id] = '';
+        slot.textContent = 'Tap to Place';
+        slot.classList.remove('filled', 'wrong');
+        updateCheckBtn();
+      }
+    };
+  });
+
+  setActiveSlot(1);
+  updateCheckBtn();
+
+  var chips = document.querySelectorAll('.word-chip');
+  chips.forEach(function(chip) {
+    chip.onclick = function() {
+      if (isSolved || !activeSlotId) return;
+      var type = chip.getAttribute('data-type');
+      var label = chip.textContent;
+
+      if (lockedSlots[activeSlotId]) return;
+
+      userState[activeSlotId] = type;
+      var slotEl = document.querySelector('.slot-drop[data-slot-id="' + activeSlotId + '"]');
+      slotEl.textContent = label;
+      slotEl.classList.remove('wrong');
+      slotEl.classList.add('filled');
+
+      playTone(440, 0.08);
+      updateCheckBtn();
+      /* The active slot stays put — it only advances after a Check. The
+         child can re-tap this slot to swap the word, or tap another slot
+         to work on it. */
+    };
+  });
+
+  function flashPopup(node, ms) {
+    node.classList.remove('show'); void node.offsetWidth; node.classList.add('show');
+    if (popupTimer) clearTimeout(popupTimer);
+    return function (after) {
+      popupTimer = setTimeout(function () { node.classList.remove('show'); if (after) after(); }, ms || 2000);
+    };
+  }
+
+  checkBtn.onclick = function(){
+    if (isSolved || checkBtn.disabled) return;
+
+    /* only grade slots that have a new word and are not already locked */
+    var toGrade = [1,2,3,4].filter(function(id){ return userState[id] && !lockedSlots[id]; });
+    if (!toGrade.length) return;
+
+    var wrongCount = 0;
+    slots.forEach(function(slot){
+      var id = parseInt(slot.getAttribute('data-slot-id'));
+      if (toGrade.indexOf(id) === -1) return;
+      var expected = slot.getAttribute('data-ans');
+      if (userState[id] === expected) {
+        slot.classList.remove('wrong', 'filled');
+        slot.classList.add('correct');
+        lockedSlots[id] = true;              /* right answers stay put */
+      } else {
+        slot.classList.remove('correct');
+        slot.classList.add('wrong');
+        wrongCount++;
+      }
+    });
+
+    var emptyCount = [1,2,3,4].filter(function(id){ return !userState[id]; }).length;
+
+    if (wrongCount) {
+      flashPopup(document.getElementById('popup-incorrect-overlay'))();
+      soundWrongVoice();
+      updateCheckBtn();
+      return;
+    }
+
+    if (emptyCount) {
+      /* everything answered so far is right — encourage, don't scare.
+         Once the popup clears, jump the active slot to the next blank. */
+      flashPopup(document.getElementById('popup-progress-overlay'))(function () {
+        for (var k = 1; k <= 4; k++) { if (!userState[k]) { setActiveSlot(k); break; } }
+      });
+      soundCorrectVoice();
+      updateCheckBtn();
+      return;
+    }
+
+    /* all four filled and correct */
+    isSolved = true;
+    checkBtn.disabled = true;
+    flashPopup(document.getElementById('popup-correct-overlay'))(function () {
+      document.getElementById('finish-overlay').classList.add('show');
+      window.confetti.rain();
+    });
+    soundCorrectVoice();
+  };
+
+  document.getElementById('again-btn').onclick = function () {
+    document.getElementById('finish-overlay').classList.remove('show');
+    isSolved = false;
+    userState = { 1: '', 2: '', 3: '', 4: '' };
+    lockedSlots = {};
+    slots.forEach(function(slot){
+      slot.textContent = 'Tap to Place';
+      slot.classList.remove('filled', 'correct', 'wrong');
+    });
+    setActiveSlot(1);
+    updateCheckBtn();
+  };
+})();
+</script>
+</body>
+</html>

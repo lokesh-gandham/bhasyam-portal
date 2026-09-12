@@ -1,0 +1,1977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Shape Detective</title>
+
+    <!-- LIVVIC FONT -->
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+
+        /* =========================================
+           GLOBAL
+        ========================================= */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #fbf8eb;
+            color: #2c3e50;
+        }
+
+        .game-page {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            overflow: hidden;
+        }
+
+
+        /* =========================================
+           HEADER
+        ========================================= */
+
+        .game-header {
+            text-align: center;
+            padding: 18px 15px 8px;
+            position: relative;
+            z-index: 20;
+        }
+
+         .instruction {
+            font-size: 22px;
+            color: #2f4f4f;
+            font-weight: 600;
+            line-height: 1.1;
+        }
+
+
+        .cross-text {
+            color: #e74c3c;
+            font-weight: 600;
+            font-size: 1.15em;
+        }
+
+
+        /* =========================================
+           MAIN GAME AREA
+        ========================================= */
+
+        .game-area {
+            width: 100%;
+            min-height: 0;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 34px 20px 42px;
+        }
+
+
+        /* =========================================
+           GAME CIRCLE
+        ========================================= */
+
+        .circle-game {
+            /*
+               IMPORTANT:
+               The previous fixed minimum size could force the orbit into
+               the header/footer area. This square now always fits inside
+               the available game area with clear breathing space above
+               and below.
+            */
+            width: min(56vw, 540px, calc(100vh - 285px));
+            height: min(56vw, 540px, calc(100vh - 285px));
+
+            min-width: 0;
+            min-height: 0;
+
+            position: relative;
+            top: -10px;
+            flex: 0 1 auto;
+        }
+
+
+        /* =========================================
+           DOTTED ORBIT
+        ========================================= */
+
+        .orbit-ring {
+            position: absolute;
+
+            width: 68%;
+            height: 68%;
+
+            left: 16%;
+            top: 16%;
+
+            border: 5px dashed #9188c9;
+            border-radius: 50%;
+
+            opacity: 0.9;
+
+            pointer-events: none;
+        }
+
+
+        
+
+        .arrow-one {
+            left: 5%;
+            top: 25%;
+            transform: rotate(48deg);
+        }
+
+        .arrow-two {
+            right: 4%;
+            top: 27%;
+            transform: rotate(132deg);
+        }
+
+        .arrow-three {
+            right: 5%;
+            bottom: 20%;
+            transform: rotate(135deg);
+        }
+
+        .arrow-four {
+            left: 5%;
+            bottom: 20%;
+            transform: rotate(-45deg);
+        }
+
+
+        /* =========================================
+           ROTATING ORBIT
+        ========================================= */
+
+        .object-orbit {
+            position: absolute;
+
+            width: 100%;
+            height: 100%;
+
+            left: 0;
+            top: 0;
+
+            animation: orbitRotate 28s linear infinite;
+        }
+
+        .object-orbit.paused {
+            animation-play-state: paused;
+        }
+
+
+        /* =========================================
+           IMAGE OBJECT
+        ========================================= */
+
+        .object-item {
+            position: absolute;
+
+            /*
+               Slightly smaller cards create a clear gap between all four
+               objects and make the complete composition read as a circle.
+            */
+            width: clamp(105px, 11vw, 140px);
+            height: clamp(105px, 11vw, 140px);
+
+            margin-left: clamp(-70px, -5.5vw, -52px);
+            margin-top: clamp(-70px, -5.5vw, -52px);
+
+            border-radius: 50%;
+
+            background: rgba(255, 255, 255, 0.92);
+
+            border: 5px solid #efb538;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 9px 20px rgba(0, 0, 0, 0.12);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+
+            z-index: 5;
+        }
+
+        .object-item:hover:not(.locked) {
+            transform: scale(1.05);
+        }
+
+        .object-item.locked {
+            pointer-events: none;
+        }
+
+
+        /* =========================================
+           KEEP IMAGE STRAIGHT
+        ========================================= */
+
+        .object-item-inner {
+            width: 100%;
+            height: 100%;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            animation: counterRotate 28s linear infinite;
+        }
+
+        .object-orbit.paused .object-item-inner {
+            animation-play-state: paused;
+        }
+
+        .object-item img {
+            max-width: 72%;
+            max-height: 72%;
+
+            width: auto;
+            height: auto;
+
+            object-fit: contain;
+
+            pointer-events: none;
+            user-select: none;
+
+            filter:
+                drop-shadow(
+                    0 6px 7px
+                    rgba(0, 0, 0, 0.14)
+                );
+        }
+
+
+        /* =========================================
+           FOUR POSITIONS
+        ========================================= */
+
+        .item-0 {
+            left: 50%;
+            top: 11%;
+        }
+
+        .item-1 {
+            left: 89%;
+            top: 50%;
+        }
+
+        .item-2 {
+            left: 50%;
+            top: 89%;
+        }
+
+        .item-3 {
+            left: 11%;
+            top: 50%;
+        }
+
+
+        /* =========================================
+           SELECTED ODD ONE
+           ONLY CROSS - NO TICK
+        ========================================= */
+
+        .object-item.selected {
+            border: 6px dashed #e74c3c;
+
+            box-shadow:
+                0 0 0 5px rgba(255, 255, 255, 0.9),
+                0 9px 22px rgba(0, 0, 0, 0.18);
+        }
+
+
+        .answer-cross {
+            position: absolute;
+
+            width: 58px;
+            height: 58px;
+
+            right: -17px;
+            top: -17px;
+
+            border-radius: 50%;
+
+            background: #ef443b;
+
+            border: 4px solid white;
+
+            color: white;
+
+            display: none;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+
+            z-index: 30;
+
+            box-shadow:
+                0 6px 0 #bd3029,
+                0 9px 14px rgba(0, 0, 0, 0.16);
+        }
+
+        .object-item.selected .answer-cross {
+            display: flex;
+            animation: crossPop 0.35s cubic-bezier(
+                .17,
+                .89,
+                .32,
+                1.28
+            );
+        }
+
+
+        /* =========================================
+           SMALL CENTER MAGNIFIER
+        ========================================= */
+
+        .center-glass {
+            /*
+               True circular center focal point.
+               The old handle made the center read like a magnifier and
+               visually collided with the nearby object cards.
+            */
+            position: absolute;
+
+            width: clamp(118px, 12vw, 150px);
+            height: clamp(118px, 12vw, 150px);
+
+            left: 50%;
+            top: 50%;
+
+            transform: translate(-50%, -50%);
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle at 32% 26%,
+                    rgba(255,255,255,0.98) 0 8%,
+                    rgba(234,249,255,0.98) 28%,
+                    rgba(184,226,244,0.98) 58%,
+                    rgba(105,183,220,0.98) 100%
+                );
+
+            border: 8px solid #f2b334;
+
+            box-shadow:
+                0 8px 0 #d89410,
+                0 16px 28px rgba(0, 0, 0, 0.14),
+                0 0 0 9px rgba(255,255,255,0.65);
+
+            z-index: 10;
+
+            pointer-events: none;
+        }
+
+        .center-glass::before {
+            content: "";
+
+            position: absolute;
+
+            width: 66%;
+            height: 66%;
+
+            left: 17%;
+            top: 15%;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle at 30% 25%,
+                    rgba(255,255,255,0.92) 0%,
+                    #bcecff 16%,
+                    #67c3e6 48%,
+                    #2f8dbb 100%
+                );
+
+            border: 4px solid #397292;
+
+            box-shadow:
+                inset 0 4px 8px rgba(255,255,255,0.45);
+        }
+
+        /* Keep the center perfectly circular. */
+        .center-glass::after {
+            content: none;
+        }
+
+        /* =========================================
+           FOOTER
+           EXACT SAME REFERENCE STRUCTURE
+        ========================================= */
+
+        footer {
+            width: 100%;
+            max-width: 1100px;
+
+            margin: 0 auto;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            padding: 5px 0 15px;
+
+            position: relative;
+            z-index: 50;
+        }
+
+
+        /* =========================================
+           EXACT SAME NAV BUTTON CSS
+           AS REFERENCE BIG-SMALL GAME
+        ========================================= */
+
+        .nav-btn {
+            background: #e67e22;
+            color: #ffffff;
+            border: none;
+            width: 178px;
+            height: 45px;
+            padding: 0;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #d35400;
+            transition: all 0.1s ease;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #d35400;
+        }
+
+        .nav-btn:disabled {
+            background: #b2bec3;
+            box-shadow: 0 6px 0 #636e72;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+
+        /* EXACT REFERENCE LARGE SCREEN STYLE */
+
+        @media screen and (min-width: 1600px) {
+
+            .game-title {
+                font-size: 30px;
+            }
+
+            .instruction {
+                font-size: 25px;
+            }
+
+            .nav-btn {
+                width: 178px;
+                height: 45px;
+                padding: 0;
+                font-size: 20px;
+            }
+
+        }
+
+
+        /* =========================================
+           POPUP
+        ========================================= */
+
+        .popup-overlay {
+            position: fixed;
+
+            top: 0;
+            left: 0;
+
+            width: 100vw;
+            height: 100vh;
+
+         
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: opacity 0.3s ease;
+
+            z-index: 100;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-card {
+            position: relative;
+
+            width: 90%;
+            max-width: 520px;
+
+            padding: 40px 30px;
+
+            border-radius: 36px;
+
+            text-align: center;
+
+            box-shadow:
+                0 20px 40px
+                rgba(0, 0, 0, 0.1);
+
+            transform: scale(0.8);
+
+            transition:
+                transform 0.35s
+                cubic-bezier(
+                    0.175,
+                    0.885,
+                    0.32,
+                    1.275
+                );
+
+            overflow: hidden;
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-card::before,
+        .popup-card::after {
+            content: '';
+
+            position: absolute;
+
+            border-radius: 50%;
+
+            pointer-events: none;
+        }
+
+        .popup-card::before {
+            width: 220px;
+            height: 220px;
+
+            top: -60px;
+            right: -50px;
+        }
+
+        .popup-card::after {
+            width: 180px;
+            height: 180px;
+
+            bottom: -70px;
+            left: -40px;
+        }
+
+
+        /* CORRECT */
+
+        .popup-card.correct {
+            background: #edfbf4;
+            border: 6px solid #00c885;
+        }
+
+        .popup-card.correct::before,
+        .popup-card.correct::after {
+            background:
+                rgba(162, 245, 209, 0.45);
+        }
+
+        .popup-card.correct .popup-title {
+            color: #00a86b;
+        }
+
+        .popup-card.correct .popup-subtitle {
+            color: #2e7d5b;
+        }
+
+
+        /* WRONG */
+
+        .popup-card.wrong {
+            background: #fff0f2;
+            border: 6px solid #ff6b7a;
+        }
+
+        .popup-card.wrong::before,
+        .popup-card.wrong::after {
+            background:
+                rgba(255, 196, 203, 0.45);
+        }
+
+        .popup-card.wrong .popup-title {
+            color: #d33847;
+        }
+
+        .popup-card.wrong .popup-subtitle {
+            color: #a33b45;
+        }
+
+
+        /* COMPLETE */
+
+        .popup-card.complete {
+            background: #f0f3ff;
+            border: 6px solid #6c5ce7;
+        }
+
+        .popup-card.complete::before,
+        .popup-card.complete::after {
+            background:
+                rgba(162, 155, 254, 0.35);
+        }
+
+        .popup-card.complete .popup-title {
+            color: #6c5ce7;
+        }
+
+        .popup-card.complete .popup-subtitle {
+            color: #4834d4;
+        }
+
+
+        .popup-overlay.active .popup-card {
+            transform: scale(1);
+        }
+
+        .popup-icon {
+            font-size: 4.8rem;
+
+            margin-bottom: 12px;
+
+            z-index: 2;
+
+            line-height: 1;
+
+            filter:
+                drop-shadow(
+                    0 6px 10px
+                    rgba(0, 0, 0, 0.1)
+                );
+        }
+
+        .popup-title {
+            font-size: 3rem;
+
+            font-weight: 600;
+
+            margin-bottom: 8px;
+
+            z-index: 2;
+
+            letter-spacing: -0.5px;
+        }
+
+        .popup-subtitle {
+            font-size: 1.4rem;
+
+            font-weight: 500;
+
+            z-index: 2;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .replay-btn {
+            background: #0984e3;
+            box-shadow: 0 6px 0 #0975c7;
+            margin-top: 20px;
+            z-index: 5;
+        }
+
+        .replay-btn:active {
+            box-shadow: 0 2px 0 #0975c7;
+        }
+
+
+        /* =========================================
+           ANIMATIONS
+        ========================================= */
+
+        @keyframes orbitRotate {
+
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+
+        }
+
+
+        @keyframes counterRotate {
+
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(-360deg);
+            }
+
+        }
+
+
+        @keyframes crossPop {
+
+            0% {
+                transform: scale(0) rotate(-25deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+
+        }
+
+
+        @keyframes wrongShake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            50% {
+                transform: translateX(10px);
+            }
+
+            75% {
+                transform: translateX(-6px);
+            }
+
+        }
+
+        .wrong-shake {
+            animation: wrongShake 0.4s ease;
+        }
+
+
+
+        /* =========================================
+           SHORT HEIGHT / LAPTOP SAFETY
+        ========================================= */
+
+        @media screen and (max-height: 820px) {
+
+            .game-header {
+                padding-top: 12px;
+                padding-bottom: 6px;
+            }
+
+            .game-area {
+                padding-top: 24px;
+                padding-bottom: 28px;
+            }
+
+            .circle-game {
+                width: min(54vw, 500px, calc(100vh - 245px));
+                height: min(54vw, 500px, calc(100vh - 245px));
+                top: -7px;
+            }
+
+            footer {
+                padding-top: 4px;
+                padding-bottom: 10px;
+            }
+        }
+
+        @media screen and (max-height: 680px) {
+
+            .circle-game {
+                width: min(48vw, 420px, calc(100vh - 205px));
+                height: min(48vw, 420px, calc(100vh - 205px));
+                top: -5px;
+            }
+
+            .object-item {
+                width: clamp(88px, 10vw, 112px);
+                height: clamp(88px, 10vw, 112px);
+                margin-left: clamp(-56px, -5vw, -44px);
+                margin-top: clamp(-56px, -5vw, -44px);
+            }
+
+            .center-glass {
+                width: 100px;
+                height: 100px;
+                border-width: 6px;
+            }
+        }
+
+
+        /* =========================================
+           SMALL SCREEN
+        ========================================= */
+
+        @media screen and (max-width: 800px) {
+
+            .game-header {
+                padding-top: 10px;
+            }
+
+            .circle-game {
+                width: min(92vw, calc(100vh - 220px));
+                height: min(92vw, calc(100vh - 220px));
+
+                min-width: 0;
+                min-height: 0;
+                top: -5px;
+            }
+
+            .object-item {
+                width: 115px;
+                height: 115px;
+
+                margin-left: -57px;
+                margin-top: -57px;
+            }
+
+            footer {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+
+        }
+
+
+        /* EXACT SAME CONFETTI EFFECT */
+        #confettiContainer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 90;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 9px;
+            height: 14px;
+            border-radius: 2px;
+            opacity: 0;
+            animation: pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+            will-change: transform, opacity;
+        }
+
+        .final-confetti-piece {
+            width: 10px;
+            height: 16px;
+            animation-duration: 2300ms;
+        }
+
+        .final-confetti-piece:nth-child(3n) {
+            border-radius: 50%;
+        }
+
+        .final-confetti-piece:nth-child(4n) {
+            width: 7px;
+            height: 19px;
+            border-radius: 1px;
+        }
+
+        .final-confetti-piece:nth-child(5n) {
+            width: 13px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        @keyframes pageConfetti {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+            }
+            55% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+            }
+        }
+
+        .final-confetti-piece::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: inherit;
+        }
+
+        .popup-card.complete .replay-btn {
+            margin-top: 12px;
+        }
+
+        .popup-card.complete {
+            box-shadow:
+                0 20px 45px rgba(108, 92, 231, 0.18),
+                0 0 0 8px rgba(162, 155, 254, 0.12);
+        }
+
+        .popup-card.complete .popup-icon {
+            animation: finalTrophyBounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes finalTrophyBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+    
+/* ===== LESSON 1 QUIZ HEADINGS: title large, subheading smaller ===== */
+header h1,
+header h2,
+header .instruction-title,
+header .distance-title,
+.game-header h1,
+.game-header h2,
+.game-header .instruction-title,
+#questionHeading {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+}
+.game-header:not(:has(h1, h2)) .instruction,
+.game-header:not(:has(h1, h2)) p.instruction {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+    color: #2f4f4f;
+}
+header:has(h1, h2, .instruction-title) .instruction,
+header:has(h1, h2) .instruction-text,
+header:has(h1, h2, .instruction-title) p.instruction,
+header:has(h1, h2) p.instruction-text,
+.game-header:has(h1, h2) .instruction,
+.game-header:has(h1, h2) p.instruction,
+#instruction,
+.distance-header .instruction-text,
+.distance-header p.instruction-text {
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    color: #666;
+    line-height: 1.3;
+}
+header .instruction span,
+header .instruction-text span,
+header p.instruction span,
+header p.instruction-text span,
+.game-header .instruction span,
+#instruction span {
+    font-weight: 700 !important;
+    font-size: inherit !important;
+}
+@media screen and (min-width: 1600px) {
+    header h1,
+    header h2,
+    header .instruction-title,
+    header .distance-title,
+    .game-header h1,
+    .game-header h2,
+    .game-header .instruction-title,
+    #questionHeading {
+        font-size: 40px !important;
+    }
+    .game-header:not(:has(h1, h2)) .instruction,
+    .game-header:not(:has(h1, h2)) p.instruction {
+        font-size: 40px !important;
+    }
+    header:has(h1, h2, .instruction-title) .instruction,
+    header:has(h1, h2) .instruction-text,
+    header:has(h1, h2, .instruction-title) p.instruction,
+    header:has(h1, h2) p.instruction-text,
+    .game-header:has(h1, h2) .instruction,
+    .game-header:has(h1, h2) p.instruction,
+    #instruction,
+    .distance-header .instruction-text,
+    .distance-header p.instruction-text {
+        font-size: 18px !important;
+    }
+}
+
+/* ===== LAYOUT FIT: the heading always keeps its own space =====
+   The header is a fixed-size flex item and the play area takes exactly
+   the height that is left over, so artwork can never ride up into the
+   title on shorter laptop screens. */
+header,
+.game-header,
+.distance-header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 5;
+}
+main.game-stage,
+main.game-area,
+.game-stage,
+.game-area {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+footer,
+.navigation {
+    flex: 0 0 auto;
+}
+
+.game-area { overflow: hidden; }
+
+/* ===== Sub-heading stays on a single line ===== */
+.instruction-box,
+.distance-title { max-width: none !important; }
+header .instruction,
+header .instruction-text,
+header p.instruction,
+header p.instruction-text,
+.game-header .instruction,
+#instruction,
+.distance-header .instruction-text {
+    white-space: nowrap;
+    max-width: 100%;
+}
+@media screen and (max-width: 1100px) {
+    header .instruction, header .instruction-text,
+    header p.instruction, header p.instruction-text,
+    .game-header .instruction,
+    #instruction,
+    .distance-header .instruction-text {
+        white-space: normal;
+    }
+}
+</style>
+</head>
+
+<body>
+
+
+<div class="game-page">
+
+
+    <!-- =====================================
+         HEADER
+    ====================================== -->
+
+    <header class="game-header">
+        <p class="instruction">
+            Cross
+            <span class="cross-text">(✕)</span>
+            the one that does not match!
+        </p>
+
+    </header>
+
+
+    <!-- =====================================
+         GAME AREA
+    ====================================== -->
+
+    <main class="game-area">
+
+        <div class="circle-game">
+
+
+            <!-- DOTTED CIRCLE -->
+
+            <div class="orbit-ring"></div>
+
+
+            <!-- ARROWS -->
+
+            <div class="orbit-arrow arrow-one"></div>
+            <div class="orbit-arrow arrow-two"></div>
+            <div class="orbit-arrow arrow-three"></div>
+            <div class="orbit-arrow arrow-four"></div>
+
+
+            <!-- =================================
+                 ROTATING IMAGES
+            ================================== -->
+
+            <div
+                class="object-orbit"
+                id="objectOrbit"
+            >
+
+
+                <!-- IMAGE 1 -->
+
+                <div
+                    class="object-item item-0"
+                    onclick="selectObject(0)"
+                >
+
+                    <div class="object-item-inner">
+
+                        <img
+                            id="image0"
+                            src="../images/watermelon.png"
+                            alt="Quiz image">
+
+                    </div>
+
+                    <div class="answer-cross">
+                        ×
+                    </div>
+
+                </div>
+
+
+                <!-- IMAGE 2 -->
+
+                <div
+                    class="object-item item-1"
+                    onclick="selectObject(1)"
+                >
+
+                    <div class="object-item-inner">
+
+                        <img
+                            id="image1"
+                            src="../images/samosa.png"
+                            alt="Quiz image">
+
+                    </div>
+
+                    <div class="answer-cross">
+                        ×
+                    </div>
+
+                </div>
+
+
+                <!-- IMAGE 3 -->
+
+                <div
+                    class="object-item item-2"
+                    onclick="selectObject(2)"
+                >
+
+                    <div class="object-item-inner">
+
+                        <img
+                            id="image2"
+                            src="../images/balloon.png"
+                            alt="Quiz image">
+
+                    </div>
+
+                    <div class="answer-cross">
+                        ×
+                    </div>
+
+                </div>
+
+
+                <!-- IMAGE 4 -->
+
+                <div
+                    class="object-item item-3"
+                    onclick="selectObject(3)"
+                >
+
+                    <div class="object-item-inner">
+
+                        <img
+                            id="image3"
+                            src="../images/christmas.png"
+                            alt="Quiz image">
+
+                    </div>
+
+                    <div class="answer-cross">
+                        ×
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- SMALL CENTER MAGNIFIER -->
+
+            <div class="center-glass"></div>
+
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================
+         FOOTER
+         SAME REFERENCE BUTTON STYLE
+    ====================================== -->
+
+    <footer>
+
+        <button
+            class="nav-btn"
+            id="prevBtn"
+            onclick="previousQuestion()"
+            disabled>
+            PREV
+        </button>
+
+
+        <button
+            class="nav-btn"
+            id="nextBtn"
+            onclick="nextQuestion()"
+            disabled>
+            NEXT
+        </button>
+
+    </footer>
+
+
+</div>
+
+
+<div id="confettiContainer"></div>
+
+<!-- =====================================
+     POPUP
+===================================== -->
+
+<div
+    class="popup-overlay"
+    id="popupOverlay"
+>
+
+    <div
+        class="popup-card"
+        id="popupCard"
+    >
+
+        <div
+            class="popup-icon"
+            id="popupIcon"
+        >
+            ⭐
+        </div>
+
+
+        <h2
+            class="popup-title"
+            id="popupTitle"
+        >
+            Amazing!
+        </h2>
+
+
+        <p
+            class="popup-subtitle"
+            id="popupSubtitle"
+        >
+            You found the odd one!
+        </p>
+
+
+        <button
+            class="nav-btn replay-btn"
+            id="restartBtn"
+            onclick="restartGame()"
+            style="display: none;"
+        >
+            Play Again
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+    /* =========================================
+       QUESTIONS
+
+       CHANGE YOUR IMAGE PATHS HERE
+
+       odd: 0 = first
+       odd: 1 = second
+       odd: 2 = third
+       odd: 3 = fourth
+    ========================================= */
+
+
+    const questions = [
+
+        {
+            items: [
+                "../images/watermelon.png",
+                "../images/samosa.png",
+                "../images/balloon.png",
+                "../images/christmas.png"
+            ],
+
+            odd: 2
+        },
+
+
+        {
+            items: [
+                "../images/book.png",
+                "../images/window.png",
+                "../images/cookie.png",
+                "../images/openwindow.png"
+            ],
+
+            odd: 0
+        },
+
+
+        {
+            items: [
+                "../images/pizza.png",
+                "../images/ashokachakra.png",
+                "../images/bassBall.png",
+                "../images/wheat.png"
+            ],
+
+            odd: 2
+        },
+
+
+        {
+            items: [
+                "../images/paper.png",
+                "../images/suitcase.png",
+                "../images/chessBoard.png",
+                "../images/phone.png"
+            ],
+
+            odd: 2
+        },
+
+
+        {
+            items: [
+                "../images/bangle.png",
+                "../images/orange.png",
+                "../images/egg.png",
+                "../images/mirror.png"
+            ],
+
+            odd: 2
+        }
+
+    ];
+
+
+
+    /* =========================================
+       GAME STATE
+    ========================================= */
+
+
+    let currentQuestion = 0;
+    let answered = false;
+    let popupTimer = null;
+
+    // Store the correct answer state for every question
+    const answeredQuestions = Array(questions.length).fill(false);
+
+
+
+    /* =========================================
+       DOM
+    ========================================= */
+
+
+    const objectOrbit =
+        document.getElementById("objectOrbit");
+
+
+    const objectItems =
+        document.querySelectorAll(".object-item");
+
+
+    const images = [
+
+        document.getElementById("image0"),
+        document.getElementById("image1"),
+        document.getElementById("image2"),
+        document.getElementById("image3")
+
+    ];
+
+
+    const prevBtn =
+        document.getElementById("prevBtn");
+
+
+    const nextBtn =
+        document.getElementById("nextBtn");
+
+
+    const popupOverlay =
+        document.getElementById("popupOverlay");
+
+
+    const popupCard =
+        document.getElementById("popupCard");
+
+
+    const popupIcon =
+        document.getElementById("popupIcon");
+
+
+    const popupTitle =
+        document.getElementById("popupTitle");
+
+
+    const popupSubtitle =
+        document.getElementById("popupSubtitle");
+
+
+    const restartBtn =
+        document.getElementById("restartBtn");
+
+
+
+    /* =========================================
+       VOICE
+    ========================================= */
+
+
+    function speak(text) {
+
+        speechSynthesis.cancel();
+
+        const message =
+            new SpeechSynthesisUtterance(text);
+
+        message.lang = "en-US";
+        message.volume = 0.8;
+        message.rate = 1;
+        message.pitch = 1;
+
+        speechSynthesis.speak(message);
+
+    }
+
+
+
+
+    /* =========================================
+       SOUND
+       EXACT SAME CORRECT / WRONG SOUND
+       AS BIG AND SMALL QUIZ
+    ========================================= */
+
+    const audioCtx =
+        new (
+            window.AudioContext ||
+            window.webkitAudioContext
+        )();
+
+    function playAudioTone(isCorrect) {
+
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (isCorrect) {
+
+            osc.type = 'sine';
+
+            osc.frequency.setValueAtTime(
+                587.33,
+                audioCtx.currentTime
+            );
+
+            osc.frequency.exponentialRampToValueAtTime(
+                880,
+                audioCtx.currentTime + 0.2
+            );
+
+            gain.gain.setValueAtTime(
+                0.2,
+                audioCtx.currentTime
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioCtx.currentTime + 0.3
+            );
+
+        } else {
+
+            osc.type = 'sawtooth';
+
+            osc.frequency.setValueAtTime(
+                200,
+                audioCtx.currentTime
+            );
+
+            osc.frequency.linearRampToValueAtTime(
+                120,
+                audioCtx.currentTime + 0.2
+            );
+
+            gain.gain.setValueAtTime(
+                0.2,
+                audioCtx.currentTime
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioCtx.currentTime + 0.25
+            );
+        }
+
+        osc.start();
+
+        osc.stop(
+            audioCtx.currentTime + 0.3
+        );
+    }
+
+    /* =========================================
+       LOAD QUESTION
+    ========================================= */
+
+
+    function loadQuestion() {
+
+        answered = answeredQuestions[currentQuestion];
+
+
+        objectOrbit.classList.remove("paused");
+
+
+        objectItems.forEach(item => {
+
+            item.classList.remove(
+                "selected",
+                "wrong-shake",
+                "locked"
+            );
+
+            item.style.pointerEvents = "auto";
+
+        });
+
+
+        const question =
+            questions[currentQuestion];
+
+
+        question.items.forEach(
+            (imagePath, index) => {
+
+                images[index].src =
+                    imagePath;
+
+            }
+        );
+
+
+        prevBtn.disabled =
+            currentQuestion === 0;
+
+
+        nextBtn.disabled = !answered;
+
+        // When returning to a correctly answered question,
+        // keep the selected answer crossed out and locked.
+        if (answered) {
+            objectOrbit.classList.add("paused");
+
+            objectItems.forEach(item => {
+                item.classList.add("locked");
+                item.style.pointerEvents = "none";
+            });
+
+            objectItems[questions[currentQuestion].odd].classList.add("selected");
+        }
+
+    }
+
+
+
+    /* =========================================
+       SELECT IMAGE
+    ========================================= */
+
+
+    function selectObject(index) {
+
+        if (answered) {
+            return;
+        }
+
+
+        const question =
+            questions[currentQuestion];
+
+
+        /* =============================
+           CORRECT ODD ONE
+        ============================= */
+
+
+        if (index === question.odd) {
+
+            answered = true;
+            answeredQuestions[currentQuestion] = true;
+
+
+            /* STOP ROTATION */
+
+            objectOrbit.classList.add(
+                "paused"
+            );
+
+
+            /* LOCK ALL IMAGES */
+
+            objectItems.forEach(item => {
+
+                item.classList.add(
+                    "locked"
+                );
+
+                item.style.pointerEvents =
+                    "none";
+
+            });
+
+
+            /* SHOW ONLY CROSS */
+
+            objectItems[index].classList.add(
+                "selected"
+            );
+            /*
+                CORRECT POPUP FIRST — INCLUDING THE LAST QUESTION.
+                The final popup is shown only after this popup closes.
+            */
+
+            nextBtn.disabled = true;
+
+            setTimeout(() => {
+
+                showSmallConfetti(false);
+
+                showPopup(
+                    "correct",
+                    "🌟",
+                    "Amazing!",
+                    "You found the odd one!",
+                    false
+                );
+
+                playAudioTone(true);
+                speak("Correct");
+
+            }, 450);
+
+        }
+
+
+        else {
+
+            objectItems[index].classList.add(
+                "wrong-shake"
+            );
+
+
+            setTimeout(() => {
+
+                objectItems[index].classList.remove(
+                    "wrong-shake"
+                );
+
+            }, 450);
+
+
+            showPopup(
+                "wrong",
+                "😟",
+                "Try Again!",
+                "Look carefully and find the odd one!",
+                false
+            );
+
+            playAudioTone(false);
+            speak("Try again");
+
+        }
+
+    }
+
+
+
+    function previousQuestion() {
+
+        if (currentQuestion === 0) {
+            return;
+        }
+
+
+        currentQuestion--;
+
+
+        loadQuestion();
+
+    }
+
+
+    function nextQuestion() {
+
+        if (!answered) {
+            return;
+        }
+
+
+        if (
+            currentQuestion >=
+            questions.length - 1
+        ) {
+            return;
+        }
+
+
+        currentQuestion++;
+
+
+        loadQuestion();
+
+    }
+
+
+
+    /* EXACT SAME CONFETTI EFFECT */
+    function showSmallConfetti(isFinal = false) {
+        const confettiContainer = document.getElementById('confettiContainer');
+        if (!confettiContainer) return;
+
+        confettiContainer.innerHTML = '';
+
+        const count = isFinal ? 95 : 42;
+
+        const colors = [
+            '#00b894',
+            '#e67e22',
+            '#6c5ce7',
+            '#0984e3',
+            '#fdcb6e',
+            '#ff6b7a',
+            '#00cec9',
+            '#a29bfe'
+        ];
+
+        for (let i = 0; i < count; i++) {
+            const piece = document.createElement('span');
+
+            piece.className =
+                isFinal
+                    ? 'confetti-piece final-confetti-piece'
+                    : 'confetti-piece';
+
+            const startX = Math.random() * 100;
+            const startY = -8 + Math.random() * 10;
+
+            const drift =
+                (Math.random() * 520 - 260) *
+                (isFinal ? 1.15 : 0.9);
+
+            const fall =
+                window.innerHeight *
+                (0.82 + Math.random() * 0.48);
+
+            const rotation =
+                Math.random() * 1400 - 700;
+
+            piece.style.left = startX + '%';
+            piece.style.top = startY + '%';
+
+            piece.style.setProperty('--x', drift + 'px');
+            piece.style.setProperty('--y', fall + 'px');
+            piece.style.setProperty('--r', rotation + 'deg');
+
+            piece.style.background =
+                colors[Math.floor(Math.random() * colors.length)];
+
+            piece.style.animationDelay =
+                (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+            confettiContainer.appendChild(piece);
+
+            setTimeout(
+                () => piece.remove(),
+                isFinal ? 2900 : 2050
+            );
+        }
+    }
+
+    function showPopup(
+        type,
+        icon,
+        title,
+        subtitle,
+        isFinal
+    ) {
+
+        clearTimeout(popupTimer);
+
+
+        popupCard.className =
+            "popup-card " + type;
+
+
+        popupIcon.textContent =
+            icon;
+
+
+        popupTitle.textContent =
+            title;
+
+
+        popupSubtitle.textContent =
+            subtitle;
+
+
+        if (isFinal) {
+
+            restartBtn.style.display =
+                "inline-block";
+
+        }
+
+        else {
+
+            restartBtn.style.display =
+                "none";
+
+        }
+
+
+        popupOverlay.classList.add(
+            "active"
+        );
+
+
+        if (!isFinal) {
+
+            popupTimer =
+                setTimeout(() => {
+
+                    popupOverlay.classList.remove(
+                        "active"
+                    );
+
+                    /*
+                        On the last question, the correct popup must appear
+                        first. After it closes, show the final popup.
+                    */
+                    if (type === "correct" && answered) {
+
+                        if (currentQuestion === questions.length - 1) {
+
+                            setTimeout(() => {
+
+                                showSmallConfetti(true);
+
+                                showPopup(
+                                    "complete",
+                                    "🏆",
+                                    "Congratulations!",
+                                    "Fantastic job! You solved all questions! 🎉",
+                                    true
+                                );
+
+                            }, 120);
+
+                        } else {
+
+                            nextBtn.disabled = false;
+
+                        }
+                    }
+
+                }, 1800);
+
+        }
+
+    }
+
+
+    function restartGame() {
+
+        clearTimeout(popupTimer);
+
+        const confettiContainer = document.getElementById('confettiContainer');
+        if (confettiContainer) {
+            confettiContainer.innerHTML = '';
+        }
+
+
+        popupOverlay.classList.remove(
+            "active"
+        );
+
+
+        currentQuestion = 0;
+
+        answered = false;
+        answeredQuestions.fill(false);
+
+
+        loadQuestion();
+
+    }
+
+    loadQuestion();
+
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number Before → Archery</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link rel="stylesheet" href="../assets/css/reuse.css">
+
+<style>
+
+/* =========================================================
+   RESET  (unchanged)
+   ========================================================= */
+
+*{
+  box-sizing:border-box;
+  font-family:"Livvic",sans-serif;
+}
+
+html,
+body{
+  margin:0;
+  padding:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#F8F4FF;
+  touch-action:none;
+  overscroll-behavior:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+html,
+body,
+.quiz-card,
+.quiz-card *{
+  cursor:default !important;
+}
+
+/* =========================================================
+   QUIZ CARD  (position:relative, flex column)
+   ========================================================= */
+
+.quiz-card{
+  width:100%;
+  height:100vh;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:
+    clamp(18px,3vh,35px)
+    clamp(15px,4vw,60px);
+  overflow:hidden;
+}
+
+/* =========================================================
+   TITLE  (unchanged)
+   ========================================================= */
+
+.heading{
+  margin:0;
+  width:100%;
+  text-align:center;
+  font-size:30px;
+  line-height:1.25;
+  color:#2f2f2f;
+  margin-top: -20px;
+}
+
+/* =========================================================
+   MAIN CONTENT  (flex:1, centered column)
+   ========================================================= */
+
+.content-row{
+  width:100%;
+  max-width:700px;
+  flex:1;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+
+  gap:clamp(14px,2.2vh,24px);
+
+  min-height:0;
+
+  padding-top:clamp(12px,2vh,20px);
+}
+
+/* =========================================================
+   QUESTION HEADER  — qlabel pushed left, question text above
+   ========================================================= */
+
+.question-heading{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  margin-top: 0;
+  padding-left:clamp(8px,2vw,18px);
+  font-size:30px;
+  flex:0 0 auto;
+  font-size: 30px;
+}
+
+.qlabel{
+  margin:0;
+  font-size:clamp(30px,3.1vw,46px);
+  line-height:1.1;
+  color:#2f2f2f;
+  /* font-weight:700; */
+}
+
+/* =========================================================
+   QUESTION VISUAL  — bigger, no overflow, no scroll
+   ========================================================= */
+
+.question-visual{
+  width:100%;
+  max-width:610px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:clamp(28px,6vw,70px);
+
+  margin-top:0;
+  margin-bottom:clamp(8px,1.5vh,18px);
+
+  flex:0 0 auto;
+}
+
+.number-circle{
+  position:relative;
+  width:clamp(140px,21vw,220px);
+  height:clamp(140px,21vw,220px);
+  flex:0 0 auto;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#ffffff;
+  border:5px solid #f7b733;
+  font-size:clamp(42px,5.6vw,64px);
+  font-weight:700;
+  color:#302b3b;
+  box-shadow:
+    0 5px 0 #e0d5f5,
+    0 8px 16px rgba(80,60,120,.12);
+}
+
+.number-circle .circle-number{
+  position:relative;
+  z-index:2;
+}
+
+.number-circle.target-circle{
+  border-style:dashed;
+  border-color:#b79af0;
+  background-image:url('../assets/images/target.png');
+  background-size:70%;
+  background-repeat:no-repeat;
+  background-position:center;
+}
+
+.number-circle.target-circle .circle-number{
+  display:none;
+  min-width:44px;
+  height:44px;
+  border-radius:50%;
+  background:#ffffff;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+
+.number-circle.target-circle.revealed{
+  background-image:none;
+  border-style:solid;
+  border-color:#39b765;
+}
+
+.number-circle.target-circle.revealed .circle-number{
+  display:flex;
+  color:#208344;
+}
+
+.number-circle.target-circle.miss-flash{
+  animation:targetShake .42s ease;
+  border-color:#ed6175;
+}
+
+@keyframes targetShake{
+  0%,100%{ transform:translateX(0); }
+  20%{ transform:translateX(-6px); }
+  40%{ transform:translateX(6px); }
+  60%{ transform:translateX(-4px); }
+  80%{ transform:translateX(4px); }
+}
+
+/* =========================================================
+   OPTIONS  — bigger, no overflow
+   ========================================================= */
+
+.archery-area{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  flex:0 0 auto;
+}
+
+.options-row{
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:clamp(16px,2.5vw,28px);
+  width:100%;
+}
+
+.arrow-option{
+  position:relative;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  gap:5px;
+
+  width:clamp(72px,10vw,120px);
+  height:clamp(96px,13vw,150px);
+
+  padding:8px 4px;
+
+  border:3px solid #eadff8;
+  border-radius:20px;
+
+  /* soft pastel lavender */
+  background:linear-gradient(
+    145deg,
+    #fff8fc 0%,
+    #f4efff 100%
+  );
+
+  box-shadow:
+    0 6px 0 #d9c9ee,
+    0 10px 20px rgba(120,95,155,.14);
+
+  cursor:pointer;
+
+  transition:
+    transform .2s cubic-bezier(.2,.8,.2,1),
+    box-shadow .2s ease,
+    border-color .2s ease,
+    background .2s ease;
+
+  animation:optionFloat 2.8s ease-in-out infinite;
+}
+
+
+/* Different floating timing for each card */
+.arrow-option:nth-child(1){
+  animation-delay:0s;
+}
+
+.arrow-option:nth-child(2){
+  animation-delay:.18s;
+}
+
+.arrow-option:nth-child(3){
+  animation-delay:.36s;
+}
+
+.arrow-option:nth-child(4){
+  animation-delay:.54s;
+}
+
+
+/* ---------- SOFT GLOW ---------- */
+
+.arrow-option::before{
+  content:"";
+
+  position:absolute;
+  inset:5px;
+
+  border-radius:15px;
+
+  border:2px solid rgba(255,255,255,.75);
+
+  pointer-events:none;
+}
+
+
+/* ---------- ARROW IMAGE ---------- */
+
+.arrow-option img{
+  width:clamp(34px,4.5vw,54px);
+  height:clamp(34px,4.5vw,54px);
+
+  object-fit:contain;
+  pointer-events:none;
+
+  transition:
+    transform .2s cubic-bezier(.2,.8,.2,1),
+    filter .2s ease;
+}
+
+
+/* ---------- NUMBER ---------- */
+
+.arrow-option .arrow-number{
+  font-size:clamp(20px,2.8vw,32px);
+  font-weight:700;
+
+  color:#403650;
+
+  line-height:1;
+
+  transition:
+    transform .2s ease,
+    color .2s ease;
+}
+
+
+/* ---------- HOVER ---------- */
+
+.arrow-option:hover:not(:disabled){
+
+  transform:
+    translateY(-8px)
+    scale(1.05);
+
+  border-color:#cdb8ef;
+
+  background:linear-gradient(
+    145deg,
+    #fffaff 0%,
+    #eee5ff 100%
+  );
+
+  box-shadow:
+    0 10px 0 #cdb9e8,
+    0 16px 28px rgba(120,95,155,.20);
+}
+
+.arrow-option:hover:not(:disabled) img{
+  transform:
+    translateY(-3px)
+    rotate(-5deg)
+    scale(1.08);
+}
+
+.arrow-option:hover:not(:disabled) .arrow-number{
+  transform:scale(1.08);
+  color:#7056a5;
+}
+
+
+/* ---------- PRESS ---------- */
+
+.arrow-option:active:not(:disabled){
+
+  transform:
+    translateY(3px)
+    scale(.96);
+
+  box-shadow:
+    0 3px 0 #cdb9e8,
+    0 5px 10px rgba(120,95,155,.12);
+}
+
+
+/* ---------- FLOATING ANIMATION ---------- */
+
+@keyframes optionFloat{
+
+  0%,100%{
+    transform:translateY(0);
+  }
+
+  50%{
+    transform:translateY(-4px);
+  }
+
+}
+
+
+/* ---------- WRONG / DISABLED ---------- */
+
+.arrow-option.faded{
+  opacity:.35;
+
+  filter:grayscale(.15);
+
+  animation:none;
+
+  transform:scale(.96);
+}
+
+
+/* ---------- SHOT ---------- */
+
+.arrow-option.shot{
+  opacity:0;
+
+  transform:
+    scale(.75)
+    translateY(-10px);
+
+  animation:none;
+}
+/* =========================================================
+   FLYING ARROW  (unchanged)
+   ========================================================= */
+
+.flying-arrow{
+  position:absolute;
+  left:0;
+  top:0;
+  width:0;
+  height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  z-index:50;
+  opacity:0;
+  transform:translate(0,0) rotate(0deg);
+}
+
+.flying-arrow.active{
+  opacity:1;
+  transition:transform .32s cubic-bezier(.35,.9,.4,1);
+}
+
+.flying-arrow img{
+  width:40px;
+  height:40px;
+  object-fit:contain;
+  transform:translate(-50%,-50%);
+}
+
+.flying-arrow .flying-number{
+  position:absolute;
+  transform:translate(-50%,-140%);
+  font-size:16px;
+  font-weight:700;
+  color:#302b3b;
+  background:#ffffff;
+  border-radius:8px;
+  padding:1px 6px;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);
+}
+
+/* =========================================================
+   NAV  (unchanged)
+   ========================================================= */
+
+.nav {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  position: relative;
+  top: -20px;
+  flex: 0 0 auto;
+  gap:420px;
+}
+
+.nav button {
+  min-width: 120px;
+  height: 44px;
+}
+
+/* =========================================================
+   RESPONSIVE  — all screens, no scroll, no overlap
+   ========================================================= */
+
+@media (min-width:1024px) and (max-width:1365px){
+  .quiz-card{ padding:22px 35px; }
+  .heading{ font-size:27px; }
+ 
+  .question-heading{ gap:12px; padding-left:8px; }
+  .qlabel{ font-size:34px; }
+  .content-row{
+    max-width:620px;
+    gap:8px;
+    padding-top:14px;
+  }
+
+  .question-visual{
+    max-width:500px;
+    gap:24px;
+    margin-top:0;
+    margin-bottom:12px;
+  }
+  .number-circle{ width:clamp(120px,18vw,170px); height:clamp(120px,18vw,170px); font-size:38px; }
+  .options-row{ gap:14px; }
+  .arrow-option{ width:clamp(68px,9vw,100px); height:clamp(92px,12vw,130px); }
+  .arrow-option .arrow-number{ font-size:19px; }
+}
+
+@media (min-width:1366px){
+  .quiz-card{ padding:28px 50px; }
+  .heading{ font-size:30px; }
+   .content-row{
+    max-width:700px;
+    gap:18px;
+    padding-top:18px;
+  }
+
+  .question-visual{
+    max-width:560px;
+    gap:30px;
+    margin-top:0;
+    margin-bottom:16px;
+  }
+  .qlabel{ font-size:42px; }
+  
+  .number-circle{ width:clamp(150px,18vw,210px); height:clamp(150px,18vw,210px); font-size:42px; }
+  .options-row{ gap:18px; }
+  .arrow-option{ width:clamp(76px,10vw,114px); height:clamp(100px,13vw,144px); }
+  .arrow-option .arrow-number{ font-size:21px; }
+}
+/* =========================================================
+   MOBILE — CENTER EVERYTHING
+   2 × 2 OPTIONS
+   NO PREV / NEXT BUTTONS
+   ========================================================= */
+
+@media (max-width:768px){
+
+  html,
+  body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+  }
+
+  .quiz-card{
+    width:100%;
+    height:100vh;
+    min-height:100vh;
+
+    padding:14px 12px 10px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+
+    overflow:hidden;
+  }
+
+  .heading{
+    width:100%;
+    text-align:center;
+
+    font-size:19px;
+    line-height:1.25;
+
+    margin:0;
+    flex:0 0 auto;
+  }
+
+  .content-row{
+    width:100%;
+    max-width:340px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    gap:10px;
+
+    padding:8px 0 0;
+    margin:0;
+    flex:1;
+    min-height:0;
+  }
+
+  .question-heading{
+    width:100%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:0;
+    margin:0;
+
+    text-align:center;
+  }
+
+  .qlabel{
+    font-size:24px;
+    line-height:1.1;
+    margin:0;
+  }
+
+  .question-visual{
+    width:100%;
+    max-width:300px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    gap:12px;
+
+    margin:0;
+    padding:0;
+  }
+
+  .number-circle{
+    width:clamp(90px,22vw,120px);
+    height:clamp(90px,22vw,120px);
+
+    flex:0 0 auto;
+
+    font-size:24px;
+    border-width:4px;
+  }
+
+  .archery-area{
+    width:100%;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    margin:0;
+    padding:0;
+  }
+ .options-row{
+    width:260px;
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+    grid-template-rows:repeat(2,auto);
+
+    justify-items:center;
+    align-items:center;
+
+    column-gap:12px;
+    row-gap:12px;
+
+    margin:0 auto;
+  }
+
+  .arrow-option{
+    width:78px;
+    height:88px;
+
+    border-radius:18px;
+    border-width:2px;
+
+    box-shadow:
+      0 5px 0 #d9c9ee,
+      0 8px 16px rgba(120,95,155,.13);
+
+    animation-duration:3s;
+  }
+
+  .arrow-option img{
+    width:30px;
+    height:30px;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:16px;
+  }
+
+  .arrow-option:hover:not(:disabled){
+    transform:translateY(-5px) scale(1.04);
+  }
+
+
+  .nav{
+    display:flex !important;
+    visibility:visible !important;
+    pointer-events:auto !important;
+
+    width:100%;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+    position:static;
+    margin-top:8px;
+    flex:0 0 auto;
+  }
+
+  .nav button{
+    min-width:90px;
+    height:38px;
+    font-size:13px;
+    padding:0 10px;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width:480px){
+
+  .heading{
+    font-size:16px;
+  }
+
+  .content-row{
+    max-width:300px;
+    gap:9px;
+  }
+
+  .question-heading{
+    justify-content:center;
+  }
+
+  .qlabel{
+    font-size:21px;
+  }
+
+  .question-visual{
+    max-width:250px;
+    gap:9px;
+    margin-bottom:0;
+  }
+
+  .number-circle{
+    width:88px;
+    height:88px;
+    font-size:20px;
+    border-width:3px;
+  }
+
+   .options-row{
+    width:220px;
+
+    column-gap:10px;
+    row-gap:10px;
+  }
+
+  .arrow-option{
+    width:68px;
+    height:78px;
+
+    border-radius:16px;
+  }
+
+  .arrow-option img{
+    width:25px;
+    height:25px;
+  }
+
+  .arrow-option .arrow-number{
+    font-size:14px;
+  }
+  .nav{
+    gap:10px;
+    margin-top:6px;
+  }
+
+  .nav button{
+    min-width:82px;
+    height:36px;
+    font-size:12px;
+  }
+
+}
+@media (min-width:1600px){
+  .quiz-card{ padding: 30px 70px 5px; }
+  .heading{ font-size: 42px; margin-top: -18px; }
+  /* .content-row{ width:100%; max-width:1000px; gap:12px; } */
+  .question-heading{ margin-top: 0; padding-left:10px; }
+   .content-row{
+    width:100%;
+    max-width:1000px;
+    gap:22px;
+  }
+
+  .question-visual{
+    max-width:640px;
+    gap:34px;
+    margin-top:0;
+    margin-bottom:20px;
+  }
+  .qlabel{ font-size: 48px; }
+  .number-circle{ width:clamp(170px,14vw,230px); height:clamp(170px,14vw,230px); font-size:48px; border-width:6px; }
+  .archery-area{ gap:16px; }
+  .options-row{ gap:26px; }
+  .arrow-option{ width:clamp(104px,10vw,140px); height:clamp(138px,13vw,180px); border-radius:18px; }
+  .arrow-option img{ width:clamp(50px,5vw,68px); height:clamp(50px,5vw,68px); }
+  .arrow-option .arrow-number{ font-size:28px; }
+  .flying-arrow img{ width:56px; height:56px; }
+  .nav{ width:100%; display:flex; justify-content:center; align-items:center; gap:80px; position:relative; top:-40px; flex:0 0 auto; }
+  .nav button{ min-width:175px; height:60px; font-size:22px; border-radius:19px; }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="quiz-card" id="quizCard">
+
+  <div class="topbar">
+    <button class="icon-flat" style="display: none;" id="homeBtn" title="Home" aria-label="Home">🏠</button>
+
+    <p class="heading" id="heading">
+      Write the number that comes before the given numbers.
+    </p>
+
+    <button class="icon-flat" id="hintBtn" title="Hint" aria-label="Hint">💡</button>
+  </div>
+
+  <div class="content-row">
+
+      <!-- QUESTION HEADER -->
+    <div class="question-heading">
+      <span class="qlabel" id="qLabel">Q1.</span>
+    </div>
+
+    <!-- QUESTION VISUAL: bigger blank target + given circle -->
+    <div class="question-visual">
+
+      <div class="number-circle target-circle" id="targetCircle">
+        <span class="circle-number" id="targetNumber"></span>
+      </div>
+
+      <div class="number-circle given-circle" id="givenCircle">
+        <span class="circle-number" id="givenNumber">10</span>
+      </div>
+
+    </div>
+
+    <!-- OPTIONS: bigger arrows -->
+    <div class="archery-area">
+      <div class="options-row" id="optionsRow">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nav">
+    <button class="prev" id="prevBtn" disabled>← Prev</button>
+    <button class="next" id="nextBtn" disabled>Next →</button>
+  </div>
+
+  <!-- FLYING ARROW -->
+  <div class="flying-arrow" id="flyingArrow">
+    <img src="../assets/images/arrow.png" alt="">
+    <span class="flying-number" id="flyingNumber"></span>
+  </div>
+
+</div>
+
+<div class="hint-overlay" id="hintOverlay" aria-live="polite">
+  <div class="hint-box">
+    <h3>Hint</h3>
+    <p id="hintText">Look at the number in the circle and choose the number that comes just before it.</p>
+    <button class="popup-btn" id="closeHintBtn">Got it!</button>
+  </div>
+</div>
+
+<!-- =========================================================
+     POPUPS  (unchanged)
+     ========================================================= -->
+
+<div id="answerPopup" class="popup">
+  <div class="popup-content">
+    <div class="popup-icon" id="popupIcon"></div>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMsg"></p>
+  </div>
+</div>
+
+<div id="finalPopup">
+  <div class="finalpopup-box">
+    <h2 class="final-heading">🎉 Amazing Job!</h2>
+    <p id="finalScore"></p>
+    <div id="stars">⭐⭐⭐</div>
+    <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+  </div>
+</div>
+
+<!-- SOUNDS -->
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+
+/* =========================================================
+   QUESTION DATA
+   ========================================================= */
+
+const QUESTIONS = [
+  { given:10, answer:9,  options:[9,11,10,8] },
+  { given:33, answer:32, options:[32,34,23,31] },
+  { given:51, answer:50, options:[52,50,41,49] },
+  { given:64, answer:63, options:[65,63,54,62] },
+  { given:76, answer:75, options:[74,77,66,75] },
+  { given:90, answer:89, options:[89,91,80,88] }
+];
+
+const LABELS = ["Q1.","Q2.","Q3.","Q4.","Q5.","Q6."];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+
+const total = QUESTIONS.length;
+let current = 0;
+let shooting = false;
+const state = QUESTIONS.map(() => ({
+  answered:false,
+  wrongPicks:[]
+}));
+
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
+
+const quizCard     = document.getElementById("quizCard");
+const qLabel       = document.getElementById("qLabel");
+const targetCircle = document.getElementById("targetCircle");
+const targetNumber = document.getElementById("targetNumber");
+const givenNumber  = document.getElementById("givenNumber");
+const optionsRow   = document.getElementById("optionsRow");
+const flyingArrow  = document.getElementById("flyingArrow");
+const flyingNumber = document.getElementById("flyingNumber");
+const prevBtn      = document.getElementById("prevBtn");
+const nextBtn      = document.getElementById("nextBtn");
+
+const correctSound = document.getElementById("correctSound");
+const wrongSound   = document.getElementById("wrongSound");
+const homeBtn      = document.getElementById("homeBtn");
+const hintBtn      = document.getElementById("hintBtn");
+const hintOverlay  = document.getElementById("hintOverlay");
+const closeHintBtn = document.getElementById("closeHintBtn");
+const hintText     = document.getElementById("hintText");
+
+/* =========================================================
+   RENDER QUESTION
+   ========================================================= */
+
+function renderQuestion(){
+
+  const q  = QUESTIONS[current];
+  const st = state[current];
+
+  qLabel.textContent = LABELS[current] || `Q${current + 1}.`;
+  givenNumber.textContent = q.given;
+
+  targetCircle.classList.remove("revealed","miss-flash");
+  targetNumber.textContent = st.answered ? q.answer : "";
+
+  if(st.answered){
+    targetCircle.classList.add("revealed");
+  }
+
+  optionsRow.innerHTML = "";
+
+  q.options.forEach((value) => {
+
+    const btn = document.createElement("button");
+    btn.className = "arrow-option";
+    btn.type = "button";
+    btn.dataset.value = value;
+
+    const img = document.createElement("img");
+    img.src = "../assets/images/arrow.png";
+    img.alt = "Arrow";
+    btn.appendChild(img);
+
+    const label = document.createElement("span");
+    label.className = "arrow-number";
+    label.textContent = value;
+    btn.appendChild(label);
+
+    if(st.answered){
+      btn.disabled = true;
+      if(value !== q.answer){
+        btn.classList.add("faded");
+      }
+    }else if(st.wrongPicks.includes(value)){
+      btn.disabled = true;
+      btn.classList.add("faded");
+    }else{
+      btn.addEventListener("click", () => handleShoot(btn, value));
+    }
+
+    optionsRow.appendChild(btn);
+
+  });
+
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = !st.answered;
+
+}
+
+/* =========================================================
+   SHOOT  (unchanged)
+   ========================================================= */
+
+function localCenter(el){
+  const stageRect = quizCard.getBoundingClientRect();
+  const scale = stageRect.width / quizCard.offsetWidth || 1;
+  const rect  = el.getBoundingClientRect();
+  return {
+    x: (rect.left - stageRect.left + rect.width / 2) / scale,
+    y: (rect.top  - stageRect.top  + rect.height / 2) / scale
+  };
+}
+
+function fireArrowAt(optionEl, targetEl, value, onDone){
+  const from = localCenter(optionEl);
+  const to   = localCenter(targetEl);
+  const angle = Math.atan2(to.y - from.y, to.x - from.x) * (180 / Math.PI) + 90;
+
+  flyingNumber.textContent = value;
+
+  flyingArrow.style.transition = "none";
+  flyingArrow.style.transform  = `translate(${from.x}px, ${from.y}px) rotate(${angle}deg)`;
+  flyingArrow.classList.add("active");
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      flyingArrow.style.transition = "transform .32s cubic-bezier(.35,.9,.4,1)";
+      flyingArrow.style.transform  = `translate(${to.x}px, ${to.y}px) rotate(${angle}deg)`;
+    });
+  });
+
+  setTimeout(() => {
+    flyingArrow.classList.remove("active");
+    onDone();
+  },340);
+}
+
+function handleShoot(optionEl, value){
+
+  const st = state[current];
+  if(st.answered || shooting) return;
+
+  const q = QUESTIONS[current];
+  shooting = true;
+
+  optionsRow.querySelectorAll(".arrow-option").forEach((b) => { b.disabled = true; });
+  optionEl.classList.add("shot");
+
+  fireArrowAt(optionEl, targetCircle, value, () => {
+
+    const isCorrect = value === q.answer;
+
+    if(isCorrect){
+
+      st.answered = true;
+      nextBtn.disabled = false;
+      targetNumber.textContent = q.answer;
+      targetCircle.classList.add("revealed");
+
+      optionsRow.querySelectorAll(".arrow-option").forEach((b) => {
+        if(b !== optionEl) b.classList.add("faded");
+      });
+
+      correctSound.currentTime = 0;
+      correctSound.play().catch(() => {});
+      speak("correct");
+      showPopup(true);
+      fireConfetti();
+
+      setTimeout(() => {
+        shooting = false;
+      },1100);
+
+    }else{
+
+      st.wrongPicks.push(value);
+      wrongSound.currentTime = 0;
+      wrongSound.play().catch(() => {});
+      speak("wrong");
+      targetCircle.classList.add("miss-flash");
+      showPopup(false);
+
+      setTimeout(() => {
+        targetCircle.classList.remove("miss-flash");
+        optionEl.classList.remove("shot");
+        optionEl.classList.add("faded");
+        optionEl.disabled = true;
+
+        optionsRow.querySelectorAll(".arrow-option").forEach((b) => {
+          if(!st.wrongPicks.includes(b.dataset.value) && !st.answered){
+            b.disabled = false;
+          }
+        });
+        shooting = false;
+      },500);
+    }
+  });
+}
+
+/* =========================================================
+   POPUP  (unchanged)
+   ========================================================= */
+
+function showPopup(isCorrect){
+  const popup = document.getElementById("answerPopup");
+  const icon  = document.getElementById("popupIcon");
+  const title = document.getElementById("popupTitle");
+  const msg   = document.getElementById("popupMsg");
+
+  popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+  popup.style.display = "flex";
+
+  if(isCorrect){
+    icon.textContent = "🎉";
+    title.textContent = "Correct!";
+    msg.textContent = "Great job!";
+  }else{
+    icon.textContent = "❌";
+    title.textContent = "Try Again!";
+    msg.textContent = "That's not quite right.";
+  }
+
+  clearTimeout(showPopup._t);
+  showPopup._t = setTimeout(() => {
+    popup.style.display = "none";
+  },1100);
+}
+
+/* =========================================================
+   FINAL  (unchanged)
+   ========================================================= */
+
+function showFinal(){
+  const finalPopup = document.getElementById("finalPopup");
+  finalPopup.style.display = "flex";
+  document.getElementById("finalScore").textContent = `${total} / ${total} Completed`;
+  document.getElementById("stars").textContent = "⭐⭐⭐";
+}
+
+/* =========================================================
+   CONFETTI  (unchanged)
+   ========================================================= */
+
+function fireConfetti(){
+  if(!window.confetti) return;
+  confetti({
+    particleCount:24,
+    spread:55,
+    startVelocity:26,
+    origin:{ x:.5, y:.4 },
+    colors:["#e6473f","#3a6fd8","#f7b733","#8bba8a","#c9a8e0"]
+  });
+}
+
+function fireBigConfetti(){
+  if(!window.confetti) return;
+  const end = Date.now() + 1800;
+  (function frame(){
+    confetti({ particleCount:6, angle:60,  spread:55, origin:{ x:0 } });
+    confetti({ particleCount:6, angle:120, spread:55, origin:{ x:1 } });
+    if(Date.now() < end){ requestAnimationFrame(frame); }
+  })();
+}
+
+function speak(t) {
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-UK";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+/* =========================================================
+   NAV  (unchanged)
+   ========================================================= */
+
+prevBtn.addEventListener("click", () => {
+  if(current === 0) return;
+  current--;
+  renderQuestion();
+});
+
+nextBtn.addEventListener("click", () => {
+  if(nextBtn.disabled) return;
+  if(current < total - 1){
+    current++;
+    renderQuestion();
+  }else{
+    fireBigConfetti();
+    showFinal();
+  }
+});
+
+homeBtn.addEventListener("click", () => {
+  window.location.href = "../Grade2_chapter1.html";
+});
+
+hintBtn.addEventListener("click", () => {
+  hintText.textContent = `Look at ${QUESTIONS[current].given}. The answer is the number right before it.`;
+  hintOverlay.classList.add("show");
+});
+
+closeHintBtn.addEventListener("click", () => {
+  hintOverlay.classList.remove("show");
+});
+
+hintOverlay.addEventListener("click", (event) => {
+  if(event.target === hintOverlay) {
+    hintOverlay.classList.remove("show");
+  }
+});
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
+
+renderQuestion();
+
+</script>
+
+</body>
+</html>

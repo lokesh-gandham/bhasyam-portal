@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thick and Thin Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+            -webkit-user-drag: none;
+            user-select: none;
+        }
+
+        body {
+            background: radial-gradient(circle at 50% 30%, #ffffff 0%, #e2e8f0 100%);
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            overflow: hidden;
+        }
+
+        /* Header Box */
+        header {
+            background: #ffffff;
+            padding: 12px 40px;
+            border-radius: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            margin-top: 5px;
+            border: 1px solid #f0f0f0;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            font-weight: 900;
+        }
+
+        .instruction {
+            font-size: 1.05rem;
+            color: #666;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        /* Main Game Stage Layout */
+        .game-stage {
+            width: 100%;
+            max-width: 1100px;
+            height: 68vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .slide-item {
+            display: none;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slide-item.active {
+            display: flex;
+        }
+
+        /* Magnifying Glass Stage Layout */
+        .inspection-stage {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 80px;
+            width: 100%;
+            max-width: 950px;
+            position: relative;
+        }
+
+        .lens-assembly {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Circular Magnifying Lens Container */
+        .magnifier-lens {
+            width: 270px;
+            height: 270px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 40%, #f1f5f9 100%);
+            border: 12px solid #cbd5e1;
+            box-shadow: 
+                0 20px 35px rgba(0, 0, 0, 0.1),
+                inset 0 0 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Brass Stand Stem below Lens */
+        .lens-stem {
+            width: 16px;
+            height: 40px;
+            background: linear-gradient(90deg, #94a3b8, #cbd5e1, #94a3b8);
+            border-radius: 4px;
+            margin-top: -2px;
+        }
+
+        .lens-base {
+            width: 110px;
+            height: 14px;
+            background: #64748b;
+            border-radius: 7px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        /* Floating Image inside Lens */
+        .item-image-wrapper {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .item-image {
+            max-height: 190px;
+            max-width: 80%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 12px rgba(0,0,0,0.12));
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        /* Active Lens Halo & Zoom Effects */
+        .lens-assembly.thick .magnifier-lens {
+            border-color: #27ae60;
+            box-shadow: 0 0 30px rgba(39, 174, 96, 0.35), inset 0 0 15px rgba(39, 174, 96, 0.2);
+        }
+
+        .lens-assembly.thick .item-image {
+            transform: scale(1.15);
+        }
+
+        .lens-assembly.thin .magnifier-lens {
+            border-color: #e74c3c;
+            box-shadow: 0 0 30px rgba(231, 76, 60, 0.35), inset 0 0 15px rgba(231, 76, 60, 0.2);
+        }
+
+        .lens-assembly.thin .item-image {
+            transform: scale(0.85);
+        }
+
+        .lens-assembly.thick .lens-base { background: #27ae60; }
+        .lens-assembly.thin .lens-base { background: #e74c3c; }
+
+        /* EXACT ORIGINAL BADGES */
+        .status-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+
+        .status-badge.thick {
+            background: #27ae60;
+            display: flex;
+        }
+
+        .status-badge.thin {
+            background: #e74c3c;
+            display: flex;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* EXACT ORIGINAL INPUT CONTROL */
+        input[type="text"] {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+            font-weight: 900;
+            text-align: center;
+            text-transform: uppercase;
+            border: 4px solid #e67e22;
+            border-radius: 16px;
+            background: #ffffff;
+            color: #2d3436;
+            outline: none;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            margin-top: 15px;
+            z-index: 10;
+            position: relative;
+            user-select: text;
+        }
+
+        input[type="text"]:disabled {
+            background-color: #f1f2f6;
+            border-color: #00b894;
+            color: #2d3436;
+            cursor: not-allowed;
+        }
+
+        /* EXACT ORIGINAL FOOTER & BUTTONS */
+        footer {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .nav-btn {
+            background: #e67e22;
+            color: #ffffff;
+            border: none;
+            padding: 10px 35px;
+            font-size: 20px;
+            font-weight: 900;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #d35400;
+            transition: all 0.1s ease;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #d35400;
+        }
+
+        .nav-btn:disabled {
+            background: #b2bec3;
+            box-shadow: 0 6px 0 #636e72;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .check-btn {
+            background: #00b894;
+            box-shadow: 0 6px 0 #008f72;
+        }
+
+        .check-btn:active:not(:disabled) {
+            box-shadow: 0 2px 0 #008f72;
+        }
+
+        .replay-btn {
+            background: #0984e3;
+            box-shadow: 0 6px 0 #0975c7;
+            margin-top: 20px;
+            z-index: 5;
+        }
+
+        .replay-btn:active {
+            box-shadow: 0 2px 0 #0975c7;
+        }
+
+        @media screen and (min-width: 1600px) {
+            .nav-btn {
+                font-size: 25px;
+                padding: 14px 45px;
+            }
+        }
+
+        /* EXACT ORIGINAL POPUP OVERLAY & CARD */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-card {
+            position: relative;
+            width: 90%;
+            max-width: 520px;
+            padding: 40px 30px;
+            border-radius: 36px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transform: scale(0.8);
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-card::before,
+        .popup-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .popup-card::before {
+            width: 220px;
+            height: 220px;
+            top: -60px;
+            right: -50px;
+        }
+
+        .popup-card::after {
+            width: 180px;
+            height: 180px;
+            bottom: -70px;
+            left: -40px;
+        }
+
+        .popup-card.correct {
+            background: #edfbf4;
+            border: 6px solid #00c885;
+        }
+
+        .popup-card.correct::before,
+        .popup-card.correct::after {
+            background: rgba(162, 245, 209, 0.45);
+        }
+
+        .popup-card.correct .popup-title { color: #00a86b; }
+        .popup-card.correct .popup-subtitle { color: #2e7d5b; }
+
+        .popup-card.wrong {
+            background: #fff0f2;
+            border: 6px solid #ff6b7a;
+        }
+
+        .popup-card.wrong::before,
+        .popup-card.wrong::after {
+            background: rgba(255, 196, 203, 0.45);
+        }
+
+        .popup-card.wrong .popup-title { color: #d33847; }
+        .popup-card.wrong .popup-subtitle { color: #a33b45; }
+
+        .popup-card.complete {
+            background: #f0f3ff;
+            border: 6px solid #6c5ce7;
+        }
+
+        .popup-card.complete::before,
+        .popup-card.complete::after {
+            background: rgba(162, 155, 254, 0.35);
+        }
+
+        .popup-card.complete .popup-title { color: #6c5ce7; }
+        .popup-card.complete .popup-subtitle { color: #4834d4; }
+
+        .popup-overlay.active .popup-card { transform: scale(1); }
+
+        .popup-icon {
+            font-size: 4.8rem;
+            margin-bottom: 12px;
+            z-index: 2;
+            line-height: 1;
+            filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1));
+        }
+
+        .popup-title {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            z-index: 2;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-subtitle {
+            font-size: 1.4rem;
+            font-weight: 700;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    
+/* ===== LESSON 1 QUIZ HEADINGS: title large, subheading smaller ===== */
+header h1,
+header h2,
+header .instruction-title,
+header .distance-title,
+.game-header h1,
+.game-header h2,
+.game-header .instruction-title,
+#questionHeading {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+}
+.game-header:not(:has(h1, h2)) .instruction,
+.game-header:not(:has(h1, h2)) p.instruction {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+    color: #2f4f4f;
+}
+header:has(h1, h2, .instruction-title) .instruction,
+header:has(h1, h2) .instruction-text,
+header:has(h1, h2, .instruction-title) p.instruction,
+header:has(h1, h2) p.instruction-text,
+.game-header:has(h1, h2) .instruction,
+.game-header:has(h1, h2) p.instruction,
+#instruction,
+.distance-header .instruction-text,
+.distance-header p.instruction-text {
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    color: #666;
+    line-height: 1.3;
+}
+header .instruction span,
+header .instruction-text span,
+header p.instruction span,
+header p.instruction-text span,
+.game-header .instruction span,
+#instruction span {
+    font-weight: 700 !important;
+    font-size: inherit !important;
+}
+@media screen and (min-width: 1600px) {
+    header h1,
+    header h2,
+    header .instruction-title,
+    header .distance-title,
+    .game-header h1,
+    .game-header h2,
+    .game-header .instruction-title,
+    #questionHeading {
+        font-size: 40px !important;
+    }
+    .game-header:not(:has(h1, h2)) .instruction,
+    .game-header:not(:has(h1, h2)) p.instruction {
+        font-size: 40px !important;
+    }
+    header:has(h1, h2, .instruction-title) .instruction,
+    header:has(h1, h2) .instruction-text,
+    header:has(h1, h2, .instruction-title) p.instruction,
+    header:has(h1, h2) p.instruction-text,
+    .game-header:has(h1, h2) .instruction,
+    .game-header:has(h1, h2) p.instruction,
+    #instruction,
+    .distance-header .instruction-text,
+    .distance-header p.instruction-text {
+        font-size: 18px !important;
+    }
+}
+
+/* ===== LAYOUT FIT: the heading always keeps its own space =====
+   The header is a fixed-size flex item and the play area takes exactly
+   the height that is left over, so artwork can never ride up into the
+   title on shorter laptop screens. */
+header,
+.game-header,
+.distance-header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 5;
+}
+main.game-stage,
+main.game-area,
+.game-stage,
+.game-area {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+footer,
+.navigation {
+    flex: 0 0 auto;
+}
+
+/* ===== Sub-heading stays on a single line ===== */
+.instruction-box,
+.distance-title { max-width: none !important; }
+header .instruction,
+header .instruction-text,
+header p.instruction,
+header p.instruction-text,
+.game-header .instruction,
+#instruction,
+.distance-header .instruction-text {
+    white-space: nowrap;
+    max-width: 100%;
+}
+@media screen and (max-width: 1100px) {
+    header .instruction, header .instruction-text,
+    header p.instruction, header p.instruction-text,
+    .game-header .instruction,
+    #instruction,
+    .distance-header .instruction-text {
+        white-space: normal;
+    }
+}
+</style>
+</head>
+<body>
+
+    <header>
+        <h2>Thick & Thin Quiz</h2>
+        <p class="instruction">Type '<span style="color: #27ae60; font-weight: 900;">T</span>' (or ✓) for Thicker and '<span style="color: #e74c3c; font-weight: 900;">N</span>' (or X) for Thinner!</p>
+    </header>
+
+    <main class="game-stage">
+        <!-- Question 1: Log & Stick -->
+        <div class="slide-item active" data-q="0">
+            <div class="inspection-stage">
+                <div class="lens-assembly" id="assembly-0-1">
+                    <div class="magnifier-lens">
+                        <div class="status-badge" id="badge-0-1"></div>
+                        <div class="item-image-wrapper">
+                            <img src="../images/log.png" alt="Log" class="item-image" draggable="false">
+                        </div>
+                    </div>
+                    <div class="lens-stem"></div>
+                    <div class="lens-base"></div>
+                    <input type="text" maxlength="1" data-target="T" class="input-box" aria-label="Log thickness input">
+                </div>
+
+                <div class="lens-assembly" id="assembly-0-2">
+                    <div class="magnifier-lens">
+                        <div class="status-badge" id="badge-0-2"></div>
+                        <div class="item-image-wrapper">
+                            <img src="../images/stick.png" alt="Stick" class="item-image" draggable="false">
+                        </div>
+                    </div>
+                    <div class="lens-stem"></div>
+                    <div class="lens-base"></div>
+                    <input type="text" maxlength="1" data-target="N" class="input-box" aria-label="Stick thickness input">
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 2: Thin Candle & Thick Candle -->
+        <div class="slide-item" data-q="1">
+            <div class="inspection-stage">
+                <div class="lens-assembly" id="assembly-1-1">
+                    <div class="magnifier-lens">
+                        <div class="status-badge" id="badge-1-1"></div>
+                        <div class="item-image-wrapper">
+                            <img src="../images/candle_thin.png" alt="Thin Candle" class="item-image" draggable="false">
+                        </div>
+                    </div>
+                    <div class="lens-stem"></div>
+                    <div class="lens-base"></div>
+                    <input type="text" maxlength="1" data-target="N" class="input-box" aria-label="Thin Candle input">
+                </div>
+
+                <div class="lens-assembly" id="assembly-1-2">
+                    <div class="magnifier-lens">
+                        <div class="status-badge" id="badge-1-2"></div>
+                        <div class="item-image-wrapper">
+                            <img src="../images/candle_thick.png" alt="Thick Candle" class="item-image" draggable="false">
+                        </div>
+                    </div>
+                    <div class="lens-stem"></div>
+                    <div class="lens-base"></div>
+                    <input type="text" maxlength="1" data-target="T" class="input-box" aria-label="Thick Candle input">
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 3: Thick Rope & Thin Rope -->
+        <div class="slide-item" data-q="2">
+            <div class="inspection-stage">
+                <div class="lens-assembly" id="assembly-2-1">
+                    <div class="magnifier-lens">
+                        <div class="status-badge" id="badge-2-1"></div>
+                        <div class="item-image-wrapper">
+                            <img src="../images/rope_thick.png" alt="Thick Rope" class="item-image" draggable="false">
+                        </div>
+                    </div>
+                    <div class="lens-stem"></div>
+                    <div class="lens-base"></div>
+                    <input type="text" maxlength="1" data-target="T" class="input-box" aria-label="Thick Rope input">
+                </div>
+
+                <div class="lens-assembly" id="assembly-2-2">
+                    <div class="magnifier-lens">
+                        <div class="status-badge" id="badge-2-2"></div>
+                        <div class="item-image-wrapper">
+                            <img src="../images/rope_thin.png" alt="Thin Rope" class="item-image" draggable="false">
+                        </div>
+                    </div>
+                    <div class="lens-stem"></div>
+                    <div class="lens-base"></div>
+                    <input type="text" maxlength="1" data-target="N" class="input-box" aria-label="Thin Rope input">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+        <button class="nav-btn check-btn" id="submitBtn" onclick="checkAnswers()" disabled>SUBMIT</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+    </footer>
+
+    <!-- Result Popup Overlay -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup-card" id="popupCard">
+            <div class="popup-icon" id="popupIcon">⭐</div>
+            <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+            <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+            <button class="nav-btn replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        let quizState = Array.from({ length: 3 }, () => ({
+            input1: '',
+            input2: '',
+            isUnlocked: false
+        }));
+
+        let currentIndex = 0;
+        let popupTimer = null;
+
+        const slides = document.querySelectorAll('.slide-item');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        // Prevent dragging on all images globally
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+            }
+        });
+
+        // EXACT REQUESTED SPEAK FUNCTION WITH VOLUME 0.25
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playAudioTone(isCorrect) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2); 
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            }
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // Setup Input events per slide
+        function bindSlideEvents() {
+            slides.forEach((slide, sIdx) => {
+                const inputs = slide.querySelectorAll('.input-box');
+                const badge1 = document.getElementById(`badge-${sIdx}-1`);
+                const badge2 = document.getElementById(`badge-${sIdx}-2`);
+                const assembly1 = document.getElementById(`assembly-${sIdx}-1`);
+                const assembly2 = document.getElementById(`assembly-${sIdx}-2`);
+
+                inputs.forEach((input, iIdx) => {
+                    input.addEventListener('input', (e) => {
+                        let val = e.target.value.toUpperCase();
+                        
+                        // Convert tick / cross inputs if typed
+                        if (val === '✓') val = 'T';
+                        if (val === 'X') val = 'N';
+                        
+                        e.target.value = val;
+
+                        if (iIdx === 0) quizState[sIdx].input1 = val;
+                        if (iIdx === 1) quizState[sIdx].input2 = val;
+
+                        const targetBadge = iIdx === 0 ? badge1 : badge2;
+                        const targetAssembly = iIdx === 0 ? assembly1 : assembly2;
+
+                        targetAssembly.classList.remove('thick', 'thin');
+
+                        if (val === 'T') {
+                            targetBadge.innerHTML = '✓';
+                            targetBadge.className = 'status-badge thick';
+                            targetAssembly.classList.add('thick');
+                        } else if (val === 'N') {
+                            targetBadge.innerHTML = '✕';
+                            targetBadge.className = 'status-badge thin';
+                            targetAssembly.classList.add('thin');
+                        } else {
+                            targetBadge.className = 'status-badge';
+                        }
+
+                        updateNavButtons();
+                    });
+                });
+            });
+        }
+
+        bindSlideEvents();
+
+        function navigate(dir) {
+            slides[currentIndex].classList.remove('active');
+            currentIndex += dir;
+            slides[currentIndex].classList.add('active');
+
+            restoreCurrentSlideState();
+            updateNavButtons();
+        }
+
+        function restoreCurrentSlideState() {
+            const activeSlide = slides[currentIndex];
+            const inputs = activeSlide.querySelectorAll('.input-box');
+            const savedState = quizState[currentIndex];
+
+            inputs[0].value = savedState.input1;
+            inputs[1].value = savedState.input2;
+
+            inputs[0].disabled = savedState.isUnlocked;
+            inputs[1].disabled = savedState.isUnlocked;
+
+            const badge1 = document.getElementById(`badge-${currentIndex}-1`);
+            const badge2 = document.getElementById(`badge-${currentIndex}-2`);
+            const assembly1 = document.getElementById(`assembly-${currentIndex}-1`);
+            const assembly2 = document.getElementById(`assembly-${currentIndex}-2`);
+
+            updateBadgeAndAssembly(badge1, assembly1, savedState.input1);
+            updateBadgeAndAssembly(badge2, assembly2, savedState.input2);
+        }
+
+        function updateBadgeAndAssembly(badgeEl, assemblyEl, val) {
+            assemblyEl.classList.remove('thick', 'thin');
+            if (val === 'T') {
+                badgeEl.innerHTML = '✓';
+                badgeEl.className = 'status-badge thick';
+                assemblyEl.classList.add('thick');
+            } else if (val === 'N') {
+                badgeEl.innerHTML = '✕';
+                badgeEl.className = 'status-badge thin';
+                assemblyEl.classList.add('thin');
+            } else {
+                badgeEl.className = 'status-badge';
+            }
+        }
+
+        function updateNavButtons() {
+            prevBtn.disabled = currentIndex === 0;
+            
+            const isLastQuestion = currentIndex === slides.length - 1;
+            const isUnlocked = quizState[currentIndex].isUnlocked;
+
+            nextBtn.disabled = isLastQuestion || !isUnlocked;
+
+            const activeSlide = slides[currentIndex];
+            const inputs = activeSlide.querySelectorAll('.input-box');
+            const val1 = inputs[0].value.trim();
+            const val2 = inputs[1].value.trim();
+
+            submitBtn.disabled = isUnlocked || !val1 || !val2;
+        }
+
+        function checkAnswers() {
+            const activeSlide = slides[currentIndex];
+            const inputs = activeSlide.querySelectorAll('.input-box');
+            
+            const val1 = inputs[0].value.trim().toUpperCase();
+            const val2 = inputs[1].value.trim().toUpperCase();
+
+            const target1 = inputs[0].dataset.target;
+            const target2 = inputs[1].dataset.target;
+
+            if (!val1 || !val2) {
+                showPopup('wrong', '😟', 'Keep Going!', 'Try again, you can do it! 🌈', false);
+                playAudioTone(false);
+                speak("Wrong");
+                resetCurrentInputs();
+                return;
+            }
+
+            if (val1 === target1 && val2 === target2) {
+                quizState[currentIndex].isUnlocked = true;
+                
+                inputs[0].disabled = true;
+                inputs[1].disabled = true;
+
+                if (currentIndex === slides.length - 1) {
+                    showPopup('complete', '🏆', 'Game Completed!', 'Fantastic job! You solved all questions! 🎉', true);
+                    playAudioTone(true);
+                    speak("Correct! Fantastic job!");
+                } else {
+                    showPopup('correct', '🌟', 'Amazing!', 'You got it right! ✨', false);
+                    playAudioTone(true);
+                    speak("Correct");
+                }
+
+                updateNavButtons();
+            } else {
+                showPopup('wrong', '😟', 'Keep Going!', 'Try again, you can do it! 🌈', false);
+                playAudioTone(false);
+                speak("Wrong");
+                resetCurrentInputs();
+            }
+        }
+
+        function resetCurrentInputs() {
+            const activeSlide = slides[currentIndex];
+            const inputs = activeSlide.querySelectorAll('.input-box');
+            
+            inputs.forEach(input => {
+                input.value = '';
+            });
+
+            quizState[currentIndex].input1 = '';
+            quizState[currentIndex].input2 = '';
+
+            const badge1 = document.getElementById(`badge-${currentIndex}-1`);
+            const badge2 = document.getElementById(`badge-${currentIndex}-2`);
+            const assembly1 = document.getElementById(`assembly-${currentIndex}-1`);
+            const assembly2 = document.getElementById(`assembly-${currentIndex}-2`);
+
+            if (badge1) badge1.className = 'status-badge';
+            if (badge2) badge2.className = 'status-badge';
+
+            if (assembly1) assembly1.classList.remove('thick', 'thin');
+            if (assembly2) assembly2.classList.remove('thick', 'thin');
+
+            updateNavButtons();
+        }
+
+        function showPopup(status, icon, title, subtitle, isFinal = false) {
+            const popup = document.getElementById('popup');
+            const card = document.getElementById('popupCard');
+            
+            card.className = `popup-card ${status}`;
+            document.getElementById('popupIcon').innerText = icon;
+            document.getElementById('popupTitle').innerText = title;
+            document.getElementById('popupSubtitle').innerText = subtitle;
+            
+            if (isFinal) {
+                playAgainBtn.style.display = 'inline-block';
+            } else {
+                playAgainBtn.style.display = 'none';
+            }
+
+            popup.classList.add('active');
+
+            clearTimeout(popupTimer);
+            if (!isFinal) {
+                popupTimer = setTimeout(() => {
+                    closePopup();
+                }, 1800);
+            }
+        }
+
+        function closePopup() {
+            document.getElementById('popup').classList.remove('active');
+        }
+
+        function restartGame() {
+            closePopup();
+            quizState = Array.from({ length: 3 }, () => ({
+                input1: '',
+                input2: '',
+                isUnlocked: false
+            }));
+
+            slides[currentIndex].classList.remove('active');
+            currentIndex = 0;
+            slides[currentIndex].classList.add('active');
+
+            slides.forEach((slide, sIdx) => {
+                const inputs = slide.querySelectorAll('.input-box');
+                inputs.forEach(inp => {
+                    inp.value = '';
+                    inp.disabled = false;
+                });
+                document.getElementById(`badge-${sIdx}-1`).className = 'status-badge';
+                document.getElementById(`badge-${sIdx}-2`).className = 'status-badge';
+                document.getElementById(`assembly-${sIdx}-1`).classList.remove('thick', 'thin');
+                document.getElementById(`assembly-${sIdx}-2`).classList.remove('thick', 'thin');
+            });
+
+            updateNavButtons();
+        }
+
+        updateNavButtons();
+    </script>
+</body>
+</html>

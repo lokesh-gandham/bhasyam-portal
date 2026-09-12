@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subtraction with Bricks</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Livvic&display=swap');
+
+/* =========================================================
+   BASE STYLES
+========================================================= */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    cursor:none !important;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+}
+
+body{
+    font-family:"Livvic",sans-serif;
+    background:
+        radial-gradient(circle at 8% 16%,rgba(255,255,255,.8) 0 34px,transparent 35px),
+        radial-gradient(circle at 86% 14%,rgba(255,255,255,.72) 0 44px,transparent 45px),
+        linear-gradient(135deg,#f1e8ff 0%,#fff5f8 48%,#e9f9ff 100%);
+    color:#332267;
+}
+
+button{
+    border:0;
+    font:inherit;
+    background:none;
+}
+
+button:focus-visible{
+    outline:3px solid rgba(108,118,255,.35);
+    outline-offset:3px;
+}
+
+/* =========================================================
+   PAGE
+========================================================= */
+.quiz-page{
+    width:100%;
+    height:100dvh;
+    min-height:0;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    padding:22px 30px 28px;
+}
+
+.quiz-page::before,
+.quiz-page::after{
+    content:"";
+    position:absolute;
+    z-index:0;
+    pointer-events:none;
+}
+
+.quiz-page::before{
+    width:440px;
+    height:210px;
+    left:-80px;
+    bottom:-95px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#ffe3a3,#ffd5e3);
+    transform:rotate(8deg);
+}
+
+.quiz-page::after{
+    width:520px;
+    height:220px;
+    right:-110px;
+    bottom:-105px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#d9f6ff,#e2d4ff);
+    transform:rotate(-8deg);
+}
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+.top-bar{
+    position:relative;
+    z-index:5;
+    min-height:112px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+.title-wrap{
+    text-align:center;
+    padding-top:8px;
+}
+
+.page-title{
+    font-size:30px;
+    line-height:1;
+    color:#3d247b;
+    letter-spacing:.2px;
+}
+
+.title-dots{
+    margin:16px auto 0;
+    width:min(480px,58vw);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+}
+
+.title-dots span{
+    width:11px;
+    height:6px;
+    border-radius:999px;
+    display:block;
+}
+
+.title-dots span:nth-child(5n+1){background:#ff8caf}
+.title-dots span:nth-child(5n+2){background:#ffc76f}
+.title-dots span:nth-child(5n+3){background:#83d7c5}
+.title-dots span:nth-child(5n+4){background:#cbb6ff}
+.title-dots span:nth-child(5n){background:#9fd6ff}
+
+.icon-button{
+    position:absolute;
+    top:0;
+    width:75px;
+    height:75px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:transform .18s ease,filter .18s ease;
+    box-shadow:0 7px 16px rgba(76,56,124,.16),inset 0 0 0 4px rgba(255,255,255,.9);
+}
+
+.icon-button:hover{
+    transform:translateY(-2px) scale(1.04);
+}
+
+.icon-button:active{
+    transform:translateY(2px) scale(.98);
+}
+
+.home-button{
+    left:4px;
+    background:linear-gradient(145deg,#b8a1ff,#8d78ef);
+}
+
+.hint-button{
+    right:4px;
+    background:linear-gradient(145deg,#7fe4e5,#56cdd2);
+}
+
+.icon-button img{
+    width:40px;
+    height:40px;
+    object-fit:contain;
+    pointer-events:none;
+}
+
+/* =========================================================
+   QUESTION
+========================================================= */
+.question-line{
+    position:relative;
+    z-index:4;
+    min-height:68px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    text-align:center;
+    padding:8px 110px;
+    flex-shrink:0;
+}
+
+.question-number{
+    font-size:30px;
+    line-height:1.15;
+    color:#ff5f94;
+}
+
+.question-text{
+    font-size:30px;
+    line-height:1.15;
+    color:#2f4f4f;
+}
+
+.question-line.animate{
+    animation:questionFloat .48s ease;
+}
+
+@keyframes questionFloat{
+    0%{opacity:0;transform:translateY(-12px)}
+    100%{opacity:1;transform:translateY(0)}
+}
+
+/* =========================================================
+   MAIN ABACUS AREA
+========================================================= */
+.game-area{
+    position:relative;
+    z-index:3;
+    width:min(1500px,100%);
+    margin:0 auto;
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:4px 20px 108px;
+}
+
+.instruction{
+    width:100%;
+    text-align:center;
+    font-size:25px;
+    color:#3d247b;
+    margin-bottom:18px;
+    flex-shrink:0;
+    display:none;
+}
+
+.instruction strong{
+    color:#5d8d31;
+}
+
+/* =========================================================
+   ABACUS ROW
+========================================================= */
+.abacus-row{
+    width:100%;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr) 54px minmax(0,1fr);
+    align-items:center;
+    gap:0;
+}
+
+.abacus-operator{
+    font-size:42px;
+    color:#30235e;
+    text-align:center;
+    user-select:none;
+}
+
+.abacus-card{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.abacus-title{
+    min-height:34px;
+    margin-bottom:4px;
+    font-size:23px;
+    color:#6b5c99;
+}
+
+.abacus-board{
+    width:100%;
+    max-width:390px;
+    height:310px;
+    border-radius:24px;
+    border:2px solid #e0d5ed;
+    background:rgba(255,255,255,.67);
+    box-shadow:0 12px 28px rgba(76,54,118,.08);
+    display:flex;
+    align-items:stretch;
+    justify-content:center;
+    padding:12px 20px 0;
+    overflow:visible;
+}
+
+.abacus-board.result-board{
+    border-color:#a8d67d;
+    background:rgba(248,255,242,.72);
+}
+
+.rod{
+    position:relative;
+    flex:1;
+    min-width:0;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.rod-line{
+    position:absolute;
+    top:0;
+    bottom:46px;
+    width:3px;
+    background:#5c5c5c;
+    border-radius:3px;
+}
+
+.rod-label{
+    position:absolute;
+    bottom:10px;
+    z-index:4;
+    min-width:66px;
+    height:34px;
+    padding:6px 8px 0;
+    text-align:center;
+    border-radius:9px;
+    border:1px solid #aaa9ae;
+    background:#e8e8eb;
+    color:#48484d;
+    font-size:19px;
+}
+
+.bead-stack{
+    position:absolute;
+    top:6px;
+    bottom:50px;
+    left:50%;
+    width:54px;
+    transform:translateX(-50%);
+    display:flex;
+    flex-direction:column-reverse;
+    justify-content:flex-start;
+    align-items:center;
+    gap:2px;
+    z-index:3;
+    overflow:visible;
+    box-sizing:border-box;
+    padding-top:2px;
+}
+
+.bead{
+    flex:0 0 auto;
+    width:var(--bead-size, 30px);
+    height:var(--bead-size, 30px);
+    max-width:30px;
+    max-height:30px;
+    border-radius:50%;
+    border:1.5px solid rgba(54,54,54,.55);
+    box-shadow:inset 2px 2px 2px rgba(255,255,255,.5);
+    box-sizing:border-box;
+    opacity:1;
+}
+
+.bead.green{
+    background:#4caf50;
+}
+
+.bead.blue{
+    background:#12aee8;
+}
+
+.bead.yellow{
+    background:#ffd34f;
+}
+
+.result-board .bead{
+    opacity:0;
+    transform:translateY(-90px) scale(.65);
+}
+
+.result-board.reveal .bead{
+    animation:beadDrop .42s cubic-bezier(.2,.85,.35,1) forwards;
+    animation-delay:var(--delay);
+}
+
+@keyframes beadDrop{
+    0%{
+        opacity:0;
+        transform:translateY(-90px) scale(.65);
+    }
+    65%{
+        opacity:1;
+        transform:translateY(7px) scale(1.06);
+    }
+    100%{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}
+
+.abacus-value{
+    margin-top:10px;
+    width:130px;
+    height:54px;
+    border:2px solid #ff9a76;
+    border-radius:10px;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#ff5f94;
+    font-size:30px;
+}
+
+.result-value{
+    border-color:#86b94f;
+    color:#5d8d31;
+}
+
+.abacus-card.result-card .abacus-title{
+    color:#5d8d31;
+}
+
+/* =========================================================
+   ANSWER CHOICES
+========================================================= */
+.answer-area{
+    margin-top:20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:11px;
+    flex-shrink:0;
+}
+
+.answer-prompt{
+    font-size:21px;
+    color:#5a4b78;
+}
+
+.answer-choices{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:12px;
+}
+
+.answer-choice{
+    min-width:92px;
+    height:52px;
+    padding:7px 18px;
+    border-radius:14px;
+    border:2px solid #ff9dbc;
+    background:#fff;
+    color:#3d247b;
+    font-size:24px;
+    box-shadow:0 5px 12px rgba(76,54,118,.07);
+    transition:transform .16s ease,background .16s ease,border-color .16s ease;
+}
+
+.answer-choice:hover:not(:disabled){
+    transform:translateY(-3px) scale(1.03);
+    background:#fff5fa;
+}
+
+.answer-choice:disabled{
+    opacity:.65;
+}
+
+.answer-choice.selected{
+    border-color:#86b94f;
+    background:#e9f6da;
+    color:#5d8d31;
+}
+
+.answer-choice.wrong{
+    animation:wrongChoice .36s ease;
+}
+
+@keyframes wrongChoice{
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-7px)}
+    50%{transform:translateX(7px)}
+    75%{transform:translateX(-5px)}
+}
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+.navigation{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:26px;
+    z-index:6;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:min(42vw,520px);
+    pointer-events:none;
+}
+
+.nav-button{
+    pointer-events:auto;
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 7px 16px rgba(76,56,124,.18),inset 0 0 0 4px rgba(255,255,255,.9);
+    transition:transform .18s ease,opacity .18s ease,filter .18s ease;
+}
+
+.prev-button{
+    background:linear-gradient(145deg,#ff91af,#ff6f99);
+}
+
+.next-button{
+    background:linear-gradient(145deg,#73b9ff,#4d9cf4);
+}
+
+.nav-button img{
+    width:52%;
+    height:52%;
+    object-fit:contain;
+    pointer-events:none;
+}
+
+.nav-button:hover:not(:disabled){
+    transform:translateY(-3px) scale(1.04);
+}
+
+.nav-button:active:not(:disabled){
+    transform:translateY(2px) scale(.98);
+}
+
+.nav-button:disabled{
+    opacity:.3;
+    filter:grayscale(.2);
+}
+
+.next-button:not(:disabled){
+    animation:nextButtonMove 1s ease-in-out infinite;
+}
+
+@keyframes nextButtonMove{
+    0%,100%{transform:translateX(0) scale(1)}
+    40%{transform:translateX(9px) scale(1.05)}
+    60%{transform:translateX(5px) scale(1.02)}
+}
+
+/* =========================================================
+   CUSTOM HAND POINTER
+========================================================= */
+.hand-pointer{
+    position:fixed;
+    left:0;
+    top:0;
+    width:62px;
+    height:62px;
+    object-fit:contain;
+    z-index:99999;
+    pointer-events:none;
+    transform:translate(-10px,-8px);
+    opacity:0;
+    transition:opacity .12s ease;
+    filter:drop-shadow(0 4px 4px rgba(0,0,0,.18));
+}
+
+.hand-pointer.show{
+    opacity:1;
+}
+
+/* =========================================================
+   POPUPS
+========================================================= */
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 22px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .22s ease, visibility .22s ease;
+        }
+
+        .popup-icon img {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .popup-card {
+            width: min(470px, 92vw);
+            border-radius: 28px;
+            background: #fffdfd;
+            border: 2px solid rgba(206, 186, 240, .7);
+            padding: 32px 28px 28px;
+            text-align: center;
+            transform: scale(.84) translateY(15px);
+            transition: transform .24s ease;
+        }
+
+        .popup-overlay.show .popup-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .popup-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 14px;
+            font-size: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-title {
+            font-size: 34px;
+            color: #402a75;
+            margin-bottom: 10px;
+        }
+
+        .popup-message {
+            font-size: 19px;
+            line-height: 1.45;
+            color: #5a4b78;
+        }
+
+        .popup-button {
+            min-width: 150px;
+            min-height: 52px;
+            margin-top: 22px;
+            padding: 10px 24px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #9b85f5, #7c68df);
+            color: #fff;
+            font-size: 19px;
+            border: 0;
+        }
+
+        .final-card .popup-icon img {
+            width: 90px;
+            height: 90px;
+        }
+
+        .final-card {
+            width: min(540px, 94vw);
+            max-height: calc(100vh - 44px);
+            overflow: auto;
+            background: linear-gradient(145deg, #fffdfc, #f8f2ff);
+            border-color: #e2cfff;
+            padding: 38px 30px 32px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 24px 60px rgba(76, 56, 124, .22);
+        }
+
+        .final-card .popup-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 16px;
+        }
+
+        .final-card .popup-icon img {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
+
+        .final-card .popup-title {
+            margin-bottom: 10px;
+        }
+
+        .final-card .popup-message {
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .final-card .play-again-button {
+            margin-top: 22px;
+        }
+
+        .final-card .popup-icon {
+            font-size: 72px;
+        }
+
+        .final-card .popup-title {
+            font-size: 40px;
+        }
+
+        .play-again-button {
+            background: linear-gradient(135deg, #ff8eae, #8f7bf1);
+        }
+
+        /* =========================================================
+   CONFETTI
+========================================================= */
+.confetti-piece{
+    position:fixed;
+    top:-20px;
+    width:10px;
+    height:16px;
+    border-radius:3px;
+    z-index:12000;
+    pointer-events:none;
+    animation:confettiFall 1.55s ease-in forwards;
+}
+
+@keyframes confettiFall{
+    to{
+        transform:translateY(110vh) rotate(760deg);
+        opacity:.3;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE MEDIA QUERIES
+   Ordered: mobile -> tablet -> laptop -> desktop
+   Popups/navigation base styles are intentionally not repeated.
+========================================================= */
+@media (max-width:600px){
+    .quiz-page{
+        padding:8px 8px 10px;
+    }
+
+    .top-bar{
+        min-height:70px;
+    }
+
+    .page-title{
+        font-size:30px;
+        padding-top:5px;
+    }
+
+    .title-dots{
+        margin-top:10px;
+        width:58vw;
+        gap:7px;
+    }
+
+    .title-dots span{
+        width:7px;
+        height:4px;
+    }
+
+    .icon-button{
+        width:58px;
+        height:58px;
+    }
+
+    .question-line{
+        min-height:58px;
+        padding:6px 58px;
+        gap:8px;
+    }
+
+    .question-number,
+    .question-text{
+        font-size:23px;
+    }
+
+    .game-area{
+        padding:0 2px 72px;
+        justify-content:center;
+    }
+
+    .instruction{
+        font-size:15px;
+        margin-bottom:7px;
+    }
+
+    .abacus-row{
+        grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr) 20px minmax(0,1fr);
+    }
+
+    .abacus-operator{
+        font-size:23px;
+    }
+
+    .abacus-title{
+        min-height:22px;
+        font-size:13px;
+        margin-bottom:2px;
+    }
+
+    .abacus-board{
+        height:190px;
+        border-radius:15px;
+        padding:8px 6px 0;
+    }
+
+    .rod-line{
+        bottom:34px;
+        width:2px;
+    }
+
+    .rod-label{
+        bottom:8px;
+        min-width:38px;
+        height:24px;
+        padding:4px 3px 0;
+        border-radius:6px;
+        font-size:11px;
+    }
+
+    .bead-stack{
+        top:3px;
+        bottom:38px;
+        width:31px;
+        gap:1px;
+    }
+
+    .bead{
+        max-width:18px;
+        max-height:18px;
+    }
+
+    .abacus-value{
+        width:64px;
+        height:31px;
+        margin-top:5px;
+        border-radius:7px;
+        font-size:17px;
+    }
+
+    .answer-area{
+        margin-top:7px;
+        gap:5px;
+    }
+
+    .answer-prompt{
+        font-size:13px;
+    }
+
+    .answer-choices{
+        gap:6px;
+    }
+
+    .answer-choice{
+        min-width:57px;
+        height:34px;
+        padding:4px 9px;
+        border-radius:8px;
+        font-size:16px;
+    }
+}
+
+
+    .popup-title{
+        font-size:28px
+    }
+
+    .popup-message{
+        font-size:17px
+    }
+
+@media (min-width:601px) and (max-width:900px){
+    .quiz-page{
+        padding:10px 16px 14px;
+    }
+
+    .top-bar{
+        min-height:76px;
+    }
+
+    .page-title{
+        font-size:30px;
+    }
+
+    .icon-button{
+        width:72px;
+        height:72px;
+    }
+
+    .question-line{
+        min-height:64px;
+        justify-content:flex-start;
+        padding:6px 18px;
+        top:-12px;
+    }
+
+    .question-number,
+    .question-text{
+        font-size:28px;
+    }
+
+    .game-area{
+        padding:0 10px 100px;
+    }
+
+    .instruction{
+        font-size:19px;
+        margin-bottom:12px;
+    }
+
+    .abacus-row{
+        grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr) 32px minmax(0,1fr);
+    }
+
+    .abacus-operator{
+        font-size:32px;
+    }
+
+    .abacus-title{
+        font-size:17px;
+        min-height:27px;
+    }
+
+    .abacus-board{
+        height:clamp(250px, 36vh, 330px);
+        padding:12px 11px 0;
+        border-radius:19px;
+    }
+
+    .rod-line{
+        bottom:42px;
+    }
+
+    .rod-label{
+        bottom:10px;
+        min-width:51px;
+        height:30px;
+        padding-top:5px;
+        font-size:14px;
+    }
+
+    .bead-stack{
+        bottom:46px;
+        width:43px;
+    }
+
+    .bead{
+        max-width:26px;
+        max-height:26px;
+    }
+
+    .abacus-value{
+        width:112px;
+        height:48px;
+        margin-top:7px;
+        font-size:26px;
+    }
+
+    .answer-area{
+        margin-top:10px;
+        gap:7px;
+    }
+
+    .answer-prompt{
+        font-size:16px;
+    }
+
+    .answer-choice{
+        min-width:75px;
+        height:42px;
+        font-size:20px;
+    }
+}
+
+@media (min-width:901px) and (max-width:1440px){
+    .quiz-page{
+        padding:10px 20px 16px;
+    }
+
+    .top-bar{
+        min-height:86px;
+    }
+
+    .page-title{
+        font-size:30px;
+    }
+
+    .icon-button{
+        width:75px;
+        height:75px;
+    }
+
+    .question-line{
+        min-height:68px;
+        justify-content:flex-start;
+        padding-left:20px;
+        top:-14px;
+    }
+
+    .question-number,
+    .question-text{
+        font-size:32px;
+    }
+
+    .game-area{
+        justify-content:center;
+        padding:0 8px 108px;
+        transform:none;
+    }
+
+    .instruction{
+        font-size:18px;
+        margin-bottom:8px;
+    }
+
+    .abacus-row{
+        grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr) 42px minmax(0,1fr);
+    }
+
+    .abacus-board{
+        height:clamp(260px, 36vh, 320px);
+        padding:8px 11px 0;
+    }
+
+    .rod-line{
+        bottom:44px;
+    }
+
+    .rod-label{
+        bottom:10px;
+        height:32px;
+        padding-top:5px;
+    }
+
+    .bead-stack{
+        bottom:48px;
+    }
+
+    .abacus-title{
+        min-height:24px;
+        font-size:18px;
+        margin-bottom:2px;
+    }
+
+    .bead{
+        max-width:26px;
+        max-height:26px;
+    }
+
+    .abacus-value{
+        width:104px;
+        height:43px;
+        margin-top:6px;
+        font-size:24px;
+    }
+
+    .answer-area{
+        margin-top:10px;
+        gap:9px;
+    }
+
+    .answer-prompt{
+        font-size:20px;
+    }
+
+    .answer-choice{
+        min-width:88px;
+        height:48px;
+        padding:6px 16px;
+        font-size:22px;
+    }
+}
+
+@media (min-width:901px) and (max-width:1440px) and (max-height:820px){
+    .top-bar{
+        min-height:76px;
+    }
+
+    .title-dots{
+        margin-top:10px;
+    }
+
+    .question-line{
+        min-height:54px;
+        top:-6px;
+    }
+
+    .game-area{
+        padding-bottom:100px;
+    }
+
+    .abacus-board{
+        height:clamp(235px, 32vh, 285px);
+    }
+
+    .bead{
+        max-width:24px;
+        max-height:24px;
+    }
+
+    .abacus-title{
+        min-height:20px;
+        font-size:16px;
+        margin-bottom:2px;
+    }
+
+    .abacus-value{
+        width:96px;
+        height:38px;
+        margin-top:4px;
+        font-size:20px;
+    }
+
+    .answer-area{
+        margin-top:8px;
+        gap:8px;
+    }
+
+    .answer-prompt{
+        font-size:19px;
+    }
+
+    .answer-choice{
+        min-width:84px;
+        height:46px;
+        padding:6px 14px;
+        font-size:21px;
+    }
+
+    .navigation{
+        bottom:18px;
+    }
+
+    .nav-button{
+        width:78px;
+        height:78px;
+    }
+}
+
+@media (min-width:1441px){
+    .quiz-page{
+        padding:8px 32px 14px;
+    }
+
+    .top-bar{
+        min-height:90px;
+    }
+
+    .page-title{
+        font-size:40px;
+    }
+
+    .question-line{
+        min-height:68px;
+        justify-content:flex-start;
+        padding-left:28px;
+        top:-14px;
+    }
+
+    .game-area{
+        max-width:1540px;
+        padding:0 8px 108px;
+    }
+
+    .instruction{
+        font-size:25px;
+        margin-bottom:17px;
+    }
+
+    .abacus-board{
+        max-width:430px;
+        height:410px;
+    }
+
+    .abacus-title{
+        font-size:24px;
+    }
+
+    .rod-line{
+        bottom:48px;
+    }
+
+    .rod-label{
+        bottom:10px;
+    }
+
+    .bead-stack{
+        bottom:52px;
+    }
+
+    .bead{
+        max-width:32px;
+        max-height:32px;
+    }
+
+    .abacus-value{
+        width:150px;
+        height:60px;
+        font-size:32px;
+    }
+
+    .answer-area{
+        margin-top:14px;
+    }
+
+    .answer-choice{
+        min-width:96px;
+        height:54px;
+        font-size:25px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="quiz-page" id="quizPage">
+
+    <div class="top-bar">
+        <button class="icon-button home-button hand-target" id="homeButton" type="button" aria-label="Home" title="Home">
+            <img src="../assets/images/home.png" alt="">
+        </button>
+
+        <div class="title-wrap">
+            <div class="page-title">Subtraction with Bricks</div>
+            <div class="title-dots" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <button class="icon-button hint-button hand-target" id="hintButton" type="button" aria-label="Hint" title="Hint">
+            <img src="../assets/images/hint.png" alt="">
+        </button>
+    </div>
+
+    <div class="question-line" id="questionLine">
+        <span class="question-number" id="questionNumber">Q1.</span>
+        <!-- <span class="question-text">Count and subtract. Represent the difference on the abacus.</span> -->
+    </div>
+
+    <main class="game-area">
+        <div class="instruction" id="instruction">
+           
+        </div>
+
+        <div class="abacus-row">
+            <section class="abacus-card">
+                <div class="abacus-title">First Number</div>
+                <div class="abacus-board" id="firstAbacus"></div>
+                <div class="abacus-value" id="firstValue">60</div>
+            </section>
+
+            <div class="abacus-operator">−</div>
+
+            <section class="abacus-card">
+                <div class="abacus-title">Subtract</div>
+                <div class="abacus-board" id="secondAbacus"></div>
+                <div class="abacus-value" id="secondValue">37</div>
+            </section>
+
+            <div class="abacus-operator">=</div>
+
+            <section class="abacus-card result-card">
+                <div class="abacus-title">Difference</div>
+                <div class="abacus-board result-board" id="resultAbacus"></div>
+                <div class="abacus-value result-value" id="resultValue">?</div>
+            </section>
+        </div>
+
+        <div class="answer-area">
+            <div class="answer-prompt">Choose the correct difference:</div>
+            <div class="answer-choices" id="answerChoices"></div>
+        </div>
+    </main>
+
+    <div class="navigation">
+        <button class="nav-button prev-button hand-target" id="prevButton" type="button" aria-label="Previous question" disabled>
+            <img src="../assets/images/left-arrow.png" alt="">
+        </button>
+
+        <button class="nav-button next-button hand-target" id="nextButton" type="button" aria-label="Next question" disabled>
+            <img src="../assets/images/right-arrow.png" alt="">
+        </button>
+    </div>
+</div>
+
+<!-- One shared pointer clipart for every question -->
+<img class="hand-pointer" id="handPointer" src="../assets/images/handPointer.png" alt="" aria-hidden="true">
+
+<!-- HINT POPUP -->
+<div class="popup-overlay" id="hintOverlay" aria-hidden="true">
+    <div class="popup-card">
+        <img class="popup-icon" src="../assets/images/hint.png" alt="">
+        <div class="popup-title">Hint</div>
+        <div class="popup-message" id="hintMessage"></div>
+        <button class="popup-button hand-target" id="hintCloseButton" type="button">OK</button>
+    </div>
+</div>
+
+<!-- CORRECT POPUP -->
+    <div class="popup-overlay" id="correctOverlay" aria-hidden="true">
+        <div class="popup-card">
+            <div class="popup-icon"><img src="../assets/images/correct.png" alt="Correct"></div>
+            <div class="popup-title">Correct!</div>
+            <div class="popup-message">Great job! Your answer is correct.</div>
+        </div>
+    </div>
+
+    <!-- WRONG POPUP -->
+    <div class="popup-overlay" id="wrongOverlay" aria-hidden="true">
+        <div class="popup-card">
+            <div class="popup-icon"><img src="../assets/images/wrong.png" alt="Wrong"></div>
+            <div class="popup-title">Try Again</div>
+            <div class="popup-message">That answer is not correct yet. Try once more.</div>
+        </div>
+    </div>
+
+    <!-- FINAL POPUP -->
+    <div class="popup-overlay" id="finalOverlay" aria-hidden="true">
+        <div class="popup-card final-card" role="dialog" aria-modal="true" aria-labelledby="finalPopupTitle">
+            <div class="popup-icon">
+                <img src="../assets/images/trophy.png" alt="Trophy">
+            </div>
+            <div class="popup-title" id="finalPopupTitle">Activity Complete!</div>
+            <div class="popup-message">You finished all the questions.</div>
+            <button class="popup-button play-again-button hand-target" id="playAgainButton" type="button">
+                Play Again
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* =========================================================
+   DATA FROM THE SUPPLIED ABACUS IMAGE
+   Q1: 5 Tens + 10 Ones = 60; 3 Tens + 7 Ones = 37; 60-37=23
+   Q2: 4 Hundreds + 7 Tens + 6 Ones = 476;
+       2 Hundreds + 3 Tens + 5 Ones = 235; 476-235=241
+   Q3: 10 Hundreds + 7 Tens + 3 Ones = 1073;
+       5 Hundreds + 0 Tens + 2 Ones = 502; 1073-502=571
+========================================================= */
+const quizData = [
+    {
+        first:[5,10],
+        second:[3,7],
+        result:[2,3],
+        firstValue:59,
+        secondValue:36,
+        answer:23,
+        choices:[23,32,24,13],
+        hint:"Count the Tens and Ones. Subtract 36 from 59 one place at a time, Ones first."
+    },
+    {
+        first:[4,7,6],
+        second:[2,3,5],
+        result:[2,4,1],
+        firstValue:476,
+        secondValue:235,
+        answer:241,
+        choices:[241,251,231,341],
+        hint:"Subtract 235 from 476 one place at a time: Ones first, then Tens, then Hundreds."
+    },
+    {
+        first:[10,7,3],
+        second:[5,0,2],
+        result:[5,7,1],
+        firstValue:963,
+        secondValue:502,
+        answer:461,
+        choices:[571,561,461,581],
+        hint:"Look at each place value. Subtract 502 from 963 one place at a time, Ones first."
+    }
+];
+
+let currentQuestion = 0;
+const completed = new Array(quizData.length).fill(false);
+const selectedAnswers = new Array(quizData.length).fill(null);
+
+const questionLine = document.getElementById("questionLine");
+const questionNumber = document.getElementById("questionNumber");
+const firstAbacus = document.getElementById("firstAbacus");
+const secondAbacus = document.getElementById("secondAbacus");
+const resultAbacus = document.getElementById("resultAbacus");
+const firstValue = document.getElementById("firstValue");
+const secondValue = document.getElementById("secondValue");
+const resultValue = document.getElementById("resultValue");
+const answerChoices = document.getElementById("answerChoices");
+const instruction = document.getElementById("instruction");
+
+const prevButton = document.getElementById("prevButton");
+const nextButton = document.getElementById("nextButton");
+const hintButton = document.getElementById("hintButton");
+const homeButton = document.getElementById("homeButton");
+const handPointer = document.getElementById("handPointer");
+
+const hintOverlay = document.getElementById("hintOverlay");
+const correctOverlay = document.getElementById("correctOverlay");
+const wrongOverlay = document.getElementById("wrongOverlay");
+const finalOverlay = document.getElementById("finalOverlay");
+const hintMessage = document.getElementById("hintMessage");
+
+function placeLabels(count){
+    if(count === 2) return ["T","O"];
+    return ["H","T","O"];
+}
+
+function beadColor(index,count){
+    if(count === 2){
+        return index === 0 ? "green" : "blue";
+    }
+    return ["yellow","green","blue"][index];
+}
+
+function fitAbacusBeads(container,counts){
+    const maxCount = Math.max(...counts, 1);
+
+    const run = () => {
+        const stacks = [...container.querySelectorAll(".bead-stack")];
+        const fullestStack = stacks.find(
+            stack => stack.querySelectorAll(".bead").length === maxCount
+        ) || stacks[0];
+
+        if(!fullestStack) return;
+
+        const available = fullestStack.clientHeight;
+        if(!available) return;
+
+        const gap = parseFloat(
+            getComputedStyle(fullestStack).rowGap ||
+            getComputedStyle(fullestStack).gap
+        ) || 2;
+        const sample = container.querySelector(".bead");
+        const maxSize = sample
+            ? parseFloat(getComputedStyle(sample).maxHeight) || 30
+            : 30;
+        const safety = 6;
+        let size = Math.floor((available - gap * (maxCount - 1) - safety) / maxCount);
+        size = Math.min(maxSize, size);
+
+        while(
+            size > 10 &&
+            size * maxCount + gap * (maxCount - 1) > available - 2
+        ){
+            size -= 1;
+        }
+
+        const beadSize = `${Math.max(size, 10)}px`;
+
+        container.querySelectorAll(".bead-stack").forEach(rodStack => {
+            rodStack.style.setProperty("--bead-size", beadSize);
+        });
+    };
+
+    requestAnimationFrame(() => requestAnimationFrame(run));
+}
+
+function fitAllAbacusBeads(){
+    [firstAbacus, secondAbacus, resultAbacus].forEach(board => {
+        const counts = [...board.querySelectorAll(".bead-stack")].map(
+            stack => stack.querySelectorAll(".bead").length
+        );
+
+        if(counts.length){
+            fitAbacusBeads(board, counts);
+        }
+    });
+}
+
+function createAbacus(container, counts, isResult=false){
+    container.innerHTML = "";
+
+    const labels = placeLabels(counts.length);
+
+    counts.forEach((count,index) => {
+        const rod = document.createElement("div");
+        rod.className = "rod";
+
+        const line = document.createElement("div");
+        line.className = "rod-line";
+
+        const label = document.createElement("div");
+        label.className = "rod-label";
+        label.textContent = labels[index];
+
+        const stack = document.createElement("div");
+        stack.className = "bead-stack";
+
+        for(let i = 0; i < count; i++){
+            const bead = document.createElement("span");
+            bead.className = `bead ${beadColor(index,counts.length)}`;
+
+            if(isResult){
+                bead.style.setProperty("--delay", `${(i + index * 2) * .06}s`);
+            }
+
+            stack.appendChild(bead);
+        }
+
+        rod.append(line,stack,label);
+        container.appendChild(rod);
+    });
+
+    fitAbacusBeads(container, counts);
+}
+
+function loadQuestion(){
+    const q = quizData[currentQuestion];
+
+    questionNumber.textContent = `Q${currentQuestion + 1}.`;
+
+    createAbacus(firstAbacus,q.first,false);
+    createAbacus(secondAbacus,q.second,false);
+    createAbacus(resultAbacus,q.result,true);
+
+    firstValue.textContent = q.firstValue;
+    secondValue.textContent = q.secondValue;
+
+    if(completed[currentQuestion]){
+        resultValue.textContent = q.answer;
+        resultAbacus.classList.add("reveal");
+        instruction.innerHTML =
+            `Great! <strong>${q.firstValue} − ${q.secondValue} = ${q.answer}</strong>`;
+    }else{
+        resultValue.textContent = "?";
+        resultAbacus.classList.remove("reveal");
+        instruction.textContent = "";
+    }
+
+    renderChoices();
+    requestAnimationFrame(fitAllAbacusBeads);
+
+    questionLine.classList.remove("animate");
+    void questionLine.offsetWidth;
+    questionLine.classList.add("animate");
+
+    updateNavigation();
+}
+
+function renderChoices(){
+    const q = quizData[currentQuestion];
+    answerChoices.innerHTML = "";
+
+    q.choices.forEach(choice => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "answer-choice hand-target";
+        button.textContent = choice;
+
+        if(selectedAnswers[currentQuestion] === choice){
+            button.classList.add("selected");
+        }
+
+        if(completed[currentQuestion]){
+            button.disabled = true;
+        }
+
+        button.addEventListener("click",() => chooseAnswer(choice,button));
+        answerChoices.appendChild(button);
+    });
+}
+
+function chooseAnswer(value,button){
+    const q = quizData[currentQuestion];
+
+    if(completed[currentQuestion]) return;
+
+    selectedAnswers[currentQuestion] = value;
+
+    if(value !== q.answer){
+        button.classList.remove("wrong");
+        void button.offsetWidth;
+        button.classList.add("wrong");
+
+        showPopup(wrongOverlay);
+        playWrongSound();
+
+        setTimeout(() => {
+            hidePopup(wrongOverlay);
+        },1500);
+
+        return;
+    }
+
+    answerChoices.querySelectorAll("button").forEach(btn => btn.disabled = true);
+    button.classList.add("selected");
+
+    resultValue.textContent = q.answer;
+    instruction.innerHTML =
+        `Watch the difference appear on the result abacus.`;
+
+    resultAbacus.classList.remove("reveal");
+    void resultAbacus.offsetWidth;
+    resultAbacus.classList.add("reveal");
+
+    const revealTime = q.result.reduce((sum,count) => sum + count,0) * 60 + 500;
+
+    setTimeout(() => {
+        completed[currentQuestion] = true;
+        instruction.innerHTML =
+            `Great! <strong>${q.firstValue} − ${q.secondValue} = ${q.answer}</strong>`;
+        updateNavigation();
+
+        showPopup(correctOverlay);
+        playCorrectSound();
+        launchConfetti(55);
+
+        if(currentQuestion === quizData.length - 1){
+            setTimeout(() => {
+                hidePopup(correctOverlay);
+                showPopup(finalOverlay);
+                playCorrectSound();
+                launchConfetti(110);
+            },1600);
+        }else{
+            setTimeout(() => {
+                hidePopup(correctOverlay);
+            },1500);
+        }
+    },Math.min(revealTime,1800));
+}
+
+function updateNavigation(){
+    prevButton.disabled = currentQuestion === 0;
+    nextButton.disabled = !completed[currentQuestion];
+}
+
+prevButton.addEventListener("click",() => {
+    if(currentQuestion === 0) return;
+    currentQuestion--;
+    loadQuestion();
+});
+
+nextButton.addEventListener("click",() => {
+    if(!completed[currentQuestion]) return;
+
+    if(currentQuestion === quizData.length - 1){
+        return;
+    }
+
+    currentQuestion++;
+    loadQuestion();
+});
+
+hintButton.addEventListener("click",() => {
+    hintMessage.textContent = quizData[currentQuestion].hint;
+    showPopup(hintOverlay);
+});
+
+document.getElementById("hintCloseButton").addEventListener("click",() => {
+    hidePopup(hintOverlay);
+});
+
+document.getElementById("playAgainButton").addEventListener("click",() => {
+    hidePopup(finalOverlay);
+    currentQuestion = 0;
+    completed.fill(false);
+    selectedAnswers.fill(null);
+    loadQuestion();
+});
+homeButton.addEventListener("click", () => {
+    window.location.href = "../Grade2_chapter4.html";
+});
+
+function showPopup(overlay){
+    overlay.classList.add("show");
+    overlay.setAttribute("aria-hidden","false");
+}
+
+function hidePopup(overlay){
+    overlay.classList.remove("show");
+    overlay.setAttribute("aria-hidden","true");
+}
+
+[hintOverlay,correctOverlay,wrongOverlay].forEach(overlay => {
+    overlay.addEventListener("click",event => {
+        if(event.target === overlay){
+            hidePopup(overlay);
+        }
+    });
+});
+
+function launchConfetti(count) {
+            const colors = ["#ff8cab", "#8a78ed", "#65cbd2", "#ffd26e", "#7BCB5A"];
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement("span");
+                piece.className = "confetti-piece";
+                piece.style.left = `${Math.random() * 100}vw`;
+                piece.style.background = colors[i % colors.length];
+                piece.style.animationDelay = `${Math.random() * .5}s`;
+                piece.style.transform = `rotate(${Math.random() * 180}deg)`;
+                document.body.appendChild(piece);
+                setTimeout(() => piece.remove(), 2200);
+            }
+        }
+
+        function playTone(frequency,duration,type="sine",delay=0){
+    try{
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if(!AudioContextClass) return;
+
+        const ctx = new AudioContextClass();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+
+        gain.gain.setValueAtTime(.0001,ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.12,ctx.currentTime+.02+delay);
+        gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+duration+delay);
+
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+
+        oscillator.start(ctx.currentTime+delay);
+        oscillator.stop(ctx.currentTime+duration+delay+.02);
+        oscillator.addEventListener("ended",() => ctx.close());
+    }catch(error){}
+}
+
+function playCorrectSound(){
+    playTone(523,.18,"sine",0);
+    playTone(659,.18,"sine",.12);
+    playTone(784,.26,"sine",.24);
+}
+
+function playWrongSound(){
+    playTone(220,.22,"triangle",0);
+    playTone(174,.3,"triangle",.14);
+}
+
+/* One pointer image is shared by every question and every clickable target. */
+document.addEventListener("pointermove",event => {
+    handPointer.style.left = `${event.clientX}px`;
+    handPointer.style.top = `${event.clientY}px`;
+    handPointer.classList.add("show");
+});
+
+document.addEventListener("pointerleave",() => {
+    handPointer.classList.remove("show");
+});
+
+document.addEventListener("pointerdown",() => {
+    handPointer.style.transform = "translate(-10px,-8px) scale(.88)";
+});
+
+document.addEventListener("pointerup",() => {
+    handPointer.style.transform = "translate(-10px,-8px) scale(1)";
+});
+
+window.addEventListener("resize", fitAllAbacusBeads);
+
+loadQuestion();
+</script>
+</body>
+</html>

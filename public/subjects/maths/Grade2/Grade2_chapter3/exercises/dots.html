@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Count and join the dots — Pineapple</title>
+<style>
+  :root{
+    /* tropical fruit-stand palette */
+    --ink:#1f2a24;
+    --paper:#fffdf7;
+    --board-a:#ffe9a8;
+    --board-b:#8fd6c9;
+    --rule:#e4d9b5;
+    --accent:#1f9d8a;      /* teal — chrome / borders */
+    --accent-deep:#0f6e5f;
+    --gold:#f5a623;        /* active dot glow */
+    --gold-deep:#c97e0a;
+    --done:#2fa86b;
+    --wrong:#e8563f;
+    --shadow:0 10px 24px -12px rgba(31,42,36,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{
+    background:
+      radial-gradient(circle at 12% 8%, rgba(255,255,255,.5), transparent 45%),
+      linear-gradient(160deg, var(--board-a) 0%, var(--board-b) 100%);
+    color:var(--ink);
+    font-family:"Century Gothic","Trebuchet MS",Verdana,system-ui,sans-serif;
+    display:flex;
+    justify-content:center;
+    padding:22px 14px 40px;
+  }
+  .topbar{
+    position:fixed;
+    top:16px;
+    left:16px;
+    z-index:20;
+  }
+  .home-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    background:var(--paper);
+    border:2px solid var(--accent);
+    color:var(--accent-deep);
+    box-shadow:var(--shadow);
+    cursor:pointer;
+    text-decoration:none;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .home-btn:hover{background:var(--gold); border-color:var(--gold-deep); color:#3a2606; transform:translateY(-2px)}
+  .home-btn:active{transform:translateY(0)}
+  .home-btn svg{width:20px;height:20px;display:block}
+
+  .sheet{
+    background:var(--paper);
+    border:3px solid var(--accent);
+    border-radius:22px;
+    width:100%;
+    max-width:660px;
+    padding:20px 18px 26px;
+    box-shadow:var(--shadow);
+  }
+  h1{
+    font-size:clamp(16px,4vw,20px);
+    font-weight:700;
+    margin:2px 0 14px;
+    color:var(--accent-deep);
+  }
+  h1 span{
+    margin-right:9px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:24px;height:24px;
+    border-radius:50%;
+    background:var(--gold);
+    color:#3a2606;
+    font-size:14px;
+    vertical-align:middle;
+  }
+  .status{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    background:linear-gradient(90deg, rgba(31,157,138,.10), rgba(245,166,35,.12));
+    border:1px solid var(--rule);
+    border-radius:14px;
+    padding:11px 14px;
+  }
+  .ask{font-size:clamp(15px,4vw,18px); color:var(--ink)}
+  .ask b{font-size:1.3em;letter-spacing:.4px; color:var(--accent-deep)}
+  .count{
+    font-variant-numeric:tabular-nums;
+    color:var(--gold-deep);
+    background:#fff4d9;
+    border:1px solid #f0d78e;
+    border-radius:999px;
+    padding:4px 12px;
+    font-weight:700;
+    font-size:14px;
+    white-space:nowrap;
+  }
+  svg{display:block;width:100%;height:auto;touch-action:manipulation;margin-top:10px}
+  .leaf,.skin,.link{fill:none;stroke:var(--ink);stroke-linejoin:round;stroke-linecap:round}
+  .leaf{stroke-width:5}
+  .skin{stroke-width:5; stroke:#9c8a4e; opacity:.55}
+  .link{stroke-width:6; stroke:var(--accent-deep)}
+  .dot{fill:var(--ink)}
+  .dot.done{fill:var(--done)}
+  .halo{stroke:var(--paper);stroke-width:7;stroke-linejoin:round;fill:var(--paper)}
+  .eq{font-size:21px;fill:var(--ink);user-select:none;font-weight:600}
+  .eq.done{fill:var(--done)}
+  .eq.target{font-weight:800; fill:var(--gold-deep)}
+  .hit{fill:transparent;cursor:pointer}
+  .hit:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:50%}
+  text{pointer-events:none}
+
+  /* active (next) dot gets a glowing gold ring + gold fill */
+  g.active-dot .dot{
+    fill:var(--gold);
+    stroke:var(--gold-deep);
+    stroke-width:2;
+  }
+
+  g.shake{animation:sh .3s}
+  g.shake .dot{fill:var(--wrong); stroke:none}
+  g.shake .eq{fill:var(--wrong)}
+  @keyframes sh{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .pulse{animation:pl 1.5s ease-in-out infinite}
+  @keyframes pl{0%,100%{r:8}50%{r:11}}
+  @media (prefers-reduced-motion:reduce){g.shake,.pulse{animation:none}}
+
+  /* colouring mode */
+  #body{fill:none;stroke:none}
+  .coloring #body{fill:#fff}
+  .coloring .leaf{fill:#fff}
+  .coloring #body,.coloring .leaf{cursor:pointer}
+  .coloring #dots{opacity:0;pointer-events:none;transition:opacity .5s}
+  .region.wrong-color{animation:regionShake .32s}
+  @keyframes regionShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  @media (prefers-reduced-motion:reduce){.region.wrong-color{animation:none}}
+
+  .paint{display:none;margin-top:16px}
+  .paint.show{display:block}
+  .paint p{margin:0 0 10px;font-size:16px; color:var(--accent-deep); font-weight:600}
+  .swatches{display:flex;gap:12px;flex-wrap:wrap}
+  .swatch{
+    width:42px;height:42px;border-radius:50%;
+    border:2px solid var(--ink);padding:0;cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .12s ease;
+  }
+  .swatch:hover{transform:translateY(-2px) scale(1.05)}
+  .swatch[aria-pressed="true"]{outline:3px solid var(--accent-deep);outline-offset:3px}
+  .swatch.erase{background:#fff;position:relative}
+  .swatch.erase::after{
+    content:"";position:absolute;inset:12px 5px;
+    border-top:2px solid #111;transform:rotate(-45deg);
+  }
+
+  .bar{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap}
+  button{
+    font:inherit;font-size:15px;font-weight:600;padding:9px 20px;
+    border:2px solid var(--accent);border-radius:999px;
+    background:var(--paper);color:var(--accent-deep);cursor:pointer;
+    transition:background .15s ease, color .15s ease, transform .15s ease;
+  }
+  button:hover{background:var(--accent); color:#fff}
+  button:active{transform:translateY(1px)}
+  #skip{border-color:var(--gold-deep); color:var(--gold-deep)}
+  #skip:hover{background:var(--gold); color:#3a2606}
+
+  .win{
+    color:#fff;
+    background:var(--done);
+    font-weight:700;
+    padding:8px 16px;
+    border-radius:999px;
+    display:none;
+  }
+  .win.show{display:block}
+
+  /* =========================================================
+     FINAL RESULT POPUP — matched to the reference activity
+     ========================================================= */
+  #finalPopup{
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:rgba(31,42,36,.55);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+  }
+
+  .final-kid-box{
+    width:min(92vw,520px);
+    padding:28px 24px 30px;
+    border-radius:28px;
+    background:#fff;
+    border:4px solid var(--accent);
+    box-shadow:0 18px 45px rgba(31,42,36,.28);
+    text-align:center;
+    font-family:"Century Gothic","Trebuchet MS",Verdana,system-ui,sans-serif;
+    animation:finalPop .35s ease-out;
+  }
+
+  .final-kid-box h2{
+    margin:0;
+    color:var(--accent-deep);
+    font-size:clamp(28px,6vw,42px);
+    line-height:1.15;
+    font-weight:800;
+  }
+
+  .final-kid-box p{
+    margin:14px 0 8px;
+    color:var(--ink);
+    font-size:clamp(18px,4vw,25px);
+    font-weight:700;
+  }
+
+  #stars{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:16px auto 22px;
+    max-width:420px;
+  }
+
+  #stars .final-star{
+    width:clamp(30px,7vw,48px);
+    height:clamp(30px,7vw,48px);
+    display:block;
+    animation:starPop .35s ease-out both;
+  }
+
+  .playAgain-btn{
+    min-width:160px;
+    min-height:48px;
+    padding:11px 24px;
+    border:0;
+    border-radius:999px;
+    background:linear-gradient(145deg,#ffc94d,#f7a800);
+    color:#fff;
+    font:inherit;
+    font-size:17px;
+    font-weight:800;
+    cursor:pointer;
+    box-shadow:0 5px 0 #c17e00,0 8px 16px rgba(193,126,0,.22);
+  }
+
+  .playAgain-btn:hover{
+    background:linear-gradient(145deg,#ffd45f,#f7a800);
+    color:#fff;
+    transform:translateY(-2px);
+  }
+
+  .playAgain-btn:active{
+    transform:translateY(3px);
+    box-shadow:0 2px 0 #c17e00;
+  }
+
+  @keyframes finalPop{
+    from{opacity:0;transform:scale(.88) translateY(12px)}
+    to{opacity:1;transform:scale(1) translateY(0)}
+  }
+
+  @keyframes starPop{
+    from{opacity:0;transform:scale(.4) rotate(-12deg)}
+    to{opacity:1;transform:scale(1) rotate(0)}
+  }
+
+  @media (max-width:480px){
+    #finalPopup{padding:14px}
+    .final-kid-box{
+      padding:24px 16px 26px;
+      border-width:3px;
+      border-radius:22px;
+    }
+    #stars{gap:6px;margin:13px auto 20px}
+    .playAgain-btn{width:100%;max-width:220px}
+  }
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="home-btn" href="../Grade2_chapter3.html" title="Home" aria-label="Go home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 11.5 12 4l9 7.5"/>
+      <path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/>
+    </svg>
+  </a>
+</div>
+
+<div class="sheet">
+  <h1><span>1</span>Count and join the dots. Then colour the picture.</h1>
+
+  <div class="status">
+    <div class="ask" id="ask">Find the answer to <b>0 + 1</b></div>
+    <div class="count"><span id="count">0</span> / 36</div>
+  </div>
+
+  <svg id="art" viewBox="0 0 600 930" role="img" aria-label="Count and join the dots pineapple">
+    <g id="crown"></g>
+    <path id="body" class="region"></path>
+    <g id="skin"></g>
+    <g id="lines"></g>
+    <g id="dots"></g>
+  </svg>
+
+  <div class="paint" id="paint">
+    <p>Now colour your pineapple — green for the leaves, yellow for the body.</p>
+    <div class="swatches" id="swatches"></div>
+  </div>
+
+  <div class="bar">
+    <button id="reset" type="button">Start over</button>
+    <button id="skip" type="button">Colour it now</button>
+    <div class="win" id="win">Well done — it's a pineapple!</div>
+  </div>
+</div>
+
+
+<!-- Final result popup -->
+<div id="finalPopup" aria-modal="true" role="dialog" aria-labelledby="finalTitle">
+  <div class="final-kid-box">
+    <h2 id="finalTitle">Congratulations!</h2>
+    <p id="finalScore"></p>
+    <div id="stars" aria-label="Final score"></div>
+    <button class="playAgain-btn" id="playAgainBtn" type="button">Play Again</button>
+  </div>
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const CX = 300, CY = 566, RX = 176, RY = 232, N = 36;
+
+const EQ = ["0+1","1+1","2+1","2+2","2+3","4+2","3+4","4+4","6+3","4+6","8+3","7+5",
+            "8+5","10+4","9+6","8+8","7+10","9+9","10+9","10+10","18+3","17+5","16+7","15+9",
+            "20+5","22+4","26+1","23+5","22+7","20+10","22+9","30+2","29+4","28+6","27+8","30+6"];
+
+/* dots run clockwise around the body: 1 at middle-left, 10 at the top, 28 at the base */
+const P = Array.from({length:N}, (_, i) => {
+  const a = (180 + i * 10) * Math.PI / 180;
+  const c = Math.cos(a), s = Math.sin(a);
+  return { x: CX + RX * c * (1 - 0.09 * Math.max(0, s)), y: CY + RY * s };
+});
+
+const el = (tag, attrs) => {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+};
+
+/* ---------------- crown: five tapered leaves ---------------- */
+function q(p0, p1, p2, t){
+  const a = (1-t)*(1-t), b = 2*(1-t)*t, c = t*t;
+  return [a*p0[0]+b*p1[0]+c*p2[0], a*p0[1]+b*p1[1]+c*p2[1]];
+}
+function leaf(B, C, T, wo, wi, S){
+  S = S || 44;
+  const L = [], R = [];
+  for (let k = 0; k <= S; k++){
+    const t = k / S;
+    const A = q(B, C, T, t);
+    const Bp = q(B, C, T, Math.min(1, t + 0.001));
+    const dx = Bp[0] - A[0], dy = Bp[1] - A[1], d = Math.hypot(dx, dy) || 1;
+    const px = -dy/d, py = dx/d;
+    const w = Math.sin(Math.PI * Math.pow(t, 0.8));
+    L.push([A[0] + px*wo*w, A[1] + py*wo*w]);
+    R.push([A[0] - px*wi*w, A[1] - py*wi*w]);
+  }
+  const pts = L.concat(R.reverse());
+  return "M " + pts.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L ") + " Z";
+}
+function mirror(d){
+  let k = 0;
+  return d.replace(/([MLZ])|(-?\d+\.?\d*)/g, function(m, cmd, num){
+    if (cmd){ k = 0; return cmd; }
+    const out = (k % 2 === 0) ? (600 - parseFloat(num)).toFixed(1) : num;
+    k++;
+    return out;
+  });
+}
+const CENTER = leaf([300,338],[300,200],[300,34], 46, 46);
+const MID    = leaf([274,344],[228,208],[146,96], 34, 16);
+const OUTER  = leaf([256,350],[146,258],[44,296], 30, 12);
+const crown = document.getElementById("crown");
+const regions = [];
+[OUTER, mirror(OUTER), MID, mirror(MID), CENTER]
+  .forEach(function(d){
+    const path = el("path", {class:"leaf region", d:d});
+    path.dataset.part = "leaf";
+    crown.appendChild(path);
+    regions.push(path);
+  });
+
+/* body outline, used as the paintable area once the dots are joined */
+const bodyPath = document.getElementById("body");
+bodyPath.classList.add("region");
+bodyPath.dataset.part = "body";
+bodyPath.setAttribute("d", "M " + P.map(function(p){
+  return p.x.toFixed(1) + " " + p.y.toFixed(1);
+}).join(" L ") + " Z");
+regions.push(bodyPath);
+
+/* ------------- printed pineapple skin: dot-to-dot diagonals ------------- */
+function cross(p, dir){
+  const hits = [];
+  for (let i = 0; i < N; i++){
+    const a = P[i], b = P[(i+1) % N];
+    const sx = b.x - a.x, sy = b.y - a.y;
+    const den = dir[0]*sy - dir[1]*sx;
+    if (Math.abs(den) < 1e-9) continue;
+    const qx = a.x - p[0], qy = a.y - p[1];
+    const t = (qx*sy - qy*sx) / den;
+    const u = (qx*dir[1] - qy*dir[0]) / den;
+    if (u >= 0 && u <= 1) hits.push([p[0] + t*dir[0], p[1] + t*dir[1]]);
+  }
+  return hits;
+}
+function snap(pt){
+  let best = P[0], bd = Infinity;
+  P.forEach(function(d){
+    const v = (d.x-pt[0])*(d.x-pt[0]) + (d.y-pt[1])*(d.y-pt[1]);
+    if (v < bd){ bd = v; best = d; }
+  });
+  return best;
+}
+const skin = document.getElementById("skin"), seen = {};
+[1, -1].forEach(function(sign){
+  for (let k = -6; k <= 6; k++){
+    const hits = cross([CX + k*92, CY], [1, sign]);
+    if (hits.length < 2) continue;
+    hits.sort(function(a, b){ return a[0] - b[0]; });
+    const a = snap(hits[0]), b = snap(hits[hits.length - 1]);
+    if (Math.hypot(a.x-b.x, a.y-b.y) < 120) continue;
+    const key = [a.x, a.y, b.x, b.y].map(function(v){ return v.toFixed(0); }).join(",");
+    if (seen[key]) continue;
+    seen[key] = 1;
+    skin.appendChild(el("line", {class:"skin", x1:a.x.toFixed(1), y1:a.y.toFixed(1),
+                                 x2:b.x.toFixed(1), y2:b.y.toFixed(1)}));
+  }
+});
+
+/* ---------------- dots and equations ---------------- */
+const dotsG = document.getElementById("dots");
+const linesG = document.getElementById("lines");
+const item = [];
+
+P.forEach(function(p, i){
+  const g = el("g", {});
+  const c = el("circle", {class:"dot", cx:p.x.toFixed(1), cy:p.y.toFixed(1), r:8});
+
+  const dx = p.x - CX, dy = p.y - CY, len = Math.hypot(dx, dy);
+  let off = 30;
+  if (i >= 24 && i <= 32) off = 30 + 30 * (i % 3);          // stagger the crowded base
+  else if (i >= 6 && i <= 14) off = 32 + (i % 2 ? 28 : 0);   // stagger under the leaves
+  const tx = p.x + dx/len * off;
+  const ty = p.y + dy/len * off + 7;
+  const anchor = Math.abs(dx/len) < 0.45 ? "middle" : (dx > 0 ? "start" : "end");
+
+  const halo = el("text", {class:"eq halo", x:tx.toFixed(1), y:ty.toFixed(1), "text-anchor":anchor});
+  const txt  = el("text", {class:"eq",      x:tx.toFixed(1), y:ty.toFixed(1), "text-anchor":anchor});
+  halo.textContent = txt.textContent = EQ[i];
+
+  const hit = el("circle", {class:"hit", cx:p.x.toFixed(1), cy:p.y.toFixed(1), r:24,
+                            tabindex:"0", role:"button", "aria-label":EQ[i]});
+
+  g.appendChild(c); g.appendChild(halo); g.appendChild(txt); g.appendChild(hit);
+  dotsG.appendChild(g);
+  item.push({g:g, dot:c, halo:halo, txt:txt, hit:hit});
+
+  hit.addEventListener("click", function(){ pick(i); });
+  hit.addEventListener("keydown", function(e){
+    if (e.key === "Enter" || e.key === " "){ e.preventDefault(); pick(i); }
+  });
+});
+
+/* ---------------- game ---------------- */
+const askEl = document.getElementById("ask");
+const countEl = document.getElementById("count");
+const winEl = document.getElementById("win");
+let next = 0, finished = false;
+
+const finalPopup = document.getElementById("finalPopup");
+const finalScore = document.getElementById("finalScore");
+const stars = document.getElementById("stars");
+const playAgainBtn = document.getElementById("playAgainBtn");
+
+function showFinal(){
+  finalScore.textContent = "Your Score: 5 / 5";
+
+  stars.innerHTML = "";
+  for(let i = 0; i < 5; i++){
+    const star = document.createElement("span");
+    star.className = "final-star";
+    star.textContent = "⭐";
+    star.style.animationDelay = (i * 0.035) + "s";
+    stars.appendChild(star);
+  }
+
+  finalPopup.style.display = "flex";
+}
+
+function closeFinal(){
+  finalPopup.style.display = "none";
+}
+
+function ask(i){
+  const parts = EQ[i].split("+");
+  askEl.innerHTML = "Find the answer to <b>" + parts[0] + " + " + parts[1] + "</b>";
+}
+
+function answer(i){
+  const parts = EQ[i].split("+");
+  return Number(parts[0]) + Number(parts[1]);
+}
+
+function showAnswer(i){
+  item[i].halo.textContent = answer(i);
+  item[i].txt.textContent = answer(i);
+  item[i].hit.setAttribute("aria-label", answer(i));
+}
+
+function join(a, b){
+  const l = el("line", {class:"link", x1:P[a].x.toFixed(1), y1:P[a].y.toFixed(1),
+                                      x2:P[b].x.toFixed(1), y2:P[b].y.toFixed(1)});
+  const len = Math.hypot(P[b].x - P[a].x, P[b].y - P[a].y);
+  l.style.strokeDasharray = len;
+  l.style.strokeDashoffset = len;
+  linesG.appendChild(l);
+  requestAnimationFrame(function(){
+    l.style.transition = "stroke-dashoffset .22s linear";
+    l.style.strokeDashoffset = 0;
+  });
+}
+
+function pick(i){
+  if (finished) return;
+
+  if (i !== next){                      // wrong dot — nudge it, draw nothing
+    const g = item[i].g;
+    g.classList.remove("shake");
+    void g.getBoundingClientRect();
+    g.classList.add("shake");
+    setTimeout(function(){ g.classList.remove("shake"); }, 320);
+    return;
+  }
+
+  item[i].dot.classList.add("done");
+  item[i].dot.classList.remove("pulse");
+  showAnswer(i);
+  item[i].txt.classList.add("done");
+  item[i].txt.classList.remove("target");
+
+  if (i > 0) join(i - 1, i);
+
+  next = i + 1;
+  countEl.textContent = next;
+
+  if (next === N){
+    join(N - 1, 0);                     // close the outline
+    finished = true;
+    askEl.textContent = "All 36 dots joined.";
+    winEl.classList.add("show");
+    highlight();
+    setTimeout(startColouring, 400);
+    return;
+  }
+  ask(next);
+  highlight();
+}
+
+function highlight(){
+  item.forEach(function(o, k){
+    const isActive = !finished && k === next;
+    o.dot.classList.toggle("pulse", isActive);
+    o.txt.classList.toggle("target", isActive);
+    o.g.classList.toggle("active-dot", isActive);
+  });
+}
+
+/* ---------------- colouring ---------------- */
+const COLOURS = [
+  {name:"Green",      hex:"#4CAF50"},
+  {name:"Dark green", hex:"#20693A"},
+  {name:"Yellow",     hex:"#FFCB2E"},
+  {name:"Orange",     hex:"#F59322"},
+  {name:"Brown",      hex:"#8C5A2B"}
+];
+const art = document.getElementById("art");
+const paint = document.getElementById("paint");
+const swatches = document.getElementById("swatches");
+let brush = COLOURS[0].hex;
+
+/* only these shades are "correct" for each part of the pineapple */
+const VALID = {
+  leaf: ["#4CAF50", "#20693A"],
+  body: ["#FFCB2E", "#F59322"]
+};
+const PART_LABEL = { leaf: "leaves", body: "fruit" };
+const PART_HINT = { leaf: "Try a green for the leaves.", body: "Try yellow or orange for the fruit." };
+
+COLOURS.concat([{name:"Rub out", hex:"#ffffff", erase:true}]).forEach(function(c, i){
+  const b = document.createElement("button");
+  b.className = "swatch" + (c.erase ? " erase" : "");
+  b.type = "button";
+  b.title = c.name;
+  b.setAttribute("aria-label", c.name);
+  b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+  if (!c.erase) b.style.background = c.hex;
+  b.addEventListener("click", function(){
+    brush = c.hex;
+    swatches.querySelectorAll(".swatch").forEach(function(s){
+      s.setAttribute("aria-pressed", s === b ? "true" : "false");
+    });
+  });
+  swatches.appendChild(b);
+});
+
+/* Track whether every pineapple region has been correctly coloured. */
+const colouredRegions = new Set();
+
+function checkColouringComplete(){
+  if (!finished) return;
+
+  /* Every region must have a valid non-white colour. */
+  if (colouredRegions.size === regions.length){
+    askEl.textContent = "Wonderful! You coloured the whole pineapple!";
+    setTimeout(showFinal, 350);
+  }
+}
+
+regions.forEach(function(r, index){
+  r.addEventListener("click", function(){
+    if (!finished) return;
+
+    const part = r.dataset.part;
+    const isErase = brush === "#ffffff";
+    const isValid = isErase || VALID[part].indexOf(brush) !== -1;
+
+    if (!isValid){
+      r.classList.remove("wrong-color");
+      void r.getBoundingClientRect();
+      r.classList.add("wrong-color");
+      setTimeout(function(){ r.classList.remove("wrong-color"); }, 340);
+      askEl.textContent = PART_HINT[part];
+      return;
+    }
+
+    r.style.fill = brush;
+
+    if (isErase){
+      colouredRegions.delete(index);
+      askEl.textContent = "Choose the correct colour and colour every part.";
+    } else {
+      colouredRegions.add(index);
+      askEl.textContent = "Great! Keep colouring the pineapple.";
+      checkColouringComplete();
+    }
+  });
+});
+
+function startColouring(){
+  colouredRegions.clear();
+  art.classList.add("coloring");
+  paint.classList.add("show");
+  skipBtn.style.display = "none";
+  askEl.textContent = "Now tap a leaf or the body to colour it.";
+}
+
+const skipBtn = document.getElementById("skip");
+skipBtn.addEventListener("click", function(){
+  if (finished) return;
+  for (let i = Math.max(next, 1); i < N; i++) join(i - 1, i);
+  join(N - 1, 0);
+  item.forEach(function(o){
+    o.dot.classList.add("done");
+    o.dot.classList.remove("pulse");
+    showAnswer(item.indexOf(o));
+    o.txt.classList.add("done");
+    o.txt.classList.remove("target");
+  });
+  next = N;
+  finished = true;
+  countEl.textContent = N;
+  winEl.classList.add("show");
+  startColouring();
+});
+
+playAgainBtn.addEventListener("click", function(){
+  closeFinal();
+  colouredRegions.clear();
+
+  linesG.replaceChildren();
+  item.forEach(function(o, i){
+    o.dot.classList.remove("done");
+    o.dot.classList.remove("pulse");
+    o.g.classList.remove("shake");
+    o.halo.textContent = o.txt.textContent = EQ[i];
+    o.hit.setAttribute("aria-label", EQ[i]);
+    o.txt.classList.remove("done");
+    o.txt.classList.remove("target");
+  });
+
+  regions.forEach(function(r){
+    r.style.fill = "";
+    r.classList.remove("wrong-color");
+  });
+
+  art.classList.remove("coloring");
+  paint.classList.remove("show");
+  skipBtn.style.display = "";
+
+  next = 0;
+  finished = false;
+  countEl.textContent = "0";
+  winEl.classList.remove("show");
+  ask(0);
+  highlight();
+});
+
+finalPopup.addEventListener("click", function(e){
+  if(e.target === finalPopup) closeFinal();
+});
+
+document.getElementById("reset").addEventListener("click", function(){
+  closeFinal();
+  colouredRegions.clear();
+  linesG.replaceChildren();
+  item.forEach(function(o, i){
+    o.dot.classList.remove("done");
+    o.halo.textContent = o.txt.textContent = EQ[i];
+    o.hit.setAttribute("aria-label", EQ[i]);
+    o.txt.classList.remove("done");
+  });
+  regions.forEach(function(r){ r.style.fill = ""; r.classList.remove("wrong-color"); });
+  art.classList.remove("coloring");
+  paint.classList.remove("show");
+  skipBtn.style.display = "";
+  next = 0; finished = false;
+  countEl.textContent = "0";
+  winEl.classList.remove("show");
+  ask(0);
+  highlight();
+});
+
+ask(0);
+highlight();
+</script>
+</body>
+</html>

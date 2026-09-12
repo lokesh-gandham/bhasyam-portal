@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Greatest Number Flower</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Livvic,sans-serif;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+}
+
+body{
+    color:#40535a;
+    overflow:hidden;
+
+}
+
+.game{
+    width:100%;
+    height:100dvh;
+    min-height:540px;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    position:relative;
+    overflow:hidden;
+}
+
+.game:before,
+.game:after{
+    content:"";
+    position:absolute;
+    border:3px dashed rgba(80,120,140,.1);
+    border-radius:50%;
+    pointer-events:none;
+}
+
+.game:before{
+    width:280px;
+    height:280px;
+    left:-180px;
+    bottom:-175px;
+}
+
+.game:after{
+    width:270px;
+    height:270px;
+    right:-120px;
+    top:170px;
+    border-color:rgba(225,160,60,.13);
+}
+
+.home-btn{
+    position:absolute;
+    left:20px;
+    top:14px;
+    width:72px;
+    height:72px;
+    border:0;
+    border-radius:50%;
+    background:rgba(255,255,255,.72);
+    color:#40535a;
+    cursor:pointer;
+    z-index:20;
+    box-shadow:
+        0 10px 20px rgba(60,80,95,.14),
+        inset 0 2px 2px #fff;
+}
+
+.home-btn:before{
+    content:"⌂";
+    font-size:42px;
+    font-weight:900;
+}
+
+header{
+    text-align:center;
+    padding:10px 110px 5px;
+    z-index:3;
+}
+
+h1{
+    font-size:22px;
+    font-weight:400;
+    color:#2f4f4f;
+    line-height:1.3;
+}
+
+.stage{
+    min-height:0;
+    width:100%;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:5px 0;
+}
+
+.play-area{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:min(650px,58vw);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+}
+
+.flower-shell{
+    width:clamp(390px,38vw,560px);
+    aspect-ratio:1;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.flower-shell:before{
+    content:"";
+    position:absolute;
+    width:74%;
+    height:74%;
+    border:3px dashed rgba(225,169,59,.22);
+    border-radius:50%;
+    animation:spin 22s linear infinite;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+.flower{
+    width:100%;
+    height:100%;
+    position:relative;
+}
+
+.petal{
+    position:absolute;
+    width:28%;
+    height:21%;
+    border:3px solid #60747d;
+    background:linear-gradient(145deg,#fff,#e8eef1);
+    border-radius:50% 50% 46% 46%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:clamp(20px,2.4vw,32px);
+    font-weight:500;
+    color:#40535a;
+    cursor:pointer;
+    box-shadow:
+        0 8px 0 rgba(70,90,100,.12),
+        inset 0 2px 0 rgba(255,255,255,.9);
+    transition:.18s;
+    z-index:3;
+}
+
+.petal:hover:not(:disabled){
+    transform:scale(1.04);
+    border-color:#ef9b37;
+}
+
+.petal.selected{
+    border-color:#ef8a28;
+    background:#fff0d9;
+    box-shadow:
+        0 0 0 6px rgba(239,138,40,.15),
+        0 8px 0 rgba(70,90,100,.12);
+}
+
+.petal.correct{
+    background:linear-gradient(145deg,#ff8a8a,#e63946);
+    border-color:#bd2635;
+    color:#fff;
+    box-shadow:0 8px 0 #b92835;
+}
+
+.petal.wrong{
+    background:#fff0f2;
+    border-color:#ff6b7a;
+    animation:shake .35s linear;
+}
+
+@keyframes shake{
+    0%,100%{margin-left:0}
+    25%{margin-left:-7px}
+    75%{margin-left:7px}
+}
+
+.petal:disabled{
+    cursor:default;
+}
+
+.p1{
+    top:1%;
+    left:50%;
+    transform:translateX(-50%);
+}
+
+.p2{
+    top:20%;
+    right:5%;
+}
+
+.p3{
+    bottom:20%;
+    right:5%;
+}
+
+.p4{
+    bottom:1%;
+    left:50%;
+    transform:translateX(-50%);
+}
+
+.p5{
+    bottom:20%;
+    left:5%;
+}
+
+.p6{
+    top:20%;
+    left:5%;
+}
+
+.center{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:25%;
+    aspect-ratio:1;
+    border-radius:50%;
+    z-index:6;
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #fff,
+            #fff4c7 34%,
+            #f7bd42 72%,
+            #df9a21
+        );
+    border:6px solid #fff9df;
+    box-shadow:
+        0 0 0 6px rgba(234,170,48,.18),
+        0 9px 0 rgba(184,121,20,.16);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:clamp(24px,3vw,42px);
+    font-weight:600;
+    color:#80551d;
+    pointer-events:none;
+}
+
+.color-station{
+    position:absolute;
+    right:clamp(35px,8vw,150px);
+    top:50%;
+    transform:translateY(-50%);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+}
+
+.color-title{
+    font-size:18px;
+    font-weight:500;
+    color:#52636b;
+    text-align:center;
+}
+
+.paint{
+    width:76px;
+    height:76px;
+    border-radius:50%;
+    border:7px solid #fff;
+    background:#e63946;
+    cursor:pointer;
+    box-shadow:
+        0 9px 0 #b92835,
+        0 0 0 5px rgba(230,57,70,.14);
+    transition:.18s;
+    position:relative;
+}
+
+.paint:after{
+    content:"";
+    position:absolute;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:rgba(255,255,255,.55);
+    top:12px;
+    left:16px;
+}
+
+.paint.active{
+    transform:translateY(-5px) scale(1.08);
+    box-shadow:
+        0 13px 0 #b92835,
+        0 0 0 8px rgba(230,57,70,.18);
+}
+
+.paint-label{
+    font-size:20px;
+    font-weight:500;
+    color:#d33847;
+}
+
+.hint{
+    min-height:24px;
+    text-align:center;
+    font-size:17px;
+    font-weight:500;
+    color:#718087;
+}
+
+.navigation{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    padding:8px clamp(25px,4vw,70px) 20px;
+    z-index:20;
+}
+
+.nav-btn{
+    min-width:178px;
+    height:45px;
+    padding:10px 25px;
+    border:none;
+    border-radius:35px;
+    background:#e67e22;
+    color:#fff;
+    font-size:20px;
+    font-weight:500;
+    cursor:pointer;
+    box-shadow:0 6px #d35400;
+    transition:.1s;
+}
+
+.nav-btn:active:not(:disabled){
+    transform:translateY(4px);
+    box-shadow:0 2px #d35400;
+}
+
+.nav-btn:disabled{
+    background:#b2bec3;
+    box-shadow:0 6px #7f8c8d;
+    cursor:not-allowed;
+}
+
+.submit-btn{
+    background:#00b894;
+    box-shadow:0 6px #008f72;
+}
+
+.submit-btn:active:not(:disabled){
+    box-shadow:0 2px #008f72;
+}
+
+#prevBtn{
+    justify-self:start;
+}
+
+#nextBtn{
+    justify-self:end;
+}
+
+.popup-overlay{
+    position:fixed;
+    inset:0;
+ 
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s;
+    z-index:1000;
+}
+
+.popup-overlay.active{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.popup-overlay.active 
+.popup-card{
+    position:relative;
+    width:520px;
+    height:300px;
+    max-width:calc(100vw - 30px);
+    padding:30px;
+    border-radius:36px;
+    text-align:center;
+    box-shadow:0 20px 40px rgba(0,0,0,.1);
+    transform:scale(.8);
+    transition:.35s cubic-bezier(.175,.885,.32,1.275);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+
+.popup-card:before,
+.popup-card:after{
+    content:"";
+    position:absolute;
+    border-radius:50%;
+    pointer-events:none;
+}
+
+.popup-card:before{
+    width:220px;
+    height:220px;
+    top:-60px;
+    right:-50px;
+}
+
+.popup-card:after{
+    width:180px;
+    height:180px;
+    bottom:-70px;
+    left:-40px;
+}
+
+.popup-card.correct{
+    background:#edfbf4;
+    border:6px solid #00c885;
+}
+
+.popup-card.correct:before,
+.popup-card.correct:after{
+    background:rgba(162,245,209,.45);
+}
+
+.popup-card.correct .popup-title{
+    color:#00a86b;
+}
+
+.popup-card.correct .popup-subtitle{
+    color:#2e7d5b;
+}
+
+.popup-card.wrong{
+    background:#fff0f2;
+    border:6px solid #ff6b7a;
+}
+
+.popup-card.wrong:before,
+.popup-card.wrong:after{
+    background:rgba(255,196,203,.45);
+}
+
+.popup-card.wrong .popup-title{
+    color:#d33847;
+}
+
+.popup-card.wrong .popup-subtitle{
+    color:#a33b45;
+}
+
+.popup-card.complete{
+    background:#f0f3ff;
+    border:6px solid #6c5ce7;
+}
+
+.popup-card.complete:before,
+.popup-card.complete:after{
+    background:rgba(162,155,254,.35);
+}
+
+.popup-card.complete .popup-title{
+    color:#6c5ce7;
+}
+
+.popup-card.complete .popup-subtitle{
+    color:#4834d4;
+}
+
+.popup-overlay.active .popup-card{
+    transform:scale(1);
+}
+
+.popup-icon{
+    font-size:4.8rem;
+    margin-bottom:12px;
+    z-index:2;
+    line-height:1;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.1));
+}
+
+.popup-title{
+    font-size:3rem;
+    font-weight:600;
+    margin-bottom:8px;
+    z-index:2;
+}
+
+.popup-subtitle{
+    font-size:1.4rem;
+    font-weight:500;
+    z-index:2;
+}
+
+/* EXACT NUMBER NAME QUEST PLAY AGAIN BUTTON */
+.replay-btn{
+    background:linear-gradient(180deg,#1599ed 0%,#0984e3 100%);
+    box-shadow:0 5px 0 #0874bd,0 8px 16px rgba(9,132,227,.22);
+    width:185px;
+    min-width:185px;
+    height:46px;
+    padding:0 20px;
+    margin-top:14px;
+    font-size:22px;
+    font-weight:600;
+    line-height:46px;
+    border-radius:23px;
+    border:2px solid rgba(255,255,255,.35);
+    letter-spacing:.2px;
+    transition:transform .12s ease,box-shadow .12s ease;
+    color:#fff;
+    cursor:pointer;
+    display:none;
+}
+
+.replay-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 7px 0 #0874bd,0 11px 20px rgba(9,132,227,.26);
+}
+
+.replay-btn:active{
+    transform:translateY(3px);
+    box-shadow:0 2px 0 #0874bd,0 4px 8px rgba(9,132,227,.18);
+}
+
+/* EXACT FINAL POPUP FINISH */
+.popup-card.complete{
+    box-shadow:
+        0 20px 45px rgba(108,92,231,.18),
+        0 0 0 8px rgba(162,155,254,.12);
+}
+
+.popup-card.complete .replay-btn{
+    margin-top:14px;
+}
+
+.popup-card.complete .popup-icon{
+    animation:finalTrophyBounce 1.2s ease-in-out infinite;
+}
+
+@keyframes finalTrophyBounce{
+    0%,100%{transform:translateY(0) rotate(0deg) scale(1)}
+    50%{transform:translateY(-5px) rotate(-4deg) scale(1.06)}
+}
+
+@media(min-width:1600px){
+    h1{
+        font-size:30px;
+    }
+    .nav-btn{
+        width:200px;
+        min-width:200px;
+        height:60px;
+        padding:0;
+        font-size:30px;
+        border-radius:50px;
+    }
+    .navigation{
+        padding-left:70px;
+        padding-right:70px;
+    }
+    .flower-shell{
+        width:clamp(460px,36vw,600px);
+    }
+    .play-area{
+        width:min(720px,58vw);
+    }
+}
+
+@media(max-width:800px){
+
+    body{
+        overflow:auto;
+    }
+
+    .game{
+        height:auto;
+        min-height:100svh;
+        overflow:visible;
+    }
+
+    .home-btn{
+        width:58px;
+        height:58px;
+        left:12px;
+        top:10px;
+    }
+
+    .home-btn:before{
+        font-size:34px;
+    }
+
+    header{
+        padding:10px 75px 4px;
+    }
+
+    h1{
+        font-size:18px;
+    }
+
+    .stage{
+        min-height:620px;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        gap:25px;
+    }
+
+    .play-area{
+        position:relative;
+        left:auto;
+        top:auto;
+        transform:none;
+        width:100%;
+    }
+
+    .flower-shell{
+        width:min(500px,88vw);
+    }
+
+    .color-station{
+        position:relative;
+        right:auto;
+        top:auto;
+        transform:none;
+        flex-direction:row;
+        gap:12px;
+    }
+
+    .color-title,
+    .paint-label{
+        display:none;
+    }
+
+    .hint{
+        font-size:15px;
+    }
+
+    .navigation{
+        padding:10px 12px 16px;
+    }
+
+    .nav-btn{
+        min-width:92px;
+        font-size:16px;
+        padding:8px 12px;
+    }
+}
+
+@media(max-height:700px) and (min-width:801px){
+
+    header{
+        padding-top:5px;
+    }
+
+    .flower-shell{
+        width:clamp(340px,31vw,460px);
+    }
+
+    .play-area{
+        gap:7px;
+    }
+
+    .paint{
+        width:64px;
+        height:64px;
+    }
+
+    .navigation{
+        padding-bottom:12px;
+    }
+}
+
+#confettiContainer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:2000}
+.confetti-piece{position:absolute;width:9px;height:14px;border-radius:2px;opacity:0;animation:pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;will-change:transform,opacity}
+.final-confetti-piece{width:10px;height:16px;animation-duration:2300ms}
+.final-confetti-piece:nth-child(3n){border-radius:50%}
+.final-confetti-piece:nth-child(4n){width:7px;height:19px;border-radius:1px}
+.final-confetti-piece:nth-child(5n){width:13px;height:8px;border-radius:2px}
+@keyframes pageConfetti{0%{opacity:1;transform:translate3d(0,0,0) rotate(0deg) scale(1)}55%{opacity:1}100%{opacity:0;transform:translate3d(var(--x),var(--y),0) rotate(var(--r)) scale(.72)}}
+.popup-card.complete{box-shadow:0 20px 45px rgba(108,92,231,.18),0 0 0 8px rgba(162,155,254,.12)}
+.popup-card.complete .replay-btn{margin-top:12px}
+.popup-card.complete .popup-icon{animation:finalTrophyBounce 1.2s ease-in-out infinite}
+@keyframes finalTrophyBounce{0%,100%{transform:translateY(0) rotate(0deg) scale(1)}50%{transform:translateY(-5px) rotate(-4deg) scale(1.06)}}
+
+/* ===== CHAPTER 5: UNIFIED FINAL POPUP ===== */
+.popup-overlay{
+    position:fixed !important;
+    inset:0 !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    background:transparent !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+    transition:opacity .3s ease,background .3s ease !important;
+    z-index:1000 !important;
+}
+.popup-overlay.active{
+    opacity:1 !important;
+    pointer-events:auto !important;
+    background:transparent !important;
+}
+.popup-overlay.active .popup-card{transform:scale(1) !important}
+.popup-overlay .popup-card{
+    position:relative !important;
+    width:520px !important;
+    height:300px !important;
+    max-width:calc(100vw - 30px) !important;
+    padding:30px !important;
+    border-radius:36px !important;
+    text-align:center !important;
+    transform:scale(.8) !important;
+    transition:transform .35s cubic-bezier(.175,.885,.32,1.275) !important;
+    overflow:hidden !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    margin:0 !important;
+}
+.popup-overlay .popup-card::before,
+.popup-overlay .popup-card::after{
+    content:'' !important;
+    position:absolute !important;
+    border-radius:50% !important;
+    pointer-events:none !important;
+}
+.popup-overlay .popup-card::before{width:220px !important;height:220px !important;top:-60px !important;right:-50px !important}
+.popup-overlay .popup-card::after{width:180px !important;height:180px !important;bottom:-70px !important;left:-40px !important}
+.popup-overlay .popup-card.correct{background:#edfbf4 !important;border:6px solid #00c885 !important}
+.popup-overlay .popup-card.correct::before,
+.popup-overlay .popup-card.correct::after{background:rgba(162,245,209,.45) !important}
+.popup-overlay .popup-card.correct .popup-title{color:#00a86b !important}
+.popup-overlay .popup-card.correct .popup-subtitle{color:#2e7d5b !important}
+.popup-overlay .popup-card.wrong{background:#fff0f2 !important;border:6px solid #ff6b7a !important}
+.popup-overlay .popup-card.wrong::before,
+.popup-overlay .popup-card.wrong::after{background:rgba(255,196,203,.45) !important}
+.popup-overlay .popup-card.wrong .popup-title{color:#d33847 !important}
+.popup-overlay .popup-card.wrong .popup-subtitle{color:#a33b45 !important}
+.popup-overlay .popup-card.complete{
+    background:#f0f3ff !important;
+    border:6px solid #6c5ce7 !important;
+    box-shadow:0 20px 45px rgba(108,92,231,.18),0 0 0 8px rgba(162,155,254,.12) !important;
+}
+.popup-overlay .popup-card.complete::before,
+.popup-overlay .popup-card.complete::after{background:rgba(162,155,254,.35) !important}
+.popup-overlay .popup-card.complete .popup-title{color:#6c5ce7 !important}
+.popup-overlay .popup-card.complete .popup-subtitle{color:#4834d4 !important}
+.popup-overlay .popup-icon{
+    font-size:4.8rem !important;
+    margin:0 0 12px !important;
+    padding:0 !important;
+    height:auto !important;
+    width:auto !important;
+    line-height:1 !important;
+    z-index:2 !important;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.1)) !important;
+    position:relative !important;
+}
+.popup-overlay .popup-title,
+.popup-overlay h2.popup-title{
+    font-size:3rem !important;
+    font-weight:600 !important;
+    margin:0 0 8px !important;
+    padding:0 !important;
+    height:auto !important;
+    line-height:1.15 !important;
+    z-index:2 !important;
+    position:relative !important;
+}
+.popup-overlay .popup-subtitle,
+.popup-overlay p.popup-subtitle{
+    font-size:1.4rem !important;
+    font-weight:500 !important;
+    margin:0 !important;
+    padding:0 !important;
+    height:auto !important;
+    line-height:1.35 !important;
+    z-index:2 !important;
+    text-align:center !important;
+    position:relative !important;
+}
+.popup-overlay .replay-btn,
+.popup-overlay #playAgainBtn,
+.popup-overlay .replay{
+    background:linear-gradient(180deg,#1599ed 0%,#0984e3 100%) !important;
+    box-shadow:0 5px 0 #0874bd,0 8px 16px rgba(9,132,227,.22) !important;
+    width:185px !important;
+    min-width:185px !important;
+    height:46px !important;
+    padding:0 20px !important;
+    margin-top:14px !important;
+    font-size:22px !important;
+    font-weight:600 !important;
+    line-height:46px !important;
+    border-radius:23px !important;
+    border:2px solid rgba(255,255,255,.35) !important;
+    letter-spacing:.2px !important;
+    color:#fff !important;
+    cursor:pointer !important;
+    z-index:2 !important;
+    font-family:'Livvic',sans-serif !important;
+    transition:transform .12s ease,box-shadow .12s ease !important;
+}
+.popup-overlay .replay-btn:hover,
+.popup-overlay #playAgainBtn:hover,
+.popup-overlay .replay:hover{
+    transform:translateY(-2px) !important;
+    box-shadow:0 7px 0 #0874bd,0 11px 20px rgba(9,132,227,.26) !important;
+}
+.popup-overlay .replay-btn:active,
+.popup-overlay #playAgainBtn:active,
+.popup-overlay .replay:active{
+    transform:translateY(3px) !important;
+    box-shadow:0 2px 0 #0874bd,0 4px 8px rgba(9,132,227,.18) !important;
+}
+.popup-overlay .popup-card.complete .popup-icon{
+    animation:ch5FinalTrophyBounce 1.2s ease-in-out infinite !important;
+}
+@keyframes ch5FinalTrophyBounce{
+    0%,100%{transform:translateY(0) rotate(0deg) scale(1)}
+    50%{transform:translateY(-5px) rotate(-4deg) scale(1.06)}
+}
+@media (max-width:520px){
+    .popup-overlay .popup-card{
+        width:calc(100vw - 24px) !important;
+        height:auto !important;
+        min-height:260px !important;
+        padding:24px 18px !important;
+    }
+    .popup-overlay .popup-title,
+    .popup-overlay h2.popup-title{font-size:2.2rem !important}
+    .popup-overlay .popup-subtitle,
+    .popup-overlay p.popup-subtitle{font-size:1.1rem !important}
+    .popup-overlay .popup-icon{font-size:3.6rem !important}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="game">
+
+  
+
+    <header>
+        <h1>Colour the greatest number petal in each flower with red</h1>
+    </header>
+
+    <main class="stage">
+
+        <div class="play-area">
+
+            <div class="flower-shell">
+                <div class="flower" id="flower"></div>
+            </div>
+
+            <div class="hint" id="hint">
+                Select red, then choose one petal
+            </div>
+
+        </div>
+
+        <div class="color-station">
+
+            <div class="color-title">
+                Choose colour
+            </div>
+
+            <button
+                class="paint"
+                id="paintBtn"
+                onclick="selectPaint()"
+                aria-label="Red colour">
+            </button>
+
+            <div class="paint-label">
+                RED
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="navigation">
+
+        <button
+            class="nav-btn"
+            id="prevBtn"
+            onclick="previousQuestion()"
+            disabled>
+            PREV
+        </button>
+
+        <button
+            class="nav-btn submit-btn"
+            id="submitBtn"
+            onclick="checkAnswer()"
+            disabled>
+            SUBMIT
+        </button>
+
+        <button
+            class="nav-btn"
+            id="nextBtn"
+            onclick="nextQuestion()"
+            disabled>
+            NEXT
+        </button>
+
+    </footer>
+
+</div>
+
+
+<div id="confettiContainer"></div>
+
+<div class="popup-overlay" id="popup">
+
+    <div class="popup-card" id="popupCard">
+
+        <div class="popup-icon" id="popupIcon">🌟</div>
+
+        <h2 class="popup-title" id="popupTitle">
+            Amazing!
+        </h2>
+
+        <p class="popup-subtitle" id="popupSubtitle"></p>
+
+        <button
+            class="replay-btn"
+            id="playAgainBtn"
+            onclick="restartGame()">
+            Play Again
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const questions=[
+    [45,67,34,56,78,23],
+    [55,77,66,33,22,99],
+    [80,40,50,60,20,10]
+];
+
+let currentIndex=0;
+let selected=null;
+let painted=false;
+let solved=questions.map(()=>false);
+let popupTimer=null;
+
+const flower=document.getElementById("flower");
+const paintBtn=document.getElementById("paintBtn");
+const submitBtn=document.getElementById("submitBtn");
+const nextBtn=document.getElementById("nextBtn");
+const prevBtn=document.getElementById("prevBtn");
+const hint=document.getElementById("hint");
+
+const popup=document.getElementById("popup");
+const popupCard=document.getElementById("popupCard");
+const popupIcon=document.getElementById("popupIcon");
+const popupTitle=document.getElementById("popupTitle");
+const popupSubtitle=document.getElementById("popupSubtitle");
+const playAgainBtn=document.getElementById("playAgainBtn");
+
+
+
+function showSmallConfetti(isFinal=false){
+    const confettiContainer=document.getElementById("confettiContainer");
+    if(!confettiContainer)return;
+    confettiContainer.innerHTML="";
+    const count=isFinal?95:42;
+    const colors=["#00b894","#e67e22","#6c5ce7","#0984e3","#fdcb6e","#ff6b7a","#00cec9","#a29bfe"];
+    for(let i=0;i<count;i++){
+        const piece=document.createElement("span");
+        piece.className=isFinal?"confetti-piece final-confetti-piece":"confetti-piece";
+        const startX=Math.random()*100,startY=-8+Math.random()*10;
+        const drift=(Math.random()*520-260)*(isFinal?1.15:.9);
+        const fall=window.innerHeight*(.82+Math.random()*.48);
+        const rotation=Math.random()*1400-700;
+        piece.style.left=startX+"%";piece.style.top=startY+"%";
+        piece.style.setProperty("--x",drift+"px");piece.style.setProperty("--y",fall+"px");piece.style.setProperty("--r",rotation+"deg");
+        piece.style.background=colors[Math.floor(Math.random()*colors.length)];
+        piece.style.animationDelay=(Math.random()*(isFinal?500:220))+"ms";
+        confettiContainer.appendChild(piece);
+        setTimeout(()=>piece.remove(),isFinal?2900:2050);
+    }
+}
+
+function renderQuestion(){
+
+    flower.innerHTML="";
+    selected=null;
+    painted=false;
+
+    paintBtn.classList.remove("active");
+
+    const numbers=questions[currentIndex];
+    const done=solved[currentIndex];
+    const answer=Math.max(...numbers);
+
+    numbers.forEach((number,i)=>{
+
+        const petal=document.createElement("button");
+
+        petal.className="petal p"+(i+1);
+        petal.textContent=number;
+
+        if(done){
+
+            petal.disabled=true;
+
+            if(number===answer){
+                petal.classList.add("correct");
+            }
+        }
+
+        petal.onclick=()=>paintPetal(number,petal);
+
+        flower.appendChild(petal);
+
+    });
+
+
+    const center=document.createElement("div");
+
+    center.className="center";
+
+    center.innerHTML=done?"✓":"✿";
+
+    flower.appendChild(center);
+
+
+    prevBtn.disabled=currentIndex===0;
+
+    nextBtn.disabled=!done;
+
+    submitBtn.disabled=true;
+
+    hint.textContent=
+        done
+        ?"Great job! The greatest number is painted red."
+        :"Select red, then choose one petal.";
+}
+
+
+function selectPaint(){
+
+    if(solved[currentIndex]) return;
+
+    painted=true;
+
+    paintBtn.classList.add("active");
+
+    hint.textContent=
+        "Red is ready! Choose the greatest number.";
+}
+
+
+function paintPetal(value,element){
+
+    if(!painted || solved[currentIndex]) return;
+
+    document
+        .querySelectorAll(".petal")
+        .forEach(p=>p.classList.remove("selected","wrong"));
+
+    element.classList.add("selected");
+
+    selected=value;
+
+    submitBtn.disabled=false;
+
+    hint.textContent=
+        "Petal selected. Press SUBMIT.";
+}
+
+
+function checkAnswer(){
+
+if(selected===null)return;
+
+const answer=Math.max(...questions[currentIndex]);
+const picked=document.querySelector(".petal.selected");
+
+if(selected!==answer){
+
+playAudioTone(false);
+speak("Wrong");
+
+showPopup(
+"wrong",
+"😟",
+"Keep Going!",
+"Try again, you can do it! 🌈",
+false
+);
+
+picked.classList.remove("selected");
+picked.classList.add("wrong");
+
+setTimeout(()=>{
+
+picked.classList.remove("wrong");
+selected=null;
+submitBtn.disabled=true;
+hint.textContent="Choose another petal and try again.";
+
+},500);
+
+return;
+
+}
+
+solved[currentIndex]=true;
+
+document.querySelectorAll(".petal").forEach(p=>{
+
+p.disabled=true;
+
+if(+p.textContent===answer){
+p.classList.add("correct");
+}
+
+});
+
+document.querySelector(".center").innerHTML="✓";
+
+submitBtn.disabled=true;
+
+playAudioTone(true);
+speak("Correct");
+ showSmallConfetti(false);
+
+if(currentIndex===questions.length-1){
+
+setTimeout(()=>{
+
+
+
+showPopup(
+"complete",
+"🏆",
+"Congratulations!",
+"Fantastic job! You solved all questions! 🎉",
+true
+);
+showSmallConfetti(true);
+
+},700);
+
+}else{
+
+nextBtn.disabled=false;
+
+showPopup(
+"correct",
+"🌟",
+"Amazing!",
+"You got it right! ✨",
+false
+);
+
+hint.textContent="Excellent! Press NEXT for the next flower.";
+
+}
+
+}   
+function nextQuestion(){
+
+    if(!solved[currentIndex]) return;
+
+
+    if(currentIndex<questions.length-1){
+
+        currentIndex++;
+
+        renderQuestion();
+
+    }else{
+
+        playAudioTone(true);
+
+        speak("Correct! Fantastic job!");
+
+        showPopup(
+            "complete",
+            "🏆",
+            "Congratulations!",
+            "Fantastic job! You solved all questions! 🎉",
+            true
+        );
+        setTimeout(()=>showSmallConfetti(true),350);
+    }
+}
+
+
+function previousQuestion(){
+
+    if(currentIndex>0){
+
+        currentIndex--;
+
+        renderQuestion();
+    }
+}
+
+
+function restartGame(){
+
+    clearTimeout(popupTimer);
+
+    closePopup();
+
+    currentIndex=0;
+
+    selected=null;
+
+    painted=false;
+
+    solved=questions.map(()=>false);
+
+    const confettiContainer=document.getElementById("confettiContainer");
+    if(confettiContainer) confettiContainer.innerHTML="";
+
+    renderQuestion();
+}
+
+
+function showPopup(status,icon,title,subtitle,isFinal){
+
+    popupCard.className=
+        `popup-card ${status}`;
+
+    popupIcon.textContent=icon;
+
+    popupTitle.textContent=title;
+
+    popupSubtitle.textContent=subtitle;
+
+    playAgainBtn.style.display=
+        isFinal?"inline-block":"none";
+
+    popup.classList.add("active");
+
+
+    clearTimeout(popupTimer);
+
+
+    if(!isFinal){
+
+        popupTimer=setTimeout(
+            closePopup,
+            1800
+        );
+    }
+}
+
+
+function closePopup(){
+
+    popup.classList.remove("active");
+}
+
+
+function speak(text){
+
+    if(!window.speechSynthesis) return;
+
+    speechSynthesis.cancel();
+
+    const message=
+        new SpeechSynthesisUtterance(text);
+
+    message.lang="en-US";
+    message.volume=.8;
+    message.rate=1;
+    message.pitch=1;
+
+    speechSynthesis.speak(message);
+}
+
+
+let audioCtx;
+
+
+function playAudioTone(correct){
+
+    const AudioContext=
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+    if(!AudioContext) return;
+
+
+    audioCtx??=new AudioContext();
+
+
+    if(audioCtx.state==="suspended"){
+        audioCtx.resume();
+    }
+
+
+    const oscillator=
+        audioCtx.createOscillator();
+
+    const gain=
+        audioCtx.createGain();
+
+
+    oscillator.connect(gain);
+
+    gain.connect(audioCtx.destination);
+
+
+    if(correct){
+
+        oscillator.type="sine";
+
+        oscillator.frequency.setValueAtTime(
+            587,
+            audioCtx.currentTime
+        );
+
+        oscillator.frequency.exponentialRampToValueAtTime(
+            880,
+            audioCtx.currentTime+.2
+        );
+
+    }else{
+
+        oscillator.type="sawtooth";
+
+        oscillator.frequency.setValueAtTime(
+            200,
+            audioCtx.currentTime
+        );
+
+        oscillator.frequency.linearRampToValueAtTime(
+            120,
+            audioCtx.currentTime+.2
+        );
+    }
+
+
+    gain.gain.setValueAtTime(
+        .2,
+        audioCtx.currentTime
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        .01,
+        audioCtx.currentTime+.3
+    );
+
+
+    oscillator.start();
+
+    oscillator.stop(
+        audioCtx.currentTime+.3
+    );
+}
+
+
+function goHome(){
+
+    window.location.href="../index.html";
+}
+
+
+renderQuestion();
+
+</script>
+
+</body>
+</html>

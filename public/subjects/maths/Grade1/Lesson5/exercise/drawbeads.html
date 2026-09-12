@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Number Reactor</title>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:Livvic,sans-serif}
+body{color:#29464d;overflow:hidden}
+.game{min-height:100vh;height:100vh;display:grid;grid-template-rows:auto 1fr auto;position:relative;overflow:hidden;
+background:#fff}
+
+
+header{z-index:2;text-align:center;padding:12px 20px 2px}
+p{margin:0;color:#2f4f4f;font-size:22px;line-height:1.25}
+.instruction{display:inline-block;margin-top:7px;padding:7px 22px;border-radius:30px;
+font-size:20px;color:#53676b}
+
+/* GAME FLOOR */
+.world{z-index:1;width:min(1280px,94vw);margin:auto;min-height:0;display:grid;grid-template-columns:1fr .72fr;gap:clamp(40px,6vw,110px);align-items:center}
+
+/* LEFT: CLEAR QUESTION + ABACUS MACHINE */
+.build-zone{height:min(590px,67vh);min-height:430px;position:relative;display:flex;align-items:center;justify-content:center}
+.mission{position:absolute;top:0;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap}
+.mission small{display:block;font-size:16px;letter-spacing:3px;color:#728287;margin-bottom:5px}
+.target{display:flex;align-items:center;justify-content:center;gap:13px;margin-bottom:20px}
+.target .word{font-size:22px;font-weight:700;color:#435e64}
+.target-number{width:82px;height:82px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:42px;
+background:linear-gradient(145deg,#2b8990,#5bb7a7);box-shadow:0 9px 0 rgba(36,108,112,.20),0 0 0 9px rgba(255,255,255,.46)}
+.target .arrow{font-size:29px;color:#e19344}
+
+/* BIG ABACUS - rods are unmistakable */
+.abacus{position:absolute;top:118px;width:min(620px,100%);height:390px}
+.abacus-shell{position:absolute;inset:0;border-radius:48px 48px 28px 28px;background:rgba(255,255,255,.32);
+border:3px solid rgba(255,255,255,.74);box-shadow:0 18px 40px rgba(53,82,90,.10),inset 0 0 0 1px rgba(60,106,112,.08)}
+.abacus-shell:before{content:"";position:absolute;left:50%;top:50px;bottom:35px;border-left:2px dashed rgba(68,121,127,.15)}
+.abacus-label{position:absolute;top:24px;font-size:21px;font-weight:600;letter-spacing:2px;color:#425b61}
+.tlabel{left:28%;transform:translateX(-50%)}.olabel{right:28%;transform:translateX(50%)}
+
+.rod{position:absolute;top:75px;bottom:50px;width:22px;border-radius:18px;
+background:linear-gradient(90deg,#69767a,#f7f8f4 46%,#7b898c);
+box-shadow:inset 3px 0 4px rgba(255,255,255,.6),3px 5px 7px rgba(49,65,67,.22)}
+.rod:before,.rod:after{content:"";position:absolute;left:50%;transform:translateX(-50%);width:46px;height:13px;border-radius:20px;background:#5c7175}
+.rod:before{top:-6px}.rod:after{bottom:-6px}
+.trod{left:28%}.orod{right:28%}
+
+.beads{
+  position:absolute;
+  bottom:48px;
+  width:90px;
+  height:270px;
+  display:flex;
+  flex-direction:column-reverse;
+  align-items:center;
+  gap:5px;
+  pointer-events:auto;
+}
+.tbeads{left:calc(28% - 34px)}.obeads{right:calc(28% - 34px)}
+.bead{width:82px;height:25px;border-radius:50%;position:relative;cursor:pointer;box-shadow:0 4px 0 rgba(30,61,67,.20),inset 0 3px 5px rgba(255,255,255,.65);animation:pop .2s ease-out}
+.bead:after{content:"";position:absolute;width:17px;height:8px;border-radius:50%;top:5px;left:17px;background:rgba(255,255,255,.46)}
+.green{background:linear-gradient(135deg,#87d7b5,#248a72);border:2px solid #247964}.blue{background:linear-gradient(135deg,#8dd2ed,#327da2);border:2px solid #2d6f92}
+@keyframes pop{from{opacity:0;transform:translateY(-30px) scale(.5)}to{opacity:1;transform:none}}
+
+.launch{position:absolute;bottom:14px;width:150px;height:52px;border:0;border-radius:18px;color:#fff;font-size:16px;cursor:pointer;box-shadow:0 7px 0 rgba(42,66,70,.23);transition:.12s}
+.launch:active{transform:translateY(5px);box-shadow:0 2px 0 rgba(42,66,70,.23)}.launch:disabled{opacity:.55;cursor:default}
+.launch:before{content:"+";font-size:25px;margin-right:7px}.lt{left:17%;background:#238f75}.lo{right:17%;background:#347fa5}
+.counter{position:absolute;bottom:78px;width:116px;height:40px;border-radius:25px;background:rgba(255,255,255,.82);display:grid;place-items:center;font-size:17px;color:#5a6d71;border:2px solid rgba(255,255,255,.7)}
+.counter b{font-size:23px;color:#304e55}.ct{left:20%}.co{right:20%}
+
+/* RIGHT: ANSWER CONTROL TOWER */
+.control{position:relative;height:min(460px,55vh);min-height:370px;display:flex;align-items:center;justify-content:center}
+.rings{position:absolute;width:360px;height:360px;border-radius:50%;border:2px dashed rgba(91,104,170,.20);animation:rotate 25s linear infinite}
+.rings:before,.rings:after{content:"✦";position:absolute;font-size:22px;color:#e7a151}.rings:before{left:35px;top:45px}.rings:after{right:20px;bottom:60px}
+@keyframes rotate{to{transform:rotate(360deg)}}
+.tower{position:relative;width:min(400px,100%);padding:28px 25px 24px;border-radius:42px 42px 22px 22px;
+background:rgba(255,255,255,.48);border:3px solid rgba(255,255,255,.75);box-shadow:0 18px 38px rgba(65,76,105,.09)}
+.tower-head{text-align:center;font-size:18px;letter-spacing:2px;color:#4d6267;margin-bottom:16px}
+.tower-head span{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#806fbc;color:#fff;margin-right:8px}
+.choice{width:100%; height:72px;min-height:58px;margin:9px 0;border:2px solid rgba(110,100,174,.14);border-radius:17px;background:rgba(255,255,255,.90);color:#3d555c;font-size:22px;cursor:pointer;position:relative;box-shadow:0 6px 0 rgba(64,77,91,.11);transition:.12s}
+.choice:before{content:"";position:absolute;left:14px;top:50%;transform:translateY(-50%);width:9px;height:9px;border-radius:50%;background:#e8a051}
+.choice:after{content:"✦";position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:12px;color:#a69bdd}
+.choice:hover{transform:translateY(-2px)}.choice.selected{border-color:#7464bd;box-shadow:0 0 0 4px rgba(116,100,189,.13),0 6px 0 rgba(64,77,91,.11)}
+.status{text-align:center;margin-top:12px;font-size:15px;color:#758489}
+
+/* NAV */
+footer{z-index:3;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px clamp(34px,4vw,76px) 20px}
+.nav{width:178px;height:45px;border:0;border-radius:28px;color:white;font-size:20px;cursor:pointer;background:#e67e22;box-shadow:0 6px #d35400}
+.nav:disabled{background:#b2bec3;box-shadow:0 6px #7f8c8d;cursor:not-allowed}.nav:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px #d35400}
+#prev{justify-self:start}.submit{justify-self:center;background:#00a98f;box-shadow:0 6px #007e6b}.submit:active:not(:disabled){box-shadow:0 2px #007e6b}#next{justify-self:end}
+
+/* POPUP - EXACT Number Name Quest */
+.nav-btn{background:#e67e22;color:#fff;border:none;width:178px;height:45px;padding:0;font-size:20px;font-weight:500;border-radius:40px;cursor:pointer;box-shadow:0 6px 0 #d35400;transition:.1s ease}
+.replay-btn{
+  background:linear-gradient(180deg,#1599ed 0%,#0984e3 100%);
+  box-shadow:0 5px 0 #0874bd,0 8px 16px rgba(9,132,227,.22);
+  width:185px;min-width:185px;height:46px;padding:0 20px;margin-top:14px;
+  font-size:22px;font-weight:600;line-height:46px;border-radius:23px;
+  border:2px solid rgba(255,255,255,.35);letter-spacing:.2px;
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.replay-btn:hover{transform:translateY(-2px);box-shadow:0 7px 0 #0874bd,0 11px 20px rgba(9,132,227,.26)}
+.replay-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #0874bd,0 4px 8px rgba(9,132,227,.18)}
+
+.popup-overlay{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:.3s;z-index:100}
+.popup-overlay.active{opacity:1;pointer-events:auto}
+.popup-card{position:relative;width:520px;height:300px;max-width:calc(100vw - 30px);padding:30px;border-radius:36px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.1);transform:scale(.8);transition:.35s cubic-bezier(.175,.885,.32,1.275);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.popup-card:before,.popup-card:after{content:'';position:absolute;border-radius:50%;pointer-events:none}
+.popup-card:before{width:220px;height:220px;top:-60px;right:-50px}.popup-card:after{width:180px;height:180px;bottom:-70px;left:-40px}
+.popup-card.correct{background:#edfbf4;border:6px solid #00c885}.popup-card.correct:before,.popup-card.correct:after{background:rgba(162,245,209,.45)}
+.popup-card.correct .popup-title{color:#00a86b}.popup-card.correct .popup-subtitle{color:#2e7d5b}
+.popup-card.wrong{background:#fff0f2;border:6px solid #ff6b7a}.popup-card.wrong:before,.popup-card.wrong:after{background:rgba(255,196,203,.45)}
+.popup-card.wrong .popup-title{color:#d33847}.popup-card.wrong .popup-subtitle{color:#a33b45}
+.popup-card.complete{background:#f0f3ff;border:6px solid #6c5ce7}.popup-card.complete:before,.popup-card.complete:after{background:rgba(162,155,254,.35)}
+.popup-card.complete .popup-title{color:#6c5ce7}.popup-card.complete .popup-subtitle{color:#4834d4}
+.popup-overlay.active .popup-card{transform:scale(1)}
+.popup-icon{font-size:4.8rem;margin-bottom:12px;z-index:2;line-height:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,.1))}
+.popup-title{font-size:3rem;font-weight:600;margin-bottom:8px;z-index:2}
+.popup-subtitle{font-size:1.4rem;font-weight:500;z-index:2}
+.popup-card.complete{
+    box-shadow:
+        0 20px 45px rgba(108,92,231,.18),
+        0 0 0 8px rgba(162,155,254,.12);
+}
+.popup-card.complete .replay-btn{margin-top:14px}
+.popup-card.complete .popup-icon{
+    animation:finalTrophyBounce 1.2s ease-in-out infinite;
+}
+@keyframes finalTrophyBounce{
+    0%,100%{transform:translateY(0) rotate(0deg) scale(1)}
+    50%{transform:translateY(-5px) rotate(-4deg) scale(1.06)}
+}
+
+
+@media(min-width:1600px){p{font-size:40px}.instruction{font-size:25px}}
+@media(min-width:1600px){
+  p{font-size:30px}
+  .instruction{font-size:25px}
+  .world{width:min(1600px,94vw);grid-template-columns:minmax(650px,1.08fr) minmax(500px,.82fr);gap:80px}
+  .build-zone{min-height:0}
+  .abacus{width:min(720px,100%);height:440px}
+  .control{min-height:0}
+  .tower{width:min(500px,100%);padding:30px 30px 26px}
+  .choice{min-height:64px;font-size:30px}
+  footer{width:min(1500px,94vw);margin-left:auto;margin-right:auto;padding-left:0;padding-right:0}
+  .nav{width:200px;min-width:200px;height:60px;font-size:30px;border-radius:50px}
+}
+
+@media(max-width:900px){body{overflow:auto}.game{height:auto;min-height:100vh}.world{grid-template-columns:1fr;padding:18px 0}.build-zone{height:560px}.control{height:390px}footer{position:sticky;bottom:0;background:rgba(255,255,255,.45)}}
+
+/* ===== CLEAN RESPONSIVE GAME LAYOUT ===== */
+html,body{min-height:100%;overflow-x:hidden}
+body{overflow:hidden}
+.game{
+  height:100vh;
+  min-height:650px;
+  grid-template-rows:auto minmax(0,1fr) auto;
+}
+
+/* Header stays compact and never steals game space */
+header{padding:8px 20px 4px}
+p{font-size:22px}
+.instruction{margin-top:5px;padding:6px 22px}
+
+/* Main game floor */
+.world{
+  width:min(1450px,94vw);
+  height:100%;
+  min-height:0;
+  margin:auto;
+  padding:8px 0 4px;
+  display:grid;
+  grid-template-columns:minmax(480px,1.08fr) minmax(390px,.82fr);
+  gap:clamp(40px,6vw,110px);
+  align-items:center;
+}
+
+/* LEFT: mission and abacus are now in normal document flow */
+.build-zone{
+  width:100%;
+  height:100%;
+  min-height:0;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+}
+.mission{
+  position:relative;
+  top:auto;
+  left:auto;
+  transform:none;
+  flex:0 0 auto;
+  margin:0 0 14px;
+}
+.mission small{display:none}
+.target{gap:14px}
+.target .word{font-size:25px}
+.target-number{
+  width:86px;height:86px;
+  font-size:42px;
+}
+
+/* Abacus scales without touching the navigation */
+.abacus{
+  position:relative;
+  top:auto;
+  width:min(680px,100%);
+  height:clamp(390px,48vh,470px);
+  flex:0 1 auto;
+}
+.abacus-shell{border-radius:42px}
+.abacus-label{top:22px}
+.rod{top:74px;bottom:92px}
+.beads{bottom:91px;height:250px}
+.counter{bottom:73px}
+.launch{bottom:13px}
+
+/* Right answer area */
+.control{
+  width:100%;
+  height:auto;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.tower{
+  width:min(470px,100%);
+  padding:26px 28px 22px;
+}
+.rings{width:390px;height:390px}
+
+/* Footer always has its own row */
+footer{
+  min-height:69px;
+  padding:7px clamp(34px,4vw,76px) 16px;
+  position:relative;
+}
+.nav{width:178px;height:45px;font-size:20px}
+
+/* 1600+ monitor sizing requested */
+@media(min-width:1600px){
+  p{font-size:30px}
+  .instruction{font-size:25px}
+}
+
+/* Short laptop screens: shrink game components, not the footer */
+@media(max-height:850px) and (min-width:901px){
+  header{padding-top:5px}
+  .instruction{font-size:20px;padding:5px 18px}
+  .world{padding-top:4px;padding-bottom:2px}
+  .mission{margin-bottom:8px}
+  .target-number{width:74px;height:74px;font-size:37px}
+  .target .word{font-size:22px}
+  .abacus{height:min(410px,calc(100vh - 220px))}
+  .abacus-label{top:18px;font-size:19px}
+  .rod{top:64px;bottom:83px}
+  .beads{bottom:82px;height:220px;gap:4px}
+  .bead{height:23px;width:76px}
+  .counter{bottom:67px;height:35px}
+  .launch{height:48px;bottom:10px}
+  .tower{padding:20px 24px 18px}
+  .choice{min-height:50px;margin:7px 0}
+  .status{margin-top:8px}
+}
+
+/* Medium desktop / laptop */
+@media(max-width:1200px) and (min-width:901px){
+  .world{
+    width:96vw;
+    grid-template-columns:minmax(450px,1.08fr) minmax(360px,.92fr);
+    gap:28px;
+  }
+  .tower{padding-left:22px;padding-right:22px}
+}
+
+/* Tablet and mobile: stack cleanly, no overlap */
+@media(max-width:900px){
+  body{overflow:auto}
+  .game{
+    height:auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  header{padding:10px 12px}
+  .world{
+    width:min(94vw,680px);
+    height:auto;
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+    padding:12px 0 20px;
+  }
+  .build-zone{height:auto}
+  .mission{margin-bottom:12px}
+  .abacus{height:440px;width:100%}
+  .control{min-height:auto}
+  .rings{display:none}
+  footer{
+    width:100%;
+    margin-top:auto;
+    position:sticky;
+    bottom:0;
+    background:rgba(237,244,247,.92);
+    backdrop-filter:blur(8px);
+    padding:10px 14px;
+  }
+  .nav{width:clamp(92px,27vw,178px)}
+}
+
+@media(max-width:560px){
+  p{font-size:20px}
+  .instruction{font-size:16px;line-height:1.3}
+  .target .word{font-size:20px}
+  .abacus{height:400px}
+  .abacus-label{font-size:17px}
+  .tlabel{left:25%;transform:translateX(-50%)}.olabel{right:25%;transform:translateX(50%)}
+  .trod{left:25%}.orod{right:25%}
+  .tbeads{left:calc(25% - 34px)}.obeads{right:calc(25% - 34px)}
+  .launch{width:132px;font-size:14px}
+  .lt{left:5%}.lo{right:5%}
+  .ct{left:13%}.co{right:13%}
+  .tower{border-radius:28px;padding:20px 14px}
+  .choice{font-size:19px}
+}
+
+
+
+/* ===== FINAL VIEWPORT FIX: NAVIGATION ALWAYS VISIBLE ===== */
+.game{
+  height:100dvh;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+header{
+  flex:0 0 auto;
+}
+
+.world{
+  flex:1 1 auto;
+  min-height:0;
+  height:auto;
+  margin:0 auto;
+  overflow:hidden;
+  align-items:center;
+}
+
+footer{
+  flex:0 0 76px;
+  min-height:76px;
+  margin:0;
+  padding:10px clamp(34px,4vw,76px) 16px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  position:relative;
+  z-index:10;
+}
+
+/* Keep the whole abacus game above the footer */
+.build-zone{
+  height:100%;
+  max-height:100%;
+  justify-content:center;
+}
+
+@media (min-width:901px) and (max-height:900px){
+  .world{
+    padding:0;
+    align-items:center;
+  }
+
+  .mission{
+    margin:0 0 8px;
+  }
+
+  .target-number{
+    width:72px;
+    height:72px;
+    font-size:36px;
+  }
+
+  .abacus{
+    height:min(400px, calc(100% - 88px));
+    min-height:330px;
+  }
+
+  .abacus-label{top:18px}
+  .rod{top:64px;bottom:82px}
+  .beads{bottom:81px;height:210px}
+  .counter{bottom:65px}
+  .launch{bottom:9px;height:46px}
+
+  .control{
+    max-height:100%;
+  }
+
+  .tower{
+    padding:20px 24px 16px;
+  }
+
+  .choice{
+    min-height:48px;
+    margin:7px 0;
+  }
+}
+
+/* Very short laptop screens */
+@media (min-width:901px) and (max-height:760px){
+  header{padding:4px 20px 2px}
+  .instruction{margin-top:3px;padding:4px 18px}
+  .target .word{font-size:21px}
+  .target-number{width:62px;height:62px;font-size:31px}
+  .mission{margin-bottom:4px}
+
+  .abacus{
+    height:min(350px, calc(100% - 70px));
+    min-height:300px;
+  }
+
+  .abacus-label{top:13px;font-size:18px}
+  .rod{top:52px;bottom:74px}
+  .beads{bottom:73px;height:185px;gap:3px}
+  .bead{width:70px;height:20px}
+  .counter{bottom:56px;height:32px}
+  .launch{height:40px;bottom:7px;font-size:14px}
+
+  .tower{padding:14px 20px}
+  .tower-head{margin-bottom:8px}
+  .choice{min-height:43px;margin:5px 0}
+  .status{margin-top:6px}
+
+  footer{
+    flex-basis:62px;
+    min-height:62px;
+    padding-top:6px;
+    padding-bottom:10px;
+  }
+}
+
+/* Mobile can scroll naturally */
+@media(max-width:900px){
+  .game{
+    height:auto;
+    min-height:100vh;
+    overflow:visible;
+  }
+
+  .world{
+    flex:none;
+    overflow:visible;
+  }
+
+  footer{
+    flex:0 0 auto;
+    min-height:65px;
+  }
+}
+
+
+/* Exact Heavy & Light popup style */
+.popup-overlay{
+ position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+ opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.popup-overlay.active{opacity:1;pointer-events:auto;}
+.popup-card{
+ position:relative;width:90%;max-width:520px;padding:40px 30px;border-radius:36px;text-align:center;
+ box-shadow:0 20px 40px rgba(0,0,0,.1);transform:scale(.8);
+ transition:transform .35s cubic-bezier(.175,.885,.32,1.275);overflow:hidden;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.popup-card::before{content:"";position:absolute;width:220px;height:220px;border-radius:50%;top:-60px;right:-50px;pointer-events:none;}
+.popup-card::after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;bottom:-70px;left:-40px;pointer-events:none;}
+.popup-card.correct{background:#edfbf4;border:6px solid #00c885;}
+.popup-card.correct::before,.popup-card.correct::after{background:rgba(162,245,209,.45);}
+.popup-card.wrong{background:#fff0f2;border:6px solid #ff6b7a;}
+.popup-card.wrong::before,.popup-card.wrong::after{background:rgba(255,196,203,.45);}
+.popup-card.complete{background:#f0f3ff;border:6px solid #6c5ce7;}
+.popup-card.complete::before,.popup-card.complete::after{background:rgba(162,155,254,.35);}
+.popup-overlay.active .popup-card{transform:scale(1);}
+.popup-icon{font-size:4.8rem;margin-bottom:12px;z-index:2;line-height:1;filter:drop-shadow(0 5px 5px rgba(0,0,0,.08));}
+.popup-title{margin:0 0 8px;font-size:3rem;font-weight:600;z-index:2;letter-spacing:-.5px;}
+.popup-subtitle{margin:0;font-size:1.4rem;z-index:2;display:flex;align-items:center;justify-content:center;gap:8px;}
+.popup-card.correct .popup-title{color:#00a86b}.popup-card.correct .popup-subtitle{color:#2e7d5b;}
+.popup-card.wrong .popup-title{color:#d33847}.popup-card.wrong .popup-subtitle{color:#a33b45;}
+.popup-card.complete .popup-title{color:#6c5ce7}.popup-card.complete .popup-subtitle{color:#4834d4;}
+.replay{
+ margin-top:20px;padding:10px 30px;border:none;border-radius:30px;background:#0984e3;color:white;
+ font-size:18px;cursor:pointer;box-shadow:0 5px #0975c7;z-index:2;
+}
+.replay:active{transform:translateY(3px);box-shadow:0 2px #0975c7;}
+
+@media (min-width:901px) and (max-height:900px){
+  .rod{bottom:118px!important}
+  .beads{bottom:117px!important}
+  .counter{bottom:66px!important}
+  .launch{bottom:10px!important}
+}
+@media (min-width:901px) and (max-height:760px){
+  .rod{bottom:108px!important}
+  .beads{bottom:106px!important}
+  .counter{bottom:54px!important}
+  .launch{bottom:6px!important}
+}
+
+
+#confettiContainer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:200}.confetti-piece{position:absolute;width:9px;height:14px;border-radius:2px;opacity:0;animation:pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;will-change:transform,opacity}.final-confetti-piece{width:10px;height:16px;animation-duration:2300ms}.final-confetti-piece:nth-child(3n){border-radius:50%}.final-confetti-piece:nth-child(4n){width:7px;height:19px;border-radius:1px}.final-confetti-piece:nth-child(5n){width:13px;height:8px;border-radius:2px}@keyframes pageConfetti{0%{opacity:1;transform:translate3d(0,0,0) rotate(0deg) scale(1)}55%{opacity:1}100%{opacity:0;transform:translate3d(var(--x),var(--y),0) rotate(var(--r)) scale(.72)}}
+
+/* ===== CHAPTER 5: UNIFIED FINAL POPUP ===== */
+.popup-overlay{
+    position:fixed !important;
+    inset:0 !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    background:transparent !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+    transition:opacity .3s ease,background .3s ease !important;
+    z-index:1000 !important;
+}
+.popup-overlay.active{
+    opacity:1 !important;
+    pointer-events:auto !important;
+    background:transparent !important;
+}
+.popup-overlay.active .popup-card{transform:scale(1) !important}
+.popup-overlay .popup-card{
+    position:relative !important;
+    width:520px !important;
+    height:300px !important;
+    max-width:calc(100vw - 30px) !important;
+    padding:30px !important;
+    border-radius:36px !important;
+    text-align:center !important;
+    transform:scale(.8) !important;
+    transition:transform .35s cubic-bezier(.175,.885,.32,1.275) !important;
+    overflow:hidden !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    margin:0 !important;
+}
+.popup-overlay .popup-card::before,
+.popup-overlay .popup-card::after{
+    content:'' !important;
+    position:absolute !important;
+    border-radius:50% !important;
+    pointer-events:none !important;
+}
+.popup-overlay .popup-card::before{width:220px !important;height:220px !important;top:-60px !important;right:-50px !important}
+.popup-overlay .popup-card::after{width:180px !important;height:180px !important;bottom:-70px !important;left:-40px !important}
+.popup-overlay .popup-card.correct{background:#edfbf4 !important;border:6px solid #00c885 !important}
+.popup-overlay .popup-card.correct::before,
+.popup-overlay .popup-card.correct::after{background:rgba(162,245,209,.45) !important}
+.popup-overlay .popup-card.correct .popup-title{color:#00a86b !important}
+.popup-overlay .popup-card.correct .popup-subtitle{color:#2e7d5b !important}
+.popup-overlay .popup-card.wrong{background:#fff0f2 !important;border:6px solid #ff6b7a !important}
+.popup-overlay .popup-card.wrong::before,
+.popup-overlay .popup-card.wrong::after{background:rgba(255,196,203,.45) !important}
+.popup-overlay .popup-card.wrong .popup-title{color:#d33847 !important}
+.popup-overlay .popup-card.wrong .popup-subtitle{color:#a33b45 !important}
+.popup-overlay .popup-card.complete{
+    background:#f0f3ff !important;
+    border:6px solid #6c5ce7 !important;
+    box-shadow:0 20px 45px rgba(108,92,231,.18),0 0 0 8px rgba(162,155,254,.12) !important;
+}
+.popup-overlay .popup-card.complete::before,
+.popup-overlay .popup-card.complete::after{background:rgba(162,155,254,.35) !important}
+.popup-overlay .popup-card.complete .popup-title{color:#6c5ce7 !important}
+.popup-overlay .popup-card.complete .popup-subtitle{color:#4834d4 !important}
+.popup-overlay .popup-icon{
+    font-size:4.8rem !important;
+    margin:0 0 12px !important;
+    padding:0 !important;
+    height:auto !important;
+    width:auto !important;
+    line-height:1 !important;
+    z-index:2 !important;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.1)) !important;
+    position:relative !important;
+}
+.popup-overlay .popup-title,
+.popup-overlay h2.popup-title{
+    font-size:3rem !important;
+    font-weight:600 !important;
+    margin:0 0 8px !important;
+    padding:0 !important;
+    height:auto !important;
+    line-height:1.15 !important;
+    z-index:2 !important;
+    position:relative !important;
+}
+.popup-overlay .popup-subtitle,
+.popup-overlay p.popup-subtitle{
+    font-size:1.4rem !important;
+    font-weight:500 !important;
+    margin:0 !important;
+    padding:0 !important;
+    height:auto !important;
+    line-height:1.35 !important;
+    z-index:2 !important;
+    text-align:center !important;
+    position:relative !important;
+}
+.popup-overlay .replay-btn,
+.popup-overlay #playAgainBtn,
+.popup-overlay .replay{
+    background:linear-gradient(180deg,#1599ed 0%,#0984e3 100%) !important;
+    box-shadow:0 5px 0 #0874bd,0 8px 16px rgba(9,132,227,.22) !important;
+    width:185px !important;
+    min-width:185px !important;
+    height:46px !important;
+    padding:0 20px !important;
+    margin-top:14px !important;
+    font-size:22px !important;
+    font-weight:600 !important;
+    line-height:46px !important;
+    border-radius:23px !important;
+    border:2px solid rgba(255,255,255,.35) !important;
+    letter-spacing:.2px !important;
+    color:#fff !important;
+    cursor:pointer !important;
+    z-index:2 !important;
+    font-family:'Livvic',sans-serif !important;
+    transition:transform .12s ease,box-shadow .12s ease !important;
+}
+.popup-overlay .replay-btn:hover,
+.popup-overlay #playAgainBtn:hover,
+.popup-overlay .replay:hover{
+    transform:translateY(-2px) !important;
+    box-shadow:0 7px 0 #0874bd,0 11px 20px rgba(9,132,227,.26) !important;
+}
+.popup-overlay .replay-btn:active,
+.popup-overlay #playAgainBtn:active,
+.popup-overlay .replay:active{
+    transform:translateY(3px) !important;
+    box-shadow:0 2px 0 #0874bd,0 4px 8px rgba(9,132,227,.18) !important;
+}
+.popup-overlay .popup-card.complete .popup-icon{
+    animation:ch5FinalTrophyBounce 1.2s ease-in-out infinite !important;
+}
+@keyframes ch5FinalTrophyBounce{
+    0%,100%{transform:translateY(0) rotate(0deg) scale(1)}
+    50%{transform:translateY(-5px) rotate(-4deg) scale(1.06)}
+}
+@media (max-width:520px){
+    .popup-overlay .popup-card{
+        width:calc(100vw - 24px) !important;
+        height:auto !important;
+        min-height:260px !important;
+        padding:24px 18px !important;
+    }
+    .popup-overlay .popup-title,
+    .popup-overlay h2.popup-title{font-size:2.2rem !important}
+    .popup-overlay .popup-subtitle,
+    .popup-overlay p.popup-subtitle{font-size:1.1rem !important}
+    .popup-overlay .popup-icon{font-size:3.6rem !important}
+}
+
+</style>
+</head>
+<body>
+<div class="game">
+<header>
+ <p>Represent the following numbers on an abacus. Write its number name.</p>
+ <div class="instruction">Look at the mission number, add that many Tens and Ones, then choose its number name.</div>
+</header>
+
+<main class="world">
+ <section class="build-zone">
+  <div class="mission"><div class="target"><span class="word">BUILD</span><span class="target-number" id="targetNum">58</span><span class="arrow">→</span></div></div>
+  <!-- <div class="abacus">
+   <div class="abacus-shell"></div>
+   <div class="abacus-label tlabel">TENS</div><div class="abacus-label olabel">ONES</div>
+   <div class="rod trod"></div><div class="rod orod"></div>
+   <div class="beads tbeads" id="tb"></div><div class="beads obeads" id="ob"></div>
+   <div class="counter ct"><b id="tc">0</b></div><div class="counter co"><b id="oc">0</b></div>
+   <button class="launch lt" id="bt" onclick="add('t')">ADD TEN</button>
+   <button class="launch lo" id="bo" onclick="add('o')">ADD ONE</button>
+  </div> -->
+  <div class="abacus">
+  <div class="abacus-shell"></div>
+  <div class="abacus-label tlabel">TENS</div>
+  <div class="abacus-label olabel">ONES</div>
+
+  <div class="rod trod"></div>
+  <div class="rod orod"></div>
+
+  <div class="beads tbeads" id="tb"></div>
+  <div class="beads obeads" id="ob"></div>
+
+  <div class="counter ct"><b id="tc">0</b></div>
+  <div class="counter co"><b id="oc">0</b></div>
+
+  <button class="launch lt" id="bt" onclick="add('t')">ADD TEN</button>
+  <button class="launch lo" id="bo" onclick="add('o')">ADD ONE</button>
+</div>
+ </section>
+
+ <section class="control">
+  <div class="rings"></div>
+  <div class="tower">
+   <div class="tower-head"><span>?</span>NAME CONTROL</div>
+   <div id="choices"></div>
+   <div class="status">Pick the correct number name to finish the mission.</div>
+  </div>
+ </section>
+</main>
+
+<footer><button class="nav" id="prev" onclick="move(-1)">PREV</button><button class="nav submit" id="submit" onclick="check()">SUBMIT</button><button class="nav" id="next" onclick="move(1)">NEXT</button></footer>
+</div>
+
+<div id="confettiContainer"></div>
+<div class="popup-overlay" id="popup"><div class="popup-card" id="popupCard">
+  <div class="popup-icon" id="popupIcon">🌟</div><h2 class="popup-title" id="popupTitle">Amazing!</h2>
+  <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+  <button class="nav-btn replay-btn" id="playAgainBtn" style="display:none" onclick="restart()">Play Again</button>
+</div></div>
+
+<script>
+const qs=[
+ {n:58,t:5,o:8,a:'Fifty eight',c:['Fifty eight','Eighty five','Forty eight']},
+ {n:47,t:4,o:7,a:'Forty seven',c:['Seventy four','Forty seven','Fifty seven']}
+];
+let i=0, s=qs.map(()=>({t:0,o:0,x:null,done:false})), timer;
+function voice(x){if(!speechSynthesis)return;speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(x);u.lang='en-US';u.rate=1;speechSynthesis.speak(u)}
+const audioCtx =
+    new (
+        window.AudioContext ||
+        window.webkitAudioContext
+    )();
+
+function playAudioTone(isCorrect) {
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (isCorrect) {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+    }
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+}
+function add(x){
+  let z=s[i];
+  if(z.done)return;
+
+  if(x==='t' && z.t<9) z.t++;
+  if(x==='o' && z.o<9) z.o++;
+
+  draw();
+}
+function remove(x){
+  let z=s[i];
+  if(z.done)return;
+
+  if(x==='t' && z.t>0) z.t--;
+  if(x==='o' && z.o>0) z.o--;
+
+  draw();
+}
+function draw(){
+ let q=qs[i],z=s[i];targetNum.textContent=q.n;tc.textContent=z.t;oc.textContent=z.o;tb.innerHTML='';ob.innerHTML='';
+for(let k=0;k<z.t;k++){
+  let e=document.createElement('div');
+  e.className='bead green';
+  e.setAttribute('role','button');
+  e.setAttribute('aria-label','Delete one ten bead');
+  e.title='Click to delete this bead';
+  e.onclick=()=>remove('t');
+  tb.append(e);
+}
+
+for(let k=0;k<z.o;k++){
+  let e=document.createElement('div');
+  e.className='bead blue';
+  e.setAttribute('role','button');
+  e.setAttribute('aria-label','Delete one one bead');
+  e.title='Click to delete this bead';
+  e.onclick=()=>remove('o');
+  ob.append(e);
+}
+ choices.innerHTML='';q.c.forEach(v=>{let b=document.createElement('button');b.className='choice'+(z.x===v?' selected':'');b.textContent=v.toLowerCase().replace(/^./,c=>c.toUpperCase());b.disabled=z.done;b.onclick=()=>{z.x=v;draw()};choices.append(b)})
+ prev.disabled=i===0;next.disabled=i===qs.length-1||!z.done;submit.disabled = z.done || z.t === 0 || z.o === 0 || z.x === null;bt.disabled=z.done;bo.disabled=z.done;
+}
+function popup(type, icon, title, msg, last = false) {
+    clearTimeout(timer);
+
+    const popupEl = document.getElementById('popup');
+    const popupCard = document.getElementById('popupCard');
+    const pi = document.getElementById('popupIcon');
+    const pt = document.getElementById('popupTitle');
+    const pm = document.getElementById('popupSubtitle');
+    const again = document.getElementById('playAgainBtn');
+
+    popupCard.className = 'popup-card ' + type;
+    pi.textContent = icon;
+    pt.textContent = title;
+    pm.textContent = msg;
+
+    again.style.display = last ? 'inline-block' : 'none';
+
+    popupEl.classList.add('active');
+
+    if (!last) {
+        timer = setTimeout(() => {
+            popupEl.classList.remove('active');
+        }, 1500);
+    }
+}
+
+function showSmallConfetti(isFinal=false){const c=document.getElementById('confettiContainer');if(!c)return;c.innerHTML='';const count=isFinal?95:42,colors=['#00b894','#e67e22','#6c5ce7','#0984e3','#fdcb6e','#ff6b7a','#00cec9','#a29bfe'];for(let i=0;i<count;i++){const p=document.createElement('span');p.className=isFinal?'confetti-piece final-confetti-piece':'confetti-piece';const sx=Math.random()*100,sy=-8+Math.random()*10,drift=(Math.random()*520-260)*(isFinal?1.15:.9),fall=window.innerHeight*(.82+Math.random()*.48),rot=Math.random()*1400-700;p.style.left=sx+'%';p.style.top=sy+'%';p.style.setProperty('--x',drift+'px');p.style.setProperty('--y',fall+'px');p.style.setProperty('--r',rot+'deg');p.style.background=colors[Math.floor(Math.random()*colors.length)];p.style.animationDelay=(Math.random()*(isFinal?500:220))+'ms';c.appendChild(p);setTimeout(()=>p.remove(),isFinal?2900:2050)}}
+function check(){let q=qs[i],z=s[i];if(z.done)return;if(z.t===q.t&&z.o===q.o&&z.x===q.a){z.done=true;playAudioTone(true);voice('Correct');draw();const final=i===qs.length-1;showSmallConfetti(false);if(final){popup('correct','🌟','Amazing!','You got it right! ✨',false);setTimeout(()=>{popup('complete','🏆','Congratulations!','Fantastic job! You solved all questions! 🎉',true);showSmallConfetti(true)},1500)}else{popup('correct','🌟','Amazing!','You got it right! ✨',false)}}else{playAudioTone(false);voice('Wrong');popup('wrong','😟','Try Again!','The machine is resetting. Build the mission number again.');setTimeout(()=>{if(!s[i].done){s[i]={t:0,o:0,x:null,done:false};draw()}},1400)}}
+function move(d){let n=i+d;if(n>=0&&n<qs.length&&(d<0||s[i].done)){i=n;draw()}}
+function restart(){const c=document.getElementById('confettiContainer');if(c)c.innerHTML='';const popupEl=document.getElementById('popup');popupEl.classList.remove('active');i=0;s=qs.map(()=>({t:0,o:0,x:null,done:false}));draw()}
+draw();
+</script>
+</body></html>

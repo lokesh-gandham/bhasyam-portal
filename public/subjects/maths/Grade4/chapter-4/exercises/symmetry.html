@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lines of Symmetry · Chapter 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/quiz.css?v=16">
+<style>
+/* the figure sits straight on the board, no card around it */
+.board > .fig {
+  flex: 0 1 auto;
+  min-height: 0;
+  width: min(560px, 58vw);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.board > .fig > svg { width: 100%; height: 100%; min-height: 0; display: block; }
+
+.fold-keys { display: flex; flex-wrap: wrap; gap: clamp(8px, 1.4vh, 14px); justify-content: center; }
+.fold-keys .tap { min-width: clamp(150px, 15vw, 210px); }
+
+@media (min-width: 1600px) {
+  .board > .fig { width: min(760px, 46vw); }
+  .fold-keys .tap { font-size: 22px; padding: 14px 24px; }
+}
+
+@media (max-width: 820px) {
+  .board > .fig { width: 100%; }
+  .fold-keys .tap { min-width: 44%; }
+}
+</style>
+</head>
+<body>
+<script src="../assets/confetti.js?v=3"></script>
+<script src="../assets/quiz.js?v=19"></script>
+<script>
+/* Section 4.8 Q1 — "Draw the line(s) of symmetry for the following figures."
+   The six figures of the book: a rectangle, an oval, a circle, the letter H,
+   a four-leaf clover and a butterfly. The child draws a fold line onto the
+   figure by tapping it on; tapping again rubs it out. */
+
+var GREEN = '#55B848', BLUE_H = '#29ABE2', PAPER = '#FFFFFF';
+var LEAF = '#8CC63F', LEAF_DARK = '#5B9A2E';
+var WING = '#F7931E', WING_DARK = '#231F20', WING_LIGHT = '#FBB040';
+
+/* every figure is drawn in a 320 x 240 box, centred on (160, 120) */
+function mirror(inner) {
+  return inner + '<g transform="translate(320,0) scale(-1,1)">' + inner + '</g>';
+}
+
+var RECT = '<rect x="40" y="60" width="240" height="120" fill="' + PAPER +
+           '" stroke="' + GREEN + '" stroke-width="4"/>';
+
+var OVAL = '<ellipse cx="160" cy="120" rx="115" ry="58" fill="' + PAPER +
+           '" stroke="' + GREEN + '" stroke-width="4"/>';
+
+var CIRCLE = '<circle cx="160" cy="120" r="72" fill="' + PAPER +
+             '" stroke="' + GREEN + '" stroke-width="4"/>';
+
+var LETTER_H =
+  '<rect x="100" y="45" width="34" height="150" fill="' + BLUE_H + '"/>' +
+  '<rect x="186" y="45" width="34" height="150" fill="' + BLUE_H + '"/>' +
+  '<rect x="100" y="105" width="120" height="30" fill="' + BLUE_H + '"/>';
+
+/* one heart-shaped leaf pointing up from the middle, turned four times */
+var LEAF_ONE =
+  '<path d="M160,124 C126,88 124,44 160,54 C196,44 194,88 160,124 Z" fill="' + LEAF +
+  '" stroke="' + LEAF_DARK + '" stroke-width="3" stroke-linejoin="round"/>';
+var CLOVER =
+  '<g transform="rotate(45 160 120)">' + LEAF_ONE + '</g>' +
+  '<g transform="rotate(135 160 120)">' + LEAF_ONE + '</g>' +
+  '<g transform="rotate(225 160 120)">' + LEAF_ONE + '</g>' +
+  '<g transform="rotate(315 160 120)">' + LEAF_ONE + '</g>' +
+  '<circle cx="160" cy="120" r="7" fill="' + LEAF_DARK + '"/>';
+
+/* right-hand half of the butterfly, mirrored to make the left half */
+var WING_HALF =
+  '<path d="M162,98 C196,44 258,42 272,78 C284,108 240,128 163,120 Z" fill="' + WING +
+  '" stroke="' + WING_DARK + '" stroke-width="5" stroke-linejoin="round"/>' +
+  '<path d="M163,124 C214,120 254,142 244,176 C234,206 190,196 162,152 Z" fill="' + WING_LIGHT +
+  '" stroke="' + WING_DARK + '" stroke-width="5" stroke-linejoin="round"/>' +
+  '<circle cx="228" cy="76" r="9" fill="#FFF7E0" stroke="' + WING_DARK + '" stroke-width="3"/>' +
+  '<circle cx="252" cy="98" r="6" fill="#FFF7E0" stroke="' + WING_DARK + '" stroke-width="3"/>' +
+  '<circle cx="214" cy="164" r="7" fill="#FFF7E0" stroke="' + WING_DARK + '" stroke-width="3"/>' +
+  '<path d="M162,92 C172,66 188,54 200,50" fill="none" stroke="' + WING_DARK +
+  '" stroke-width="4" stroke-linecap="round"/>';
+var BUTTERFLY =
+  mirror(WING_HALF) +
+  '<ellipse cx="160" cy="124" rx="9" ry="52" fill="' + WING_DARK + '"/>' +
+  '<circle cx="160" cy="70" r="11" fill="' + WING_DARK + '"/>';
+
+var KEYS = [
+  { id: 'v',  label: '↕  Down the middle' },
+  { id: 'h',  label: '↔  Across the middle' },
+  { id: 'd1', label: '╲  Diagonal' },
+  { id: 'd2', label: '╱  Diagonal' }
+];
+
+function coords(id, w, h) {
+  var cx = 160, cy = 120;
+  if (id === 'v')  return [cx, cy - h, cx, cy + h];
+  if (id === 'h')  return [cx - w, cy, cx + w, cy];
+  if (id === 'd1') return [cx - w, cy - h, cx + w, cy + h];
+  return [cx - w, cy + h, cx + w, cy - h];
+}
+
+var ITEMS = [
+  { letter: 'a', name: 'rectangle', art: RECT, w: 132, h: 74,
+    answer: ['v', 'h'],
+    why: 'A rectangle folds down the middle and across the middle. The corner-to-corner diagonals do not match.' },
+
+  { letter: 'b', name: 'oval', art: OVAL, w: 128, h: 72,
+    answer: ['v', 'h'],
+    why: 'An oval folds the long way and the short way — two lines of symmetry.' },
+
+  { letter: 'c', name: 'circle', art: CIRCLE, w: 86, h: 86,
+    answer: ['v', 'h', 'd1', 'd2'],
+    why: 'Every line through the centre of a circle is a fold line — there are endlessly many. All four here are right.' },
+
+  { letter: 'd', name: 'letter H', art: LETTER_H, w: 78, h: 86,
+    answer: ['v', 'h'],
+    why: 'The letter H matches left to right and top to bottom — two lines of symmetry.' },
+
+  { letter: 'e', name: 'four-leaf clover', art: CLOVER, w: 96, h: 96,
+    answer: ['v', 'h', 'd1', 'd2'],
+    why: 'Four matching leaves give four fold lines: two through the leaves and two between them.' },
+
+  { letter: 'f', name: 'butterfly', art: BUTTERFLY, w: 118, h: 84,
+    answer: ['v'],
+    why: 'A butterfly matches only left to right. One line of symmetry, straight down the body.' }
+];
+
+Quiz.mount({
+  title: 'Lines of Symmetry',
+  hint: 'Imagine folding the figure. A line of symmetry is a perfect fold — both halves land on top of each other.',
+  questions: ITEMS.map(function (it) {
+    return {
+      short: it.letter + ')',
+      stem: 'Draw the line(s) of symmetry for the following figures.',
+      praise: it.why,
+      build: function (host, Q) {
+        var fig = Q.el('div', 'fig');
+        fig.innerHTML = '<svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">' +
+                        it.art + '<g class="folds"></g></svg>';
+        var folds = fig.querySelector('.folds');
+        host.appendChild(fig);
+
+        var picked = {}, lines = {}, keys = {}, shown = '';
+
+        KEYS.forEach(function (k) {
+          var c = coords(k.id, it.w, it.h);
+          var ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          ln.setAttribute('x1', c[0]); ln.setAttribute('y1', c[1]);
+          ln.setAttribute('x2', c[2]); ln.setAttribute('y2', c[3]);
+          ln.setAttribute('stroke-width', '5');
+          ln.setAttribute('stroke-linecap', 'round');
+          ln.setAttribute('stroke-dasharray', '12 9');
+          ln.style.display = 'none';
+          folds.appendChild(ln);
+          lines[k.id] = ln;
+        });
+
+        var row = Q.el('div', 'fold-keys');
+        KEYS.forEach(function (k) {
+          var b = Q.el('button', 'tap', k.label);
+          b.type = 'button';
+          b.addEventListener('click', function () {
+            if (b.disabled) return;
+            picked[k.id] = !picked[k.id];
+            shown = '';
+            paint();
+            Quiz._clearMsg();
+          });
+          keys[k.id] = b;
+          row.appendChild(b);
+        });
+        host.appendChild(row);
+
+        function paint() {
+          KEYS.forEach(function (k) {
+            var on = !!picked[k.id];
+            lines[k.id].style.display = on ? '' : 'none';
+            lines[k.id].setAttribute('stroke',
+              shown === 'good' ? '#2FB57C' : shown === 'bad' ? '#D9453D' : '#4C5FD5');
+            var b = keys[k.id];
+            b.classList.remove('on', 'good', 'bad');
+            if (on) b.classList.add(shown || 'on');
+          });
+        }
+
+        row._f = {
+          el: row,
+          filled: function () {
+            return KEYS.some(function (k) { return picked[k.id]; });
+          },
+          correct: function () {
+            return KEYS.every(function (k) {
+              return !!picked[k.id] === (it.answer.indexOf(k.id) > -1);
+            });
+          },
+          mark: function (state) { shown = state || ''; paint(); },
+          lock: function () { KEYS.forEach(function (k) { keys[k.id].disabled = true; }); },
+          reveal: function () {
+            picked = {};
+            it.answer.forEach(function (id) { picked[id] = true; });
+            paint();
+          },
+          value: function () {
+            return KEYS.filter(function (k) { return picked[k.id]; })
+                       .map(function (k) { return k.id; }).join(',');
+          },
+          setValue: function (v) {
+            picked = {};
+            String(v || '').split(',').forEach(function (id) { if (id) picked[id] = true; });
+            paint();
+          },
+          focus: function () { keys.v.focus(); }
+        };
+
+        paint();
+      }
+    };
+  })
+});
+</script>
+</body>
+</html>

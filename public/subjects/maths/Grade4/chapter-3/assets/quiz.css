@@ -1,0 +1,469 @@
+/* ============================================================
+   Chapter 3 · Multiplication & Division
+   Shared exercise shell — one stylesheet for every activity.
+   Livvic at weight 400 only: no bold, and no muted greys.
+   ============================================================ */
+
+:root{
+  --brand:#0E8F87;   --brand-dark:#0A6E68;  --brand-light:#E2F4F2;
+  --amber:#EF9F2B;   --amber-dark:#C57C10;  --amber-light:#FFF4E2;
+  --plum:#6C5CE0;    --plum-dark:#5445c4;   --plum-light:#F0EDFF;
+  --good:#188A5C;    --good-light:#E6F7EF;
+  --bad:#CE4238;     --bad-light:#FEEDEB;
+
+  /* one ink colour everywhere — labels read as normal text, never greyed out */
+  --ink:#2A2440;  --ink-soft:#4A4466;
+  --paper:#FFFFFF; --line:#E3DFF5;
+
+  --r-sm:10px; --r-md:16px; --r-lg:26px;
+  --shadow-card:0 18px 44px rgba(70,60,160,.16);
+}
+
+*,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+
+/* Livvic, normal weight, normal style — the only type style on the site. */
+*{ font-family:'Livvic'; font-weight:400; font-style:normal; }
+
+html,body{ height:100%; }
+body{
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 10% 8%,  rgba(108,92,224,.22), transparent 26%),
+    radial-gradient(circle at 92% 12%, rgba(162,89,255,.16), transparent 24%),
+    radial-gradient(circle at 84% 92%, rgba(88,101,242,.20), transparent 28%),
+    linear-gradient(150deg,#F6F4FF 0%,#F1EEFF 55%,#EFEBFF 100%);
+  background-attachment:fixed;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------------- decorative blobs (matches chapter index) ---------------- */
+body::before,
+body::after{
+  content:"";
+  position:fixed;
+  z-index:-1;
+  border-radius:45% 55% 60% 40%;
+  pointer-events:none;
+}
+body::before{
+  width:230px; height:230px;
+  left:-70px; bottom:-60px;
+  background:linear-gradient(145deg, rgba(124,108,255,.30), rgba(162,89,255,.20));
+  transform:rotate(18deg);
+}
+body::after{
+  width:250px; height:250px;
+  right:-90px; top:-80px;
+  background:linear-gradient(145deg, rgba(162,89,255,.24), rgba(88,101,242,.16));
+  transform:rotate(-24deg);
+}
+
+/* ---------------- home button ---------------- */
+.home{
+  position:fixed; top:14px; left:16px; z-index:60;
+  display:inline-flex; align-items:center; gap:7px;
+  padding:9px 16px; border-radius:var(--r-md);
+  border:2px solid var(--plum-dark);
+  background:linear-gradient(160deg,#7D6BEF,var(--plum));
+  color:#fff; font:inherit; font-size:14px; text-decoration:none;
+  box-shadow:0 4px 0 var(--plum-dark),0 8px 18px rgba(108,92,224,.28);
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.home:hover{ transform:translateY(-2px); box-shadow:0 6px 0 var(--plum-dark),0 12px 22px rgba(108,92,224,.32); }
+.home:active{ transform:translateY(2px); box-shadow:0 2px 0 var(--plum-dark); }
+.home svg{ width:15px; height:15px; fill:currentColor; }
+
+/* ---------------- stage & card ---------------- */
+.stage{
+  height:100vh; padding:16px; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.quiz{
+  width:min(96vw,1100px);
+  height:calc(100vh - 32px);
+  display:flex; flex-direction:column;
+  background:rgba(255,255,255,.97);
+  border:3px solid #DDD6FA; border-radius:var(--r-lg);
+  box-shadow:var(--shadow-card);
+  padding:clamp(10px,1.6vh,16px) clamp(14px,2.2vw,30px) clamp(8px,1.2vh,14px);
+  overflow:hidden;
+}
+
+/* ---------------- header ---------------- */
+.quiz-head{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:6px;
+  padding-bottom:10px; border-bottom:2px solid var(--line);
+  text-align:center;
+}
+.quiz-head h1{ font-size:clamp(18px,min(1.9vw,2.8vh),24px); line-height:1.15; }
+.q-badge{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:4px 14px; border-radius:999px;
+  background:var(--plum-light); border:2px solid #D6CEFA;
+  color:var(--plum-dark); font-size:clamp(12px,1.7vh,14px); font-weight:600;
+  margin-top:2px;
+}
+.dots{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:center; margin-top:4px; }
+.dot{
+  width:clamp(24px,3.6vh,32px); height:clamp(24px,3.6vh,32px); border-radius:50%;
+  background:#fff; border:2px solid #C9DAD8;
+  color:var(--ink-soft); font-size:clamp(12px,1.7vh,14px); font-weight:600;
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .2s ease; outline:none;
+}
+.dot:hover{ border-color:var(--plum); color:var(--plum); transform:translateY(-1px); }
+.dot.at{
+  background:var(--plum); border-color:var(--plum-dark); color:#fff;
+  transform:scale(1.15); box-shadow:0 4px 12px rgba(108,92,224,.35);
+}
+.dot.ok{ background:var(--good); border-color:var(--good); color:#fff; }
+.dot.no{ background:var(--bad); border-color:var(--bad); color:#fff; }
+
+/* ---------------- SHORT WINDOWS ----------------
+   .board clips (overflow:hidden) and everything inside it is sized with
+   clamp(min, vh, max). Once the vh leg drops below the min leg the content
+   stops shrinking, overflows the board and — because the board centres with
+   `safe center`, which falls back to flex-start — the BOTTOM row is the part
+   that gets sliced off. That is the answer pills disappearing under the
+   board's edge. Lower the floors so the content keeps shrinking, and let the
+   board scroll rather than hide anything if it ever still runs out of room.
+   Windows this short happen on a 1366x768 laptop once browser chrome, a tab
+   strip and the taskbar are gone, and sooner again with browser zoom on. */
+@media (max-height:680px){
+  .quiz-head{ gap:3px; padding-bottom:6px; }
+  .hint{ margin-top:4px; font-size:clamp(11px,1.9vh,17px); }
+  .board{ gap:clamp(3px,1.4vh,14px); padding:clamp(5px,1.6vh,16px) clamp(8px,1.6vw,16px); }
+  .q-num-pill{ font-size:clamp(10px,1.8vh,15px); padding:3px clamp(9px,1.6vw,18px); }
+  .dot{ width:clamp(19px,3.6vh,32px); height:clamp(19px,3.6vh,32px); font-size:clamp(10px,1.7vh,14px); }
+}
+.board{ overflow:auto; overscroll-behavior:contain; }
+.board::-webkit-scrollbar{ width:6px; }
+.board::-webkit-scrollbar-thumb{ background:#D8D1F5; border-radius:999px; }
+
+/* ---------------- board ---------------- */
+.q-num-pill{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:clamp(4px,.8vh,6px) clamp(12px,1.6vw,18px); border-radius:999px;
+  background:linear-gradient(135deg,#7D6BEF,var(--plum));
+  color:#fff; font-size:clamp(12px,1.8vh,15px); font-weight:600;
+  box-shadow:0 4px 12px rgba(108,92,224,.25);
+  margin-bottom:2px;
+}
+.hint{
+  margin:clamp(6px,1.2vh,12px) 0 0; font-size:clamp(13px,1.9vh,17px);
+  color:var(--ink-soft); text-align:center;
+}
+.board{
+  flex:1; min-height:0; margin-top:clamp(6px,1.2vh,10px);
+  padding:clamp(8px,1.6vh,16px) clamp(10px,1.6vw,16px);
+  overflow:hidden;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:safe center; gap:clamp(6px,1.4vh,14px);
+  background:
+    linear-gradient(rgba(108,92,224,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(108,92,224,.06) 1px,transparent 1px),
+    #FFFEFA;
+  background-size:26px 26px;
+  border:3px solid #E2DDFB; border-radius:22px;
+  box-shadow:inset 0 -6px 0 rgba(108,92,224,.05);
+}
+.stem{
+  font-size:clamp(18px,min(2.05vw,2.95vh),28px); color:var(--ink-soft);
+  text-align:center; line-height:1.4; padding:0 clamp(8px,1.6vw,20px);
+}
+.stem b{ color:var(--ink); }
+
+/* ---------------- the drawing that explains the question ----------------
+   It is the one thing on the board allowed to shrink, so the words and
+   the answer buttons always keep their size. */
+.board > .art{
+  flex:1 1 auto; min-height:clamp(84px,17vh,200px); width:100%;
+  display:flex; align-items:center; justify-content:center;
+  padding:2px;
+}
+.art svg{ width:100%; height:100%; max-width:min(760px,86vw); display:block; }
+.art .lbl{ font-size:15px; fill:var(--ink-soft); }
+.art .val{ font-size:22px; fill:var(--ink); }
+
+/* the maths sentence */
+.sentence{
+  display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
+  gap:clamp(7px,1.3vh,14px) clamp(10px,1.6vw,18px);
+  font-size:clamp(22px, min(4.4vw,6.6vh), 52px); line-height:1.2;
+  margin-top:clamp(2px,.6vh,6px);
+  padding:clamp(10px,2vh,22px) clamp(14px,2.6vw,36px);
+  background:#fff;
+  border:3px solid #E2DDFB; border-radius:22px;
+  box-shadow:0 8px 0 #ECE7FF, 0 18px 34px rgba(108,92,224,.14);
+}
+/* a sentence with many parts wraps, so it is set smaller to stay on screen */
+.sentence.long{
+  font-size:clamp(16px, min(2.7vw,3.9vh), 34px);
+  gap:clamp(5px,1vh,10px) clamp(7px,1.1vw,13px);
+  padding:clamp(8px,1.6vh,18px) clamp(12px,2vw,26px);
+}
+.sentence span{
+  display:inline-flex; align-items:center; justify-content:center;
+  font-variant-numeric:tabular-nums;
+}
+.sentence .op{ color:var(--plum); font-weight:600; }
+.sentence .paren{ color:var(--plum); font-weight:600; }
+
+/* ---------------- blanks ---------------- */
+.blank{
+  font:inherit; text-align:center; font-weight:600;
+  color:var(--ink); padding:.2em .4em; min-width:4ch; height:1.7em;
+  font-size:clamp(26px,min(3vw,4.4vh),42px);
+  background:linear-gradient(160deg,#FFFDF9,var(--amber-light));
+  border:3px solid var(--amber); border-radius:14px; outline:none;
+  box-shadow:0 6px 0 rgba(239,159,43,.28), 0 12px 20px rgba(239,159,43,.15);
+  transition:transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
+  display:inline-flex; align-items:center; justify-content:center;
+  vertical-align:middle;
+  font-variant-numeric:tabular-nums;
+}
+.blank::placeholder{ color:var(--ink); opacity:1; }
+.sentence .blank{
+  font-size:0.82em; height:1.55em; min-width:3.5ch;
+  padding:.12em .32em; border-radius:14px;
+  vertical-align:middle;
+}
+.blank:hover:not([readonly]){ transform:translateY(-2px); background:#fff; }
+.blank:focus{
+  transform:translateY(-3px);
+  border-color:var(--plum);
+  box-shadow:0 5px 0 var(--plum-dark),0 0 0 5px rgba(108,92,224,.16);
+}
+.blank.good{
+  background:var(--good-light); border-color:var(--good); color:var(--good);
+  box-shadow:0 5px 0 rgba(24,138,92,.22);
+}
+.blank.bad{
+  background:var(--bad-light); border-color:var(--bad); color:var(--bad);
+  box-shadow:0 5px 0 rgba(206,66,56,.2);
+  animation:shake .32s;
+}
+@keyframes shake{ 25%{ transform:translateX(-6px) } 75%{ transform:translateX(6px) } }
+.blank[readonly]{ cursor:default; }
+
+.answer-row{
+  display:flex; align-items:center; justify-content:center;
+  gap:clamp(20px,4vw,60px); width:100%; margin-top:clamp(8px,1.5vh,16px);
+}
+
+.ans-card{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px; padding:clamp(10px,1.5vh,16px) clamp(16px,2vw,24px); border-radius:22px;
+  background:linear-gradient(145deg,#FFFFFF,#F8F6FF);
+  border:3.5px solid #D4CCF7;
+  box-shadow:0 8px 0 #CFC5F8, 0 16px 28px rgba(108,92,224,.12);
+  min-width:clamp(160px,20vw,220px);
+  transition:transform .18s ease, border-color .18s ease;
+}
+.ans-card:hover{ transform:translateY(-3px); }
+
+.ans-card.quotient-card{
+  background:linear-gradient(145deg,#FFFFFF,#F3EFFF);
+  border-color:#7C3AED;
+  box-shadow:0 8px 0 #5445C4, 0 16px 28px rgba(124,58,237,.14);
+}
+.ans-card.remainder-card{
+  background:linear-gradient(145deg,#FFFFFF,#FFF9EE);
+  border-color:#F59E0B;
+  box-shadow:0 8px 0 #D97706, 0 16px 28px rgba(245,158,11,.14);
+}
+
+.ans-card-title{
+  font-size:clamp(16px,2.2vh,20px); font-weight:700; color:#5445C4;
+}
+.remainder-card .ans-card-title{ color:#B45309; }
+
+.ans-card .blank{
+  font-size:clamp(24px,3.2vh,32px) !important;
+  font-weight:400 !important;
+  width:clamp(90px,11vw,130px) !important;
+  height:clamp(46px,5.5vh,56px) !important;
+  border-radius:14px !important;
+  margin:0 !important;
+}
+
+
+/* ---------------- choice pills ---------------- */
+.choices{ display:flex; flex-wrap:wrap; gap:clamp(9px,1.5vh,14px); justify-content:center; }
+.pick{
+  font:inherit; font-size:clamp(16px,min(1.75vw,2.5vh),21px); font-weight:500; cursor:pointer;
+  padding:clamp(10px,1.7vh,15px) clamp(16px,2vw,26px); border-radius:999px;
+  color:var(--plum-dark); background:var(--plum-light);
+  border:3px solid #D6CEFA;
+  box-shadow:0 4px 0 rgba(108,92,224,.18);
+  transition:transform .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.pick:hover:not(:disabled){ transform:translateY(-2px); border-color:var(--plum); }
+.pick.on{ background:var(--plum); border-color:var(--plum-dark); color:#fff; box-shadow:0 4px 0 var(--plum-dark); }
+.pick.good{ background:var(--good-light); border-color:var(--good); color:var(--good); box-shadow:0 4px 0 rgba(24,138,92,.25); }
+.pick.bad{ background:var(--bad-light); border-color:var(--bad); color:var(--bad); box-shadow:0 4px 0 rgba(206,66,56,.22); }
+.pick:disabled{ cursor:default; }
+.pick-label{ font-size:clamp(15px,2.1vh,18px); color:var(--ink-soft); }
+
+/* ---------------- table layout (Q & R work) ---------------- */
+.work{
+  border-collapse:separate; border-spacing:0;
+  border-radius:16px; overflow:hidden;
+  box-shadow:0 7px 0 #2B3B44,0 15px 26px rgba(34,48,58,.18);
+}
+.work th,.work td{
+  border-right:2px solid #46565F; border-bottom:2px solid #46565F;
+  padding:clamp(5px,1vh,8px) clamp(9px,1.2vw,14px); text-align:center; background:#fff;
+  font-size:clamp(15px,min(1.6vw,2.4vh),20px); white-space:nowrap;
+}
+.work th{
+  border-top:2px solid #46565F; padding:clamp(4px,.9vh,7px) clamp(9px,1.2vw,14px);
+  background:linear-gradient(#FFF6D2,#FFE9A0); font-size:clamp(11px,1.6vh,13px);
+}
+.work th:first-child,.work td:first-child{ border-left:2px solid #46565F; }
+.work td.lead{ background:var(--plum-light); color:var(--plum-dark); }
+.work .blank{ font-size:clamp(15px,2.2vh,18px); }
+
+/* word-problem card */
+.story{
+  max-width:56ch; padding:14px 18px; font-size:17px; line-height:1.5;
+  background:#fff; border:2.5px solid var(--line); border-left:7px solid var(--amber);
+  border-radius:var(--r-md); box-shadow:0 6px 16px rgba(34,48,58,.07);
+}
+.story b{ color:var(--plum-dark); }
+
+/* ---------------- message & nav ---------------- */
+.msg{ min-height:20px; margin-top:clamp(4px,.8vh,6px); text-align:center;
+  font-size:clamp(13px,1.9vh,15px); }
+.msg.bad{ color:var(--bad); }
+.msg.good{ color:var(--good); }
+
+.nav{
+  margin-top:clamp(6px,1.2vh,10px); padding-top:clamp(6px,1.2vh,10px);
+  border-top:2px dashed #DCE7E6;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.btn{
+  font:inherit; font-size:clamp(15px,2.1vh,18px); cursor:pointer;
+  min-width:clamp(104px,12vw,130px); min-height:clamp(40px,5.6vh,48px);
+  padding:clamp(8px,1.3vh,10px) clamp(14px,1.8vw,22px); border-radius:14px;
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:hover:not(:disabled){ transform:translateY(-2px); }
+.btn:active:not(:disabled){ transform:translateY(2px); box-shadow:none !important; }
+.btn:disabled{ opacity:.45; cursor:not-allowed; }
+.btn.primary{
+  color:#fff; background:var(--plum); border:2.5px solid var(--plum-dark);
+  box-shadow:0 5px 0 var(--plum-dark);
+}
+.btn.primary:hover:not(:disabled){ background:#7D6BEF; }
+.btn.ghost{
+  color:var(--ink); background:#fff; border:2.5px solid #D6CEFA;
+  box-shadow:0 5px 0 #E2DDFB;
+}
+
+/* ---------------- modal ---------------- */
+.overlay{
+  position:fixed; inset:0; z-index:200; padding:22px; display:none;
+  align-items:center; justify-content:center;
+  background:transparent;
+}
+.overlay.show{ display:flex; animation:fade .18s ease; }
+@keyframes fade{ from{ opacity:0 } to{ opacity:1 } }
+/* ---------- chapter 3 pop-up: the RIBBON BANNER ----------
+   A wide card whose whole top is a coloured banner ending in a
+   downward point, with the message and buttons beneath it. */
+.pop{
+  width:min(600px,94vw); padding:0 0 30px;
+  text-align:center; overflow:hidden;
+  background:var(--paper);
+  border:4px solid var(--good); border-radius:26px;
+  box-shadow:0 18px 0 rgba(31,36,64,.14), 0 30px 60px rgba(24,42,48,.26);
+  animation:pop .26s cubic-bezier(.2,1.3,.5,1);
+}
+.pop-band{
+  padding:26px 30px 48px; margin-bottom:2px;
+  color:#fff;
+  background:linear-gradient(160deg,#7D6BEF,var(--plum));
+  clip-path:polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
+}
+.pop.wrong{ border-color:var(--bad); }
+.pop.wrong .pop-band{ background:linear-gradient(160deg,#E2645B,var(--bad)); }
+
+.pop .emoji{ font-size:60px; line-height:1; }
+.pop h2{ margin:8px 0 0; font-size:34px; line-height:1.15; color:#fff; }
+.pop p{ padding:14px 34px 0; font-size:20px; color:var(--ink); line-height:1.5; }
+.pop .actions{
+  margin-top:24px; padding:0 30px;
+  display:flex; flex-wrap:wrap; gap:14px; justify-content:center;
+}
+.pop .actions .btn{ min-width:160px; }
+
+.score{
+  margin:18px auto 0; display:inline-flex; gap:12px; align-items:baseline;
+  padding:12px 26px; border-radius:16px;
+  background:var(--plum-light); border:2px solid #D6CEFA;
+}
+.score b{ font-size:40px; color:var(--plum-dark); line-height:1; }
+.score span{ font-size:17px; color:var(--ink-soft); }
+.stars{ margin-top:12px; font-size:36px; }
+
+@media (max-width:620px){
+  .pop-band{ padding:20px 18px 38px; }
+  .pop .emoji{ font-size:48px; }
+  .pop h2{ font-size:27px; }
+  .pop p{ font-size:18px; padding:12px 18px 0; }
+  .pop .actions .btn{ width:100%; }
+}
+
+/* ---------------- STREAK & HINT BUTTON ---------------- */
+.quiz-top-info {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; margin-bottom: 6px; gap: 12px;
+}
+.streak-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 999px;
+  background: linear-gradient(135deg, #ff9f43, #ff5252);
+  color: #fff; font-size: 14px; font-weight: 600;
+  box-shadow: 0 4px 10px rgba(255, 82, 82, 0.3);
+}
+.hint-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 999px;
+  background: linear-gradient(145deg, #FFF4E2, #FFE7C2);
+  border: 2px solid var(--amber); color: var(--amber-dark);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 4px 0 var(--amber-dark), 0 6px 12px rgba(239,159,43,0.2);
+  transition: transform .15s ease;
+}
+.hint-btn:hover { transform: translateY(-2px); }
+
+/* ---------------- CONFETTI ---------------- */
+.cft-layer{
+  position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:9998;
+}
+.cft{
+  position:absolute; will-change:transform, opacity;
+  animation-name:cftBurst; animation-timing-function:cubic-bezier(.15,.75,.35,1); animation-fill-mode:both;
+}
+@keyframes cftBurst{
+  0%{ opacity:1; transform:translate(-50%,-50%) scale(.35) rotate(0deg); }
+  45%{ opacity:1; transform:translate(calc(-50% + var(--bx)), calc(-50% + var(--by))) scale(1) rotate(calc(var(--rot) * .55)); }
+  100%{ opacity:0; transform:translate(calc(-50% + var(--ex)), calc(-50% + var(--ey))) scale(.9) rotate(var(--rot)); }
+}
+
+@media (max-width:760px){
+  .stage{ padding:8px; align-items:flex-start; height:calc(100vh - 16px); }
+  .quiz{ padding:12px 12px 10px; height:100%; border-radius:18px; }
+  .quiz-head h1{ font-size:20px; }
+  .home{ position:static; margin:12px 0 0 12px; }
+  .board{ padding:12px 8px; }
+  .nav{ flex-direction:column-reverse; }
+  .nav .btn{ width:100%; }
+  .work th,.work td{ padding:8px 10px; font-size:18px; }
+  .answer-row{ flex-direction:column; align-items:center; gap:14px; width:100%; }
+}
+

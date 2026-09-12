@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Fill in the Boxes</title>
+
+    <style>
+        /* =========================================================
+   RESET
+   ========================================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Livvic", sans-serif;
+
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+           font-family: "Livvic", sans-serif;
+            color: #2f4f4f;
+            background: #fff8e8;
+            user-select: none;
+        }
+
+        button {
+            font: inherit;
+        }
+
+        /* =========================================================
+   PAGE LAYOUT
+   ========================================================= */
+        .game-page {
+            width: 100%;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 10px 28px 14px;
+        }
+
+        .header {
+            flex: 0 0 auto;
+            width: 100%;
+            max-width: 1440px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 100px 1fr 100px;
+            align-items: start;
+        }
+
+        .title {
+            text-align: center;
+            color: #3f2a86;
+            font-size: 30px;
+            line-height: 1;
+            align-self: center;
+            /* font-weight:800; */
+        }
+
+        .content {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            max-width: 1250px;
+            margin: 8px auto 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* =========================================================
+   HOME / HINT BUTTONS
+   ========================================================= */
+        .icon-button {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            border: 2px solid #eadff7;
+            background: #fffdf7;
+            box-shadow: 0 4px 12px rgba(70, 50, 120, .15);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+        .icon-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(70, 50, 120, .20);
+        }
+
+        .icon-button img {
+            width: 48px;
+            height: 48px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .icon-label {
+            font-size: 14px;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        /* =========================================================
+   WORD BANK
+   ========================================================= */
+        .word-bank {
+            width: 100%;
+            flex: 0 0 auto;
+            padding: 10px 14px 12px;
+            border-radius: 18px;
+            background: #fffdf7;
+            border: 2px solid #f1d995;
+        }
+
+        .word-bank-title {
+            text-align: center;
+            color: #4b3a93;
+            font-size: clamp(18px, 1.6vw, 24px);
+            line-height: 1;
+            font-weight: 500;
+            margin-bottom: 9px;
+        }
+
+        .words {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .word {
+            min-width: 0;
+            min-height: 48px;
+            padding: 7px 10px;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            cursor: grab;
+            touch-action: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #24346f;
+            font-size: clamp(15px, 1.35vw, 21px);
+            line-height: 1.05;
+            font-weight: 400;
+            transition: transform .15s, box-shadow .15s, opacity .15s;
+        }
+
+        .word:active {
+            cursor: grabbing;
+        }
+
+        .word:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(65, 50, 120, .12);
+        }
+
+        .word:disabled {
+            opacity: .42;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .word.selected {
+            outline: 3px solid #f4c84b;
+            transform: translateY(-2px);
+        }
+
+        .word.dragging {
+            opacity: .45;
+        }
+
+        .word:nth-child(1) {
+            background: #fff1c9;
+            border-color: #f0ca64
+        }
+
+        .word:nth-child(2) {
+            background: #eaf7df;
+            border-color: #acd68e
+        }
+
+        .word:nth-child(3) {
+            background: #e8f2ff;
+            border-color: #9fc7ef
+        }
+
+        .word:nth-child(4) {
+            background: #f2e8ff;
+            border-color: #c8a4ea
+        }
+
+        .word:nth-child(5) {
+            background: #ffe9df;
+            border-color: #f2b397;
+            font-size: clamp(22px, 1.8vw, 28px)
+        }
+
+        /* =========================================================
+   QUESTION AREA
+   ========================================================= */
+        .question-area {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8px 20px 4px;
+        }
+
+        .question-heading {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 1150px;
+        }
+
+        .question-number {
+            flex: 0 0 auto;
+            color: #2f4f4f;
+            font-size: clamp(22px, 2vw, 31px);
+            line-height: 1;
+            /* font-weight:800; */
+        }
+
+        .question-text {
+            width: auto;
+            max-width: 1100px;
+            color: #2f4f4f;
+            font-size: 30px;
+            line-height: 1.25;
+            /* font-weight:700; */
+            text-align: left;
+        }
+
+        .question-image {
+            width: min(430px, 34vw);
+            height: min(235px, 27vh);
+            min-height: 120px;
+            object-fit: contain;
+            display: block;
+            margin: 8px auto 7px;
+            border: 0;
+            background: transparent;
+        }
+
+        .drop-zone {
+            width: min(330px, 42vw);
+            min-height: 52px;
+            padding: 8px 14px;
+            border: 2px dashed #9a78d3;
+            border-radius: 13px;
+            background: #f7f1ff;
+            color: #7654b6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: clamp(15px, 1.4vw, 20px);
+            line-height: 1.15;
+            font-weight: 500;
+            cursor: pointer;
+            transition: .15s;
+        }
+
+        .drop-zone.drag-over {
+            background: #eee2ff;
+            border-color: #7047b5;
+            transform: scale(1.02);
+        }
+
+        .drop-zone.filled {
+            background: #eef9e9;
+            border-color: #6db36b;
+            border-style: solid;
+            color: #397a3d;
+        }
+
+        .drop-zone.correct {
+            background: #e7f8e9;
+            border-color: #42a85a;
+            border-style: solid;
+            color: #277638;
+        }
+
+        .drop-zone.symbol-answer {
+            font-size: clamp(32px, 3.8vw, 52px);
+            line-height: 1;
+        }
+
+        /* =========================================================
+   NAVIGATION
+   ========================================================= */
+        .navigation {
+            flex: 0 0 auto;
+            width: 100%;
+            max-width: 1250px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 4px 0 0;
+        }
+
+        .nav-button {
+            min-width: 150px;
+            height: 50px;
+            padding: 0 22px;
+            border: 2px solid #8d73d0;
+            border-radius: 15px;
+            background: #fff;
+            color: #60449e;
+            font-size: clamp(16px, 1.35vw, 20px);
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #d8caef;
+            transition: .12s;
+            margin-top: -20px !important;
+        }
+
+        .nav-button.next {
+            background: #7153c1;
+            color: #fff;
+            border-color: #7153c1;
+            box-shadow: 0 4px 0 #4e3994;
+        }
+
+        .nav-button:not(:disabled):hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-button:not(:disabled):active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #d8caef;
+        }
+
+        .nav-button.next:not(:disabled):active {
+            box-shadow: 0 1px 0 #4e3994;
+        }
+
+        .nav-button:disabled {
+            opacity: .38;
+            cursor: not-allowed;
+        }
+
+        /* =========================================================
+   FEEDBACK POPUPS — game style
+   ========================================================= */
+        .feedback {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* background: rgba(38, 31, 76, .35); */
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: .2s;
+        }
+
+        .feedback.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .feedback-card {
+            position: relative;
+            width: min(430px, 90vw);
+            padding: 34px 26px 28px;
+            text-align: center;
+            border-radius: 28px;
+            background: linear-gradient(180deg, #ffffff 0%, #fffdf6 100%);
+            border: 5px solid #8d73d0;
+            box-shadow: 0 20px 50px rgba(43, 31, 90, .32), inset 0 0 0 3px rgba(255, 255, 255, .6);
+            overflow: hidden;
+        }
+
+        .feedback-card::before {
+            content: "";
+            position: absolute;
+            top: -60%;
+            left: -20%;
+            width: 140%;
+            height: 140%;
+            background: radial-gradient(circle, rgba(255, 255, 255, .55) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .feedback-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            margin: 0 auto 6px;
+            background: radial-gradient(circle at 35% 30%, #ffffff, #f1eaff);
+            box-shadow: 0 8px 18px rgba(70, 50, 120, .22), inset 0 0 0 4px rgba(255, 255, 255, .8);
+        }
+
+        .feedback-emoji {
+            font-size: 58px;
+            line-height: 1;
+        }
+
+        .feedback-title {
+            margin: 8px 0 6px;
+            color: #3f3278;
+            font-size: 32px;
+            line-height: 1.1;
+            font-weight: 900;
+            letter-spacing: .3px;
+        }
+
+        .feedback-text {
+            color: #59627a;
+            font-size: 18px;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .feedback.simple-correct .feedback-card {
+            border-color: #4ec263;
+            box-shadow: 0 20px 50px rgba(30, 120, 60, .32), inset 0 0 0 3px rgba(255, 255, 255, .6);
+        }
+
+        .feedback.simple-correct .feedback-badge {
+            background: radial-gradient(circle at 35% 30%, #ffffff, #e4faea);
+            box-shadow: 0 8px 18px rgba(35, 140, 70, .3), inset 0 0 0 4px rgba(255, 255, 255, .85);
+        }
+
+        .feedback.simple-correct .feedback-title {
+            color: #2a9648;
+        }
+
+        .feedback.simple-wrong .feedback-card {
+            border-color: #ed737c;
+            box-shadow: 0 20px 50px rgba(150, 40, 50, .28), inset 0 0 0 3px rgba(255, 255, 255, .6);
+        }
+
+        .feedback.simple-wrong .feedback-badge {
+            background: radial-gradient(circle at 35% 30%, #ffffff, #ffe7e8);
+            box-shadow: 0 8px 18px rgba(200, 60, 70, .28), inset 0 0 0 4px rgba(255, 255, 255, .85);
+        }
+
+        .feedback.simple-wrong .feedback-title {
+            color: #d64d58;
+        }
+
+        .feedback.simple-hint .feedback-card {
+            border-color: #f0bd45;
+            box-shadow: 0 20px 50px rgba(150, 110, 10, .25), inset 0 0 0 3px rgba(255, 255, 255, .6);
+        }
+
+        .feedback.simple-hint .feedback-badge {
+            background: radial-gradient(circle at 35% 30%, #ffffff, #fff3d9);
+            box-shadow: 0 8px 18px rgba(190, 140, 10, .28), inset 0 0 0 4px rgba(255, 255, 255, .85);
+        }
+
+        .feedback.simple-hint .feedback-title {
+            color: #a36c00;
+        }
+
+        /* Final popup */
+        .feedback.final-pop .feedback-card {
+            width: min(540px, 92vw);
+            border-color: #efc34d;
+            padding: 40px 30px 32px;
+            box-shadow: 0 24px 60px rgba(150, 110, 10, .32), inset 0 0 0 3px rgba(255, 255, 255, .6);
+        }
+
+        .feedback.final-pop .feedback-badge {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 35% 30%, #ffffff, #fff3d9);
+            box-shadow: 0 10px 22px rgba(190, 140, 10, .3), inset 0 0 0 5px rgba(255, 255, 255, .85);
+        }
+
+        .feedback.final-pop .feedback-emoji {
+            font-size: 72px;
+        }
+
+        .feedback.final-pop .feedback-title {
+            font-size: 40px;
+            font-weight: 400;
+        }
+
+        .feedback.final-pop .feedback-text {
+            font-size: 20px;
+        }
+
+        .final-score {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 9px 26px;
+            border-radius: 20px;
+            background: linear-gradient(145deg, #e9fbe4, #d3f4cb);
+            color: #2a9648;
+            font-size: 26px;
+            font-weight: 400;
+            box-shadow: 0 4px 10px rgba(40, 140, 60, .25), inset 0 0 0 2px rgba(255, 255, 255, .7);
+        }
+
+        .play-again {
+            margin-top: 22px;
+            min-width: 180px;
+            min-height: 52px;
+            padding: 12px 24px;
+            border: 0;
+            border-radius: 16px;
+            background: linear-gradient(145deg, #8567d6, #6a4fbf);
+            color: #fff;
+            font-size: 19px;
+            font-weight: 800;
+            box-shadow: 0 5px 0 #4e3994;
+            cursor: pointer;
+            transition: .12s;
+        }
+
+        .play-again:hover {
+            transform: translateY(-2px);
+        }
+
+        .play-again:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #4e3994;
+        }
+
+        /* Popup animations */
+        @keyframes correctPop {
+            0% {
+                transform: scale(.55) rotate(-4deg);
+                opacity: 0
+            }
+
+            60% {
+                transform: scale(1.08) rotate(2deg);
+                opacity: 1
+            }
+
+            100% {
+                transform: scale(1) rotate(0);
+                opacity: 1
+            }
+        }
+
+        @keyframes wrongShake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            20% {
+                transform: translateX(-9px) rotate(-1.5deg)
+            }
+
+            40% {
+                transform: translateX(9px) rotate(1.5deg)
+            }
+
+            60% {
+                transform: translateX(-6px)
+            }
+
+            80% {
+                transform: translateX(6px)
+            }
+        }
+
+        @keyframes badgePulse {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.08)
+            }
+        }
+
+        .feedback.simple-correct .feedback-card,
+        .feedback.final-pop .feedback-card {
+            animation: correctPop .35s ease;
+        }
+
+        .feedback.simple-wrong .feedback-card {
+            animation: wrongShake .38s ease;
+        }
+
+        .feedback.show .feedback-badge {
+            animation: badgePulse 1.1s ease-in-out infinite;
+        }
+
+        /* =========================================================
+   CONFETTI
+   ========================================================= */
+        .confetti-piece {
+            position: fixed;
+            top: -24px;
+            z-index: 600;
+            border-radius: 3px;
+            pointer-events: none;
+            animation: confettiFall 1.6s ease-in forwards;
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(112vh) rotate(760deg);
+                opacity: .25;
+            }
+        }
+
+        /* =========================================================
+   RESPONSIVE MEDIA QUERIES
+   Ordered: mobile -> tablet -> laptop -> desktop
+   ========================================================= */
+
+        /* ---------- Mobile ---------- */
+        @media (max-width:600px) {
+            .game-page {
+                padding: 5px 9px 8px;
+            }
+
+            .header {
+                grid-template-columns: 58px 1fr 58px;
+            }
+
+            .icon-button {
+                width: 52px;
+                height: 52px;
+            }
+
+            .icon-button img {
+                width: 36px;
+                height: 36px;
+            }
+
+            .icon-label {
+                font-size: 10px;
+            }
+
+            .title {
+                font-size: 30px;
+            }
+
+            .content {
+                margin-top: 5px;
+            }
+
+            .word-bank {
+                padding: 7px 5px 8px;
+            }
+
+            .word-bank-title {
+                font-size: 16px;
+                margin-bottom: 6px;
+            }
+
+            .words {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 5px;
+            }
+
+            .word {
+                min-height: 37px;
+                padding: 5px 3px;
+                font-size: 12px;
+            }
+
+            .word:nth-child(5) {
+                font-size: 18px;
+            }
+
+            .question-area {
+                padding: 4px 3px 2px;
+            }
+
+            .question-number {
+                font-size: 20px;
+                margin-bottom: 4px;
+            }
+
+            .question-text {
+                font-size: 17px;
+                line-height: 1.22;
+            }
+
+            .question-image {
+                width: min(260px, 72vw);
+                height: min(155px, 24vh);
+                min-height: 75px;
+                margin: 4px auto;
+            }
+
+            .drop-zone {
+                width: min(235px, 70vw);
+                min-height: 43px;
+                padding: 7px 8px;
+                font-size: 14px;
+            }
+
+            .navigation {
+                gap: 8px;
+            }
+
+            .nav-button {
+                min-width: 110px;
+                height: 42px;
+                padding: 0 12px;
+                font-size: 14px;
+            }
+
+            .feedback-card {
+                width: 90vw;
+                padding: 22px 16px;
+            }
+
+            .feedback-badge {
+                width: 72px;
+                height: 72px;
+            }
+
+            .feedback-emoji {
+                font-size: 44px;
+            }
+
+            .feedback-title {
+                font-size: 24px;
+            }
+
+            .feedback-text {
+                font-size: 15px;
+            }
+
+            .feedback.final-pop .feedback-badge {
+                width: 88px;
+                height: 88px;
+            }
+
+            .feedback.final-pop .feedback-emoji {
+                font-size: 54px;
+            }
+
+            .feedback.final-pop .feedback-title {
+                font-size: 28px;
+            }
+
+            .feedback.final-pop .feedback-text {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-height:560px) and (max-width:600px) {
+            .question-image {
+                height: 105px;
+                min-height: 55px;
+            }
+
+            .question-text {
+                font-size: 15px;
+            }
+
+            .drop-zone {
+                min-height: 38px;
+                font-size: 13px;
+            }
+
+            .nav-button {
+                height: 38px;
+            }
+        }
+
+        /* ---------- Tablet ---------- */
+        @media (min-width:601px) and (max-width:900px) {
+            .game-page {
+                padding: 7px 16px 10px;
+            }
+
+            .header {
+                grid-template-columns: 72px 1fr 72px;
+            }
+
+            .icon-button {
+                width: 56px;
+                height: 56px;
+            }
+
+            .icon-button img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .icon-label {
+                font-size: 11px;
+            }
+
+            .title {
+                font-size: 30px;
+            }
+
+            .word-bank {
+                padding: 8px 7px 9px;
+            }
+
+            .word-bank-title {
+                font-size: 18px;
+                margin-bottom: 7px;
+            }
+
+            .words {
+                gap: 5px;
+            }
+
+            .word {
+                min-height: 42px;
+                padding: 5px 4px;
+                font-size: 13px;
+            }
+
+            .word:nth-child(5) {
+                font-size: 20px;
+            }
+
+            .question-area {
+                padding: 4px 8px 2px;
+            }
+
+            .question-number {
+                font-size: 22px;
+                margin-bottom: 4px;
+            }
+
+            .question-text {
+                font-size: 30px;
+            }
+
+            .question-image {
+                width: 300px;
+                height: 170px;
+                min-height: 90px;
+                margin: 4px auto;
+            }
+
+            .drop-zone {
+                width: 250px;
+                min-height: 44px;
+                font-size: 15px;
+            }
+
+            .nav-button {
+                min-width: 125px;
+                height: 44px;
+                padding: 0 16px;
+                font-size: 15px;
+            }
+        }
+
+        @media (max-height:650px) and (min-width:601px) {
+            .game-page {
+                padding-top: 4px;
+                padding-bottom: 6px;
+            }
+
+            .word-bank {
+                padding-top: 6px;
+                padding-bottom: 7px;
+            }
+
+            .word-bank-title {
+                margin-bottom: 5px;
+                font-size: 17px;
+            }
+
+            .word {
+                min-height: 38px;
+            }
+
+            .question-image {
+                height: 135px;
+                min-height: 70px;
+            }
+
+            .question-text {
+                font-size: 30px;
+            }
+
+            .drop-zone {
+                min-height: 40px;
+            }
+
+            .nav-button {
+                height: 40px;
+            }
+        }
+
+        /* ---------- Laptop ---------- */
+        @media (min-width:901px) and (max-width:1440px) {
+            .game-page {
+                padding: 8px 24px 12px;
+            }
+
+            .header {
+                grid-template-columns: 90px 1fr 90px;
+            }
+
+            .icon-button {
+                width: 74px;
+                height: 74px;
+            }
+
+            .icon-button img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .title {
+                font-size: 30px;
+            }
+
+            .content {
+                max-width: 1350px;
+                padding-bottom: 6px;
+            }
+
+            .word-bank {
+                padding: 10px 12px 12px;
+            }
+
+            .word-bank-title {
+                font-size: 22px;
+            }
+
+            .words {
+                gap: 10px;
+            }
+
+            .word {
+                min-height: 50px;
+                padding: 8px 10px;
+                font-size: 18px;
+            }
+
+            .word:nth-child(5) {
+                font-size: 26px;
+            }
+
+            .question-area {
+                padding: 10px 20px 4px;
+            }
+
+            .question-heading {
+                max-width: 1180px;
+            }
+
+            .question-number {
+                font-size: 28px;
+            }
+
+            .question-text {
+                font-size: 30px;
+            }
+
+            .question-image {
+                width: min(460px, 34vw);
+                height: min(255px, 28vh);
+            }
+
+            .drop-zone {
+                width: 340px;
+                min-height: 54px;
+                font-size: 19px;
+            }
+
+            .navigation {
+                max-width: 1350px;
+                padding-top: 0;
+            }
+
+            .nav-button {
+                min-width: 155px;
+                height: 50px;
+                font-size: 19px;
+            }
+        }
+
+        /* ---------- Desktop ---------- */
+        @media (min-width:1441px) {
+            .game-page {
+                padding: 16px 48px 22px;
+            }
+
+            .header {
+                max-width: 2000px;
+                grid-template-columns: 130px 1fr 130px;
+            }
+
+            .icon-button {
+                width: 96px;
+                height: 96px;
+                border-width: 3px;
+                gap: 4px;
+            }
+
+            .icon-button img {
+                width: 64px;
+                height: 64px;
+            }
+
+            .icon-label {
+                font-size: 16px;
+            }
+
+            .title {
+                font-size: 40px;
+            }
+
+            .content {
+                max-width: 1800px;
+                margin-top: 14px;
+            }
+
+            .word-bank {
+                padding: 18px 26px 22px;
+                border-radius: 22px;
+            }
+
+            .word-bank-title {
+                font-size: 28px;
+                margin-bottom: 14px;
+            }
+
+            .words {
+                gap: 18px;
+            }
+
+            .word {
+                min-height: 70px;
+                padding: 12px 16px;
+                border-radius: 16px;
+                font-size: 24px;
+            }
+
+            .word:nth-child(5) {
+                font-size: 34px;
+            }
+
+            .question-area {
+                padding: 22px 40px 10px;
+            }
+
+            .question-heading {
+                max-width: 1600px;
+                gap: 16px;
+            }
+
+            .question-number {
+                font-size: 34px;
+            }
+
+            .question-text {
+                font-size: 40px;
+                line-height: 1.3;
+            }
+
+            .question-image {
+                width: min(700px, 38vw);
+                height: min(500px, 36vh);
+                min-height: 340px;
+                margin: 16px auto 18px;
+            }
+
+            .drop-zone {
+                width: 450px !important;
+                min-height: 66px;
+                padding: 12px 20px;
+                border-radius: 16px;
+                font-size: 24px;
+            }
+
+            .navigation {
+                max-width: 1800px;
+                padding: 10px 0 0;
+                transform: translateY(-28px);
+            }
+
+            .nav-button {
+                min-width: 200px;
+                height: 62px;
+                padding: 0 30px;
+                border-radius: 18px;
+                font-size: 23px;
+            }
+
+            .feedback-card {
+                width: min(520px, 60vw);
+                padding: 42px 34px 34px;
+                border-radius: 32px;
+            }
+
+            .feedback-badge {
+                width: 120px;
+                height: 120px;
+            }
+
+            .feedback-emoji {
+                font-size: 72px;
+            }
+
+            .feedback-title {
+                font-size: 38px;
+            }
+
+            .feedback-text {
+                font-size: 22px;
+            }
+
+            .feedback.final-pop .feedback-card {
+                width: min(640px, 62vw);
+                padding: 50px 40px 40px;
+            }
+
+            .feedback.final-pop .feedback-badge {
+                width: 150px;
+                height: 150px;
+            }
+
+            .feedback.final-pop .feedback-emoji {
+                font-size: 88px;
+            }
+
+            .feedback.final-pop .feedback-title {
+                font-size: 48px;
+            }
+
+            .feedback.final-pop .feedback-text {
+                font-size: 24px;
+            }
+
+            .final-score {
+                font-size: 30px;
+                padding: 11px 32px;
+            }
+
+            .play-again {
+                min-width: 210px;
+                min-height: 58px;
+                font-size: 22px;
+            }
+
+            .drop-zone.symbol-answer {
+                font-size: clamp(40px, 2.5vw, 56px);
+            }
+        }
+
+        @media (max-width:600px) {
+            .drop-zone.symbol-answer {
+                font-size: clamp(28px, 9vw, 36px);
+            }
+        }
+
+        @media (max-height:560px) and (max-width:600px) {
+            .drop-zone.symbol-answer {
+                font-size: clamp(26px, 8vw, 32px);
+            }
+        }
+
+        @media (min-width:601px) and (max-width:900px) {
+            .drop-zone.symbol-answer {
+                font-size: clamp(30px, 4vw, 40px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-page">
+
+        <header class="header">
+            <button class="icon-button" id="homeButton" type="button" aria-label="Home">
+                <img src="../assets/images/home.png" alt="Home">
+                <span class="icon-label"></span>
+            </button>
+
+            <p class="title">Fill in the Boxes</p>
+
+            <button class="icon-button" id="hintButton" type="button" aria-label="Hint">
+                <img src="../assets/images/hint.png" alt="Hint">
+                <span class="icon-label"></span>
+            </button>
+        </header>
+
+        <main class="content">
+
+            <section class="word-bank" aria-label="Word Bank">
+                <div class="word-bank-title">WORD BANK</div>
+                <div class="words" id="wordBank">
+                    <button class="word" type="button" draggable="true" data-word="Multiplicand">Multiplicand</button>
+                    <button class="word" type="button" draggable="true" data-word="Multiplier">Multiplier</button>
+                    <button class="word" type="button" draggable="true"
+                        data-word="Multiplication">Multiplication</button>
+                    <button class="word" type="button" draggable="true" data-word="Product">Product</button>
+                    <button class="word" type="button" draggable="true" data-word="×">×</button>
+                </div>
+            </section>
+
+            <section class="question-area">
+                <div class="question-heading">
+                    <div class="question-number" id="questionNumber">Q1.</div>
+                    <div class="question-text" id="questionText">Repeated addition of the same number is called</div>
+                </div>
+
+                <img class="question-image" id="questionImage" src="../assets/images/1.png.png"
+                    alt="Question illustration">
+
+                <div class="drop-zone" id="dropZone" tabindex="0" role="button">Drag or tap the correct word here</div>
+            </section>
+
+            <nav class="navigation">
+                <button class="nav-button" id="prevButton" type="button" disabled>← Previous</button>
+                <button class="nav-button next" id="nextButton" type="button" disabled>Next →</button>
+            </nav>
+
+        </main>
+    </div>
+
+    <!-- SIMPLE FEEDBACK POPUP (correct / wrong / hint) -->
+    <div class="feedback" id="feedback" aria-hidden="true">
+        <div class="feedback-card">
+            <div class="feedback-badge">
+                <div class="feedback-emoji" id="feedbackEmoji">😊</div>
+            </div>
+            <h2 class="feedback-title" id="feedbackTitle">Correct!</h2>
+            <p class="feedback-text" id="feedbackText">Great job!</p>
+        </div>
+    </div>
+
+    <!-- FINAL POPUP -->
+    <div class="feedback final-pop" id="finalFeedback" aria-hidden="true">
+        <div class="feedback-card">
+            <div class="feedback-badge">
+                <div class="feedback-emoji">🎉</div>
+            </div>
+            <h2 class="feedback-title">Great Job!</h2>
+            <p class="feedback-text">You completed all 5 questions.</p>
+            <div class="final-score" id="finalScore">5 / 5</div>
+            <br>
+            <button class="play-again" id="playAgainButton" type="button">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const data = [
+    {
+        text: "Repeated addition of the same number is called",
+        answer: "Multiplication",
+        clue: "Think of the operation used when equal groups are added together.",
+        image: "../assets/images/1.png.png"
+    },
+    {
+        text: "The result of multiplication is called",
+        answer: "Product",
+        clue: "This is the answer you get after multiplying.",
+        image: "../assets/images/2.png.png"
+    },
+    {
+        text: "The number with which the given number is multiplied, is called",
+        answer: "Multiplier",
+        clue: "It tells how many times the other number is taken.",
+        image: "../assets/images/3.png.png"
+    },
+    {
+        text: "The number that is to be multiplied is called",
+        answer: "Multiplicand",
+        clue: "It is the number being multiplied.",
+        image: "../assets/images/4.png.png"
+    },
+    {
+        text: "The symbol used for multiplication is",
+        answer: "×",
+        clue: "Look for the cross-shaped sign used between two numbers.",
+        image: "../assets/images/5.png.png"
+    }
+];
+
+const qn = document.getElementById("questionNumber");
+const qt = document.getElementById("questionText");
+const qi = document.getElementById("questionImage");
+const dz = document.getElementById("dropZone");
+const prev = document.getElementById("prevButton");
+const next = document.getElementById("nextButton");
+const fb = document.getElementById("feedback");
+const fe = document.getElementById("feedbackEmoji");
+const ft = document.getElementById("feedbackTitle");
+const fx = document.getElementById("feedbackText");
+const finalFb = document.getElementById("finalFeedback");
+const finalScore = document.getElementById("finalScore");
+const again = document.getElementById("playAgainButton");
+const words = [...document.querySelectorAll(".word")];
+
+function speak(t) {
+    speechSynthesis.cancel();
+
+    const msg = new SpeechSynthesisUtterance(t);
+    msg.lang = "en-US";
+    msg.volume = 0.25;
+    msg.rate = 1;
+    msg.pitch = 1;
+
+    speechSynthesis.speak(msg);
+}
+
+let current = 0;
+let selected = null;
+let completed = Array(5).fill(false);
+let answers = Array(5).fill("");
+let usedWords = new Set();
+let dragWord = null;
+let timer;
+
+const DROP_PLACEHOLDER = "Drag or tap the correct word here";
+
+function updateDropZone() {
+    const answer = answers[current];
+
+    dz.className = "drop-zone";
+    dz.textContent = answer || DROP_PLACEHOLDER;
+
+    if (answer) {
+        dz.classList.add(completed[current] ? "correct" : "filled");
+        if (answer === "×") dz.classList.add("symbol-answer");
+    }
+}
+
+function updateWordBank() {
+    words.forEach(w => {
+        const isUsed = usedWords.has(w.dataset.word);
+
+        w.disabled = isUsed;
+        w.draggable = !isUsed;
+        w.setAttribute("aria-disabled", isUsed ? "true" : "false");
+
+        if (isUsed) {
+            w.classList.remove("selected", "dragging");
+        }
+    });
+}
+
+
+/* =========================================================
+   RENDER
+   ========================================================= */
+
+function render() {
+    const d = data[current];
+
+    qn.textContent = `Q${current + 1}.`;
+    qt.textContent = d.text;
+
+    qi.src = d.image;
+    qi.alt = `Question ${current + 1} illustration`;
+
+    selected = null;
+
+    words.forEach(w => {
+        w.classList.remove("selected", "dragging");
+    });
+
+    updateDropZone();
+
+    updateWordBank();
+
+    prev.disabled = current === 0;
+    next.disabled = !completed[current] || current === 4;
+}
+
+
+/* =========================================================
+   HIDE FEEDBACK
+   ========================================================= */
+
+function hide() {
+    clearTimeout(timer);
+
+    fb.className = "feedback";
+    fb.setAttribute("aria-hidden", "true");
+}
+
+
+/* =========================================================
+   CONFETTI
+   ========================================================= */
+
+function launchConfetti(count) {
+    const colors = [
+        "#ff8cab",
+        "#8a78ed",
+        "#65cbd2",
+        "#ffd26e",
+        "#8fd9a8",
+        "#7153c1"
+    ];
+
+    for (let i = 0; i < count; i++) {
+        const piece = document.createElement("span");
+
+        piece.className = "confetti-piece";
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.width = "10px";
+        piece.style.height = "16px";
+        piece.style.background = colors[i % colors.length];
+        piece.style.animationDelay = `${Math.random() * 0.4}s`;
+        piece.style.transform = `rotate(${Math.random() * 180}deg)`;
+
+        document.body.appendChild(piece);
+
+        setTimeout(() => piece.remove(), 2200);
+    }
+}
+
+
+/* =========================================================
+   CORRECT POPUP
+   ========================================================= */
+
+function correctPopup() {
+    fb.className = "feedback show simple-correct";
+
+    fe.textContent = "😊";
+    ft.textContent = "Correct!";
+    fx.textContent = "Great job!";
+
+    fb.setAttribute("aria-hidden", "false");
+
+    launchConfetti(45);
+
+    timer = setTimeout(hide, 900);
+}
+
+
+/* =========================================================
+   WRONG POPUP
+   ========================================================= */
+
+function wrongPopup() {
+    fb.className = "feedback show simple-wrong";
+
+    fe.textContent = "😕";
+    ft.textContent = "Try Again!";
+    fx.textContent = "Choose the correct answer.";
+
+    fb.setAttribute("aria-hidden", "false");
+
+    timer = setTimeout(hide, 650);
+}
+
+
+/* =========================================================
+   HINT POPUP
+   ========================================================= */
+
+function hintPopup() {
+    if (completed[current]) return;
+
+    fb.className = "feedback show simple-hint";
+
+    fe.textContent = "💡";
+    ft.textContent = "Hint";
+    fx.textContent = data[current].clue;
+
+    fb.setAttribute("aria-hidden", "false");
+
+    timer = setTimeout(hide, 2600);
+}
+
+
+/* =========================================================
+   VALIDATE ANSWER
+   ========================================================= */
+
+function validate(value) {
+    if (completed[current]) return;
+
+    const ok =
+        value.trim().toLowerCase() ===
+        data[current].answer.toLowerCase();
+
+    /* ---------- WRONG ANSWER ---------- */
+
+    if (!ok) {
+        speak("wrong");
+        wrongPopup();
+
+        answers[current] = "";
+        selected = null;
+
+        setTimeout(() => {
+            updateDropZone();
+
+            words.forEach(w => {
+                w.classList.remove("selected", "dragging");
+            });
+        }, 650);
+
+        return;
+    }
+
+
+    /* ---------- CORRECT ANSWER ---------- */
+
+    completed[current] = true;
+    answers[current] = data[current].answer;
+    usedWords.add(data[current].answer);
+
+    updateDropZone();
+
+    words.forEach(w => {
+        w.classList.remove("selected", "dragging");
+    });
+
+    updateWordBank();
+
+    selected = null;
+
+    prev.disabled = current === 0;
+    next.disabled = current === 4;
+
+    speak("correct");
+
+    correctPopup();
+
+
+    /* ---------- FINAL QUESTION ---------- */
+
+    if (current === 4) {
+        setTimeout(() => {
+            hide();
+
+            finalScore.textContent = "5 / 5";
+
+            finalFb.className = "feedback final-pop show";
+            finalFb.setAttribute("aria-hidden", "false");
+
+            launchConfetti(120);
+        }, 900);
+    }
+}
+
+
+/* =========================================================
+   WORD OPTIONS
+   ========================================================= */
+
+words.forEach(w => {
+
+    /* ---------------------------------------------------------
+       CLICK
+       ---------------------------------------------------------
+       FIX:
+       Previously the first click only selected the word and
+       required a second click to validate.
+
+       Now one click:
+       1. Selects the word
+       2. Puts it in the box
+       3. Validates the answer
+       4. Shows correct/wrong popup
+       --------------------------------------------------------- */
+
+    w.addEventListener("click", () => {
+        if (completed[current] || w.disabled) return;
+
+        words.forEach(x => {
+            x.classList.remove("selected");
+        });
+
+        selected = w;
+        w.classList.add("selected");
+
+        answers[current] = w.dataset.word;
+        updateDropZone();
+
+        /* Immediately check the clicked answer */
+        validate(w.dataset.word);
+    });
+
+
+    /* ---------------------------------------------------------
+       DRAG START
+       --------------------------------------------------------- */
+
+    w.addEventListener("dragstart", e => {
+        if (completed[current] || w.disabled) {
+            e.preventDefault();
+            return;
+        }
+
+        dragWord = w;
+        selected = w;
+
+        w.classList.add("dragging");
+
+        e.dataTransfer.setData(
+            "text/plain",
+            w.dataset.word
+        );
+    });
+
+
+    /* ---------------------------------------------------------
+       DRAG END
+       --------------------------------------------------------- */
+
+    w.addEventListener("dragend", () => {
+        w.classList.remove("dragging");
+    });
+});
+
+
+/* =========================================================
+   DROP ZONE - DRAG OVER
+   ========================================================= */
+
+dz.addEventListener("dragover", e => {
+    if (completed[current]) return;
+
+    e.preventDefault();
+
+    dz.classList.add("drag-over");
+});
+
+
+/* =========================================================
+   DROP ZONE - DRAG LEAVE
+   ========================================================= */
+
+dz.addEventListener("dragleave", () => {
+    dz.classList.remove("drag-over");
+});
+
+
+/* =========================================================
+   DROP ZONE - DROP
+   ========================================================= */
+
+dz.addEventListener("drop", e => {
+    e.preventDefault();
+
+    if (completed[current]) return;
+
+    dz.classList.remove("drag-over");
+
+    const v =
+        e.dataTransfer.getData("text/plain") ||
+        (dragWord && dragWord.dataset.word);
+
+    if (!v) return;
+
+    const droppedWord = words.find(w => w.dataset.word === v) || null;
+
+    if (!droppedWord || droppedWord.disabled) return;
+
+    selected = droppedWord;
+
+    answers[current] = v;
+    updateDropZone();
+
+    validate(v);
+});
+
+
+/* =========================================================
+   DROP ZONE - CLICK
+   ========================================================= */
+
+dz.addEventListener("click", () => {
+    if (
+        selected &&
+        !completed[current]
+    ) {
+        validate(selected.dataset.word);
+    }
+});
+
+
+/* =========================================================
+   DROP ZONE - KEYBOARD
+   ========================================================= */
+
+dz.addEventListener("keydown", e => {
+    if (
+        (e.key === "Enter" || e.key === " ") &&
+        selected &&
+        !completed[current]
+    ) {
+        e.preventDefault();
+
+        validate(selected.dataset.word);
+    }
+});
+
+
+/* =========================================================
+   NEXT BUTTON
+   ========================================================= */
+
+next.addEventListener("click", () => {
+    if (!next.disabled) {
+        current++;
+        render();
+    }
+});
+
+
+/* =========================================================
+   PREVIOUS BUTTON
+   ========================================================= */
+
+prev.addEventListener("click", () => {
+    if (!prev.disabled) {
+        current--;
+        render();
+    }
+});
+
+
+/* =========================================================
+   HINT BUTTON
+   ========================================================= */
+
+document
+    .getElementById("hintButton")
+    .addEventListener("click", hintPopup);
+
+
+/* =========================================================
+   HOME BUTTON
+   ========================================================= */
+
+document
+    .getElementById("homeButton")
+    .addEventListener("click", () => {
+        window.top.location.href = "../Grade2_chapter5.html";
+    });
+
+
+/* =========================================================
+   PLAY AGAIN
+   ========================================================= */
+
+again.addEventListener("click", () => {
+    current = 0;
+
+    completed = Array(5).fill(false);
+    answers = Array(5).fill("");
+    usedWords.clear();
+
+    selected = null;
+
+    finalFb.className = "feedback final-pop";
+    finalFb.setAttribute("aria-hidden", "true");
+
+    render();
+});
+
+
+/* =========================================================
+   INITIAL RENDER
+   ========================================================= */
+
+render();
+    </script>
+</body>
+
+</html>

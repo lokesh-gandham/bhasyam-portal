@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Count and Match Game</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Livvic', sans-serif;
+    }
+
+    body {
+
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .game-stage {
+      width: 96vw;
+      max-width: 1200px;
+      height: 92vh;
+      max-height: 760px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px 10px;
+      overflow: hidden;
+    }
+
+    .game-header {
+      text-align: center;
+      z-index: 10;
+      width: 100%;
+      margin-top: 4px;
+
+    }
+
+    .game-header h2 {
+      font-size: 28px;
+      font-weight: 400;
+      color: #2f4f4f;
+      margin-top: -20px;
+    }
+
+    /* Matching area */
+    .arena {
+      width: 60%;
+      flex-grow: 1;
+      position: relative;
+      margin: 2px 0 0;
+      min-height: 0;
+    }
+
+    /* SVG is only used for the simple drag-to-match lines */
+    #linesSvg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .match-line {
+      fill: none;
+      stroke: #10ac84;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-dasharray: 9 7;
+      pointer-events: none;
+    }
+
+    .match-line.correct {
+      stroke: #10ac84;
+      stroke-dasharray: 9 7;
+    }
+
+    .match-line.wrong {
+      stroke: #ff5b5b;
+      stroke-dasharray: 7 6;
+    }
+
+    .match-row {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 23%;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 3;
+    }
+
+    .row-1 {
+      top: 0%;
+    }
+
+    .row-2 {
+      top: 29%;
+    }
+
+    .row-3 {
+      top: 55%;
+    }
+
+    .row-4 {
+      top: 80%;
+    }
+
+    .image-side,
+    .number-side {
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .image-side {
+      width: 46%;
+      justify-content: flex-start;
+    }
+
+    .number-side {
+      width: 46%;
+      justify-content: flex-end;
+    }
+
+    .group-image {
+      width: 180px;
+      max-width: 23vw;
+      height: auto;
+      object-fit: contain;
+      pointer-events: auto;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .group-image.selected {
+      filter: drop-shadow(0 0 6px rgba(16, 172, 132, .75));
+      transform: scale(1.03);
+    }
+
+    /* Small orange connection points */
+    .connect-dot {
+      width: 10px;
+      height: 10px;
+      flex: 0 0 10px;
+      border-radius: 50%;
+      background: #ff8a5b;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 0 1px #ff8a5b;
+      cursor: crosshair;
+      position: relative;
+      z-index: 8;
+      touch-action: none;
+      transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .image-side .connect-dot {
+      margin-left: 18px;
+    }
+
+    .number-side .connect-dot {
+      margin-right: 18px;
+    }
+
+    .connect-dot:hover,
+    .connect-dot.dragging {
+      transform: scale(1.45);
+      background: #10ac84;
+      box-shadow: 0 0 0 2px #10ac84;
+    }
+
+    .connect-dot.matched {
+      background: #10ac84;
+      box-shadow: 0 0 0 1px #10ac84;
+      cursor: default;
+    }
+
+    .number-bumper {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ff9f43, #ee5253);
+      color: #ffffff;
+      font-size: 2.3rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 0px #c8d6e5, 0 15px 25px rgba(0, 0, 0, 0.15);
+      position: relative;
+      pointer-events: auto;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .number-bumper.selected-number {
+      box-shadow: 0 0 0 5px #10ac84, 0 8px 0 #c8d6e5;
+      transform: scale(1.04);
+    }
+
+    .number-bumper.matched-number {
+      box-shadow: 0 0 0 5px #10ac84, 0 10px 0px #c8d6e5;
+    }
+
+    /* Kept for compatibility; matching is now click-to-click. */
+    .drag-line {
+      display: none;
+    }
+
+    .shake {
+      animation: shakeScreen 0.4s ease-in-out;
+    }
+
+    /* Popup kept from the original game */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 100;
+    }
+
+    .popup-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .popup-card {
+      position: relative;
+      width: 90%;
+      max-width: 520px;
+      padding: 40px 30px;
+      border-radius: 36px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      transform: scale(0.8);
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .popup-card::before,
+    .popup-card::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .popup-card::before {
+      width: 220px;
+      height: 220px;
+      top: -60px;
+      right: -50px;
+    }
+
+    .popup-card::after {
+      width: 180px;
+      height: 180px;
+      bottom: -70px;
+      left: -40px;
+    }
+
+
+    .popup-card:not(.complete) {
+      box-shadow: none;
+    }
+
+    .popup-card.complete {
+      background: #f0f3ff;
+      border: 6px solid #6c5ce7;
+      /* height: 300px;
+       min-height: 300px; */
+    }
+
+    .popup-card.complete {
+      width: 520px;
+      max-width: 90vw;
+      height: 300px;
+      padding: 40px 30px;
+      box-sizing: border-box;
+      border-radius: 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .popup-card.complete::before,
+    .popup-card.complete::after {
+      background: rgba(162, 155, 254, 0.35);
+    }
+
+    .popup-card.complete .popup-title {
+      color: #6c5ce7;
+    }
+
+    .popup-card.complete .popup-subtitle {
+      color: #4834d4;
+    }
+
+    .popup-overlay.active .popup-card {
+      transform: scale(1);
+    }
+
+    .popup-icon {
+      font-size: 4.8rem;
+      margin-bottom: 12px;
+      z-index: 2;
+      line-height: 1;
+      filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.1));
+    }
+
+    .popup-title {
+      font-size: 3rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      z-index: 2;
+      letter-spacing: -0.5px;
+    }
+
+    .popup-subtitle {
+      font-size: 1.4rem;
+      font-weight: 500;
+      z-index: 2;
+      display: block;
+      width: 100%;
+      text-align: center;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+
+    .nav-btn {
+      background: #e67e22;
+      color: #ffffff;
+      border: none;
+      padding: 10px 35px;
+      font-size: 20px;
+      font-weight: 500;
+      border-radius: 40px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #d35400;
+      transition: all 0.1s ease;
+    }
+
+    .nav-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #d35400;
+    }
+
+    .replay-btn {
+      background: #0984e3;
+      box-shadow: 0 6px 0 #0975c7;
+      margin-top: 20px;
+      z-index: 5;
+    }
+
+    .replay-btn:active {
+      box-shadow: 0 2px 0 #0975c7;
+    }
+
+    @keyframes shakeScreen {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      20%,
+      60% {
+        transform: translateX(-10px);
+      }
+
+      40%,
+      80% {
+        transform: translateX(10px);
+      }
+    }
+
+    @media (max-width: 600px) {
+
+
+      .game-stage {
+        padding: 15px;
+      }
+
+      .game-header h2 {
+        font-size: 1.45rem;
+      }
+
+      .group-image {
+        width: 135px;
+        max-width: 34vw;
+      }
+
+      .image-side .connect-dot {
+        margin-left: 12px;
+      }
+
+      .number-side .connect-dot {
+        margin-right: 12px;
+      }
+
+      .connect-dot {
+        width: 9px;
+        height: 9px;
+        flex-basis: 9px;
+      }
+
+      .number-bumper {
+        width: 60px;
+        height: 60px;
+        font-size: 1.9rem;
+      }
+
+      .match-line,
+      .drag-line {
+        stroke-width: 3;
+      }
+    }
+
+    @media screen and (min-width: 1441px) and (max-width: 1920px) {
+      .group-image {
+        width: 230px;
+      }
+
+      .game-header h2 {
+        font-size: 36px;
+        margin-bottom: 10px;
+      }
+    }
+
+    #confettiContainer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 90;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 9px;
+      height: 14px;
+      border-radius: 2px;
+      opacity: 0;
+      animation: pageConfetti 1700ms cubic-bezier(.16, .72, .3, 1) forwards;
+      will-change: transform, opacity;
+    }
+
+    .final-confetti-piece {
+      width: 10px;
+      height: 16px;
+      animation-duration: 2300ms;
+    }
+
+    .final-confetti-piece:nth-child(3n) {
+      border-radius: 50%;
+    }
+
+    .final-confetti-piece:nth-child(4n) {
+      width: 7px;
+      height: 19px;
+      border-radius: 1px;
+    }
+
+    .final-confetti-piece:nth-child(5n) {
+      width: 13px;
+      height: 8px;
+      border-radius: 2px;
+    }
+
+    @keyframes pageConfetti {
+      0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+      }
+
+      55% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+      }
+    }
+
+    .final-confetti-piece::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: inherit;
+    }
+
+    .popup-card.complete .replay-btn {
+      margin-top: 20px;
+    }
+
+    .popup-card.complete {
+      box-shadow:
+        0 20px 45px rgba(108, 92, 231, 0.18),
+        0 0 0 8px rgba(162, 155, 254, 0.12);
+    }
+
+    .popup-card.complete .popup-icon {
+      animation: finalTrophyBounce 1.2s ease-in-out infinite;
+    }
+
+    @keyframes finalTrophyBounce {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg) scale(1);
+      }
+
+      50% {
+        transform: translateY(-5px) rotate(-4deg) scale(1.06);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="game-stage" id="stage">
+
+    <div class="game-header">
+      <h2>Count and match the numbers</h2>
+    </div>
+
+    <div class="arena" id="arena">
+
+      <svg id="linesSvg" aria-hidden="true">
+        <line id="dragLine" class="drag-line" x1="0" y1="0" x2="0" y2="0" style="display:none;"></line>
+      </svg>
+
+      <div class="match-row row-1" data-count="6" data-name="birds">
+        <div class="image-side">
+          <img class="group-image" src="../images/bird_m1.png" alt="6 birds">
+          <div class="connect-dot source-dot" aria-label="Connect birds"></div>
+        </div>
+        <div class="number-side">
+          <div class="connect-dot target-dot" data-count="5" aria-label="Number 5"></div>
+          <div class="number-bumper">5</div>
+        </div>
+      </div>
+
+      <div class="match-row row-2" data-count="3" data-name="hippos">
+        <div class="image-side">
+          <img class="group-image" src="../images/m2.png" alt="3 hippos">
+          <div class="connect-dot source-dot" aria-label="Connect hippos"></div>
+        </div>
+        <div class="number-side">
+          <div class="connect-dot target-dot" data-count="6" aria-label="Number 6"></div>
+          <div class="number-bumper">6</div>
+        </div>
+      </div>
+
+      <div class="match-row row-3" data-count="5" data-name="sheep">
+        <div class="image-side">
+          <img class="group-image" src="../images/m3.png" alt="5 sheep">
+          <div class="connect-dot source-dot" aria-label="Connect sheep"></div>
+        </div>
+        <div class="number-side">
+          <div class="connect-dot target-dot" data-count="4" aria-label="Number 4"></div>
+          <div class="number-bumper">4</div>
+        </div>
+      </div>
+
+      <div class="match-row row-4" data-count="4" data-name="ducks">
+        <div class="image-side">
+          <img class="group-image" src="../images/m4.png" alt="4 ducks">
+          <div class="connect-dot source-dot" aria-label="Connect ducks"></div>
+        </div>
+        <div class="number-side">
+          <div class="connect-dot target-dot" data-count="3" aria-label="Number 3"></div>
+          <div class="number-bumper">3</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="confettiContainer"></div>
+
+  <div class="popup-overlay" id="correctModal">
+    <div class="popup-card">
+
+    </div>
+  </div>
+
+  <div class="popup-overlay" id="winModal">
+    <div class="popup-card complete">
+      <div class="popup-icon">🏆</div>
+      <h2 class="popup-title">Congratulations!</h2>
+      <p class="popup-subtitle">Great job! You completed it! 🎉</p>
+      <button class="nav-btn replay-btn" onclick="resetGame()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+
+    const audioCtx =
+      new (
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
+
+    function playAudioTone(isCorrect) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (isCorrect) {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+      }
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    function speak(t) {
+      speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance(t);
+      msg.lang = "en-US";
+      msg.volume = 0.25;
+      msg.rate = 1;
+      msg.pitch = 1;
+      speechSynthesis.speak(msg);
+    }
+
+    const stage = document.getElementById('stage');
+    const arena = document.getElementById('arena');
+    const modal = document.getElementById('winModal');
+    const correctModal = document.getElementById('correctModal');
+    const linesSvg = document.getElementById('linesSvg');
+    const dragLine = document.getElementById('dragLine');
+
+    let selectedSource = null;
+    let matchedCount = 0;
+    let matchedSources = new Set();
+    let matchedTargets = new Set();
+
+    function pointInArena(el) {
+      const rect = el.getBoundingClientRect();
+      const arenaRect = arena.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2 - arenaRect.left,
+        y: rect.top + rect.height / 2 - arenaRect.top
+      };
+    }
+
+
+    function showSmallConfetti(isFinal = false) {
+      const confettiContainer = document.getElementById('confettiContainer');
+      if (!confettiContainer) return;
+
+      confettiContainer.innerHTML = '';
+
+      const count = isFinal ? 95 : 42;
+
+      const colors = [
+        '#00b894',
+        '#e67e22',
+        '#6c5ce7',
+        '#0984e3',
+        '#fdcb6e',
+        '#ff6b7a',
+        '#00cec9',
+        '#a29bfe'
+      ];
+
+      for (let i = 0; i < count; i++) {
+        const piece = document.createElement('span');
+
+        piece.className =
+          isFinal
+            ? 'confetti-piece final-confetti-piece'
+            : 'confetti-piece';
+
+        const startX = Math.random() * 100;
+        const startY = -8 + Math.random() * 10;
+
+        const drift =
+          (Math.random() * 520 - 260) *
+          (isFinal ? 1.15 : 0.9);
+
+        const fall =
+          window.innerHeight *
+          (0.82 + Math.random() * 0.48);
+
+        const rotation =
+          Math.random() * 1400 - 700;
+
+        piece.style.left = startX + '%';
+        piece.style.top = startY + '%';
+
+        piece.style.setProperty('--x', drift + 'px');
+        piece.style.setProperty('--y', fall + 'px');
+        piece.style.setProperty('--r', rotation + 'deg');
+
+        piece.style.background =
+          colors[Math.floor(Math.random() * colors.length)];
+
+        piece.style.animationDelay =
+          (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+        confettiContainer.appendChild(piece);
+
+        setTimeout(
+          () => piece.remove(),
+          isFinal ? 2900 : 2050
+        );
+      }
+    }
+
+    function selectSource(image) {
+      const row = image.closest('.match-row');
+      const sourceDot = row.querySelector('.source-dot');
+
+      if (matchedSources.has(sourceDot)) return;
+
+      if (selectedSource === image) {
+        image.classList.remove('selected');
+        selectedSource = null;
+        return;
+      }
+
+      if (selectedSource) {
+        selectedSource.classList.remove('selected');
+      }
+
+      selectedSource = image;
+      image.classList.add('selected');
+    }
+
+    function chooseTarget(number) {
+      if (!selectedSource) {
+        return;
+      }
+
+      const targetDot = number.closest('.number-side').querySelector('.target-dot');
+
+      if (matchedTargets.has(targetDot)) return;
+
+      const sourceDot = selectedSource.closest('.match-row').querySelector('.source-dot');
+      const sourceValue = selectedSource.closest('.match-row').dataset.count;
+      const targetValue = targetDot.dataset.count;
+
+      selectedSource.classList.remove('selected');
+
+      if (sourceValue === targetValue) {
+        createCorrectLine(sourceDot, targetDot);
+        markMatched(sourceDot, targetDot);
+      } else {
+        showWrongLine(sourceDot, targetDot);
+        speak("Try again!");
+        playAudioTone(false);
+        stage.classList.add('shake');
+        number.classList.add('selected-number');
+
+        setTimeout(() => {
+          stage.classList.remove('shake');
+          number.classList.remove('selected-number');
+        }, 400);
+      }
+
+      selectedSource = null;
+    }
+
+    function createCorrectLine(source, target) {
+      const start = pointInArena(source);
+      const end = pointInArena(target);
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.classList.add('match-line', 'correct');
+      line.setAttribute('x1', start.x);
+      line.setAttribute('y1', start.y);
+      line.setAttribute('x2', end.x);
+      line.setAttribute('y2', end.y);
+      linesSvg.insertBefore(line, dragLine);
+
+      line.dataset.source = source.closest('.match-row').dataset.name;
+    }
+
+    function showWrongLine(source, target) {
+      const start = pointInArena(source);
+      const end = pointInArena(target);
+
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.classList.add('match-line', 'wrong');
+      line.setAttribute('x1', start.x);
+      line.setAttribute('y1', start.y);
+      line.setAttribute('x2', end.x);
+      line.setAttribute('y2', end.y);
+      linesSvg.insertBefore(line, dragLine);
+
+      setTimeout(() => line.remove(), 350);
+    }
+
+    function markMatched(source, target) {
+      const row = source.closest('.match-row');
+
+      matchedSources.add(source);
+      matchedTargets.add(target);
+      matchedCount++;
+
+      source.classList.add('matched');
+      target.classList.add('matched');
+
+      const matchedNumber = target.parentElement.querySelector('.number-bumper');
+      if (matchedNumber) matchedNumber.classList.add('matched-number');
+
+      row.classList.add('matched');
+      speak("Correct!");
+      playAudioTone(true);
+
+      const isFinal = matchedCount === document.querySelectorAll('.match-row').length;
+
+      if (isFinal) {
+        // Normal correct popup + small confetti first.
+        showSmallConfetti(false);
+        correctModal.classList.add('active');
+
+        setTimeout(() => {
+          correctModal.classList.remove('active');
+          showSmallConfetti(true);
+          modal.classList.add('active');
+        }, 1920);
+      } else {
+        showSmallConfetti(false);
+        correctModal.classList.add('active');
+
+        setTimeout(() => {
+          correctModal.classList.remove('active');
+        }, 1800);
+      }
+    }
+
+    function redrawLines() {
+      const rows = document.querySelectorAll('.match-row');
+
+      rows.forEach(row => {
+        if (!row.classList.contains('matched')) return;
+
+        const source = row.querySelector('.source-dot');
+        const value = row.dataset.count;
+        const target = [...document.querySelectorAll('.target-dot')]
+          .find(dot => dot.dataset.count === value);
+
+        const existingLine = [...linesSvg.querySelectorAll('.match-line.correct')]
+          .find(line => line.dataset.source === row.dataset.name);
+
+        if (source && target && existingLine) {
+          const start = pointInArena(source);
+          const end = pointInArena(target);
+          existingLine.setAttribute('x1', start.x);
+          existingLine.setAttribute('y1', start.y);
+          existingLine.setAttribute('x2', end.x);
+          existingLine.setAttribute('y2', end.y);
+        }
+      });
+    }
+
+    // Kids simply click an animal group, then click its matching number.
+    document.querySelectorAll('.group-image').forEach(image => {
+      image.addEventListener('click', () => selectSource(image));
+    });
+
+    document.querySelectorAll('.number-bumper').forEach(number => {
+      number.addEventListener('click', () => chooseTarget(number));
+    });
+
+    window.addEventListener('resize', redrawLines);
+
+    function resetGame() {
+      matchedCount = 0;
+      matchedSources = new Set();
+      matchedTargets = new Set();
+      selectedSource = null;
+
+      modal.classList.remove('active');
+      correctModal.classList.remove('active');
+      const confettiContainer = document.getElementById('confettiContainer');
+      if (confettiContainer) confettiContainer.innerHTML = '';
+
+      linesSvg.querySelectorAll('.match-line').forEach(line => line.remove());
+
+      document.querySelectorAll('.source-dot, .target-dot').forEach(dot => {
+        dot.classList.remove('matched', 'dragging');
+      });
+
+      document.querySelectorAll('.group-image').forEach(image => {
+        image.classList.remove('selected');
+      });
+
+      document.querySelectorAll('.number-bumper').forEach(number => {
+        number.classList.remove('matched-number', 'selected-number');
+      });
+
+      document.querySelectorAll('.match-row').forEach(row => {
+        row.classList.remove('matched');
+      });
+    }
+  </script>
+</body>
+
+</html>

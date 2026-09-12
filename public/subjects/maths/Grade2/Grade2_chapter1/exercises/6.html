@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Build the Number on the Abacus</title>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+  :root{
+    --rod-w: clamp(26px, 4.6vw, 50px);
+    --rod-gap: clamp(34px, 10vw, 100px);
+    --bead-size: clamp(14px, 3.2vh, 30px);
+    --vh: 1vh;
+  }
+
+  *{ box-sizing:border-box; font-family:"Livvic"}
+
+  html, body{
+    margin:0; padding:0;
+    width:100%; height:100%;
+    height:calc(var(--vh, 1vh) * 100);
+    overflow:hidden;
+    position:fixed;
+    inset:0;
+    background: linear-gradient(180deg,#fdf6ec 0%, #f7efe0 100%);
+    touch-action:none;
+    overscroll-behavior:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+  html,
+body,
+.quiz-card,
+.quiz-card *{
+  cursor: pointer !important;
+}
+button,
+.bead-option,
+.rod-col,
+.bead,
+.build-box{
+  cursor: pointer !important;
+}
+
+
+/* DISABLED */
+button:disabled,
+.bead-option.locked{
+  cursor: pointer !important;
+}
+
+  .quiz-card{
+    position:relative;
+    width:100%; height:100%;
+    max-height:calc(var(--vh, 1vh) * 100);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: clamp(8px, 1.6vh, 20px) clamp(12px, 2.4vw, 30px);
+    gap: clamp(4px, 1vh, 10px);
+  }
+
+  /* ===== HOME + HINT BUTTONS ===== */
+  .home-btn,.hint-btn{
+    position:absolute; top:18px; width:46px; height:46px;
+    border:3px solid #ffffff; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:#ffffff; z-index:100; cursor:pointer; transition:all .15s ease;
+  }
+  .home-btn{left:14px;background:linear-gradient(145deg,#8b6fe0,#6f42c1);
+    box-shadow:0 4px 0 #4f2e93,0 6px 10px rgba(79,46,147,.22);}
+  .hint-btn{right:14px;background:linear-gradient(145deg,#ffd86b,#f4a62a);
+    box-shadow:0 4px 0 #c27b12,0 6px 10px rgba(194,123,18,.22);}
+  .home-btn:hover,.hint-btn:hover{transform:translateY(-3px) scale(1.06);}
+  .home-btn:active,.hint-btn:active{transform:translateY(2px) scale(.96);}
+  .home-btn i,.hint-btn i{font-size:21px;line-height:1;}
+  .hint-popup{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(30,35,70,.35);backdrop-filter:blur(7px);z-index:2500;}
+  .hint-content{position:relative;width:min(400px,88%);padding:28px 32px;text-align:center;
+    background:linear-gradient(180deg,#fff7d6 0%,#ffe6a3 100%);border:5px solid #fff;
+    border-radius:28px;box-shadow:0 8px 0 #d09b32,0 18px 35px rgba(120,90,20,.22);}
+  .hint-content h3{margin:4px 0 12px;font-family:"Livvic",sans-serif;font-size:30px;color:#8a5a00;}
+  .hint-content p{margin:0;padding:10px 16px;border-radius:22px;background:rgba(255,255,255,.72);
+    font-family:"Livvic",sans-serif;font-size:18px;font-weight:600;color:#5c4a2b;}
+
+  /* ===== HEADER : title always first, Q-label always right under it ===== */
+  .heading{
+    order:1;
+    margin:0; width:100%; text-align:center;
+    font-size: 30px;
+     color:#2f2f2f;
+    line-height:1.25;
+    flex: 0 0 auto;
+  }
+  .qlabel{
+    order:2;
+    align-self:flex-start;
+    position: relative;
+    left: 20px;
+    top: 40px;
+    margin:0;
+    font-size: 30px;
+    color: #2f2f2f;
+    flex: 0 0 auto;
+  }
+
+  /* ===== MAIN CONTENT ROW ===== */
+  .content-row{
+    order:3;
+    width:100%; max-width:900px;
+    flex: 1 1 auto; min-height:0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: clamp(10px, 4vw, 40px);
+  }
+
+  /* ---- abacus side ---- */
+  .abacus-wrap{
+    flex: 1 1 0; min-width:0; height:100%;
+    display:flex; flex-direction:row; align-items:center; justify-content:center;
+    gap: clamp(14px, 3vw, 40px);
+  }
+  .abacus-core{
+    flex: 1 1 auto; min-height:0; height:100%; max-width: 220px;
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:flex-end;
+  }
+  .rods-row{
+    flex: 1 1 auto; min-height:0; width:100%;
+    display:flex; justify-content:center; align-items:flex-end;
+    gap: var(--rod-gap);
+    padding-bottom:2px;
+  }
+  .rod-col{
+    position:relative;
+    width: var(--rod-w);
+    height:100%;
+    display:flex; justify-content:center;
+  }
+  .rod-line{
+    position:absolute; top:0; bottom:0; left:50%;
+    width:3px; margin-left:-1.5px;
+    background:#3a3a3a; border-radius:2px;
+  }
+  .beads-stack{
+    position:absolute; left:0; right:0; bottom:0;
+    display:flex; flex-direction:column-reverse; align-items:center;
+  }
+/* =========================================================
+   GAMING DONUT BEADS
+   ========================================================= */
+
+.bead{
+  cursor:pointer !important;
+  width:var(--bead-size);
+  height:var(--bead-size);
+  flex-shrink:0;
+  margin-top:-5px;
+
+  border-radius:50%;
+
+  position:relative;
+
+  /* 3D outer bead */
+  box-shadow:
+    0 4px 0 rgba(0,0,0,.18),
+    0 7px 10px rgba(0,0,0,.18),
+    inset 0 3px 5px rgba(255,255,255,.55),
+    inset 0 -4px 5px rgba(0,0,0,.18);
+
+  animation: beadFloat 2.2s ease-in-out infinite;
+}
+.dragging-bead{
+  transform:scale(1);
+  filter:
+    drop-shadow(0 8px 8px rgba(0,0,0,.22))
+    brightness(1.05);
+
+  transition:
+    transform .15s ease,
+    filter .15s ease;
+}
+
+.dragging-bead.dragging-active{
+  transform:scale(1.18) rotate(4deg);
+  filter:
+    drop-shadow(0 12px 12px rgba(0,0,0,.25))
+    brightness(1.08);
+}
+
+/* DONUT HOLE */
+.bead::after{
+  content:"";
+  position:absolute;
+
+  width:34%;
+  height:34%;
+   background:#f7efe0;
+
+  left:50%;
+  top:50%;
+
+  transform:translate(-50%,-50%);
+
+  border-radius:50%;
+
+
+  box-shadow:
+    inset 0 2px 3px rgba(0,0,0,.20),
+    0 0 0 2px rgba(255,255,255,.35);
+}
+
+/* TENS = golden donut */
+.bead.ten{
+  background:
+    radial-gradient(
+      circle at 32% 25%,
+      #fff1b8 0%,
+      #ffc95c 22%,
+      #f3a52d 55%,
+      #d87816 100%
+    );
+}
+
+/* ONES = pink donut */
+.bead.one{
+  background:
+    radial-gradient(
+      circle at 32% 25%,
+      #ffd6e2 0%,
+      #ff9fba 22%,
+      #ed5d87 55%,
+      #c93668 100%
+    );
+}
+
+.bead:first-child{
+  margin-top:0;
+}
+
+/* Gentle game-like movement */
+@keyframes beadFloat{
+  0%,100%{
+    transform:translateY(0) scale(1);
+  }
+
+  50%{
+    transform:translateY(-2px) scale(1.035);
+  }
+}
+
+  .base-row{
+    flex: 0 0 auto; width:100%;
+    display:flex; justify-content:center;
+  }
+  .base-plaque{
+    display:flex; justify-content:center;
+    gap: var(--rod-gap);
+    padding: clamp(6px, 1.2vh, 12px) clamp(10px, 2vw, 22px);
+    background: linear-gradient(180deg, #cdb8f2, #a88bea);
+    border: 2px solid #8f6fd9;
+    border-radius: clamp(10px, 1.6vh, 16px);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.12), 0 6px 10px rgba(0,0,0,0.10);
+  }
+  .base-label{
+    width:auto; min-width: var(--rod-w);
+    white-space:nowrap;
+    text-align:center;
+    font-weight:800;
+    font-size: clamp(10px, 1.4vw, 16px);
+    color:#3d2a70;
+  }
+
+  /* ---- build target ---- */
+  .build-target{
+    flex: 0 0 auto;
+    display:flex; flex-direction:column; align-items:center;
+    gap: clamp(6px, 1.2vh, 12px);
+  }
+  .build-label{
+    margin:0; font-weight:400; color:#4b2f8f;
+    font-size: clamp(12px, 1.6vw, 18px);
+  }
+  .build-box{
+    min-width: clamp(90px, 12vw, 140px);
+    padding: clamp(8px, 1.4vh, 14px) clamp(14px, 2.2vw, 24px);
+    border: 3px dashed #b79af0;
+    border-radius: 16px;
+    background:#fff;
+    text-align:center;
+    font-weight:800;
+    font-size: clamp(22px, 3vw, 32px);
+    color:#4b2f8f;
+  }
+
+  /* ---- choose beads side ---- */
+  .choose-panel{
+    flex: 1 1 0; min-width:0; height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap: clamp(10px, 2vh, 20px);
+  }
+  .choose-title{
+    margin:0 0 2px; font-weight:400; color:#4b2f8f;
+    font-size: clamp(13px, 1.7vw, 19px);
+  }
+  .bead-option{
+    display:flex; align-items:center; gap: clamp(10px, 1.8vw, 18px);
+    border-radius: 18px;
+    padding: clamp(8px, 1.5vh, 14px) clamp(16px, 2.6vw, 26px);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.08), 0 6px 10px rgba(0,0,0,0.06);
+     cursor:pointer; touch-action:none;
+    transition: transform .12s ease, opacity .2s ease;
+    width: min(80%, 220px);
+  }
+  .bead-option.ten{ background: linear-gradient(180deg,#fff7e8,#ffe9c2); }
+  .bead-option.one{ background: linear-gradient(180deg,#fff0f4,#ffd9e3); }
+  .bead-option:active:not(.locked){ transform: scale(0.97); }
+  .bead-option:not(.locked){ cursor:pointer; }
+  .bead-option.locked{ opacity:0.45; pointer-events:none; cursor:default; }
+.bead-icon{
+  width:clamp(38px, 4.8vw, 56px);
+  height:clamp(38px, 4.8vw, 56px);
+
+  flex-shrink:0;
+  position:relative;
+
+  border-radius:50%;
+
+  box-shadow:
+    0 5px 0 rgba(0,0,0,.16),
+    0 8px 12px rgba(0,0,0,.14),
+    inset 0 3px 5px rgba(255,255,255,.55),
+    inset 0 -4px 5px rgba(0,0,0,.18);
+
+  animation: optionBeadFloat 2s ease-in-out infinite;
+}
+
+/* donut hole */
+.bead-icon::after{
+  content:"";
+
+  position:absolute;
+  width:32%;
+  height:32%;
+
+  left:50%;
+  top:50%;
+
+  transform:translate(-50%,-50%);
+
+  border-radius:50%;
+
+  background:#fff;
+
+  box-shadow:
+    inset 0 2px 3px rgba(0,0,0,.18),
+    0 0 0 2px rgba(255,255,255,.35);
+}
+
+.bead-icon.ten{
+  background:
+    radial-gradient(
+      circle at 32% 25%,
+      #fff1b8 0%,
+      #ffc95c 23%,
+      #f3a52d 58%,
+      #d87816 100%
+    );
+}
+
+.bead-icon.one{
+  background:
+    radial-gradient(
+      circle at 32% 25%,
+      #ffd6e2 0%,
+      #ff9fba 23%,
+      #ed5d87 58%,
+      #c93668 100%
+    );
+}
+body.bead-dragging{
+  cursor: grabbing;
+}
+
+@keyframes optionBeadFloat{
+  0%,100%{
+    transform:translateY(0);
+  }
+
+  50%{
+    transform:translateY(-3px);
+  }
+}
+  .bead-num{ font-size: clamp(18px, 2.2vw, 26px); font-weight:800; color:#33302f; }
+  .bead-ghost{ transform: scale(1.06); opacity:0.92; }
+
+  @keyframes shakeCard{
+    20%{ transform: translateX(-8px);} 40%{ transform: translateX(8px);}
+    60%{ transform: translateX(-6px);} 80%{ transform: translateX(6px);}
+    100%{ transform: translateX(0);}
+  }
+  .wrong-flash{ animation: shakeCard .42s ease; }
+
+ /* ===== NAV ===== */
+.nav {
+  order: 4;
+  flex: 0 0 auto;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 18px;
+  margin-top: 10px;
+  padding-bottom: 4px;
+}
+
+.nav button {
+  position: relative;
+  min-width: 132px;
+  height: 50px;
+  padding: 0 22px;
+
+  border: 4px solid #ffffff;
+  border-radius: 18px;
+
+  font-family: 'Livvic', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+
+  color: #ffffff;
+  cursor: pointer;
+
+  box-shadow:
+    0 6px 0 rgba(0, 0, 0, 0.18),
+    0 9px 14px rgba(0, 0, 0, 0.15);
+
+  transition: all 0.15s ease;
+}
+
+.nav button {
+  padding: 10px 25px;
+  border: none;
+  border-radius: 15px;
+  font-size: clamp(17px, 1.5vw, 20px);
+  cursor: pointer;
+  color: #fff;
+  font-weight: 500;
+  transition: 0.15s;
+}
+
+.prev {
+  background: linear-gradient(180deg, #ff8fb3 0%, #f0447c 100%);
+}
+
+/* NEXT BUTTON */
+.next {
+  background: linear-gradient(180deg, #55d9f5 0%, #009dcc 100%);
+}
+
+/* Hover */
+.nav button:not(:disabled):hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 9px 0 rgba(0, 0, 0, 0.18),
+    0 13px 18px rgba(0, 0, 0, 0.16);
+}
+
+/* Click */
+.nav button:not(:disabled):active {
+  transform: translateY(4px);
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.18),
+    0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Disabled */
+.nav button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow:
+    0 4px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Arrow */
+.prev,
+.next {
+  letter-spacing: 0.3px;
+}
+
+  /* ================================================
+     POPUP (correct / wrong)
+  =================================================== */
+  .popup{
+    position: fixed; inset: 0; display: none;
+    align-items: center; justify-content: center;
+    /* background: rgba(30, 35, 70, 0.35); */
+    /* backdrop-filter: blur(7px); */
+    z-index: 2000;
+  }
+  .popup-content{
+    position: relative; width: min(400px, 88%);
+    padding: 32px 35px 28px; text-align: center;
+    border: 5px solid #ffffff; border-radius: 28px;
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.15), 0 18px 35px rgba(0, 0, 0, 0.20);
+    animation: gamingPopup 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  }
+  .popup.correct .popup-content{
+    background: linear-gradient(180deg, #bff7d0 0%, #72d995 100%);
+    border-color: #ffffff;
+    box-shadow: 0 8px 0 #48ae6d, 0 18px 35px rgba(40, 130, 75, 0.25);
+  }
+  .popup.wrong .popup-content{
+    background: linear-gradient(180deg, #ffd0d8 0%, #ff8296 100%);
+    border-color: #ffffff;
+    box-shadow: 0 8px 0 #df526b, 0 18px 35px rgba(180, 60, 80, 0.25);
+  }
+  .popup-icon{
+    font-size: 68px; line-height: 1; margin-bottom: 12px;
+    filter: drop-shadow(0 5px 4px rgba(0, 0, 0, 0.15));
+    animation: gamingIcon 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .popup-content h3{
+    margin: 5px 0 10px; font-family: "Livvic", sans-serif;
+    font-size: 34px; font-weight: 700; color: #176b3c;
+    text-shadow: 0 2px 0 rgba(255, 255, 255, 0.65);
+  }
+  .popup.wrong .popup-content h3{ color: #a8324b; }
+  .popup-content p{
+    display: inline-block; margin: 0; padding: 8px 18px; border-radius: 30px;
+    background: rgba(255, 255, 255, 0.65);
+    font-family: "Livvic", sans-serif; font-size: 20px; font-weight: 600; color: #234052;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+  }
+  @keyframes gamingPopup{
+    0%{ opacity: 0; transform: scale(0.55) rotate(-5deg); }
+    60%{ opacity: 1; transform: scale(1.08) rotate(2deg); }
+    100%{ opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @keyframes gamingIcon{
+    0%{ transform: scale(0) rotate(-20deg); }
+    50%{ transform: scale(1.25) rotate(10deg); }
+    75%{ transform: scale(0.9) rotate(-5deg); }
+    100%{ transform: scale(1) rotate(0deg); }
+  }
+
+  /* ================================================
+     FINAL POPUP
+  =================================================== */
+  #finalPopup{
+    position: fixed; inset: 0; display: none;
+    justify-content: center; align-items: center;
+    /* background: rgba(30, 35, 70, 0.40); */
+    /* backdrop-filter: blur(8px); */
+    z-index: 3000;
+  }
+  .finalpopup-box{
+    position: relative; width: min(470px, 90%);
+    padding: 34px 38px 32px; text-align: center;
+    background: linear-gradient(180deg, #d8c7ff 0%, #a88bea 100%);
+     box-shadow: 0 9px 0 #7655b5, 0 22px 45px rgba(50, 35, 100, 0.30);
+    border: 5px solid #ffffff; border-radius: 30px;
+   
+    animation: finalGamingPopup 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    max-height:calc(var(--vh, 1vh) * 92);
+  }
+  .finalpopup-box::before{
+    content: "✨"; position: absolute; top: 18px; left: 22px; font-size: 28px;
+    animation: sparkleFloat 1.5s ease-in-out infinite;
+  }
+  .finalpopup-box::after{
+    content: "⭐"; position: absolute; top: 24px; right: 22px; font-size: 25px;
+    animation: sparkleFloat 1.8s ease-in-out infinite;
+  }
+  .final-heading{
+    position: relative; z-index: 2; margin: 4px 0 14px;
+    font-family: "Livvic", sans-serif; font-size: 38px; font-weight: 500; color: #000000;
+;
+  }
+  #finalScore{
+    display: inline-block; margin: 5px 0 12px; padding: 10px 28px; border-radius: 25px;
+    background: rgba(255, 255, 255, 0.85); border: 3px solid #ffffff;
+    font-family: "Livvic", sans-serif; font-size: 27px; font-weight: 500; color: #57368e;
+    box-shadow: 0 5px 0 rgba(90, 60, 140, 0.20);
+  }
+  #stars{
+    margin: 8px 0 18px; font-size: 48px; line-height: 1; letter-spacing: 8px;
+    filter: drop-shadow(0 5px 4px rgba(120, 80, 20, 0.25));
+    animation: starsBounce 0.7s 0.25s both cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .playAgain-btn{
+    position: relative; min-width: 190px; padding: 13px 32px;
+    border: 4px solid #ffffff; border-radius: 18px;
+    background: linear-gradient(180deg, #7bea91 0%, #35b957 100%);
+    font-family: "Livvic", sans-serif; font-size: 21px; font-weight: 700; color: #000;
+    cursor: pointer;
+    /* box-shadow: 0 6px 0 #299044, 0 10px 18px rgba(35, 130, 65, 0.25);
+    text-shadow: 0 2px 0 rgba(30, 120, 50, 0.5); */
+    transition: all 0.15s ease;
+  }
+  .playAgain-btn:hover{ transform: translateY(-4px); box-shadow: 0 10px 0 #299044, 0 15px 22px rgba(35, 130, 65, 0.30); }
+  .playAgain-btn:active{ transform: translateY(4px); box-shadow: 0 2px 0 #299044, 0 5px 10px rgba(35, 130, 65, 0.20); }
+  @keyframes finalGamingPopup{
+    0%{ opacity: 0; transform: scale(0.55) rotate(-6deg); }
+    55%{ opacity: 1; transform: scale(1.08) rotate(2deg); }
+    75%{ transform: scale(0.97) rotate(-1deg); }
+    100%{ opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @keyframes starsBounce{
+    0%{ opacity: 0; transform: scale(0); }
+    60%{ opacity: 1; transform: scale(1.25) rotate(5deg); }
+    80%{ transform: scale(0.92); }
+    100%{ transform: scale(1); }
+  }
+  @keyframes sparkleFloat{
+    0%, 100%{ transform: translateY(0) rotate(0deg); }
+    50%{ transform: translateY(-7px) rotate(12deg); }
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:640px){
+    .content-row{ gap: clamp(8px, 4vw, 20px); }
+    :root{ --rod-gap: clamp(24px, 14vw, 60px); --rod-w: clamp(20px, 8vw, 36px); }
+    .abacus-wrap{ gap: clamp(8px, 2.4vw, 18px); }
+  }
+  @media (max-width:420px){
+    .heading{ font-size: 11.5px; }
+    .qlabel{ font-size:16px; }
+    :root{ --rod-gap: clamp(18px, 14vw, 42px); --rod-w: clamp(16px, 8vw, 28px); --bead-size: clamp(11px, 2.6vh, 22px); }
+    .bead-option{ padding: 6px 12px; gap:8px; width:88%; }
+    .bead-num{ font-size:14px; }
+    .bead-icon{ width:26px; height:26px; }
+    .build-box{ font-size:16px; padding:6px 12px; min-width:70px; }
+    .build-label{ font-size:11px; }
+  }
+  @media (max-height:640px){
+    :root{ --bead-size: clamp(11px, 2.6vh, 22px); }
+    .quiz-card{ padding: 6px clamp(12px,2.4vw,30px); gap:3px; }
+  }
+  @media (max-height:480px){
+    :root{ --bead-size: clamp(9px, 2.2vh, 18px); }
+    .heading{ font-size:10.5px; }
+    .qlabel{ font-size:11px; }
+    .build-label{ font-size:9px; }
+    .build-box{ padding:4px 10px; font-size:13px; }
+    .bead-option{ padding:4px 10px; }
+    .bead-icon{ width:20px; height:20px; }
+    .bead-num{ font-size:13px; }
+    .nav button{ padding:6px 14px; font-size:11px; }
+  }
+
+  /* CORRECT/WRONG popup + final popup media queries (unchanged sizing rules kept identical across breakpoints on purpose) */
+  @media (max-width:768px){
+    .popup-content{ padding: 20px 24px; max-width: 300px; }
+    .popup-icon{ font-size: 48px; }
+    .popup-content h3{ font-size: 24px; }
+    .popup-content p{ font-size: 16px; }
+    .finalpopup-box{ padding: 20px 18px; max-width: 340px; }
+    .final-heading{ font-size: 26px; }
+    #finalScore{ font-size: 20px; }
+    #stars{ font-size: 34px; letter-spacing: 6px; }
+    .playAgain-btn{ font-size: 16px; padding: 10px 24px; }
+  }
+  @media (max-width:480px){
+    .popup-content{ padding: 16px 20px; max-width: 270px; }
+    .popup-icon{ font-size: 40px; }
+    .popup-content h3{ font-size: 20px; }
+    .popup-content p{ font-size: 14px; }
+    .finalpopup-box{ padding: 16px 14px; max-width: 290px; }
+    .final-heading{ font-size: 22px; }
+    #finalScore{ font-size: 18px; }
+    #stars{ font-size: 28px; letter-spacing: 4px; }
+    .playAgain-btn{ font-size: 14px; padding: 8px 20px; }
+  }
+  /* =========================================================
+   LAPTOP RESPONSIVE
+   1024px – 1365px
+   ========================================================= */
+@media (min-width:1024px) and (max-width:1365px){
+
+  .quiz-card{
+    padding:12px 35px 10px;
+    gap:6px;
+  }
+
+  .heading{
+    font-size:30px;
+  }
+
+  .qlabel{
+    font-size:30px;
+    margin-left:5px;
+  }
+
+  .content-row{
+    width:100%;
+    max-width:1050px;
+    gap:45px;
+  }
+
+  .abacus-wrap{
+    gap:24px;
+  }
+
+  :root{
+    --rod-w:42px;
+    --rod-gap:85px;
+    --bead-size:28px;
+  }
+
+  .base-plaque{
+    padding:10px 20px;
+    gap:85px;
+  }
+
+  .base-label{
+    font-size:16px;
+  }
+
+  .build-label{
+    font-size:17px;
+  }
+
+  .build-box{
+    min-width:145px;
+    padding:10px 22px;
+    font-size:28px;
+  }
+
+  .choose-panel{
+    gap:18px;
+  }
+
+  .bead-option{
+    padding:12px 26px;
+    gap:16px;
+  }
+
+  .bead-icon{
+    width:46px;
+    height:46px;
+  }
+
+  .bead-num{
+    font-size:24px;
+  }
+
+  .nav{
+    margin-top:8px;
+    padding-bottom:8px;
+    gap:20px;
+  }
+
+  .nav button{
+    min-width:145px;
+    height:52px;
+    padding:10px 25px;
+    font-size:19px;
+  }
+}
+
+
+/* On a big external monitor there is so much spare height that the
+   rods stretch out very long. Cap the abacus height there. Laptop
+   screens are shorter than this and stay exactly as they were. */
+@media (min-height:800px){
+
+  .abacus-core{
+    flex: 0 1 auto;
+    height: min(100%, 360px);
+  }
+}
+
+/* =========================================================
+   DESKTOP RESPONSIVE
+   1366px and above
+   ========================================================= */
+@media (min-width:1366px){
+
+  .quiz-card{
+    padding:16px 55px 12px;
+    gap:8px;
+  }
+
+  .heading{
+    font-size:40px;
+  }
+
+  .qlabel{
+    font-size:40px;
+    margin-left:10px;
+  }
+
+  .content-row{
+    width:100%;
+    max-width:1200px;
+    gap:70px;
+  }
+
+  :root{
+    --rod-w:50px;
+    --rod-gap:105px;
+    --bead-size:31px;
+  }
+
+  .abacus-wrap{
+    gap:30px;
+  }
+
+  .base-plaque{
+    padding:12px 24px;
+    gap:105px;
+  }
+
+  .base-label{
+    font-size:18px;
+  }
+
+  .build-label{
+    font-size:19px;
+  }
+
+  .build-box{
+    min-width:165px;
+    padding:12px 26px;
+    font-size:32px;
+  }
+
+  .choose-panel{
+    gap:22px;
+  }
+
+  .bead-option{
+    padding:14px 30px;
+    gap:20px;
+  }
+
+  .bead-icon{
+    width:52px;
+    height:52px;
+  }
+
+  .bead-num{
+    font-size:28px;
+  }
+
+  .nav{
+    margin-top:10px;
+    padding-bottom:10px;
+    gap:24px;
+  }
+
+  .nav button{
+    min-width:155px;
+    height:55px;
+    padding:11px 28px;
+    font-size:20px;
+  }
+}
+</style>
+</head>
+<body>
+
+  <div class="quiz-card">
+    <button class="home-btn" id="homeBtn" style="visibility: hidden;;" aria-label="Home" title="Home"
+      onclick="window.location.href='../Grade2_chapter1.html'">
+      <i class="fa-solid fa-house"></i>
+    </button>
+    <button class="hint-btn" id="hintBtn" aria-label="Hint" title="Hint">
+      <i class="fa-solid fa-lightbulb"></i>
+    </button>
+
+    <p class="heading" id="heading">Draw the beads on the abacus to represent the given numbers.</p>
+    <p class="qlabel" id="qLabel">Q1.</p>
+
+    <div class="content-row">
+      <div class="abacus-wrap">
+        <div class="abacus-core">
+          <div class="rods-row">
+            <div class="rod-col" id="rodTens" data-rod="tens">
+              <div class="rod-line"></div>
+              <div class="beads-stack" id="beadsT"></div>
+            </div>
+            <div class="rod-col" id="rodOnes" data-rod="ones">
+              <div class="rod-line"></div>
+              <div class="beads-stack" id="beadsO"></div>
+            </div>
+          </div>
+          <div class="base-row">
+            <div class="base-plaque">
+              <span class="base-label">TENS</span>
+              <span class="base-label">ONES</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="build-target">
+          <p class="build-label">Build:</p>
+          <div class="build-box" id="buildBox">—</div>
+        </div>
+      </div>
+
+      <div class="choose-panel">
+        <p class="choose-title">Choose beads</p>
+        <div class="bead-option ten" id="beadTen">
+          <div class="bead-icon ten"></div>
+          <span class="bead-num">10</span>
+        </div>
+        <div class="bead-option one" id="beadOne">
+          <div class="bead-icon one"></div>
+          <span class="bead-num">1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="prev" id="prevBtn" disabled>← Prev</button>
+      <button class="next" id="nextBtn" disabled>Next →</button>
+    </div>
+
+  </div>
+
+  <!-- HINT POPUP -->
+  <div id="hintPopup" class="hint-popup">
+    <div class="hint-content">
+      <h3>Hint</h3>
+      <p>Use the TENS beads for tens and the ONES beads for ones to build the number.</p>
+    </div>
+  </div>
+
+  <!-- CORRECT / WRONG POPUP -->
+  <div id="answerPopup" class="popup">
+    <div class="popup-content">
+      <div class="popup-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <!-- FINAL POPUP -->
+  <div id="finalPopup">
+    <div class="finalpopup-box">
+      <h2 class="final-heading">🎉 Amazing Job!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div><br>
+      <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+    </div>
+  </div>
+
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+/* real viewport height fix so mobile browser chrome never causes a scrollbar */
+function setRealVH(){ document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px'); }
+setRealVH();
+window.addEventListener('resize', setRealVH);
+window.addEventListener('orientationchange', setRealVH);
+
+/* ===================== QUESTION DATA (from reference sheet a-d) ===================== */
+const QUESTIONS = [
+  { tens:2, ones:8 }, // a) 28
+  { tens:3, ones:6 }, // b) 36
+  { tens:7, ones:4 }, // c) 74
+  { tens:9, ones:1 }, // d) 91
+];
+
+const total = QUESTIONS.length;
+let current = 0;
+const state = QUESTIONS.map(() => ({ tensCount:0, onesCount:0, answered:false }));
+
+const qLabel     = document.getElementById("qLabel");
+const beadsT     = document.getElementById("beadsT");
+const beadsO     = document.getElementById("beadsO");
+const buildBox   = document.getElementById("buildBox");
+const rodTens    = document.getElementById("rodTens");
+const rodOnes    = document.getElementById("rodOnes");
+const beadTenOpt = document.getElementById("beadTen");
+const beadOneOpt = document.getElementById("beadOne");
+const prevBtn    = document.getElementById("prevBtn");
+const nextBtn    = document.getElementById("nextBtn");
+
+const correctSound = document.getElementById("correctSound");
+const wrongSound    = document.getElementById("wrongSound");
+
+function buildBeadsStack(container, count, colorClass){
+  container.innerHTML = "";
+
+  const rod = colorClass === "ten" ? "tens" : "ones";
+
+  for(let i=0; i<count; i++){
+    const b = document.createElement("div");
+    b.className = "bead " + colorClass;
+    b.dataset.rod = rod;
+    b.title = "Click to remove";
+
+    /* Click ONE bead to remove ONE bead. */
+    b.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const st = state[current];
+
+      if(st.answered) return;
+
+      if(rod === "tens"){
+        st.tensCount = Math.max(0, st.tensCount - 1);
+      }else{
+        st.onesCount = Math.max(0, st.onesCount - 1);
+      }
+
+      /* After removing a bead, immediately check the new abacus value. */
+      checkAnswerAfterChange();
+    });
+
+    container.appendChild(b);
+  }
+}
+
+const hintBtn = document.getElementById("hintBtn");
+const hintPopup = document.getElementById("hintPopup");
+
+hintBtn.addEventListener("click", () => {
+  hintPopup.style.display = "flex";
+  clearTimeout(hintBtn._t);
+  hintBtn._t = setTimeout(() => {
+    hintPopup.style.display = "none";
+  }, 1800);
+});
+
+hintPopup.addEventListener("click", (e) => {
+  if(e.target === hintPopup) hintPopup.style.display = "none";
+});
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  const st = state[current];
+
+  qLabel.textContent = `Q${current+1}.`;
+  buildBox.textContent = (q.tens*10 + q.ones);
+
+  buildBeadsStack(beadsT, st.tensCount, "ten");
+  buildBeadsStack(beadsO, st.onesCount, "one");
+
+  beadTenOpt.classList.toggle("locked", st.answered);
+  beadOneOpt.classList.toggle("locked", st.answered);
+
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = !st.answered;
+  nextBtn.textContent = current === total-1 ? "Finish ✓" : "Next →";
+}
+function speak(t) {
+  speechSynthesis.cancel();
+
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-US";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+
+  speechSynthesis.speak(msg);
+}
+function checkAnswerAfterChange(){
+  const st = state[current];
+  const q = QUESTIONS[current];
+
+  /* Correct only when BOTH tens and ones match exactly. */
+  const isCorrect =
+    st.tensCount === q.tens &&
+    st.onesCount === q.ones;
+
+  /* If the user has too many or too few beads, it is not correct. */
+  if(isCorrect){
+    st.answered = true;
+    correctSound.currentTime = 0;
+    correctSound.play().catch(()=>{});
+    speak("correct");
+    showPopup(true);
+    fireConfettiAt(buildBox);
+
+    beadTenOpt.classList.add("locked");
+    beadOneOpt.classList.add("locked");
+    nextBtn.disabled = false;
+
+    if(current === total - 1){
+      setTimeout(() => {
+        fireBigConfetti();
+        showFinal();
+      }, 900);
+    }
+  }else{
+    /* Removing a bead from a previously correct answer makes it incomplete. */
+    st.answered = false;
+    beadTenOpt.classList.remove("locked");
+    beadOneOpt.classList.remove("locked");
+    nextBtn.disabled = true;
+  }
+
+  renderQuestion();
+}
+
+function handleDrop(rod, value){
+  const st = state[current];
+  if(st.answered) return;
+  const q = QUESTIONS[current];
+
+  let ok = false;
+  if(rod === "tens" && value === 10){
+    st.tensCount++;
+    ok = true;
+  } else if(rod === "ones" && value === 1){
+    st.onesCount++;
+    ok = true;
+  }
+
+  if(!ok){
+    wrongDrop(rod);
+    return;
+  }
+
+  buildBeadsStack(beadsT, st.tensCount, "ten");
+  buildBeadsStack(beadsO, st.onesCount, "one");
+
+  /* Check immediately after every added bead as well. */
+  checkAnswerAfterChange();
+}
+
+function wrongDrop(rod){
+  wrongSound.currentTime = 0; wrongSound.play().catch(()=>{});
+  speak("wrong");
+  showPopup(false);
+  const target = rod === "tens" ? rodTens : (rod === "ones" ? rodOnes : null);
+  if(target){
+    target.classList.add("wrong-flash");
+    setTimeout(() => target.classList.remove("wrong-flash"), 420);
+  }
+}
+
+function setupDrag(optEl, value){
+
+  let wasDragged = false;
+
+  /* CLICK = drop one bead directly onto its matching rod.
+     DRAG = still works exactly as before. */
+  optEl.addEventListener("click", (e) => {
+    if(wasDragged){
+      wasDragged = false;
+      return;
+    }
+    if(optEl.classList.contains("locked")) return;
+
+    const st = state[current];
+    const q = QUESTIONS[current];
+    /* Options can always be clicked to add another bead.
+       There is no maximum while building; the user can remove
+       individual beads by clicking them on the abacus. */
+    handleDrop(value === 10 ? "tens" : "ones", value);
+  });
+
+  optEl.addEventListener("pointerdown", (e) => {
+
+    if(optEl.classList.contains("locked")) return;
+
+    e.preventDefault();
+
+    const icon = optEl.querySelector(".bead-icon");
+    if(!icon) return;
+
+    const rect = icon.getBoundingClientRect();
+
+    /* Create ONLY the bead */
+    const ghost = icon.cloneNode(true);
+
+    ghost.classList.add("dragging-bead");
+
+    ghost.style.position = "fixed";
+    ghost.style.left = rect.left + "px";
+    ghost.style.top = rect.top + "px";
+    ghost.style.width = rect.width + "px";
+    ghost.style.height = rect.height + "px";
+    ghost.style.margin = "0";
+    ghost.style.pointerEvents = "none";
+    ghost.style.zIndex = "9999";
+
+    document.body.appendChild(ghost);
+
+    /* Slightly lift bead when picked */
+    requestAnimationFrame(() => {
+      ghost.classList.add("dragging-active");
+    });
+
+    const offX = e.clientX - rect.left;
+    const offY = e.clientY - rect.top;
+
+    document.body.classList.add("bead-dragging");
+
+    function move(ev){
+
+      wasDragged = true;
+
+      ghost.style.left =
+        (ev.clientX - offX) + "px";
+
+      ghost.style.top =
+        (ev.clientY - offY) + "px";
+    }
+
+    function up(ev){
+
+      document.removeEventListener("pointermove", move);
+
+      document.body.classList.remove("bead-dragging");
+
+      const dropEl =
+        document.elementFromPoint(
+          ev.clientX,
+          ev.clientY
+        );
+
+      const rodCol =
+        dropEl ?
+        dropEl.closest(".rod-col") :
+        null;
+
+      /* Smooth return if dropped outside */
+      if(!rodCol){
+
+        ghost.animate(
+          [
+            {
+              transform:"scale(1.15)",
+              opacity:1
+            },
+            {
+              transform:"scale(.6)",
+              opacity:0
+            }
+          ],
+          {
+            duration:180,
+            easing:"ease-out"
+          }
+        );
+
+        setTimeout(() => ghost.remove(),180);
+
+        return;
+      }
+
+      /* Successful drop */
+      ghost.animate(
+        [
+          {
+            transform:"scale(1.15)",
+            opacity:1
+          },
+          {
+            transform:"scale(.8)",
+            opacity:.5
+          }
+        ],
+        {
+          duration:120,
+          easing:"ease-out"
+        }
+      );
+
+      setTimeout(() => {
+
+        ghost.remove();
+
+        handleDrop(
+          rodCol.dataset.rod,
+          value
+        );
+
+      },120);
+    }
+
+    document.addEventListener(
+      "pointermove",
+      move
+    );
+
+    document.addEventListener(
+      "pointerup",
+      up,
+      {once:true}
+    );
+
+  });
+}
+setupDrag(beadTenOpt, 10);
+setupDrag(beadOneOpt, 1);
+
+function fireConfettiAt(el){
+  if(!window.confetti) return;
+  const rect = el.getBoundingClientRect();
+  confetti({
+    particleCount: 24, spread: 55, startVelocity: 26,
+    origin: { x:(rect.left+rect.width/2)/window.innerWidth, y:(rect.top+rect.height/2)/window.innerHeight },
+    colors: ["#e6473f","#3a6fd8","#f7b733","#8bba8a","#c9a8e0"],
+  });
+}
+function fireBigConfetti(){
+  if(!window.confetti) return;
+  const end = Date.now() + 1800;
+  (function frame(){
+    confetti({ particleCount:6, angle:60, spread:55, origin:{x:0} });
+    confetti({ particleCount:6, angle:120, spread:55, origin:{x:1} });
+    if(Date.now() < end) requestAnimationFrame(frame);
+  })();
+}
+
+function showPopup(isCorrect){
+  const popup = document.getElementById("answerPopup");
+  const icon = document.getElementById("popupIcon");
+  const title = document.getElementById("popupTitle");
+  const msg = document.getElementById("popupMsg");
+
+  popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+  popup.style.display = "flex";
+
+  if(isCorrect){ icon.textContent="🎉"; title.textContent="Correct!"; msg.textContent="Great job!"; }
+  else{ icon.textContent="❌"; title.textContent="Try Again!"; msg.textContent="That's not quite right."; }
+
+  clearTimeout(showPopup._t);
+  showPopup._t = setTimeout(()=>{ popup.style.display = "none"; }, 1100);
+}
+
+function showFinal(){
+  const finalPopup = document.getElementById("finalPopup");
+  finalPopup.style.display = "flex";
+
+  document.getElementById("finalScore").textContent =
+    `${total} / ${total} Completed`;
+
+  // Always show 3 stars
+  document.getElementById("stars").textContent = "⭐⭐⭐";
+}
+
+prevBtn.addEventListener("click", () => { if(current>0){ current--; renderQuestion(); } });
+nextBtn.addEventListener("click", () => {
+  if(current < total-1){ current++; renderQuestion(); }
+  else if(!nextBtn.disabled){ fireBigConfetti(); showFinal(); }
+});
+
+renderQuestion();
+</script>
+</body>
+</html>

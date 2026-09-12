@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Math Quiz: Canopy Cannon</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Livvic', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+
+        }
+
+
+        /* =========================
+   MAIN ENVIRONMENT
+========================= */
+
+        .game-environment {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+
+            /* SINGLE COLOR */
+            background: #fbf8eb;
+        }
+
+
+        /* =========================
+   PROMPT BOX
+========================= */
+
+        .prompt-container {
+            position: absolute;
+            top: 4vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .prompt-box {
+
+            background: #ffffff;
+
+            border: .6vmin solid #9b87d8;
+
+            padding: 1.5vmin 4vmin;
+
+            border-radius: 3vmin;
+
+            font-size: 22px;
+
+            font-weight: 400;
+
+            color: #2f4f4f;
+
+            box-shadow:
+                0 1vmin 2vmin rgba(80, 60, 110, .12);
+
+            text-align: center;
+
+            max-width: 90vw;
+        }
+
+
+        /* =========================
+   PLAY AREA
+========================= */
+
+        .play-area {
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+
+            z-index: 10;
+        }
+
+
+        /* =========================
+   NESTS
+========================= */
+
+        .nest {
+
+            position: absolute;
+
+            width: 25vmin;
+
+            height: auto;
+
+            display: block;
+
+            transform: translate(-50%, -50%);
+
+            transition:
+                transform .3s,
+                opacity .3s,
+                filter .3s;
+
+            z-index: 15;
+
+            pointer-events: auto;
+
+            object-fit: contain;
+
+            user-select: none;
+
+            -webkit-user-drag: none;
+        }
+
+
+        /* =========================
+   CANNON
+========================= */
+
+        .cannon-container {
+
+            position: absolute;
+
+            bottom: 5vh;
+
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            z-index: 30;
+        }
+
+        .cannon-base {
+
+            width: 25vmin;
+
+            height: 15vmin;
+
+            background:
+
+                linear-gradient(180deg,
+                    #8ccf9b 0%,
+                    #62ad74 100%);
+
+            border: 1vmin solid #4d9561;
+
+            border-radius:
+                12vmin 12vmin 2vmin 2vmin;
+
+            box-shadow:
+                0 2vmin 3vmin rgba(0, 0, 0, .18);
+
+            z-index: 35;
+
+            position: relative;
+        }
+
+        .cannon-barrel {
+
+            width: 12vmin;
+
+            height: 20vmin;
+
+            background:
+
+                linear-gradient(90deg,
+                    #8da6ba 0%,
+                    #c4d4df 50%,
+                    #8da6ba 100%);
+
+            border: 1vmin solid #647b8e;
+
+            border-radius: 2vmin;
+
+            position: absolute;
+
+            bottom: 8vmin;
+
+            transform-origin: bottom center;
+
+            z-index: 30;
+
+            display: flex;
+
+            justify-content: center;
+
+            overflow: visible;
+
+            box-shadow:
+                0 1vmin 2vmin rgba(0, 0, 0, .18);
+        }
+
+        .bird-projectile {
+
+            position: absolute;
+
+            top: 1.2vmin;
+
+            left: 50%;
+
+            transform: translateX(-50%);
+
+            width: 13vmin;
+
+            height: auto;
+
+            display: block;
+
+            object-fit: contain;
+
+            pointer-events: none;
+
+            user-select: none;
+
+            -webkit-user-drag: none;
+
+            filter:
+                drop-shadow(0 .5vmin .6vmin rgba(0, 0, 0, .22));
+        }
+
+
+        /* =========================
+   AIM LINE
+========================= */
+
+        .aim-line {
+
+            position: absolute;
+
+            top: -100vh;
+
+            width: .5vmin;
+
+            height: 100vh;
+
+            background:
+
+                linear-gradient(0deg,
+                    rgba(155, 135, 216, .45) 0%,
+                    transparent 100%);
+
+            pointer-events: none;
+        }
+
+
+        /* =========================
+   FLYING BIRD
+========================= */
+
+        .flying-bird {
+
+            position: absolute;
+
+            width: 15vmin;
+
+            height: auto;
+
+            display: block;
+
+            object-fit: contain;
+
+            transform: translate(-50%, -50%);
+
+            z-index: 50;
+
+            pointer-events: none;
+
+            user-select: none;
+
+            -webkit-user-drag: none;
+
+            filter:
+                drop-shadow(0 .7vmin .8vmin rgba(0, 0, 0, .28));
+        }
+
+
+        /* =========================
+   TAP ZONE
+========================= */
+
+        .tap-zone {
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            height: 100%;
+
+            z-index: 5;
+
+            cursor: default;
+        }
+
+
+        /* =========================
+   ERROR SHAKE
+========================= */
+
+        .shake-error {
+
+            animation:
+                errorShake .4s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        @keyframes errorShake {
+
+            10%,
+            90% {
+                transform:
+                    translate(-50%, -50%) translateX(-1vmin);
+            }
+
+            20%,
+            80% {
+                transform:
+                    translate(-50%, -50%) translateX(1vmin);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform:
+                    translate(-50%, -50%) translateX(-2vmin);
+            }
+
+            40%,
+            60% {
+                transform:
+                    translate(-50%, -50%) translateX(2vmin);
+            }
+
+        }
+
+
+
+        /* =========================
+   FINAL POPUP
+   SAME HEAVY & LIGHT STYLE
+========================= */
+
+        .popup-overlay {
+
+            position: fixed;
+
+            top: 0;
+            left: 0;
+
+            width: 100vw;
+            height: 100vh;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition: opacity .3s ease;
+
+            z-index: 100;
+        }
+
+        .popup-overlay.active {
+
+            opacity: 1;
+
+            pointer-events: auto;
+        }
+
+
+        .popup-card {
+
+            position: relative;
+
+            width: 90%;
+
+            max-width: 520px;
+
+            padding: 40px 30px;
+
+            border-radius: 36px;
+
+            text-align: center;
+
+            box-shadow:
+                0 20px 40px rgba(0, 0, 0, .1);
+
+            transform: scale(.8);
+
+            transition:
+
+                transform .35s cubic-bezier(.175,
+                    .885,
+                    .32,
+                    1.275);
+
+            overflow: hidden;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+        }
+
+
+        .popup-card::before,
+        .popup-card::after {
+
+            content: '';
+
+            position: absolute;
+
+            border-radius: 50%;
+
+            pointer-events: none;
+        }
+
+        .popup-card::before {
+
+            width: 220px;
+
+            height: 220px;
+
+            top: -60px;
+
+            right: -50px;
+        }
+
+        .popup-card::after {
+
+            width: 180px;
+
+            height: 180px;
+
+            bottom: -70px;
+
+            left: -40px;
+        }
+
+
+        /* EXACT FINAL STYLE */
+
+        .popup-card.complete {
+
+            background: #f0f3ff;
+
+            border: 6px solid #6c5ce7;
+        }
+        .popup-card.complete {
+    width: 520px;
+    max-width: 90vw;
+    height: 300px;
+    padding: 40px 30px;
+    box-sizing: border-box;
+    border-radius: 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+        .popup-card.complete::before,
+        .popup-card.complete::after {
+
+            background:
+                rgba(162, 155, 254, .35);
+        }
+
+        .popup-card.complete .popup-title {
+
+            color: #6c5ce7;
+        }
+
+        .popup-card.complete .popup-subtitle {
+
+            color: #4834d4;
+        }
+
+        .popup-card.complete .popup-icon {
+            animation: finalTrophyBounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes finalTrophyBounce {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+
+        .popup-overlay.active .popup-card {
+
+            transform: scale(1);
+        }
+
+
+        .popup-icon {
+
+            font-size: 4.8rem;
+
+            margin-bottom: 12px;
+
+            z-index: 2;
+
+            line-height: 1;
+
+            filter:
+                drop-shadow(0 6px 10px rgba(0, 0, 0, .1));
+        }
+
+
+        .popup-title {
+
+            font-size: 3rem;
+
+            font-weight: 600;
+
+            margin-bottom: 8px;
+
+            z-index: 2;
+
+            letter-spacing: -.5px;
+        }
+
+
+        .popup-subtitle {
+
+            font-size: 1.4rem;
+
+            font-weight: 500;
+
+            z-index: 2;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            text-align: center;
+
+            line-height: 1.5;
+        }
+
+
+        /* PLAY AGAIN BUTTON */
+
+        .nav-btn {
+
+            background: #e67e22;
+
+            color: #ffffff;
+
+            border: none;
+
+            padding: 10px 35px;
+
+            font-size: 20px;
+
+            font-weight: 500;
+
+            border-radius: 40px;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 6px 0 #d35400;
+
+            transition:
+                all .1s ease;
+        }
+
+        .nav-btn:active {
+
+            transform:
+                translateY(4px);
+
+            box-shadow:
+                0 2px 0 #d35400;
+        }
+
+
+        .replay-btn {
+
+            background: #0984e3;
+
+            box-shadow:
+                0 6px 0 #0975c7;
+
+            margin-top: 20px;
+
+            z-index: 5;
+        }
+
+        .replay-btn:active {
+
+            box-shadow:
+                0 2px 0 #0975c7;
+        }
+
+
+
+
+
+        /* EXACT SAME CONFETTI */
+        #confettiContainer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 90;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 9px;
+            height: 14px;
+            border-radius: 2px;
+            opacity: 0;
+            animation: pageConfetti 1700ms cubic-bezier(.16, .72, .3, 1) forwards;
+            will-change: transform, opacity;
+        }
+
+        .final-confetti-piece {
+            width: 10px;
+            height: 16px;
+            animation-duration: 2300ms;
+        }
+
+        .final-confetti-piece:nth-child(3n) {
+            border-radius: 50%;
+        }
+
+        .final-confetti-piece:nth-child(4n) {
+            width: 7px;
+            height: 19px;
+            border-radius: 1px;
+        }
+
+        .final-confetti-piece:nth-child(5n) {
+            width: 13px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        @keyframes pageConfetti {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+            }
+
+            55% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+            }
+        }
+
+        .final-confetti-piece::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: inherit;
+        }
+
+
+        /* CORRECT POPUP */
+        .popup-card.correct {
+            background: #effff8;
+            border: 6px solid #00b894;
+        }
+
+        .popup-card.correct::before,
+        .popup-card.correct::after {
+            background: rgba(0, 184, 148, .18);
+        }
+
+        .popup-card.correct .popup-title {
+            color: #00b894;
+        }
+
+        .popup-card.correct .popup-subtitle {
+            color: #087f5b;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div class="game-environment" id="environment">
+
+
+        <!-- PROMPT -->
+
+        <div class="prompt-container">
+
+            <div class="prompt-box" id="prompt-box">
+
+                Look at the number on the bird. Then tap the nest with the matching number word!
+
+            </div>
+
+        </div>
+
+
+        <!-- PLAY AREA -->
+
+        <div class="play-area" id="play-area">
+
+        </div>
+
+
+        <!-- CANNON -->
+
+        <div class="cannon-container">
+
+            <div class="cannon-barrel" id="cannon-barrel">
+
+                <div class="aim-line"></div>
+
+                <img class="bird-projectile" id="loaded-bird" src="../images/bird_5.png" alt="Number bird"
+                    draggable="false">
+
+            </div>
+
+
+            <div class="cannon-base"></div>
+
+        </div>
+
+
+        <!-- TAP AREA -->
+
+        <div class="tap-zone" id="tap-zone">
+
+        </div>
+
+
+    </div>
+
+
+
+    <div id="confettiContainer"></div>
+
+    <!-- CORRECT POPUP -->
+    <div class="popup-overlay" id="correctPopup">
+        <div class="popup-card correct" id="correctPopupCard">
+            <div class="popup-icon">🌟</div>
+            <h2 class="popup-title">Amazing!</h2>
+            <p class="popup-subtitle">You got it right! ✨</p>
+        </div>
+    </div>
+
+    <!-- FINAL POPUP -->
+
+    <div class="popup-overlay" id="popup">
+
+
+        <div class="popup-card complete" id="popupCard">
+
+
+            <div class="popup-icon">
+
+                🏆
+
+            </div>
+
+
+            <h2 class="popup-title">
+
+                Congratulations!
+            </h2>
+
+
+            <p class="popup-subtitle">
+
+                Great job! You completed it! 🎉
+
+            </p>
+
+
+            <button class="nav-btn replay-btn" onclick="restartGame()">
+
+                Play Again
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+    <script>
+
+        /* =========================
+           EXACT SAME CONFETTI
+        ========================= */
+
+        function showSmallConfetti(isFinal = false) {
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (!confettiContainer) return;
+
+            confettiContainer.innerHTML = '';
+
+            const count = isFinal ? 95 : 42;
+
+            const colors = [
+                '#00b894',
+                '#e67e22',
+                '#6c5ce7',
+                '#0984e3',
+                '#fdcb6e',
+                '#ff6b7a',
+                '#00cec9',
+                '#a29bfe'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('span');
+
+                piece.className =
+                    isFinal
+                        ? 'confetti-piece final-confetti-piece'
+                        : 'confetti-piece';
+
+                const startX = Math.random() * 100;
+                const startY = -8 + Math.random() * 10;
+
+                const drift =
+                    (Math.random() * 520 - 260) *
+                    (isFinal ? 1.15 : 0.9);
+
+                const fall =
+                    window.innerHeight *
+                    (0.82 + Math.random() * 0.48);
+
+                const rotation =
+                    Math.random() * 1400 - 700;
+
+                piece.style.left = startX + '%';
+                piece.style.top = startY + '%';
+
+                piece.style.setProperty('--x', drift + 'px');
+                piece.style.setProperty('--y', fall + 'px');
+                piece.style.setProperty('--r', rotation + 'deg');
+
+                piece.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+
+                piece.style.animationDelay =
+                    (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(
+                    () => piece.remove(),
+                    isFinal ? 2900 : 2050
+                );
+            }
+        }
+
+        function showCorrectPopup() {
+            const popup = document.getElementById('correctPopup');
+            if (!popup) return;
+            popup.classList.add('active');
+        }
+
+        function hideCorrectPopup() {
+            const popup = document.getElementById('correctPopup');
+            if (!popup) return;
+            popup.classList.remove('active');
+        }
+
+
+
+        let isPaused = false;
+
+
+        /* =========================
+           QUIZ DATA
+        ========================= */
+
+        const quizData = [
+
+            {
+                num: 5,
+                word: "Five",
+                bird: "../images/bird_5.png",
+                nest: "../images/nest_five.png"
+            },
+
+            {
+                num: 3,
+                word: "Three",
+                bird: "../images/bird_3.png",
+                nest: "../images/nest_three.png"
+            },
+
+            {
+                num: 2,
+                word: "Two",
+                bird: "../images/bird_2.png",
+                nest: "../images/nest_two.png"
+            },
+
+            {
+                num: 1,
+                word: "One",
+                bird: "../images/bird_1.png",
+                nest: "../images/nest_one.png"
+            },
+
+            {
+                num: 4,
+                word: "Four",
+                bird: "../images/bird_4.png",
+                nest: "../images/nest_four.png"
+            }
+
+        ];
+
+
+        let remainingBirds = [];
+
+        let currentBird = null;
+
+        let activeNests = [];
+
+
+        /* =========================
+           CANNON STATE
+        ========================= */
+
+        let cannonAngle = -68;
+
+        let cannonDirection = 1;
+
+        const maxAngle = 68;
+
+        const swingSpeed = .9;
+
+        let animFrame;
+
+
+        /* =========================
+           AUDIO
+        ========================= */
+
+        const AudioContext =
+
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        let audioCtx;
+
+
+        function playSound(type) {
+
+            if (!audioCtx) {
+
+                audioCtx =
+                    new AudioContext();
+
+            }
+
+
+            if (
+                audioCtx.state === 'suspended'
+            ) {
+
+                audioCtx.resume();
+
+            }
+
+
+            const osc =
+                audioCtx.createOscillator();
+
+
+            const gain =
+                audioCtx.createGain();
+
+
+            osc.connect(gain);
+
+            gain.connect(
+                audioCtx.destination
+            );
+
+
+            if (type === 'fire') {
+
+                osc.type = 'triangle';
+
+                osc.frequency.setValueAtTime(
+                    300,
+                    audioCtx.currentTime
+                );
+
+                osc.frequency.exponentialRampToValueAtTime(
+                    800,
+                    audioCtx.currentTime + .2
+                );
+
+                gain.gain.setValueAtTime(
+                    .5,
+                    audioCtx.currentTime
+                );
+
+                gain.gain.exponentialRampToValueAtTime(
+                    .01,
+                    audioCtx.currentTime + .2
+                );
+
+                osc.start(
+                    audioCtx.currentTime
+                );
+
+                osc.stop(
+                    audioCtx.currentTime + .2
+                );
+
+            }
+
+
+            else if (type === 'correct') {
+
+                osc.type = 'sine';
+
+                osc.frequency.setValueAtTime(
+                    523.25,
+                    audioCtx.currentTime
+                );
+
+                osc.frequency.setValueAtTime(
+                    1046.5,
+                    audioCtx.currentTime + .1
+                );
+
+                gain.gain.setValueAtTime(
+                    .5,
+                    audioCtx.currentTime
+                );
+
+                gain.gain.exponentialRampToValueAtTime(
+                    .01,
+                    audioCtx.currentTime + .4
+                );
+
+                osc.start(
+                    audioCtx.currentTime
+                );
+
+                osc.stop(
+                    audioCtx.currentTime + .4
+                );
+
+            }
+
+
+            else if (type === 'wrong') {
+
+                osc.type = 'sawtooth';
+
+                osc.frequency.setValueAtTime(
+                    150,
+                    audioCtx.currentTime
+                );
+
+                osc.frequency.exponentialRampToValueAtTime(
+                    100,
+                    audioCtx.currentTime + .3
+                );
+
+                gain.gain.setValueAtTime(
+                    .5,
+                    audioCtx.currentTime
+                );
+
+                gain.gain.exponentialRampToValueAtTime(
+                    .01,
+                    audioCtx.currentTime + .3
+                );
+
+                osc.start(
+                    audioCtx.currentTime
+                );
+
+                osc.stop(
+                    audioCtx.currentTime + .3
+                );
+
+            }
+
+        }
+
+
+        /* =========================
+           SPEAK
+        ========================= */
+
+        function speak(t) {
+
+            speechSynthesis.cancel();
+
+            const msg =
+                new SpeechSynthesisUtterance(t);
+
+            msg.lang = "en-US";
+
+            msg.volume = .25;
+
+            msg.rate = 1;
+
+            msg.pitch = 1;
+
+            speechSynthesis.speak(msg);
+
+        }
+
+
+        /* =========================
+           SHUFFLE
+        ========================= */
+
+        function shuffle(array) {
+
+            for (
+                let i = array.length - 1;
+                i > 0;
+                i--
+            ) {
+
+                const j =
+                    Math.floor(
+                        Math.random() * (i + 1)
+                    );
+
+                [
+                    array[i],
+                    array[j]
+                ] =
+                    [
+                        array[j],
+                        array[i]
+                    ];
+
+            }
+
+            return array;
+
+        }
+
+
+        /* =========================
+           INITIALIZE GAME
+        ========================= */
+
+        function initGame() {
+
+            isPaused = false;
+
+
+            document
+                .getElementById('play-area')
+                .innerHTML = '';
+
+
+            remainingBirds =
+
+                shuffle([
+                    ...quizData
+                ]);
+
+
+            activeNests =
+
+                shuffle([
+                    ...quizData
+                ]);
+
+
+            const centerX =
+                window.innerWidth / 2;
+
+
+            const centerY =
+                window.innerHeight * .9;
+
+
+            const radius =
+                window.innerHeight * .6;
+
+
+            const angles = [
+                -60,
+                -30,
+                0,
+                30,
+                60
+            ];
+
+
+            activeNests.forEach(
+
+                (item, index) => {
+
+
+                    const angleRad =
+
+                        angles[index] *
+                        (Math.PI / 180);
+
+
+                    const x =
+
+                        centerX +
+
+                        radius *
+                        Math.sin(angleRad);
+
+
+                    const y =
+
+                        centerY -
+
+                        radius *
+                        Math.cos(angleRad);
+
+
+                    const nest =
+
+                        document.createElement('img');
+
+
+                    nest.className = 'nest';
+
+
+                    nest.id =
+                        `nest-${item.word}`;
+
+
+                    nest.dataset.val =
+                        item.word;
+
+
+                    nest.src =
+                        item.nest;
+
+
+                    nest.alt =
+                        `${item.word} nest`;
+
+
+                    nest.draggable = false;
+
+
+                    nest.style.left =
+                        `${x}px`;
+
+
+                    nest.style.top =
+                        `${y}px`;
+
+
+                    document
+                        .getElementById('play-area')
+                        .appendChild(nest);
+
+
+                });
+
+
+            loadNextBird();
+
+
+            startCannonSwing();
+
+        }
+
+
+        /* =========================
+           NEXT BIRD
+        ========================= */
+
+        function loadNextBird() {
+
+            if (
+                remainingBirds.length === 0
+            ) {
+
+                isPaused = true;
+
+
+                showFinalPopup();
+
+
+                speak(
+                    'Congratulations! Fantastic job!'
+                );
+
+
+                return;
+
+            }
+
+
+            currentBird =
+                remainingBirds.pop();
+
+
+            const loadedEl =
+
+                document.getElementById(
+                    'loaded-bird'
+                );
+
+
+            loadedEl.src =
+                currentBird.bird;
+
+
+            loadedEl.alt =
+                `Bird with number ${currentBird.num}`;
+
+
+            loadedEl.style.opacity = '1';
+
+        }
+
+
+        /* =========================
+           CANNON SWING
+        ========================= */
+
+        function startCannonSwing() {
+
+            if (animFrame) {
+
+                cancelAnimationFrame(
+                    animFrame
+                );
+
+            }
+
+
+            isPaused = false;
+
+
+            function loop() {
+
+                if (!isPaused) {
+
+
+                    cannonAngle +=
+
+                        swingSpeed *
+                        cannonDirection;
+
+
+                    if (
+                        cannonAngle >= maxAngle
+                    ) {
+
+                        cannonAngle = maxAngle;
+
+                        cannonDirection = -1;
+
+                    }
+
+
+                    if (
+                        cannonAngle <= -maxAngle
+                    ) {
+
+                        cannonAngle = -maxAngle;
+
+                        cannonDirection = 1;
+
+                    }
+
+
+                    document
+                        .getElementById(
+                            'cannon-barrel'
+                        )
+                        .style.transform =
+
+                        `rotate(${cannonAngle}deg)`;
+
+                }
+
+
+                animFrame =
+                    requestAnimationFrame(loop);
+
+            }
+
+
+            loop();
+
+        }
+
+
+        let isFiring = false;
+
+        /*
+           The user clicks the nest itself.
+           The cannon immediately aims at that exact nest
+           and fires automatically.
+        */
+        document
+            .querySelector('.play-area')
+            .addEventListener(
+                'pointerdown',
+                (e) => {
+
+                    const targetNest =
+                        e.target.closest('.nest');
+
+                    if (
+                        !targetNest ||
+                        isPaused ||
+                        !currentBird ||
+                        isFiring ||
+                        targetNest.dataset.matched === 'true'
+                    ) {
+                        return;
+                    }
+
+                    e.preventDefault();
+
+                    isFiring = true;
+                    isPaused = true;
+
+                    aimAndFireAtNest(targetNest);
+                }
+            );
+
+        function aimAndFireAtNest(targetNest) {
+
+            const barrel =
+                document.getElementById('cannon-barrel');
+
+            const barrelRect =
+                barrel.getBoundingClientRect();
+
+            const nestRect =
+                targetNest.getBoundingClientRect();
+
+            const startX =
+                barrelRect.left +
+                barrelRect.width / 2;
+
+            const startY =
+                barrelRect.top;
+
+            const targetX =
+                nestRect.left +
+                nestRect.width / 2;
+
+            const targetY =
+                nestRect.top +
+                nestRect.height / 2;
+
+            /*
+               0° = straight upward.
+               Positive = right.
+               Negative = left.
+            */
+            let targetAngle =
+                Math.atan2(
+                    targetX - startX,
+                    startY - targetY
+                ) * 180 / Math.PI;
+
+            /*
+               All nests are positioned within the cannon's
+               normal range, so this keeps the barrel inside
+               its safe visual rotation.
+            */
+            targetAngle =
+                Math.max(
+                    -maxAngle,
+                    Math.min(maxAngle, targetAngle)
+                );
+
+            const initialAngle = cannonAngle;
+            const aimDuration = 120;
+            const aimStart = performance.now();
+
+            function aimLoop(now) {
+
+                const progress =
+                    Math.min(
+                        1,
+                        (now - aimStart) / aimDuration
+                    );
+
+                const eased =
+                    1 - Math.pow(1 - progress, 3);
+
+                cannonAngle =
+                    initialAngle +
+                    (targetAngle - initialAngle) *
+                    eased;
+
+                barrel.style.transform =
+                    `rotate(${cannonAngle}deg)`;
+
+                if (progress < 1) {
+
+                    requestAnimationFrame(aimLoop);
+
+                } else {
+
+                    cannonAngle = targetAngle;
+
+                    barrel.style.transform =
+                        `rotate(${cannonAngle}deg)`;
+
+                    fireAtNest(targetNest);
+                }
+            }
+
+            requestAnimationFrame(aimLoop);
+        }
+
+        function fireAtNest(targetNest) {
+
+            playSound('fire');
+
+            const loadedEl =
+                document.getElementById('loaded-bird');
+
+            loadedEl.style.opacity = '0';
+
+            const barrelRect =
+                document
+                    .getElementById('cannon-barrel')
+                    .getBoundingClientRect();
+
+            const startX =
+                barrelRect.left +
+                barrelRect.width / 2;
+
+            const startY =
+                barrelRect.top;
+
+            const nestRect =
+                targetNest.getBoundingClientRect();
+
+            const targetX =
+                nestRect.left +
+                nestRect.width / 2;
+
+            const targetY =
+                nestRect.top +
+                nestRect.height / 2;
+
+            const flyingBird =
+                document.createElement('img');
+
+            flyingBird.className = 'flying-bird';
+
+            flyingBird.src = currentBird.bird;
+
+            flyingBird.alt =
+                `Bird with number ${currentBird.num}`;
+
+            flyingBird.draggable = false;
+
+            flyingBird.style.left =
+                `${startX}px`;
+
+            flyingBird.style.top =
+                `${startY}px`;
+
+            document
+                .getElementById('play-area')
+                .appendChild(flyingBird);
+
+            /*
+               The bird travels directly to the exact nest
+               that the child selected.
+            */
+            const distance =
+                Math.hypot(
+                    targetX - startX,
+                    targetY - startY
+                );
+
+            const duration =
+                Math.max(
+                    220,
+                    Math.min(400, distance * .55)
+                );
+
+            const flightStart = performance.now();
+
+            function flightLoop(now) {
+
+                const progress =
+                    Math.min(
+                        1,
+                        (now - flightStart) / duration
+                    );
+
+                const eased =
+                    1 - Math.pow(1 - progress, 3);
+
+                const currentX =
+                    startX +
+                    (targetX - startX) *
+                    eased;
+
+                const currentY =
+                    startY +
+                    (targetY - startY) *
+                    eased;
+
+                flyingBird.style.left =
+                    `${currentX}px`;
+
+                flyingBird.style.top =
+                    `${currentY}px`;
+
+                if (progress < 1) {
+
+                    requestAnimationFrame(flightLoop);
+
+                } else {
+
+                    handleHit(
+                        flyingBird,
+                        targetNest
+                    );
+                }
+            }
+
+            requestAnimationFrame(flightLoop);
+        }
+
+        function handleHit(projectile, nest) {
+
+            projectile.remove();
+
+            if (nest.dataset.val === currentBird.word) {
+
+                playSound('correct');
+
+                // speak(currentBird.word);
+                speak("correct")
+                /*
+                   Keep the nest on screen and mark it as matched.
+                   The highlight remains for the rest of the game.
+                */
+                nest.dataset.matched = 'true';
+
+                nest.style.transform =
+                    'translate(-50%,-50%) scale(1.2)';
+
+                nest.style.filter =
+                    'drop-shadow(0 0 1.5vmin rgba(108,92,231,.95))';
+
+                const isLastBird =
+                    remainingBirds.length === 0;
+
+                // Exact same correct popup + small confetti.
+                showSmallConfetti(false);
+                showCorrectPopup();
+
+                setTimeout(() => {
+
+                    hideCorrectPopup();
+
+                    if (isLastBird) {
+
+                        currentBird = null;
+
+                        document
+                            .getElementById('loaded-bird')
+                            .style.opacity = '0';
+
+                        isPaused = true;
+                        isFiring = false;
+
+                        // Final answer: normal correct popup/confetti first,
+                        // then final popup + larger final confetti.
+                        setTimeout(() => {
+
+                            showSmallConfetti(true);
+                            showFinalPopup();
+
+                        }, 120);
+
+                    } else {
+
+                        loadNextBird();
+
+                        isPaused = false;
+                        isFiring = false;
+
+                        startCannonSwing();
+                    }
+
+                }, 1800);
+
+            } else {
+
+                playSound('wrong');
+
+                speak('wrong!');
+
+                nest.classList.add('shake-error');
+
+                setTimeout(() => {
+
+                    nest.classList.remove('shake-error');
+
+                }, 400);
+
+                setTimeout(() => {
+
+                    document
+                        .getElementById('loaded-bird')
+                        .style.opacity = '1';
+
+                    isPaused = false;
+                    isFiring = false;
+
+                    startCannonSwing();
+
+                }, 700);
+            }
+        }
+
+
+        /* =========================
+           MISS
+        ========================= */
+
+        function handleMiss(projectile) {
+
+            projectile.remove();
+
+
+            playSound('wrong');
+
+
+            speak(
+                'Try again.'
+            );
+
+
+            setTimeout(() => {
+
+
+                document
+                    .getElementById(
+                        'loaded-bird'
+                    )
+                    .style.opacity = '1';
+
+
+                isPaused = false;
+
+
+            }, 500);
+
+        }
+
+
+        /* =========================
+           FINAL POPUP
+        ========================= */
+
+        function showFinalPopup() {
+
+            document
+                .getElementById('popup')
+                .classList
+                .add('active');
+
+        }
+
+
+        /* =========================
+           RESTART
+        ========================= */
+
+        function restartGame() {
+
+            isFiring = false;
+
+            const confettiContainer =
+                document.getElementById('confettiContainer');
+
+            if (confettiContainer) {
+                confettiContainer.innerHTML = '';
+            }
+
+            hideCorrectPopup();
+
+            document
+                .getElementById('popup')
+                .classList
+                .remove('active');
+
+
+            currentBird = null;
+
+
+            cannonAngle = -68;
+
+            cannonDirection = 1;
+
+
+            initGame();
+
+        }
+
+
+        /* =========================
+           START
+        ========================= */
+
+        window.addEventListener(
+            'load',
+            initGame
+        );
+
+
+        window.addEventListener(
+
+            'resize',
+
+            () => {
+
+                if (!isPaused) {
+
+                    initGame();
+
+                }
+
+            }
+
+        );
+
+    </script>
+
+</body>
+
+</html>

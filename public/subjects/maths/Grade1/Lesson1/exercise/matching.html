@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Count and Match Game</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Livvic', sans-serif;
+    }
+
+    /* "bg no color" - Using plain white */
+    body {
+      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .game-stage {
+      width: 95vw;
+      max-width: 1000px;
+      height: 90vh;
+      max-height: 800px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    /* Heading matching your question */
+    .game-header {
+      text-align: center;
+      z-index: 10;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .game-header h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: #2f4f4f;
+    }
+
+    .instruction {
+      font-size: 20px;
+    }
+
+    /* Floating Targets Arena */
+    .arena {
+      width: 100%;
+      flex-grow: 1;
+      position: relative;
+      margin: 20px 0;
+    }
+
+    /* No Cards! Just raw floating image wrappers */
+    .target-item {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, filter 0.3s ease;
+      animation: floatMotion 4s ease-in-out infinite alternate;
+    }
+
+    .target-item:hover {
+      transform: scale(1.08);
+    }
+
+    /* Selected state uses a glow instead of a border/card */
+    .target-item.selected {
+      filter: drop-shadow(0 0 20px #ff7675) drop-shadow(0 0 10px #ff7675);
+      transform: scale(1.08);
+    }
+
+    .target-item.hit {
+      animation: popOut 0.5s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Large Images for easy counting */
+    .group-image {
+      width: 250px; /* Large size */
+      max-width: 35vw; 
+      height: auto;
+      object-fit: contain;
+    }
+
+    /* Pinball Launcher Controls */
+    .pinball-console {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      z-index: 10;
+      padding-bottom: 20px;
+    }
+
+    .pinball-bumper {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #ff9f43, #ee5253);
+      color: #ffffff;
+      font-size: 3rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 0px #c8d6e5, 0 15px 25px rgba(0, 0, 0, 0.15);
+      transition: all 0.1s ease;
+      position: relative;
+    }
+
+    .pinball-bumper:active {
+      transform: translateY(6px);
+      box-shadow: 0 4px 0px #c8d6e5, 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .pinball-bumper.selected {
+      box-shadow: 0 0 0 6px #10ac84, 0 10px 0px #c8d6e5;
+    }
+
+    /* Dynamic Fired Pinball */
+    .pinball-ball {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #1dd1a1;
+      box-shadow: 0 0 15px #1dd1a1, 0 0 25px #1dd1a1;
+      position: absolute;
+      z-index: 20;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    /* Shake Screen Effect */
+    .shake {
+      animation: shakeScreen 0.4s ease-in-out;
+    }
+
+    /* --- NEW POPUP STYLES FROM REFERENCE --- */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+     
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 100;
+    }
+
+    .popup-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .popup-card {
+      position: relative;
+      width: 90%;
+      max-width: 520px;
+      padding: 40px 30px;
+      border-radius: 36px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      transform: scale(0.8);
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .popup-card::before,
+    .popup-card::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .popup-card::before {
+      width: 220px;
+      height: 220px;
+      top: -60px;
+      right: -50px;
+    }
+
+    .popup-card::after {
+      width: 180px;
+      height: 180px;
+      bottom: -70px;
+      left: -40px;
+    }
+
+    .popup-card.complete {
+      background: #f0f3ff;
+      border: 6px solid #6c5ce7;
+    }
+
+    .popup-card.complete::before,
+    .popup-card.complete::after {
+      background: rgba(162, 155, 254, 0.35);
+    }
+
+    .popup-card.complete .popup-title { color: #6c5ce7; }
+    .popup-card.complete .popup-subtitle { color: #4834d4; }
+
+    .popup-overlay.active .popup-card { transform: scale(1); }
+
+    .popup-icon {
+      font-size: 4.8rem;
+      margin-bottom: 12px;
+      z-index: 2;
+      line-height: 1;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1));
+    }
+
+    .popup-title {
+      font-size: 3rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      z-index: 2;
+      letter-spacing: -0.5px;
+    }
+
+    .popup-subtitle {
+      font-size: 1.4rem;
+      font-weight: 500;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      background: #e67e22;
+      color: #ffffff;
+      border: none;
+      width: 178px;
+      height: 45px;
+      padding: 0;
+      font-size: 20px;
+      font-weight: 500;
+      border-radius: 40px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #d35400;
+      transition: all 0.1s ease;
+    }
+
+    .nav-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #d35400;
+    }
+
+    .replay-btn {
+      background: #0984e3;
+      box-shadow: 0 6px 0 #0975c7;
+      margin-top: 20px;
+      z-index: 5;
+    }
+
+    .replay-btn:active {
+      box-shadow: 0 2px 0 #0975c7;
+    }
+    /* --- END NEW POPUP STYLES --- */
+
+    /* Animations */
+    @keyframes floatMotion {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-15px); }
+      100% { transform: translateY(0px); }
+    }
+
+    @keyframes popOut {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    @keyframes shakeScreen {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-10px); }
+      40%, 80% { transform: translateX(10px); }
+    }
+
+
+    @media screen and (min-width: 1600px) {
+      .game-header h2 {
+        font-size: 30px;
+      }
+
+      .instruction {
+        font-size: 25px;
+      }
+
+      .nav-btn {
+        width: 178px;
+        height: 45px;
+        padding: 0;
+        font-size: 20px;
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      .group-image {
+        width: 160px;
+      }
+      .pinball-bumper {
+        width: 70px;
+        height: 70px;
+        font-size: 2.2rem;
+      }
+      .pinball-console {
+        gap: 15px;
+      }
+    }
+  
+/* ===== LESSON 1 QUIZ HEADINGS: title large, subheading smaller ===== */
+header h1,
+header h2,
+header .instruction-title,
+header .distance-title,
+.game-header h1,
+.game-header h2,
+.game-header .instruction-title,
+#questionHeading {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+}
+.game-header:not(:has(h1, h2)) .instruction,
+.game-header:not(:has(h1, h2)) p.instruction {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+    color: #2f4f4f;
+}
+header:has(h1, h2, .instruction-title) .instruction,
+header:has(h1, h2) .instruction-text,
+header:has(h1, h2, .instruction-title) p.instruction,
+header:has(h1, h2) p.instruction-text,
+.game-header:has(h1, h2) .instruction,
+.game-header:has(h1, h2) p.instruction,
+#instruction,
+.distance-header .instruction-text,
+.distance-header p.instruction-text {
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    color: #666;
+    line-height: 1.3;
+}
+header .instruction span,
+header .instruction-text span,
+header p.instruction span,
+header p.instruction-text span,
+.game-header .instruction span,
+#instruction span {
+    font-weight: 700 !important;
+    font-size: inherit !important;
+}
+@media screen and (min-width: 1600px) {
+    header h1,
+    header h2,
+    header .instruction-title,
+    header .distance-title,
+    .game-header h1,
+    .game-header h2,
+    .game-header .instruction-title,
+    #questionHeading {
+        font-size: 40px !important;
+    }
+    .game-header:not(:has(h1, h2)) .instruction,
+    .game-header:not(:has(h1, h2)) p.instruction {
+        font-size: 40px !important;
+    }
+    header:has(h1, h2, .instruction-title) .instruction,
+    header:has(h1, h2) .instruction-text,
+    header:has(h1, h2, .instruction-title) p.instruction,
+    header:has(h1, h2) p.instruction-text,
+    .game-header:has(h1, h2) .instruction,
+    .game-header:has(h1, h2) p.instruction,
+    #instruction,
+    .distance-header .instruction-text,
+    .distance-header p.instruction-text {
+        font-size: 18px !important;
+    }
+}
+
+/* ===== LAYOUT FIT: the heading always keeps its own space =====
+   The header is a fixed-size flex item and the play area takes exactly
+   the height that is left over, so artwork can never ride up into the
+   title on shorter laptop screens. */
+header,
+.game-header,
+.distance-header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 5;
+}
+main.game-stage,
+main.game-area,
+.game-stage,
+.game-area {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+footer,
+.navigation {
+    flex: 0 0 auto;
+}
+
+/* ===== Sub-heading stays on a single line ===== */
+.instruction-box,
+.distance-title { max-width: none !important; }
+header .instruction,
+header .instruction-text,
+header p.instruction,
+header p.instruction-text,
+.game-header .instruction,
+#instruction,
+.distance-header .instruction-text {
+    white-space: nowrap;
+    max-width: 100%;
+}
+@media screen and (max-width: 1100px) {
+    header .instruction, header .instruction-text,
+    header p.instruction, header p.instruction-text,
+    .game-header .instruction,
+    #instruction,
+    .distance-header .instruction-text {
+        white-space: normal;
+    }
+}
+</style>
+</head>
+<body>
+
+  <div class="game-stage" id="stage">
+    
+    <div class="game-header">
+      <h2>Count and match the numbers.</h2>
+    </div>
+
+    <div class="arena" id="arena">
+      
+      <div class="target-item" style="top: 5%; left: 5%;" data-count="6" data-name="birds">
+        <img class="group-image" src="../images/bird_m1.png" alt="6 birds">
+      </div>
+
+      <div class="target-item" style="top: 45%; left: 10%;" data-count="3" data-name="hippos">
+        <img class="group-image"  src="../images/m2.png" alt="3 hippos">
+      </div>
+
+      <div class="target-item" style="top: 10%; right: 5%;" data-count="5" data-name="sheep">
+        <img class="group-image" src="../images/m3.png"  alt="5 sheep">
+      </div>
+
+      <div class="target-item" style="top: 50%; right: 10%;" data-count="4" data-name="ducks">
+        <img class="group-image"src="../images/m4.png"  alt="4 ducks">
+      </div>
+
+    </div>
+
+    <div class="pinball-console" id="console">
+      <div class="pinball-bumper" data-count="5">5</div>
+      <div class="pinball-bumper" data-count="6">6</div>
+      <div class="pinball-bumper" data-count="4">4</div>
+      <div class="pinball-bumper" data-count="3">3</div>
+    </div>
+
+  </div>
+
+  <div class="popup-overlay" id="winModal">
+    <div class="popup-card complete">
+      <div class="popup-icon">🏆</div>
+      <h2 class="popup-title">Excellent!</h2>
+      <p class="popup-subtitle">You matched all the numbers! 🎉</p>
+      <button class="nav-btn replay-btn" onclick="resetGame()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    // Exact requested speech function
+    function speak(t) {
+      speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance(t);
+      msg.lang = "en-US";
+      msg.volume = 0.25;
+      msg.rate = 1;
+      msg.pitch = 1;
+      speechSynthesis.speak(msg);
+    }
+
+    let activeTarget = null;
+    let activeBumper = null;
+    let clearedTargets = 0;
+    const totalTargets = 4;
+
+    const arena = document.getElementById('arena');
+    const stage = document.getElementById('stage');
+    const modal = document.getElementById('winModal');
+
+    // Attach Click Events to Targets
+    document.querySelectorAll('.target-item').forEach(target => {
+      target.addEventListener('click', () => selectTarget(target));
+    });
+
+    // Attach Click Events to Pinball Bumpers
+    document.querySelectorAll('.pinball-bumper').forEach(bumper => {
+      bumper.addEventListener('click', () => selectBumper(bumper));
+    });
+
+    function selectTarget(target) {
+      if (target.classList.contains('hit')) return;
+
+      document.querySelectorAll('.target-item').forEach(t => t.classList.remove('selected'));
+      target.classList.add('selected');
+      activeTarget = target;
+
+      const count = target.getAttribute('data-count');
+      const name = target.getAttribute('data-name');
+      speak(`${count} ${name}`);
+
+      checkHit();
+    }
+
+    function selectBumper(bumper) {
+      document.querySelectorAll('.pinball-bumper').forEach(b => b.classList.remove('selected'));
+      bumper.classList.add('selected');
+      activeBumper = bumper;
+
+      const num = bumper.getAttribute('data-count');
+      speak(num);
+
+      checkHit();
+    }
+
+    function checkHit() {
+      if (activeTarget && activeBumper) {
+        const targetVal = activeTarget.getAttribute('data-count');
+        const bumperVal = activeBumper.getAttribute('data-count');
+
+        if (targetVal === bumperVal) {
+          // Success: Launch Pinball & Whack Target
+          firePinball(activeBumper, activeTarget, () => {
+            speak("Correct!");
+            activeTarget.classList.remove('selected');
+            activeBumper.classList.remove('selected');
+            activeTarget.classList.add('hit');
+
+            activeTarget = null;
+            activeBumper = null;
+            clearedTargets++;
+
+            if (clearedTargets === totalTargets) {
+              setTimeout(() => {
+                speak("Excellent! You matched all the numbers!");
+                // Using new popup logic
+                modal.classList.add('active');
+              }, 800);
+            }
+          });
+        } else {
+          // Failure: Shake & Reset
+          speak("Try again!");
+          stage.classList.add('shake');
+
+          setTimeout(() => {
+            stage.classList.remove('shake');
+            if (activeTarget) activeTarget.classList.remove('selected');
+            if (activeBumper) activeBumper.classList.remove('selected');
+            activeTarget = null;
+            activeBumper = null;
+          }, 450);
+        }
+      }
+    }
+
+    function firePinball(fromBumper, toTarget, onHitCallback) {
+      const stageRect = stage.getBoundingClientRect();
+      const bumperRect = fromBumper.getBoundingClientRect();
+      const targetRect = toTarget.getBoundingClientRect();
+
+      const ball = document.createElement('div');
+      ball.className = 'pinball-ball';
+
+      // Start position (Bumper center)
+      const startX = bumperRect.left + bumperRect.width / 2 - stageRect.left - 13;
+      const startY = bumperRect.top + bumperRect.height / 2 - stageRect.top - 13;
+
+      // Target position (Image center)
+      const endX = targetRect.left + targetRect.width / 2 - stageRect.left - 13;
+      const endY = targetRect.top + targetRect.height / 2 - stageRect.top - 13;
+
+      ball.style.left = `${startX}px`;
+      ball.style.top = `${startY}px`;
+
+      stage.appendChild(ball);
+
+      // Trigger movement on next frame
+      requestAnimationFrame(() => {
+        ball.style.left = `${endX}px`;
+        ball.style.top = `${endY}px`;
+      });
+
+      // Handle Collision
+      setTimeout(() => {
+        ball.remove();
+        onHitCallback();
+      }, 400);
+    }
+
+    function resetGame() {
+      clearedTargets = 0;
+      activeTarget = null;
+      activeBumper = null;
+      
+      // Using new popup logic
+      modal.classList.remove('active');
+
+      document.querySelectorAll('.target-item').forEach(target => {
+        target.classList.remove('selected', 'hit');
+      });
+
+      document.querySelectorAll('.pinball-bumper').forEach(bumper => {
+        bumper.classList.remove('selected');
+      });
+
+      
+    }
+  </script>
+</body>
+</html>

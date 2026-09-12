@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, type Variants } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { ChevronRight, ChevronDown, ArrowLeft, GraduationCap, BookOpen, FileText, Clock, CheckCircle2, Lock, PlayCircle, Trophy, Star, Zap, Target, Flame, Shield, MoreVertical, ArrowRight, Microscope, Globe } from "lucide-react";
+import { ChevronRight, ChevronDown, ArrowLeft, GraduationCap, BookOpen, FileText, Clock, CheckCircle2, Lock, PlayCircle, Trophy, Star, Zap, Target, Flame, Shield, MoreVertical, ArrowRight, Microscope, Globe, Calculator } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function HindiIcon({ className }: { className?: string }) {
@@ -19,6 +19,7 @@ const subjectIcons: Record<string, any> = {
   hindi: HindiIcon,
   social: Globe,
   english: BookOpen,
+  maths: Calculator,
 };
 
 function showComingSoon(subjectId: string, gradeId?: string): boolean {
@@ -579,7 +580,7 @@ function LessonList({ lessons, onOpen }: { lessons: Lesson[]; onOpen: (l: Lesson
   );
 }
 
-const allowedSubjectIds = ["english", "hindi", "science", "social"];
+const allowedSubjectIds = ["english", "hindi", "science", "social", "maths"];
 
 export function SubjectsView({ onOpenLesson, onNavChange, initialSubjectId, initialGradeId }: { onOpenLesson: (path: { gradeId: string; subjectId: string; lessonId: string }) => void; onNavChange?: (nav: { gradeId?: string; subjectId?: string }) => void; initialSubjectId?: string; initialGradeId?: string }) {
   const [selectedSubject, setSelectedSubject] = useState<string | null>(initialSubjectId ?? null);

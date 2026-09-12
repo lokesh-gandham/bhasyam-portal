@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heavy & Light Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Livvic', sans-serif;
+        }
+
+        body {
+           
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 18px;
+            overflow: hidden;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-top: 2px;
+          
+        }
+
+        h1, h2 {
+            font-size: 22px;
+            color: #2f4f4f;
+            font-weight: 600;
+        }
+
+        .instruction {
+            font-size: 20px;
+            color: #555;
+            font-weight: 500;
+        }
+
+
+        .instruction-text {
+            margin: 2px 0 0;
+            color: #555;
+            font-size: 15px;
+            line-height: 1.25;
+        }
+
+        @media screen and (min-width: 1600px) {
+            .instruction-text {
+                font-size: 18px;
+            }
+        }
+
+        /* Main Playground */
+        .game-stage {
+            width: 100%;
+            max-width: 1400px;
+            height: 76vh;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            position: relative;
+          
+           
+          
+        }
+
+        .slide-item {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+              margin-top: 40px;
+        }
+
+        .slide-item.active {
+            display: flex;
+        }
+
+        /* Balance Seesaw Stage Design */
+        .seesaw-container {
+            width: 100%;
+            max-width: 1050px;
+            height: min(60vh, 540px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            position: relative;
+        }
+
+
+        /* Small downward offset requested for the desktop layout */
+        .seesaw-container {
+            transform: translateY(14px);
+        }
+
+        /* Tilting Beam */
+        .seesaw-beam {
+            width: 100%;
+            height: 18px;
+            background: linear-gradient(90deg, #d35400, #e67e22, #d35400);
+            border-radius: 9px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 10px;
+            position: relative;
+            transform-origin: center bottom;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Tilting Class Modifiers */
+        .seesaw-beam.tilt-left {
+            transform: rotate(-5.5deg);
+        }
+
+        .seesaw-beam.tilt-right {
+            transform: rotate(5.5deg);
+        }
+
+        /* Center Fulcrum Base */
+        .seesaw-base {
+            width: 0;
+            height: 0;
+            border-left: 45px solid transparent;
+            border-right: 45px solid transparent;
+            border-bottom: 75px solid #7f8c8d;
+            position: relative;
+            z-index: 1;
+            margin-top: -2px;
+            filter: drop-shadow(0 6px 6px rgba(0,0,0,0.15));
+        }
+
+        .seesaw-base::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: -15px;
+            width: 30px;
+            height: 30px;
+            background: #95a5a6;
+            border-radius: 50%;
+        }
+
+        /* Image + answer group sitting at each end of the beam */
+        .weight-platform {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            bottom: -4px;
+            z-index: 4;
+        }
+
+        .weight-platform.left { left: 12px; }
+        .weight-platform.right { right: 12px; }
+
+        .item-image-wrapper {
+            height: min(34vh, 305px);
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        .item-image {
+            max-height: min(31vh, 290px);
+            max-width: 280px;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 10px rgba(0,0,0,0.15));
+        }
+
+        /* Indicator Badge Over Images */
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 5;
+        }
+
+        .status-badge.heavy {
+            background: #27ae60;
+            display: flex;
+        }
+
+        .status-badge.light {
+            background: #e74c3c;
+            display: flex;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* Drag & Drop Answer Controls */
+        .answer-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .drop-zone {
+            width: 76px;
+            height: 54px;
+            border: 3px dashed #e67e22;
+            border-radius: 14px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: 500;
+            color: #2d3436;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.10);
+            transition: 0.2s ease;
+        }
+
+        .drop-zone.drag-over {
+            transform: scale(1.06);
+            background: #fff8ef;
+            border-color: #00b894;
+        }
+
+        .drop-zone.filled {
+            border-style: solid;
+        }
+
+        .drag-options {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .drag-option {
+            width: 58px;
+            height: 48px;
+            border: 2px solid #dfe6e9;
+            border-radius: 12px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 500;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+            transition: transform 0.15s ease, opacity 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .dragging-clone {
+            pointer-events: none !important;
+            opacity: 0.95;
+            transform: scale(1.08);
+        }
+
+        .drag-option:hover {
+            transform: translateY(-2px);
+        }
+
+        .drag-option:active {
+            cursor: grabbing;
+            transform: scale(1.08);
+        }
+
+        .drag-option.tick { color: #27ae60; }
+        .drag-option.cross { color: #e74c3c; }
+
+        .drag-option.used {
+            opacity: 0.35;
+        }
+
+        .drop-zone .placed-symbol {
+            pointer-events: none;
+        }
+
+        .drop-zone.correct {
+            border-color: #00b894;
+            background: #edfbf4;
+            color: #00a86b;
+        }
+
+        .drop-zone.wrong {
+            border-color: #e74c3c;
+            background: #fff0f2;
+            color: #d33847;
+        }
+
+        @media screen and (min-width: 1200px) {
+            .game-stage {
+                max-width: 1400px;
+                height: 76vh;
+                margin-top: 8px;
+            }
+
+            .seesaw-container {
+                max-width: 1050px;
+                height: min(56vh, 520px);
+            }
+
+            .weight-platform {
+                width: 300px;
+            }
+
+            .weight-platform.left { left: 12px; }
+            .weight-platform.right { right: 12px; }
+
+            .item-image-wrapper {
+                height: min(34vh, 305px);
+            }
+
+            .item-image {
+                max-height: min(31vh, 290px);
+                max-width: 280px;
+            }
+
+            .seesaw-beam {
+                height: 20px;
+            }
+
+            .drop-zone {
+                width: 82px;
+                height: 58px;
+                font-size: 34px;
+            }
+
+            .drag-option {
+                width: 64px;
+                height: 52px;
+                font-size: 31px;
+            }
+        }
+
+
+        @media screen and (max-width: 1199px) {
+            .seesaw-container { transform: translateY(10px); }
+            .item-image-wrapper { height: min(30vh, 235px); }
+            .item-image { max-height: min(27vh, 220px); max-width: 100%; }
+            .weight-platform { bottom: -2px; }
+        }
+
+        @media screen and (max-width: 700px) {
+            .seesaw-container { transform: translateY(4px); }
+            .item-image-wrapper { height: 24vh; }
+            .item-image { max-height: 22vh; max-width: 100%; }
+            .weight-platform { bottom: 0; }
+        }
+
+        @media screen and (max-width: 1199px) {
+            .game-stage {
+                height: 72vh;
+                margin-top: 0;
+            }
+
+            .seesaw-container {
+                max-width: 850px;
+                height: min(55vh, 460px);
+            }
+
+            .weight-platform {
+                width: 240px;
+            }
+
+            .item-image-wrapper {
+                height: min(28vh, 220px);
+            }
+
+            .item-image {
+                max-height: min(25vh, 205px);
+            }
+        }
+
+        @media screen and (max-width: 700px) {
+            body {
+                padding: 8px 10px;
+            }
+
+            header {
+                margin-top: 0;
+            }
+
+            h1, h2 {
+                font-size: 20px;
+            }
+
+            .game-stage {
+                height: 72vh;
+                width: 100%;
+            }
+
+            .seesaw-container {
+                width: 100%;
+                height: 52vh;
+                min-height: 0;
+            }
+
+            .seesaw-beam {
+                width: 96%;
+            }
+
+            .weight-platform {
+                width: 40%;
+            }
+
+            .weight-platform.left { left: 0; }
+            .weight-platform.right { right: 0; }
+
+            .item-image-wrapper {
+                height: 24vh;
+            }
+
+            .item-image {
+                max-height: 22vh;
+                max-width: 100%;
+            }
+
+            .drag-options {
+                gap: 8px;
+            }
+
+            .drag-option {
+                width: 50px;
+                height: 42px;
+                font-size: 24px;
+            }
+
+            .drop-zone {
+                width: 66px;
+                height: 46px;
+                font-size: 27px;
+            }
+
+            footer {
+                gap: 8px;
+            }
+
+            .nav-btn {
+                width: 31vw;
+                max-width: 150px;
+                height: 42px;
+                font-size: 16px;
+            }
+        }
+
+                /* Footer & Buttons */
+        footer {
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+        }
+
+        .nav-btn {
+            background: #e67e22;
+            color: #ffffff;
+            border: none;
+            width: 178px;
+            height: 45px;
+            padding: 0;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #d35400;
+            transition: all 0.1s ease;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #d35400;
+        }
+
+        .nav-btn:disabled {
+            background: #b2bec3;
+            box-shadow: 0 6px 0 #636e72;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .check-btn {
+            background: #00b894;
+            box-shadow: 0 6px 0 #008f72;
+        }
+
+        .check-btn:active:not(:disabled) {
+            box-shadow: 0 2px 0 #008f72;
+        }
+
+        .replay-btn {
+            background: #0984e3;
+            box-shadow: 0 6px 0 #0975c7;
+            margin-top: 20px;
+            z-index: 5;
+        }
+
+        .replay-btn:active {
+            box-shadow: 0 2px 0 #0975c7;
+        }
+
+        @media screen and (min-width: 1600px) {
+            .seesaw-container { transform: translateY(16px); }
+            h1, h2 { font-size: 30px; }
+            .game-stage { height: 78vh; }
+            .seesaw-container { max-width: 1150px; height: min(60vh, 560px); }
+            .weight-platform { width: 330px; }
+            .item-image-wrapper { height: min(36vh, 335px); }
+            .item-image { max-height: min(34vh, 320px); max-width: 325px; }
+        }
+
+        /* Modal Overlay & Custom Popup Design */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+          
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+          
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-card {
+            position: relative;
+            width: 90%;
+            max-width: 520px;
+            padding: 34px 28px;
+            border-radius: 36px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transform: scale(0.8);
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-card::before,
+        .popup-card::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .popup-card::before {
+            width: 220px;
+            height: 220px;
+            top: -60px;
+            right: -50px;
+        }
+
+        .popup-card::after {
+            width: 180px;
+            height: 180px;
+            bottom: -70px;
+            left: -40px;
+        }
+
+        .popup-card.correct {
+            background: #edfbf4;
+            border: 6px solid #00c885;
+        }
+
+        .popup-card.correct::before,
+        .popup-card.correct::after {
+            background: rgba(162, 245, 209, 0.45);
+        }
+
+        .popup-card.correct .popup-title { color: #00a86b; }
+        .popup-card.correct .popup-subtitle { color: #2e7d5b; }
+
+        .popup-card.wrong {
+            background: #fff0f2;
+            border: 6px solid #ff6b7a;
+        }
+
+        .popup-card.wrong::before,
+        .popup-card.wrong::after {
+            background: rgba(255, 196, 203, 0.45);
+        }
+
+        .popup-card.wrong .popup-title { color: #d33847; }
+        .popup-card.wrong .popup-subtitle { color: #a33b45; }
+
+        .popup-card.complete {
+            background: #f0f3ff;
+            border: 6px solid #6c5ce7;
+        }
+
+        .popup-card.complete::before,
+        .popup-card.complete::after {
+            background: rgba(162, 155, 254, 0.35);
+        }
+
+        .popup-card.complete .popup-title { color: #6c5ce7; }
+        .popup-card.complete .popup-subtitle { color: #4834d4; }
+
+        .popup-overlay.active .popup-card { transform: scale(1); }
+
+        .popup-icon {
+            font-size: 4.8rem;
+            margin-bottom: 4px;
+            z-index: 2;
+            line-height: 1;
+            filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1));
+        }
+
+        .popup-title {
+            font-size: 3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            z-index: 2;
+            letter-spacing: -0.5px;
+        }
+
+        .popup-subtitle {
+            font-size: 1.4rem;
+            font-weight: 500;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    
+        /* Slightly larger images for the heavier object only */
+        .item-image.heavy-image {
+            max-width: 310px;
+            max-height: min(34vh, 305px);
+            transform: scale(1.10);
+            transform-origin: center bottom;
+        }
+
+        @media (min-width: 1200px) {
+            .item-image.heavy-image {
+                max-width: 335px;
+                max-height: min(36vh, 325px);
+                transform: scale(1.12);
+            }
+        }
+
+        @media (min-width: 1600px) {
+            .item-image.heavy-image {
+                max-width: 365px;
+                max-height: min(38vh, 345px);
+                transform: scale(1.13);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .item-image.heavy-image {
+                max-width: 245px;
+                max-height: min(25vh, 220px);
+                transform: scale(1.06);
+            }
+        }
+
+
+        #confettiContainer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 90;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 9px;
+            height: 14px;
+            border-radius: 2px;
+            opacity: 0;
+            animation: pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+            will-change: transform, opacity;
+        }
+
+        .final-confetti-piece {
+            width: 10px;
+            height: 16px;
+            animation-duration: 2300ms;
+        }
+
+        .final-confetti-piece:nth-child(3n) {
+            border-radius: 50%;
+        }
+
+        .final-confetti-piece:nth-child(4n) {
+            width: 7px;
+            height: 19px;
+            border-radius: 1px;
+        }
+
+        .final-confetti-piece:nth-child(5n) {
+            width: 13px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        @keyframes pageConfetti {
+            0% {
+                opacity: 1;
+                transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+            }
+            55% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+            }
+        }
+
+        .final-confetti-piece::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: inherit;
+        }
+
+        .popup-card.complete .replay-btn {
+            margin-top: 12px;
+        }
+
+        .popup-card.complete {
+            box-shadow:
+                0 20px 45px rgba(108, 92, 231, 0.18),
+                0 0 0 8px rgba(162, 155, 254, 0.12);
+        }
+
+        .popup-card.complete .popup-icon {
+            animation: finalTrophyBounce 1.2s ease-in-out infinite;
+        }
+
+        @keyframes finalTrophyBounce {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) rotate(-4deg) scale(1.06);
+            }
+        }
+
+    
+/* ===== LESSON 1 QUIZ HEADINGS: title large, subheading smaller ===== */
+header h1,
+header h2,
+header .instruction-title,
+header .distance-title,
+.game-header h1,
+.game-header h2,
+.game-header .instruction-title,
+#questionHeading {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+}
+.game-header:not(:has(h1, h2)) .instruction,
+.game-header:not(:has(h1, h2)) p.instruction {
+    font-weight: 400 !important;
+    font-size: 30px !important;
+    color: #2f4f4f;
+}
+header:has(h1, h2, .instruction-title) .instruction,
+header:has(h1, h2) .instruction-text,
+header:has(h1, h2, .instruction-title) p.instruction,
+header:has(h1, h2) p.instruction-text,
+.game-header:has(h1, h2) .instruction,
+.game-header:has(h1, h2) p.instruction,
+#instruction,
+.distance-header .instruction-text,
+.distance-header p.instruction-text {
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    color: #666;
+    line-height: 1.3;
+}
+header .instruction span,
+header .instruction-text span,
+header p.instruction span,
+header p.instruction-text span,
+.game-header .instruction span,
+#instruction span {
+    font-weight: 700 !important;
+    font-size: inherit !important;
+}
+@media screen and (min-width: 1600px) {
+    header h1,
+    header h2,
+    header .instruction-title,
+    header .distance-title,
+    .game-header h1,
+    .game-header h2,
+    .game-header .instruction-title,
+    #questionHeading {
+        font-size: 40px !important;
+    }
+    .game-header:not(:has(h1, h2)) .instruction,
+    .game-header:not(:has(h1, h2)) p.instruction {
+        font-size: 40px !important;
+    }
+    header:has(h1, h2, .instruction-title) .instruction,
+    header:has(h1, h2) .instruction-text,
+    header:has(h1, h2, .instruction-title) p.instruction,
+    header:has(h1, h2) p.instruction-text,
+    .game-header:has(h1, h2) .instruction,
+    .game-header:has(h1, h2) p.instruction,
+    #instruction,
+    .distance-header .instruction-text,
+    .distance-header p.instruction-text {
+        font-size: 18px !important;
+    }
+}
+
+/* ===== LAYOUT FIT: the heading always keeps its own space =====
+   The header is a fixed-size flex item and the play area takes exactly
+   the height that is left over, so artwork can never ride up into the
+   title on shorter laptop screens. */
+header,
+.game-header,
+.distance-header {
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 5;
+}
+main.game-stage,
+main.game-area,
+.game-stage,
+.game-area {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+footer,
+.navigation {
+    flex: 0 0 auto;
+}
+
+/* The seesaw group is bound to the play area instead of growing upward */
+.slide-item { margin-top: 0 !important; min-height: 0; }
+.seesaw-container { height: 100% !important; max-height: 100%; transform: none !important; }
+/* the image column rides the beam, so cap it against the space that is
+   actually left above the beam instead of a raw vh fraction */
+.item-image-wrapper { height: min(34vh, 305px, calc(100vh - 385px)) !important; }
+.item-image { max-height: 100% !important; }
+
+/* ===== Sub-heading stays on a single line ===== */
+.instruction-box,
+.distance-title { max-width: none !important; }
+header .instruction,
+header .instruction-text,
+header p.instruction,
+header p.instruction-text,
+.game-header .instruction,
+#instruction,
+.distance-header .instruction-text {
+    white-space: nowrap;
+    max-width: 100%;
+}
+@media screen and (max-width: 1100px) {
+    header .instruction, header .instruction-text,
+    header p.instruction, header p.instruction-text,
+    .game-header .instruction,
+    #instruction,
+    .distance-header .instruction-text {
+        white-space: normal;
+    }
+}
+</style>
+</head>
+<body>
+
+    <header>
+        <h2>Heavy & Light Balance Quiz</h2>
+        <p class="instruction-text">Tick (✓) the heavier one and crossout (×) the lighter one</p>
+    </header>
+
+    <main class="game-stage">
+        <!-- Question 1: Lion & Elephant -->
+        <div class="slide-item active" data-q="0">
+            <div class="seesaw-container">
+                <div class="seesaw-beam" id="beam-0">
+                    <div class="weight-platform left">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-0-1"></div>
+                            <img src="../images/lion.png" alt="Lion" class="item-image">
+                        </div>
+                        <div class="answer-area" data-target="L" aria-label="Lion weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="weight-platform right">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-0-2"></div>
+                            <img src="../images/elephant.png" alt="Elephant" class="item-image heavy-image">
+                        </div>
+                        <div class="answer-area" data-target="H" aria-label="Elephant weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="seesaw-base"></div>
+            </div>
+        </div>
+
+        <!-- Question 2: Bird & Rabbit -->
+        <div class="slide-item" data-q="1">
+            <div class="seesaw-container">
+                <div class="seesaw-beam" id="beam-1">
+                    <div class="weight-platform left">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-1-1"></div>
+                            <img src="../images/bird.png" alt="Bird" class="item-image">
+                        </div>
+                        <div class="answer-area" data-target="L" aria-label="Bird weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="weight-platform right">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-1-2"></div>
+                            <img src="../images/rabbit.png" alt="Rabbit" class="item-image heavy-image">
+                        </div>
+                        <div class="answer-area" data-target="H" aria-label="Rabbit weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="seesaw-base"></div>
+            </div>
+        </div>
+
+        <!-- Question 3: Rock & Feather -->
+        <div class="slide-item" data-q="2">
+            <div class="seesaw-container">
+                <div class="seesaw-beam" id="beam-2">
+                    <div class="weight-platform left">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-2-1"></div>
+                            <img src="../images/rock.png" alt="Rock" class="item-image heavy-image">
+                        </div>
+                        <div class="answer-area" data-target="H" aria-label="Rock weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="weight-platform right">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-2-2"></div>
+                            <img src="../images/feather.png" alt="Feather" class="item-image">
+                        </div>
+                        <div class="answer-area" data-target="L" aria-label="Feather weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="seesaw-base"></div>
+            </div>
+        </div>
+
+        <!-- Question 4: Hippo & Mouse -->
+        <div class="slide-item" data-q="3">
+            <div class="seesaw-container">
+                <div class="seesaw-beam" id="beam-3">
+                    <div class="weight-platform left">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-3-1"></div>
+                            <img src="../images/hippo.png" alt="Hippo" class="item-image heavy-image">
+                        </div>
+                        <div class="answer-area" data-target="H" aria-label="Hippo weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="weight-platform right">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-3-2"></div>
+                            <img src="../images/mouse.png" alt="Mouse" class="item-image">
+                        </div>
+                        <div class="answer-area" data-target="L" aria-label="Mouse weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="seesaw-base"></div>
+            </div>
+        </div>
+
+        <!-- Question 5: Cotton & Plant Pot -->
+        <div class="slide-item" data-q="4">
+            <div class="seesaw-container">
+                <div class="seesaw-beam" id="beam-4">
+                    <div class="weight-platform left">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-4-1"></div>
+                            <img src="../images/cotton.png" alt="Cotton" class="item-image">
+                        </div>
+                        <div class="answer-area" data-target="L" aria-label="Cotton weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="weight-platform right">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-4-2"></div>
+                            <img src="../images/pot.png" alt="Plant Pot" class="item-image heavy-image">
+                        </div>
+                        <div class="answer-area" data-target="H" aria-label="Pot weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="seesaw-base"></div>
+            </div>
+        </div>
+
+        <!-- Question 6: Jackfruit & Cherry/Plum -->
+        <div class="slide-item" data-q="5">
+            <div class="seesaw-container">
+                <div class="seesaw-beam" id="beam-5">
+                    <div class="weight-platform left">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-5-1"></div>
+                            <img src="../images/jackfruit.png" alt="Jackfruit" class="item-image heavy-image">
+                        </div>
+                        <div class="answer-area" data-target="H" aria-label="Jackfruit weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="weight-platform right">
+                        <div class="item-image-wrapper">
+                            <div class="status-badge" id="badge-5-2"></div>
+                            <img src="../images/orange.png" alt="Small Fruit" class="item-image">
+                        </div>
+                        <div class="answer-area" data-target="L" aria-label="Small fruit weight input">
+                            <div class="drop-zone" tabindex="0">?</div>
+                            <div class="drag-options">
+                                <div class="drag-option tick" draggable="true" data-value="H" aria-label="Heavy">✓</div>
+                                <div class="drag-option cross" draggable="true" data-value="L" aria-label="Light">✕</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="seesaw-base"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+        <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+    </footer>
+
+    <div id="confettiContainer"></div>
+
+    <!-- Result Popup Overlay -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup-card" id="popupCard">
+            <div class="popup-icon" id="popupIcon">⭐</div>
+            <h2 class="popup-title" id="popupTitle">Amazing!</h2>
+            <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+            <button class="nav-btn replay-btn" id="playAgainBtn" style="display: none;" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        let quizState = Array.from({ length: 6 }, () => ({
+            input1: '',
+            input2: '',
+            isUnlocked: false
+        }));
+
+        let currentIndex = 0;
+        let popupTimer = null;
+
+        const slides = document.querySelectorAll('.slide-item');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+
+        function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.8;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playAudioTone(isCorrect) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2); 
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            }
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // Drag & Drop answer events
+        function bindSlideEvents() {
+            slides.forEach((slide, sIdx) => {
+                const answerAreas = slide.querySelectorAll('.answer-area');
+
+                answerAreas.forEach((area, iIdx) => {
+                    const dropZone = area.querySelector('.drop-zone');
+                    const options = area.querySelectorAll('.drag-option');
+
+                    options.forEach(option => {
+                        option.addEventListener('pointerdown', startDrag);
+                    });
+
+                    dropZone.addEventListener('dragover', e => e.preventDefault());
+                    dropZone.addEventListener('drop', e => {
+                        e.preventDefault();
+                        const value = e.dataTransfer?.getData('text/plain');
+                        if (value) placeAnswer(sIdx, iIdx, value);
+                    });
+                });
+            });
+        }
+
+        let activeDrag = null;
+
+        function startDrag(e) {
+            if (e.button !== undefined && e.button !== 0) return;
+
+            const option = e.currentTarget;
+            const area = option.closest('.answer-area');
+            const slide = option.closest('.slide-item');
+
+            if (!area || !slide || quizState[Number(slide.dataset.q)].isUnlocked) return;
+
+            e.preventDefault();
+
+            const rect = option.getBoundingClientRect();
+            const clone = option.cloneNode(true);
+            clone.classList.add('dragging-clone');
+            clone.style.position = 'fixed';
+            clone.style.left = `${rect.left}px`;
+            clone.style.top = `${rect.top}px`;
+            clone.style.width = `${rect.width}px`;
+            clone.style.height = `${rect.height}px`;
+            clone.style.margin = '0';
+            clone.style.zIndex = '1000';
+            clone.style.pointerEvents = 'none';
+            document.body.appendChild(clone);
+
+            activeDrag = {
+                option,
+                clone,
+                area,
+                slideIndex: Number(slide.dataset.q),
+                answerIndex: Array.from(slide.querySelectorAll('.answer-area')).indexOf(area),
+                offsetX: e.clientX - rect.left,
+                offsetY: e.clientY - rect.top
+            };
+
+            option.classList.add('used');
+            option.setPointerCapture?.(e.pointerId);
+            option.addEventListener('pointermove', moveDrag);
+            option.addEventListener('pointerup', endDrag, { once: true });
+            option.addEventListener('pointercancel', cancelDrag, { once: true });
+        }
+
+        function moveDrag(e) {
+            if (!activeDrag) return;
+
+            activeDrag.clone.style.left = `${e.clientX - activeDrag.offsetX}px`;
+            activeDrag.clone.style.top = `${e.clientY - activeDrag.offsetY}px`;
+
+            const zone = document.elementFromPoint(e.clientX, e.clientY)?.closest('.drop-zone');
+            document.querySelectorAll('.drop-zone.drag-over').forEach(z => z.classList.remove('drag-over'));
+
+            if (zone && zone.closest('.answer-area') === activeDrag.area) {
+                zone.classList.add('drag-over');
+            }
+        }
+
+        function endDrag(e) {
+            if (!activeDrag) return;
+
+            const zone = document.elementFromPoint(e.clientX, e.clientY)?.closest('.drop-zone');
+            const drag = activeDrag;
+
+            if (zone && zone.closest('.answer-area') === drag.area) {
+                placeAnswer(drag.slideIndex, drag.answerIndex, drag.option.dataset.value);
+            } else {
+                drag.option.classList.remove('used');
+            }
+
+            cleanupDrag();
+        }
+
+        function cancelDrag() {
+            if (activeDrag) activeDrag.option.classList.remove('used');
+            cleanupDrag();
+        }
+
+        function cleanupDrag() {
+            document.querySelectorAll('.drop-zone.drag-over').forEach(z => z.classList.remove('drag-over'));
+
+            if (activeDrag) {
+                activeDrag.clone.remove();
+                activeDrag.option.removeEventListener('pointermove', moveDrag);
+            }
+
+            activeDrag = null;
+        }
+
+        function placeAnswer(slideIndex, answerIndex, value) {
+            if (quizState[slideIndex].isUnlocked) return;
+
+            const slide = slides[slideIndex];
+            const area = slide.querySelectorAll('.answer-area')[answerIndex];
+            const dropZone = area.querySelector('.drop-zone');
+            const options = area.querySelectorAll('.drag-option');
+
+            const oldValue = answerIndex === 0 ? quizState[slideIndex].input1 : quizState[slideIndex].input2;
+
+            options.forEach(option => {
+                option.classList.toggle('used', option.dataset.value === value);
+            });
+
+            dropZone.textContent = value === 'H' ? '✓' : '✕';
+            dropZone.className = 'drop-zone filled';
+            dropZone.classList.add(value === area.dataset.target ? 'correct' : 'wrong');
+
+            if (answerIndex === 0) {
+                quizState[slideIndex].input1 = value;
+            } else {
+                quizState[slideIndex].input2 = value;
+            }
+
+            updateBeam(slideIndex);
+            updateNavButtons();
+
+            const state = quizState[slideIndex];
+            if (state.input1 && state.input2) {
+                setTimeout(() => checkAnswers(), 180);
+            }
+        }
+
+        function updateBeam(slideIndex) {
+            const state = quizState[slideIndex];
+            const beam = document.getElementById(`beam-${slideIndex}`);
+
+            if (state.input1 === 'H' || state.input2 === 'L') {
+                beam.className = 'seesaw-beam tilt-left';
+            } else if (state.input2 === 'H' || state.input1 === 'L') {
+                beam.className = 'seesaw-beam tilt-right';
+            } else {
+                beam.className = 'seesaw-beam';
+            }
+        }
+
+        bindSlideEvents();
+
+        function navigate(dir) {
+            const newIndex = currentIndex + dir;
+            if (newIndex < 0 || newIndex >= slides.length) return;
+
+            slides[currentIndex].classList.remove('active');
+            currentIndex = newIndex;
+            slides[currentIndex].classList.add('active');
+
+            restoreCurrentSlideState();
+            updateNavButtons();
+        }
+
+        function restoreCurrentSlideState() {
+            const activeSlide = slides[currentIndex];
+            const areas = activeSlide.querySelectorAll('.answer-area');
+            const savedState = quizState[currentIndex];
+
+            [savedState.input1, savedState.input2].forEach((value, i) => {
+                const area = areas[i];
+                const dropZone = area.querySelector('.drop-zone');
+                const options = area.querySelectorAll('.drag-option');
+
+                if (value) {
+                    dropZone.textContent = value === 'H' ? '✓' : '✕';
+                    dropZone.className = 'drop-zone filled';
+                    dropZone.classList.add(value === area.dataset.target ? 'correct' : 'wrong');
+                    options.forEach(option => {
+                        option.classList.toggle('used', option.dataset.value === value);
+                    });
+                } else {
+                    dropZone.textContent = '?';
+                    dropZone.className = 'drop-zone';
+                    options.forEach(option => option.classList.remove('used'));
+                }
+            });
+
+            updateBeam(currentIndex);
+        }
+
+        function updateNavButtons() {
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === slides.length - 1 || !quizState[currentIndex].isUnlocked;
+        }
+
+
+        function showSmallConfetti(isFinal = false) {
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (!confettiContainer) return;
+
+            confettiContainer.innerHTML = '';
+
+            // Final completion gets a fuller, more playful celebration.
+            const count = isFinal ? 95 : 42;
+
+            const colors = [
+                '#00b894',
+                '#e67e22',
+                '#6c5ce7',
+                '#0984e3',
+                '#fdcb6e',
+                '#ff6b7a',
+                '#00cec9',
+                '#a29bfe'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('span');
+
+                piece.className =
+                    isFinal
+                        ? 'confetti-piece final-confetti-piece'
+                        : 'confetti-piece';
+
+                const startX = Math.random() * 100;
+                const startY = -8 + Math.random() * 10;
+
+                const drift =
+                    (Math.random() * 520 - 260) *
+                    (isFinal ? 1.15 : 0.9);
+
+                const fall =
+                    window.innerHeight *
+                    (0.82 + Math.random() * 0.48);
+
+                const rotation =
+                    Math.random() * 1400 - 700;
+
+                piece.style.left = startX + '%';
+                piece.style.top = startY + '%';
+
+                piece.style.setProperty('--x', drift + 'px');
+                piece.style.setProperty('--y', fall + 'px');
+                piece.style.setProperty('--r', rotation + 'deg');
+
+                piece.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+
+                piece.style.animationDelay =
+                    (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(
+                    () => piece.remove(),
+                    isFinal ? 2900 : 2050
+                );
+            }
+        }
+
+        function checkAnswers() {
+            const state = quizState[currentIndex];
+            if (!state.input1 || !state.input2 || state.isUnlocked) return;
+
+            const activeSlide = slides[currentIndex];
+            const areas = activeSlide.querySelectorAll('.answer-area');
+
+            const correct = state.input1 === areas[0].dataset.target &&
+                            state.input2 === areas[1].dataset.target;
+
+            if (correct) {
+                state.isUnlocked = true;
+
+                areas.forEach(area => {
+                    area.querySelectorAll('.drag-option').forEach(option => {
+                        option.classList.add('used');
+                    });
+                });
+
+                if (currentIndex === slides.length - 1) {
+                    // Last question: show Correct popup first.
+                    showSmallConfetti(false);
+                    showPopup('correct', '🌟', 'Amazing!', 'You got it right! ✨', false);
+                    playAudioTone(true);
+                    speak("Correct");
+
+                    // Then show the final popup after the Correct popup closes.
+                    setTimeout(() => {
+                        showSmallConfetti(true);
+                        showPopup('complete', '🏆', 'Congratulations!', 'Fantastic job! You solved all questions! 🎉', true);
+                    }, 1900);
+                } else {
+                    showSmallConfetti(false);
+                    showPopup('correct', '🌟', 'Amazing!', 'You got it right! ✨', false);
+                    playAudioTone(true);
+                    speak("Correct");
+                }
+
+                updateNavButtons();
+            } else {
+                showPopup('wrong', '😟', 'Keep Going!', 'Try again, you can do it! 🌈', false);
+                playAudioTone(false);
+                speak("Try again");
+
+                setTimeout(() => resetCurrentInputs(), 200);
+            }
+        }
+
+        function resetCurrentInputs() {
+            const activeSlide = slides[currentIndex];
+            const areas = activeSlide.querySelectorAll('.answer-area');
+
+            quizState[currentIndex].input1 = '';
+            quizState[currentIndex].input2 = '';
+
+            areas.forEach(area => {
+                area.querySelector('.drop-zone').textContent = '?';
+                area.querySelector('.drop-zone').className = 'drop-zone';
+                area.querySelectorAll('.drag-option').forEach(option => option.classList.remove('used'));
+            });
+
+            updateBeam(currentIndex);
+            updateNavButtons();
+        }
+
+        function showPopup(status, icon, title, subtitle, isFinal = false) {
+            const popup = document.getElementById('popup');
+            const card = document.getElementById('popupCard');
+            
+            card.className = `popup-card ${status}`;
+            document.getElementById('popupIcon').innerText = icon;
+            document.getElementById('popupTitle').innerText = title;
+            document.getElementById('popupSubtitle').innerText = subtitle;
+            
+            if (isFinal) {
+                playAgainBtn.style.display = 'inline-block';
+            } else {
+                playAgainBtn.style.display = 'none';
+            }
+
+            popup.classList.add('active');
+
+            clearTimeout(popupTimer);
+            if (!isFinal) {
+                popupTimer = setTimeout(() => {
+                    closePopup();
+                }, 1800);
+            }
+        }
+
+        function closePopup() {
+            document.getElementById('popup').classList.remove('active');
+        }
+
+        function restartGame() {
+            closePopup();
+            quizState = Array.from({ length: 6 }, () => ({
+                input1: '',
+                input2: '',
+                isUnlocked: false
+            }));
+
+            slides[currentIndex].classList.remove('active');
+            currentIndex = 0;
+            slides[currentIndex].classList.add('active');
+
+            slides.forEach((slide, sIdx) => {
+                document.getElementById(`badge-${sIdx}-1`).className = 'status-badge';
+                document.getElementById(`badge-${sIdx}-2`).className = 'status-badge';
+                document.getElementById(`beam-${sIdx}`).className = 'seesaw-beam';
+
+                /* Clear the answers left on every slide, not just the state
+                   object, so the quiz really starts over. */
+                slide.querySelectorAll('.drop-zone').forEach(zone => {
+                    zone.textContent = '?';
+                    zone.className = 'drop-zone';
+                });
+                slide.querySelectorAll('.drag-option').forEach(option => {
+                    option.classList.remove('used');
+                });
+            });
+
+            restoreCurrentSlideState();
+            updateNavButtons();
+        }
+
+        updateNavButtons();
+    </script>
+</body>
+</html>

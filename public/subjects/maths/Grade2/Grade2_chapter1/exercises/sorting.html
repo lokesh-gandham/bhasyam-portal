@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Separate the Numbers - Below 50 / Above 50</title>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+  :root{
+    --pink:#ff8fb3; --pink-d:#f0447c;
+    --yellow:#ffe08a; --yellow-d:#f5b942;
+    --green:#a9e8bd; --green-d:#4fbf74;
+    --blue:#a9d8f7; --blue-d:#4fa3e0;
+    --purple:#d3b8f5; --purple-d:#9b6fd9;
+    --orange:#ffc79a; --orange-d:#f5924a;
+  }
+
+  *{ box-sizing:border-box; font-family:"Livvic","Segoe UI",sans-serif; -webkit-tap-highlight-color:transparent; }
+
+  html, body{
+    margin:0; padding:0;
+    width:100%; height:100%;
+    overflow:hidden;
+    background: linear-gradient(180deg,#fdf6ec 0%, #f7efe0 100%);
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+  }
+
+  .game-wrap{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: clamp(8px, 1.4vh, 18px) clamp(10px, 2vw, 26px);
+    gap: clamp(4px, 1vh, 10px);
+  }
+
+  /* ===== HEADER ===== */
+  .top-row{
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    flex: 0 0 auto;
+  }
+
+  .main-title{
+    margin:0;
+    text-align:center;
+    font-size: clamp(16px, 2.4vw, 30px);
+    /* font-weight:800; */
+   color:#2f4f4f;
+    letter-spacing:0.2px;
+  }
+
+  .home-btn{
+    position:absolute;
+    left:0;
+    top:50%;
+    transform:translateY(-50%);
+    width:44px;
+    height:44px;
+    border:3px solid #ffffff;
+    border-radius:50%;
+    background:linear-gradient(145deg,#8b6fe0,#6f42c1);
+    color:#ffffff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow:0 4px 0 #4f2e93,0 6px 10px rgba(79,46,147,0.22);
+    transition:all .15s ease;
+    z-index:5;
+    display: none;
+  }
+  .home-btn:hover{ transform:translateY(-53%) scale(1.06); }
+  .home-btn:active{ transform:translateY(-48%) scale(.96); box-shadow:0 2px 0 #4f2e93; }
+  .home-btn i{ font-size:20px; line-height:1; }
+
+  .reset-btn{
+    position:absolute;
+    right:0;
+    top:50%;
+    transform: translateY(-50%);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:#ffffff;
+    color:#7b3fd1;
+    border: 2px solid #e2d4f7;
+    border-radius: 14px;
+    padding: 7px 16px;
+    font-family:"Livvic",sans-serif;
+    font-weight:700;
+    font-size: clamp(11px, 1vw, 15px);
+    cursor:pointer;
+    box-shadow: 0 4px 0 #e2d4f7, 0 6px 10px rgba(123,63,209,0.12);
+    transition: all .15s ease;
+  }
+  .reset-btn:hover{ transform: translateY(-53%); }
+  .reset-btn:active{ transform: translateY(-48%); box-shadow:0 2px 0 #e2d4f7; }
+  .reset-icon{ font-size:1.1em; display:inline-block; }
+
+  /* ===== ZONE HEADINGS ===== */
+  .zone-labels{ display:none; }
+  .zone-heading{
+    margin:0 0 clamp(4px, 1vh, 10px);
+    position:static;
+    width:100%;
+    flex:0 0 auto;
+    text-align:center;
+    font-size:30px;
+    font-weight:400;
+    line-height:1.15;
+    pointer-events:none;
+  }
+  .below-heading{ color:#2f8f4e; }
+  .above-heading{ color:#e0587a; }
+
+  /* ===== TRAY (suitcase source cards) ===== */
+  .tray{
+    width:100%;
+    max-width: 1300px;
+    flex: 1 1 auto;
+    min-height:0;
+    background: rgba(255,255,255,0.55);
+    border: 2px dashed #f3c9c7;
+    border-radius: 20px;
+    display:flex;
+    flex-wrap:wrap;
+    align-content:center;
+    justify-content:center;
+    align-items:center;
+    gap: clamp(6px, 1.2vw, 16px);
+    padding: clamp(6px, 1.2vh, 14px);
+  }
+
+  .suitcase{
+    position:relative;
+    width: clamp(46px, 6.4vw, 96px);
+    height: clamp(40px, 5.6vw, 84px);
+    border-radius: 12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:400;
+    font-size: clamp(14px, 2vw, 26px);
+    color:#2c2c2c;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.12), 0 6px 10px rgba(0,0,0,0.08);
+    transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+    touch-action:none;
+  }
+  .suitcase::before{
+    /* handle */
+    content:"";
+    position:absolute;
+    top:-9px;
+    left:50%;
+    transform: translateX(-50%);
+    width: 42%;
+    height: 10px;
+    border: 3px solid rgba(0,0,0,0.22);
+    border-bottom:none;
+    border-radius: 6px 6px 0 0;
+  }
+  .suitcase::after{
+    content:"";
+    position:absolute;
+    left:8%;
+    top:14%;
+    width:16%;
+    height:16%;
+    background: rgba(255,255,255,0.55);
+    border-radius:50%;
+  }
+  .suitcase:hover{ transform: translateY(-3px) scale(1.04); box-shadow: 0 6px 0 rgba(0,0,0,0.14), 0 10px 16px rgba(0,0,0,0.12); }
+  .suitcase.dragging{
+    position:fixed;
+    z-index:500;
+    cursor:grabbing;
+    transform: scale(1.12) rotate(-4deg);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.25);
+    transition:none;
+  }
+  .suitcase.placed{
+    cursor:default;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.10), 0 3px 6px rgba(0,0,0,0.08);
+  }
+  .suitcase.placed:hover{ transform:none; }
+  .suitcase.hidden-tray{ visibility:hidden; pointer-events:none; }
+
+  .suitcase.c-pink{ background: linear-gradient(180deg, var(--pink), var(--pink-d)); }
+  .suitcase.c-yellow{ background: linear-gradient(180deg, var(--yellow), var(--yellow-d)); }
+  .suitcase.c-green{ background: linear-gradient(180deg, var(--green), var(--green-d)); }
+  .suitcase.c-blue{ background: linear-gradient(180deg, var(--blue), var(--blue-d)); }
+  .suitcase.c-purple{ background: linear-gradient(180deg, var(--purple), var(--purple-d)); }
+  .suitcase.c-orange{ background: linear-gradient(180deg, var(--orange), var(--orange-d)); }
+
+  .suitcase.wrong-shake{ animation: shakeCard .45s ease; }
+  @keyframes shakeCard{
+    20%{ transform: translateX(-8px);} 40%{ transform: translateX(8px);}
+    60%{ transform: translateX(-6px);} 80%{ transform: translateX(6px);}
+    100%{ transform: translateX(0);}
+  }
+
+  /* ===== BALANCE SCALE ===== */
+  .scale-zone{
+    flex: 0 0 auto;
+    width:100%;
+    max-width: 480px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    height: clamp(56px, 9vh, 100px);
+  }
+  .scale{
+    position:relative;
+    width: clamp(180px, 26vw, 320px);
+    height:100%;
+  }
+  .beam{
+    position:absolute;
+    top: 30%;
+    left:50%;
+    width: 100%;
+    height: clamp(5px, 0.8vh, 8px);
+    background: #b45c22;
+    border-radius: 6px;
+    transform-origin: center center;
+    transform: translate(-50%, 0) rotate(0deg);
+    transition: transform .15s ease;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+  }
+  /* weighing check sequence: dip toward dropped side, rock 2-3x with decreasing amplitude, settle flat */
+  .beam.weigh-left{ animation: weighLeft 1.3s cubic-bezier(.45,.05,.55,.95); }
+  .beam.weigh-right{ animation: weighRight 1.3s cubic-bezier(.45,.05,.55,.95); }
+  @keyframes weighLeft{
+    0%{ transform: translate(-50%,0) rotate(0deg); }
+    10%{ transform: translate(-50%,0) rotate(-22deg); }
+    25%{ transform: translate(-50%,0) rotate(9deg); }
+    40%{ transform: translate(-50%,0) rotate(-13deg); }
+    55%{ transform: translate(-50%,0) rotate(6deg); }
+    70%{ transform: translate(-50%,0) rotate(-7deg); }
+    85%{ transform: translate(-50%,0) rotate(2deg); }
+    100%{ transform: translate(-50%,0) rotate(0deg); }
+  }
+  @keyframes weighRight{
+    0%{ transform: translate(-50%,0) rotate(0deg); }
+    10%{ transform: translate(-50%,0) rotate(22deg); }
+    25%{ transform: translate(-50%,0) rotate(-9deg); }
+    40%{ transform: translate(-50%,0) rotate(13deg); }
+    55%{ transform: translate(-50%,0) rotate(-6deg); }
+    70%{ transform: translate(-50%,0) rotate(7deg); }
+    85%{ transform: translate(-50%,0) rotate(-2deg); }
+    100%{ transform: translate(-50%,0) rotate(0deg); }
+  }
+  .needle{
+    position:absolute;
+    top: 6%;
+    left:50%;
+    width: clamp(2.5px, .4vw, 4px);
+    height: 20%;
+    background: #7b3fd1;
+    border-radius: 3px;
+    transform-origin: bottom center;
+    transform: translateX(-50%) rotate(0deg);
+    z-index:3;
+    transition: transform .15s ease;
+  }
+  .needle::after{
+    content:"";
+    position:absolute;
+    top:-4px; left:50%;
+    transform: translateX(-50%);
+    width:0; height:0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 6px solid #7b3fd1;
+  }
+  .needle.needle-check{ animation: needleCheck 1.3s cubic-bezier(.45,.05,.55,.95); }
+  @keyframes needleCheck{
+    0%{ transform: translateX(-50%) rotate(0deg); }
+    10%{ transform: translateX(-50%) rotate(-28deg); }
+    20%{ transform: translateX(-50%) rotate(24deg); }
+    30%{ transform: translateX(-50%) rotate(-18deg); }
+    40%{ transform: translateX(-50%) rotate(14deg); }
+    50%{ transform: translateX(-50%) rotate(-10deg); }
+    60%{ transform: translateX(-50%) rotate(8deg); }
+    70%{ transform: translateX(-50%) rotate(-5deg); }
+    80%{ transform: translateX(-50%) rotate(3deg); }
+    90%{ transform: translateX(-50%) rotate(-1deg); }
+    100%{ transform: translateX(-50%) rotate(0deg); }
+  }
+  .pan{
+    position:absolute;
+    top: 30%;
+    width: clamp(48px, 7vw, 78px);
+    height: clamp(30px, 4.4vh, 46px);
+    border: clamp(3px, .5vw, 4px) solid #d98a3f;
+    border-top:none;
+    border-radius: 0 0 50px 50px;
+    background: rgba(255,255,255,0.5);
+    transition: box-shadow .15s ease;
+  }
+  .pan-left{ left: -4%; }
+  .pan-right{ right: -4%; }
+  .pan.pan-hover{
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.75), 0 0 16px rgba(123,63,209,0.45);
+    background: rgba(255,255,255,0.8);
+  }
+  .pan.pan-dip{ animation: panDip 1.3s cubic-bezier(.45,.05,.55,.95); }
+  .pan.pan-rise{ animation: panRise 1.3s cubic-bezier(.45,.05,.55,.95); }
+  @keyframes panDip{
+    0%{ transform: translateY(0); }
+    10%{ transform: translateY(13px); }
+    25%{ transform: translateY(-5px); }
+    40%{ transform: translateY(8px); }
+    55%{ transform: translateY(-3px); }
+    70%{ transform: translateY(4px); }
+    85%{ transform: translateY(-1px); }
+    100%{ transform: translateY(0); }
+  }
+  @keyframes panRise{
+    0%{ transform: translateY(0); }
+    10%{ transform: translateY(-13px); }
+    25%{ transform: translateY(5px); }
+    40%{ transform: translateY(-8px); }
+    55%{ transform: translateY(3px); }
+    70%{ transform: translateY(-4px); }
+    85%{ transform: translateY(1px); }
+    100%{ transform: translateY(0); }
+  }
+  .pan.pan-correct-glow{
+    animation: panGlowBounce .48s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 0 0 5px rgba(130,206,150,0.55), 0 0 22px rgba(76,175,80,0.55);
+    border-color:#4fbf74;
+  }
+  @keyframes panGlowBounce{
+    0%{ transform: scale(1); }
+    50%{ transform: scale(1.14); }
+    100%{ transform: scale(1); }
+  }
+  .pan.pan-wrong-shake{
+    animation: panShakeRed .48s ease;
+    box-shadow: 0 0 0 5px rgba(240,68,124,0.45), 0 0 18px rgba(224,60,80,0.4);
+    border-color:#e0587a;
+  }
+  @keyframes panShakeRed{
+    20%{ transform: translateX(-7px); } 40%{ transform: translateX(7px); }
+    60%{ transform: translateX(-5px); } 80%{ transform: translateX(5px); }
+    100%{ transform: translateX(0); }
+  }
+  .suitcase.weigh-correct{
+    animation: cardGlowPop .48s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 0 0 5px rgba(130,206,150,0.6), 0 6px 18px rgba(76,175,80,0.45) !important;
+  }
+  @keyframes cardGlowPop{
+    0%{ transform: scale(1); } 50%{ transform: scale(1.18); } 100%{ transform: scale(1); }
+  }
+  .suitcase.weigh-wrong{
+    animation: shakeCard .45s ease;
+    box-shadow: 0 0 0 5px rgba(240,68,124,0.5), 0 6px 14px rgba(224,60,80,0.4) !important;
+  }
+  .pan-string-l1, .pan-string-l2, .pan-string-r1, .pan-string-r2{
+    position:absolute;
+    top: 30%;
+    width:2px;
+    height: clamp(14px, 2.2vh, 22px);
+    background:#c98b4d;
+  }
+  .pan-string-l1{ left: 5%; transform: rotate(4deg); transform-origin: top; }
+  .pan-string-l2{ left: 15%; transform: rotate(-4deg); transform-origin: top; }
+  .pan-string-r1{ right: 15%; transform: rotate(4deg); transform-origin: top; }
+  .pan-string-r2{ right: 5%; transform: rotate(-4deg); transform-origin: top; }
+  .pivot{
+    position:absolute;
+    bottom:0;
+    left:50%;
+    transform: translateX(-50%);
+    width:0; height:0;
+    border-left: clamp(20px,3vw,34px) solid transparent;
+    border-right: clamp(20px,3vw,34px) solid transparent;
+    border-bottom: clamp(34px,5vh,54px) solid #e0673a;
+  }
+  .pivot-dot{
+    position:absolute;
+    top: 30%;
+    left:50%;
+    transform: translate(-50%,-50%);
+    width: clamp(8px,1.2vw,14px);
+    height: clamp(8px,1.2vw,14px);
+    border-radius:50%;
+    background:#ffd54a;
+    box-shadow: 0 0 0 2px #e0673a;
+    z-index:2;
+  }
+
+  /* ===== DROP ZONES ===== */
+  .zones{
+    width:100%;
+    max-width: 1300px;
+    flex: 1 1 auto;
+    min-height:0;
+    display:flex;
+    gap: clamp(8px, 1.6vw, 26px);
+  }
+
+  .zone{
+    position:relative;
+    flex: 1 1 0;
+    min-height:0;
+    border-radius: 20px;
+    padding: clamp(6px, 1vh, 14px);
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:flex-start;
+  }
+  .zone.below-zone{ background: rgba(169,232,189,0.28); border: 2px dashed #7fce8f; }
+  .zone.above-zone{ background: rgba(255,143,179,0.22); border: 2px dashed #f0447c; }
+  .zone.slot-target-pulse{ box-shadow: inset 0 0 0 4px rgba(255,255,255,0.5); }
+
+  .slot-grid{
+    display:grid;
+    gap: clamp(6px, 1vw, 14px);
+    width:100%;
+    flex:1 1 auto;
+    min-height:0;
+    align-content:center;
+    justify-content:center;
+  }
+  .below-zone .slot-grid{ grid-template-columns: repeat(5, minmax(0,1fr)); }
+  .above-zone .slot-grid{ grid-template-columns: repeat(4, minmax(0,1fr)); }
+
+  .slot{
+    width: clamp(46px, 6.4vw, 96px);
+    height: clamp(40px, 5.6vw, 84px);
+    border-radius: 12px;
+    border: 2.5px dashed #c9c2d8;
+    background: rgba(255,255,255,0.5);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  .below-zone .slot{ border-color:#7fce8f; }
+  .above-zone .slot{ border-color:#f0a1b6; }
+  .slot.filled{ border-style:solid; }
+  .slot .suitcase{ position:absolute; inset:0; width:100%; height:100%; }
+
+  /* ===== HINT / HOW TO PLAY ===== */
+  .header-actions{
+    position:absolute !important;
+    right:0 !important;
+    top:50% !important;
+    transform:translateY(-50%) !important;
+    display:flex !important;
+    align-items:center;
+    gap:8px;
+    z-index:999 !important;
+    visibility:visible !important;
+    opacity:1 !important;
+  }
+  /* Keep Hint and Reset side-by-side without overlap */
+  .header-actions .reset-btn{
+    position:relative !important;
+    right:auto !important;
+    top:auto !important;
+    transform:none !important;
+    flex:0 0 auto;
+  }
+  .header-actions .reset-btn:hover{ transform:translateY(-2px) !important; }
+  .header-actions .reset-btn:active{ transform:translateY(2px) !important; }
+
+  .hint-btn{
+    display:flex !important;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    background:#fff7b8;
+    color:#6b5a16;
+    border:2px solid #f1d86a;
+    border-radius:14px;
+    padding:7px 13px;
+    font-family:"Livvic",sans-serif;
+    font-weight:500;
+    font-size:clamp(11px,1vw,15px);
+    cursor:pointer;
+    visibility:visible !important;
+    opacity:1 !important;
+    position:relative !important;
+    z-index:1000 !important;
+    box-shadow:0 4px 0 #e1c85a,0 6px 10px rgba(150,120,20,.12);
+    transition:all .15s ease;
+  }
+  .hint-btn:hover{ transform:translateY(-2px); }
+  .hint-btn:active{ transform:translateY(2px); box-shadow:0 2px 0 #e1c85a; }
+
+  .hint-popup{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:4000;
+    padding:18px;
+  }
+  .hint-box{
+    position:relative;
+    width:min(430px,92vw);
+    max-height:90vh;
+    overflow:auto;
+    padding:26px 28px 24px;
+    text-align:left;
+    background:linear-gradient(180deg,#fff9d8 0%,#ffeaa0 100%);
+    border:5px solid #fff;
+    border-radius:26px;
+    box-shadow:0 8px 0 #d8bd54,0 18px 35px rgba(80,65,20,.22);
+    animation:hintPop .35s cubic-bezier(.34,1.56,.64,1);
+  }
+  .hint-close{
+    position:absolute;
+    top:8px;
+    right:12px;
+    width:34px;
+    height:34px;
+    border:0;
+    border-radius:50%;
+    background:#fff;
+    color:#8a7317;
+    font-size:25px;
+    line-height:1;
+    cursor:pointer;
+  }
+  .hint-big-icon{ text-align:center; font-size:46px; line-height:1; margin-bottom:6px; }
+  .hint-box h2{
+    margin:4px 0 18px;
+    text-align:center;
+    color:#5d4d10;
+    font-size:28px;
+    font-weight:500;
+  }
+  .hint-step{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:9px 0;
+    color:#4a421f;
+    font-size:17px;
+    line-height:1.25;
+  }
+  .hint-step span{
+    flex:0 0 30px;
+    width:30px;
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#fff;
+    color:#6b5a16;
+    font-weight:500;
+  }
+  .hint-step p{ margin:0; }
+  .hint-tip{
+    margin:16px 0 0;
+    padding:10px 12px;
+    border-radius:14px;
+    background:rgba(255,255,255,.65);
+    color:#514617;
+    font-size:15px;
+    line-height:1.3;
+  }
+  .hint-gotit{
+    display:block;
+    margin:18px auto 0;
+    padding:9px 25px;
+    border:3px solid #fff;
+    border-radius:15px;
+    background:#7bcf91;
+    color:#fff;
+    font-family:"Livvic",sans-serif;
+    font-size:17px;
+    font-weight:500;
+    cursor:pointer;
+    box-shadow:0 4px 0 #4eaa68;
+  }
+  @keyframes hintPop{
+    0%{opacity:0;transform:scale(.7)}
+    100%{opacity:1;transform:scale(1)}
+  }
+
+  /* ================================================
+     POPUP (correct / wrong) - matches reference exactly
+  =================================================== */
+  .popup{
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    /* background: rgba(30, 35, 70, 0.35); */
+    /* backdrop-filter: blur(7px); */
+    z-index: 2000;
+  }
+  .popup-content{
+    position: relative;
+    width: min(400px, 88%);
+    padding: 32px 35px 28px;
+    text-align: center;
+    border: 5px solid #ffffff;
+    border-radius: 28px;
+    box-shadow: 0 8px 0 rgba(0, 0, 0, 0.15), 0 18px 35px rgba(0, 0, 0, 0.20);
+    animation: gamingPopup 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  }
+  .popup.correct .popup-content{
+    background: linear-gradient(180deg, #bff7d0 0%, #72d995 100%);
+    border-color: #ffffff;
+    box-shadow: 0 8px 0 #48ae6d, 0 18px 35px rgba(40, 130, 75, 0.25);
+  }
+  .popup.wrong .popup-content{
+    background: linear-gradient(180deg, #ffd0d8 0%, #ff8296 100%);
+    border-color: #ffffff;
+    box-shadow: 0 8px 0 #df526b, 0 18px 35px rgba(180, 60, 80, 0.25);
+  }
+  .popup-icon{
+    font-size: 68px;
+    line-height: 1;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 5px 4px rgba(0, 0, 0, 0.15));
+    animation: gamingIcon 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .popup-content h3{
+    margin: 5px 0 10px;
+    font-family: "Livvic", sans-serif;
+    font-size: 34px;
+    font-weight: 700;
+    color: #176b3c;
+    text-shadow: 0 2px 0 rgba(255, 255, 255, 0.65);
+  }
+  .popup.wrong .popup-content h3{ color: #a8324b; }
+  .popup-content p{
+    display: inline-block;
+    margin: 0;
+    padding: 8px 18px;
+    border-radius: 30px;
+    background: rgba(255, 255, 255, 0.65);
+    font-family: "Livvic", sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #234052;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
+  }
+  @keyframes gamingPopup{
+    0%{ opacity: 0; transform: scale(0.55) rotate(-5deg); }
+    60%{ opacity: 1; transform: scale(1.08) rotate(2deg); }
+    100%{ opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @keyframes gamingIcon{
+    0%{ transform: scale(0) rotate(-20deg); }
+    50%{ transform: scale(1.25) rotate(10deg); }
+    75%{ transform: scale(0.9) rotate(-5deg); }
+    100%{ transform: scale(1) rotate(0deg); }
+  }
+
+  /* ================================================
+     FINAL POPUP - matches reference exactly
+  =================================================== */
+  #finalPopup{
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    /* background: rgba(30, 35, 70, 0.40); */
+    /* backdrop-filter: blur(8px); */
+    z-index: 3000;
+  }
+  .finalpopup-box{
+    position: relative;
+    width: min(470px, 90%);
+    padding: 34px 38px 32px;
+    text-align: center;
+    background: linear-gradient(180deg, #d8c7ff 0%, #a88bea 100%);
+    border: 5px solid #ffffff;
+    border-radius: 30px;
+    box-shadow: 0 9px 0 #7655b5, 0 22px 45px rgba(50, 35, 100, 0.30);
+    animation: finalGamingPopup 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  }
+  .finalpopup-box::before{
+    content: "✨";
+    position: absolute;
+    top: 18px; left: 22px;
+    font-size: 28px;
+    animation: sparkleFloat 1.5s ease-in-out infinite;
+  }
+  .finalpopup-box::after{
+    content: "⭐";
+    position: absolute;
+    top: 24px; right: 22px;
+    font-size: 25px;
+    animation: sparkleFloat 1.8s ease-in-out infinite;
+  }
+  .final-heading{
+    position: relative;
+    z-index: 2;
+    margin: 4px 0 14px;
+    font-family: "Livvic", sans-serif;
+    font-size: 38px;
+    font-weight: 500;
+    color: #000000;
+    /* text-shadow: 0 4px 0 #6843a8, 0 6px 10px rgba(70, 40, 120, 0.25); */
+  }
+  #finalScore{
+    display: inline-block;
+    margin: 5px 0 12px;
+    padding: 10px 28px;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 3px solid #ffffff;
+    font-family: "Livvic", sans-serif;
+    font-size: 27px;
+    font-weight: 500;
+    color: #57368e;
+    box-shadow: 0 5px 0 rgba(90, 60, 140, 0.20);
+  }
+  #stars{
+    margin: 8px 0 18px;
+    font-size: 48px;
+    line-height: 1;
+    letter-spacing: 8px;
+    filter: drop-shadow(0 5px 4px rgba(120, 80, 20, 0.25));
+    animation: starsBounce 0.7s 0.25s both cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .playAgain-btn{
+    position: relative;
+    min-width: 190px;
+    padding: 13px 32px;
+    border: 4px solid #ffffff;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #7bea91 0%, #35b957 100%);
+    font-family: "Livvic", sans-serif;
+    font-size: 21px;
+    font-weight: 700;
+    color: #000;
+    cursor: pointer;
+    /* box-shadow: 0 6px 0 #299044, 0 10px 18px rgba(35, 130, 65, 0.25);
+    text-shadow: 0 2px 0 rgba(30, 120, 50, 0.5); */
+    transition: all 0.15s ease;
+  }
+  .playAgain-btn:hover{
+    transform: translateY(-4px);
+    box-shadow: 0 10px 0 #299044, 0 15px 22px rgba(35, 130, 65, 0.30);
+  }
+  .playAgain-btn:active{
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 #299044, 0 5px 10px rgba(35, 130, 65, 0.20);
+  }
+  @keyframes finalGamingPopup{
+    0%{ opacity: 0; transform: scale(0.55) rotate(-6deg); }
+    55%{ opacity: 1; transform: scale(1.08) rotate(2deg); }
+    75%{ transform: scale(0.97) rotate(-1deg); }
+    100%{ opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  @keyframes starsBounce{
+    0%{ opacity: 0; transform: scale(0); }
+    60%{ opacity: 1; transform: scale(1.25) rotate(5deg); }
+    80%{ transform: scale(0.92); }
+    100%{ transform: scale(1); }
+  }
+  @keyframes sparkleFloat{
+    0%, 100%{ transform: translateY(0) rotate(0deg); }
+    50%{ transform: translateY(-7px) rotate(12deg); }
+  }
+
+  /* sparkles on correct suitcase */
+  .sparkle{
+    position:absolute;
+    font-size:16px;
+    pointer-events:none;
+    z-index:600;
+    animation: sparklePop .7s ease forwards;
+  }
+  @keyframes sparklePop{
+    0%{ opacity:0; transform: scale(0) translateY(0); }
+    30%{ opacity:1; transform: scale(1) translateY(-6px); }
+    100%{ opacity:0; transform: scale(.6) translateY(-26px); }
+  }
+
+  /* ============ RESPONSIVE BREAKPOINTS (mirrors reference set) ============ */
+
+  /* LAPTOP / MID DESKTOP */
+  @media (min-width:1024px) and (max-width:1399px){
+    .main-title{ font-size:30px; }
+    .zone-label{ font-size:18px; }
+    .suitcase{ width:78px; height:68px; font-size:20px; }
+    .slot{ width:78px; height:68px; }
+    .scale-zone{ height:80px; }
+  }
+
+  /* TABLETS */
+  @media (max-width:1023px){
+    .main-title{ font-size:30px; }
+    .zone-heading{ font-size:15px; }
+    .suitcase{ width:62px; height:54px; font-size:17px; }
+    .slot{ width:62px; height:54px; }
+    .below-zone .slot-grid{ grid-template-columns: repeat(5, minmax(0,1fr)); }
+    .scale-zone{ height:64px; }
+  }
+
+  /* MOBILE */
+  @media (max-width:768px){
+    .game-wrap{ padding:8px 10px; gap:6px; }
+    .main-title{ font-size:30px; }
+    .header-actions{ gap:5px; }
+    .hint-btn{ font-size:11px; padding:5px 9px; }
+    .reset-btn{ font-size:11px; padding:5px 10px; }
+    .home-btn{ width:38px; height:38px; }
+    .home-btn i{ font-size:17px; }
+    .zone-label{ font-size:12px; }
+    .zones{ gap:8px; }
+    .suitcase{ width: clamp(34px, 11vw, 48px); height: clamp(30px, 9.5vw, 42px); font-size: clamp(11px, 3vw, 15px); }
+    .slot{ width: clamp(34px, 11vw, 48px); height: clamp(30px, 9.5vw, 42px); }
+    .below-zone .slot-grid{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .above-zone .slot-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .scale-zone{ height:48px; }
+    .tray{ border-radius:14px; }
+
+    .popup-content{ padding: 20px 24px; max-width: 300px; }
+    .popup-icon{ font-size: 48px; }
+    .popup-content h3{ font-size: 24px; }
+    .popup-content p{ font-size: 16px; }
+
+    .finalpopup-box{ padding: 20px 18px; max-width: 340px; }
+    .final-heading{ font-size: 26px; }
+    #finalScore{ font-size: 20px; }
+    #stars{ font-size: 34px; letter-spacing: 6px; }
+    .playAgain-btn{ font-size: 16px; padding: 10px 24px; }
+  }
+
+  /* SMALL MOBILE */
+  @media (max-width:480px){
+    .main-title{ font-size:12.5px; }
+    .zone-heading{ font-size:10.5px; }
+    .header-actions{ gap:3px; }
+    .hint-btn{ font-size:9.5px; padding:4px 6px; border-radius:10px; }
+    .suitcase{ width: clamp(28px, 12vw, 40px); height: clamp(24px, 10.5vw, 36px); font-size: clamp(9px, 3.2vw, 13px); }
+    .slot{ width: clamp(28px, 12vw, 40px); height: clamp(24px, 10.5vw, 36px); }
+    .below-zone .slot-grid{ grid-template-columns: repeat(3, minmax(0,1fr)); gap:5px; }
+    .above-zone .slot-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); gap:5px; }
+    .scale-zone{ height:38px; }
+    .pivot{ border-bottom-width:26px; }
+
+    .popup-content{ padding: 16px 20px; max-width: 270px; }
+    .popup-icon{ font-size: 40px; }
+    .popup-content h3{ font-size: 20px; }
+    .popup-content p{ font-size: 14px; }
+    .finalpopup-box{ padding: 16px 14px; max-width: 290px; }
+    .final-heading{ font-size: 22px; }
+    #finalScore{ font-size: 18px; }
+    #stars{ font-size: 28px; letter-spacing: 4px; }
+    .playAgain-btn{ font-size: 14px; padding: 8px 20px; }
+  }
+
+  /* EXTRA SMALL */
+  @media (max-width:360px){
+    .main-title{ font-size:11px; }
+    .zone-heading{ font-size:9.5px; }
+    .hint-btn{ font-size:8.5px; padding:3px 5px; }
+    .suitcase{ width:26px; height:23px; font-size:8.5px; border-radius:8px; }
+    .slot{ width:26px; height:23px; border-radius:8px; }
+    .reset-btn{ padding:4px 8px; font-size:9.5px; }
+    .home-btn{ width:32px; height:32px; border-width:2px; }
+    .home-btn i{ font-size:14px; }
+    .scale-zone{ height:30px; }
+  }
+
+  /* Keep Hint visible at every screen size */
+  @media (max-width:768px){
+    .header-actions{ right:0 !important; z-index:9999 !important; }
+    .hint-btn{ display:flex !important; visibility:visible !important; opacity:1 !important; }
+  }
+
+/* DESKTOP LARGE */
+@media (min-width:1600px){
+
+  .game-wrap{
+    padding:22px 55px;
+    gap:12px;
+    box-sizing:border-box;
+    width:100%;
+    transform:none;
+  }
+
+  .top-row{
+    position:relative;
+    width:100%;
+    box-sizing:border-box;
+  }
+
+  .main-title{
+    font-size:40px;
+    padding:0 70px;
+    box-sizing:border-box;
+  }
+
+  .zone-label{
+    font-size:24px;
+  }
+
+  .suitcase{
+    width:100px;
+    height:88px;
+    font-size:28px;
+    border-radius:16px;
+  }
+
+  .slot{
+    width:100px;
+    height:88px;
+    border-radius:16px;
+  }
+
+  .scale-zone{
+    height:110px;
+  }
+
+  .hint-btn{
+    font-size:17px;
+    padding:10px 16px;
+  }
+
+  .reset-btn{
+    font-size:17px;
+    padding:10px 22px;
+    border-radius:16px;
+  }
+
+  .home-btn{
+    width:50px;
+    height:50px;
+    left:10px;
+  }
+
+  .home-btn i{
+    font-size:23px;
+  }
+  .zone-heading{
+    font-size:40px;
+  }
+}
+
+
+/* 4K+ */
+@media (min-width:1921px){
+
+  .game-wrap{
+    transform:none;
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+  }
+
+  .main-title{
+    font-size:40px;
+    padding:0 80px;
+  }
+
+  .home-btn{
+    left:15px;
+  }
+
+  .reset-btn{
+    right:15px;
+  }
+}
+</style>
+</head>
+<body>
+
+  <div class="game-wrap">
+
+    <div class="top-row">
+      <button class="home-btn" id="homeBtn" aria-label="Home" title="Home" onclick="window.location.href='../Grade2_chapter1.html'">
+        <i class="fa-solid fa-house"></i>
+      </button>
+      <p class="main-title">Separate the numbers and drag them in the correct bowl</p>
+      <div class="header-actions">
+        <button class="hint-btn" id="hintBtn" type="button" aria-label="Hint" title="How to Play">💡 <span>Hint</span></button>
+        <button class="reset-btn" id="resetBtn"><span class="reset-icon">↻</span> Reset</button>
+      </div>
+    </div>
+
+    <div class="tray" id="tray"></div>
+
+    <div class="scale-zone">
+      <div class="scale" id="scale">
+        <div class="pan-string-l1"></div>
+        <div class="pan-string-l2"></div>
+        <div class="pan-string-r1"></div>
+        <div class="pan-string-r2"></div>
+        <div class="pan pan-left" id="panLeft"></div>
+        <div class="pan pan-right" id="panRight"></div>
+        <div class="beam" id="beam"></div>
+        <div class="pivot"></div>
+        <div class="pivot-dot"></div>
+        <div class="needle" id="needle"></div>
+      </div>
+    </div>
+
+    <div class="zones">
+      <div class="zone below-zone" id="belowZone">
+        <h2 class="zone-heading below-heading">Separate below 50</h2>
+        <div class="slot-grid" id="belowSlots"></div>
+      </div>
+      <div class="zone above-zone" id="aboveZone">
+        <h2 class="zone-heading above-heading">Separate above 50</h2>
+        <div class="slot-grid" id="aboveSlots"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CORRECT / WRONG POPUP -->
+  <div id="answerPopup" class="popup">
+    <div class="popup-content">
+      <div class="popup-icon" id="popupIcon"></div>
+      <h3 id="popupTitle"></h3>
+      <p id="popupMsg"></p>
+    </div>
+  </div>
+
+  <!-- HINT / HOW TO PLAY -->
+  <div id="hintPopup" class="hint-popup" role="dialog" aria-modal="true" aria-labelledby="hintTitle">
+    <div class="hint-box">
+      <button class="hint-close" id="hintClose" type="button" aria-label="Close">×</button>
+      <div class="hint-big-icon">💡</div>
+      <h2 id="hintTitle">How to Play</h2>
+      <div class="hint-step"><span>1</span><p>Pick a number card.</p></div>
+      <div class="hint-step"><span>2</span><p>Drag it onto the correct side of the balance.</p></div>
+      <div class="hint-step"><span>3</span><p>Numbers <strong>below 50</strong> go in the green box.</p></div>
+      <div class="hint-step"><span>4</span><p>Numbers <strong>50 and above</strong> go in the other box.</p></div>
+      <p class="hint-tip">💡 Tip: <strong>50 belongs above 50.</strong></p>
+      <button class="hint-gotit" id="hintGotIt" type="button">Got it!</button>
+    </div>
+  </div>
+
+  <!-- FINAL POPUP -->
+  <div id="finalPopup">
+    <div class="finalpopup-box">
+      <h2 class="final-heading">🎉 Amazing Job!</h2>
+      <p id="finalScore"></p>
+      <div id="stars"></div><br>
+      <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+    </div>
+  </div>
+
+<script>
+/* =========================================================
+   NUMBER SORTING + WEIGHING MACHINE
+========================================================= */
+
+/* Every number from the bowl in the workbook. Below 50: 0 1 2 3 4 5 7 8
+   10 19 21 28 32 43. 50 and above: 51 68 70 77 81 96. */
+const NUMBERS = [
+  1, 19, 3, 4, 10,
+  7, 2, 70, 5, 28,
+  77, 96, 81, 21, 8,
+  51, 43, 0, 68, 32
+];
+
+const COLORS = [
+  "c-pink",
+  "c-yellow",
+  "c-green",
+  "c-blue",
+  "c-purple",
+  "c-orange"
+];
+
+const belowNumbers = NUMBERS.filter(n => n < 50);
+const aboveNumbers = NUMBERS.filter(n => n >= 50);
+
+let placedCount = 0;
+const total = NUMBERS.length;
+
+const tray = document.getElementById("tray");
+const belowSlots = document.getElementById("belowSlots");
+const aboveSlots = document.getElementById("aboveSlots");
+
+const hintBtn = document.getElementById("hintBtn");
+const hintPopup = document.getElementById("hintPopup");
+const hintClose = document.getElementById("hintClose");
+const hintGotIt = document.getElementById("hintGotIt");
+
+function openHint(){
+  hintPopup.style.display = "flex";
+}
+
+function closeHint(){
+  hintPopup.style.display = "none";
+}
+
+hintBtn.addEventListener("click", openHint);
+hintClose.addEventListener("click", closeHint);
+hintGotIt.addEventListener("click", closeHint);
+
+hintPopup.addEventListener("click", e => {
+  if(e.target === hintPopup) closeHint();
+});
+
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape" && hintPopup.style.display === "flex"){
+    closeHint();
+  }
+});
+
+const beam = document.getElementById("beam");
+const panLeft = document.getElementById("panLeft");
+const panRight = document.getElementById("panRight");
+const needle = document.getElementById("needle");
+
+const WEIGH_DURATION = 1300;
+const REVEAL_DURATION = 480;
+const FLIP_DURATION = 420;
+
+let dragEl = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+let weighingLock = false;
+
+
+/* =========================================================
+   SHUFFLE
+========================================================= */
+
+function shuffle(arr) {
+  const a = arr.slice();
+
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+
+  return a;
+}
+
+
+/* =========================================================
+   BUILD EMPTY SLOTS
+========================================================= */
+
+function buildSlots(container, count) {
+
+  container.innerHTML = "";
+
+  for (let i = 0; i < count; i++) {
+
+    const slot = document.createElement("div");
+
+    slot.className = "slot";
+
+    container.appendChild(slot);
+  }
+}
+
+buildSlots(belowSlots, belowNumbers.length);
+buildSlots(aboveSlots, aboveNumbers.length);
+
+
+/* =========================================================
+   CREATE NUMBER SUITCASES
+========================================================= */
+
+const order = shuffle(NUMBERS);
+
+order.forEach((num, i) => {
+
+  const card = document.createElement("div");
+
+  card.className = "suitcase " + COLORS[i % COLORS.length];
+
+  card.textContent = num;
+
+  card.dataset.value = num;
+
+  card.dataset.zone = num < 50 ? "below" : "above";
+
+  tray.appendChild(card);
+
+  attachDrag(card);
+});
+
+
+/* =========================================================
+   DRAG START
+========================================================= */
+
+function attachDrag(card) {
+
+  card.addEventListener("pointerdown", onPointerDown);
+}
+
+
+function onPointerDown(e) {
+
+  const card = e.currentTarget;
+
+  if (
+    card.classList.contains("placed") ||
+    weighingLock
+  ) {
+    return;
+  }
+
+  e.preventDefault();
+
+  dragEl = card;
+
+  const rect = card.getBoundingClientRect();
+
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
+
+  /*
+     IMPORTANT:
+     Keep the card fixed while dragging.
+  */
+
+  card.classList.add("dragging");
+
+  card.style.width = rect.width + "px";
+  card.style.height = rect.height + "px";
+
+  card.style.left =
+    (e.clientX - dragOffsetX) + "px";
+
+  card.style.top =
+    (e.clientY - dragOffsetY) + "px";
+
+  card.setPointerCapture(e.pointerId);
+
+  card.addEventListener("pointermove", onPointerMove);
+  card.addEventListener("pointerup", onPointerUp);
+  card.addEventListener("pointercancel", onPointerUp);
+}
+
+
+/* =========================================================
+   DRAG MOVE
+========================================================= */
+
+function onPointerMove(e) {
+
+  if (!dragEl) return;
+
+  dragEl.style.left =
+    (e.clientX - dragOffsetX) + "px";
+
+  dragEl.style.top =
+    (e.clientY - dragOffsetY) + "px";
+
+
+  panLeft.classList.toggle(
+    "pan-hover",
+    isOverPad(
+      panLeft,
+      e.clientX,
+      e.clientY
+    )
+  );
+
+  panRight.classList.toggle(
+    "pan-hover",
+    isOverPad(
+      panRight,
+      e.clientX,
+      e.clientY
+    )
+  );
+}
+
+
+/* =========================================================
+   CHECK WHETHER CARD IS OVER SCALE PAN
+========================================================= */
+
+function isOverPad(el, x, y, padding = 25) {
+
+  const rect = el.getBoundingClientRect();
+
+  return (
+    x >= rect.left - padding &&
+    x <= rect.right + padding &&
+    y >= rect.top - padding &&
+    y <= rect.bottom + padding
+  );
+}
+
+
+/* =========================================================
+   DRAG END
+========================================================= */
+
+function onPointerUp(e) {
+
+  if (!dragEl) return;
+
+  const card = dragEl;
+
+  /*
+     Check position BEFORE removing dragging class.
+     This is the important fix.
+  */
+
+  const overLeft = isOverPad(
+    panLeft,
+    e.clientX,
+    e.clientY
+  );
+
+  const overRight = isOverPad(
+    panRight,
+    e.clientX,
+    e.clientY
+  );
+
+
+  card.removeEventListener(
+    "pointermove",
+    onPointerMove
+  );
+
+  card.removeEventListener(
+    "pointerup",
+    onPointerUp
+  );
+
+  card.removeEventListener(
+    "pointercancel",
+    onPointerUp
+  );
+
+
+  panLeft.classList.remove("pan-hover");
+  panRight.classList.remove("pan-hover");
+
+
+  dragEl = null;
+
+
+  /* -----------------------------------------
+     Dropped on weighing machine
+  ----------------------------------------- */
+
+  if (overLeft || overRight) {
+
+    const side = overLeft ? "below" : "above";
+
+    const pan = overLeft
+      ? panLeft
+      : panRight;
+
+    const oppositePan = overLeft
+      ? panRight
+      : panLeft;
+
+
+    weighingLock = true;
+
+    /*
+       KEEP .dragging here.
+       This keeps position:fixed while
+       the card travels onto the weighing tray.
+    */
+
+    settleOntoPan(
+      card,
+      pan,
+      () => {
+
+        startWeighing(
+          side,
+          card,
+          pan,
+          oppositePan
+        );
+
+      }
+    );
+
+    return;
+  }
+
+
+  /* -----------------------------------------
+     Dropped somewhere else
+  ----------------------------------------- */
+
+  returnToTray(card);
+}
+
+
+/* =========================================================
+   MOVE CARD ONTO SCALE
+========================================================= */
+
+function settleOntoPan(card, pan, callback) {
+
+  const panRect =
+    pan.getBoundingClientRect();
+
+  const cardRect =
+    card.getBoundingClientRect();
+
+
+  const targetLeft =
+    panRect.left +
+    panRect.width / 2 -
+    cardRect.width / 2;
+
+
+  const targetTop =
+    panRect.top +
+    panRect.height / 2 -
+    cardRect.height / 2 -
+    6;
+
+
+  card.style.transition =
+    "left .25s ease, top .25s ease";
+
+
+  card.style.left =
+    targetLeft + "px";
+
+  card.style.top =
+    targetTop + "px";
+
+
+  setTimeout(() => {
+
+    card.style.transition = "";
+
+    callback();
+
+  }, 260);
+}
+
+
+/* =========================================================
+   START WEIGHING
+========================================================= */
+
+function startWeighing(
+  side,
+  card,
+  pan,
+  oppositePan
+) {
+
+  const beamAnimation =
+    side === "below"
+      ? "weigh-left"
+      : "weigh-right";
+
+
+  /*
+     Animate weighing machine
+  */
+
+  beam.classList.remove(
+    "weigh-left",
+    "weigh-right"
+  );
+
+  needle.classList.remove(
+    "needle-check"
+  );
+
+  pan.classList.remove(
+    "pan-dip"
+  );
+
+  oppositePan.classList.remove(
+    "pan-rise"
+  );
+
+
+  /*
+     Force animation restart
+  */
+
+  void beam.offsetWidth;
+
+
+  beam.classList.add(
+    beamAnimation
+  );
+
+  needle.classList.add(
+    "needle-check"
+  );
+
+  pan.classList.add(
+    "pan-dip"
+  );
+
+  oppositePan.classList.add(
+    "pan-rise"
+  );
+
+
+  /*
+     Validate after weighing
+  */
+
+  setTimeout(() => {
+
+    beam.classList.remove(
+      beamAnimation
+    );
+
+    needle.classList.remove(
+      "needle-check"
+    );
+
+    pan.classList.remove(
+      "pan-dip"
+    );
+
+    oppositePan.classList.remove(
+      "pan-rise"
+    );
+
+
+    const isCorrect =
+      side === card.dataset.zone;
+
+
+    revealResult(
+      isCorrect,
+      card,
+      side,
+      pan
+    );
+
+  }, WEIGH_DURATION);
+}
+
+
+/* =========================================================
+   CORRECT / WRONG RESULT
+========================================================= */
+
+function revealResult(
+  isCorrect,
+  card,
+  side,
+  pan
+) {
+
+  playPop(isCorrect);
+
+
+  if (isCorrect) {
+
+    speak("correct");
+
+    card.classList.add(
+      "weigh-correct"
+    );
+
+    pan.classList.add(
+      "pan-correct-glow"
+    );
+
+
+    setTimeout(() => {
+
+      card.classList.remove(
+        "weigh-correct"
+      );
+
+      pan.classList.remove(
+        "pan-correct-glow"
+      );
+
+
+      moveToSlot(
+        card,
+        side
+      );
+
+    }, REVEAL_DURATION);
+
+
+  } else {
+
+    speak("wrong");
+
+    card.classList.add(
+      "weigh-wrong"
+    );
+
+    pan.classList.add(
+      "pan-wrong-shake"
+    );
+
+
+    setTimeout(() => {
+
+      card.classList.remove(
+        "weigh-wrong"
+      );
+
+      pan.classList.remove(
+        "pan-wrong-shake"
+      );
+
+
+      returnToTray(card);
+
+    }, REVEAL_DURATION);
+  }
+}
+
+
+/* =========================================================
+   RETURN CARD TO TRAY
+========================================================= */
+
+function returnToTray(card) {
+
+  flipMove(
+    card,
+    el => {
+
+      el.classList.remove(
+        "dragging"
+      );
+
+      tray.appendChild(el);
+
+    }
+  );
+
+  weighingLock = false;
+}
+
+
+/* =========================================================
+   MOVE CARD TO ANSWER SLOT
+========================================================= */
+
+function moveToSlot(card, side) {
+
+  const container =
+    side === "below"
+      ? belowSlots
+      : aboveSlots;
+
+
+  const emptySlot =
+    Array.from(
+      container.children
+    ).find(
+      slot =>
+        !slot.classList.contains("filled")
+    );
+
+
+  if (!emptySlot) {
+
+    returnToTray(card);
+
+    return;
+  }
+
+
+  emptySlot.classList.add(
+    "filled"
+  );
+
+
+  flipMove(
+    card,
+    el => {
+
+      /*
+         Remove fixed positioning
+         before putting card inside slot.
+      */
+
+      el.classList.remove(
+        "dragging"
+      );
+
+      emptySlot.appendChild(el);
+
+      el.classList.add(
+        "placed"
+      );
+
+    }
+  );
+
+
+  placedCount++;
+
+
+  /*
+     Success sparkle
+  */
+
+  setTimeout(() => {
+
+    spawnSparkles(
+      emptySlot
+    );
+
+    fireConfettiAt(
+      emptySlot
+    );
+
+  }, FLIP_DURATION * 0.6);
+
+
+  /*
+     Unlock next card
+  */
+
+  setTimeout(() => {
+
+    weighingLock = false;
+
+  }, FLIP_DURATION + 50);
+
+
+  /*
+     Game completed
+  */
+
+  if (placedCount >= total) {
+
+    setTimeout(() => {
+
+      fireBigConfetti();
+
+      showFinal();
+
+    }, FLIP_DURATION + 900);
+  }
+}
+
+
+/* =========================================================
+   FLIP ANIMATION
+========================================================= */
+
+function flipMove(el, insertFn) {
+
+  const startRect =
+    el.getBoundingClientRect();
+
+
+  /*
+     Remove fixed positioning
+     before inserting into new parent.
+  */
+
+  el.classList.remove(
+    "dragging"
+  );
+
+
+  el.style.transition = "none";
+
+  el.style.position = "";
+
+  el.style.left = "";
+
+  el.style.top = "";
+
+  el.style.width = "";
+
+  el.style.height = "";
+
+
+  insertFn(el);
+
+
+  const endRect =
+    el.getBoundingClientRect();
+
+
+  const dx =
+    startRect.left -
+    endRect.left;
+
+
+  const dy =
+    startRect.top -
+    endRect.top;
+
+
+  const scale =
+    endRect.width
+      ? startRect.width / endRect.width
+      : 1;
+
+
+  el.style.transform =
+    `translate(${dx}px, ${dy}px) scale(${scale})`;
+
+
+  void el.offsetWidth;
+
+
+  requestAnimationFrame(() => {
+
+    el.style.transition =
+      `transform ${FLIP_DURATION}ms cubic-bezier(.34,1.56,.64,1)`;
+
+    el.style.transform =
+      "translate(0,0) scale(1)";
+
+  });
+
+
+  setTimeout(() => {
+
+    el.style.transition = "";
+
+    el.style.transform = "";
+
+  }, FLIP_DURATION + 40);
+}
+
+
+/* =========================================================
+   SPARKLES
+========================================================= */
+
+function spawnSparkles(el) {
+
+  const icons = [
+    "✨",
+    "⭐",
+    "🌟"
+  ];
+
+
+  for (let i = 0; i < 3; i++) {
+
+    const sparkle =
+      document.createElement("span");
+
+
+    sparkle.className =
+      "sparkle";
+
+
+    sparkle.textContent =
+      icons[
+        Math.floor(
+          Math.random() *
+          icons.length
+        )
+      ];
+
+
+    const angle =
+      (i / 3) *
+      Math.PI *
+      2;
+
+
+    const radius = 26;
+
+
+    sparkle.style.left =
+      `calc(50% + ${
+        Math.cos(angle) * radius
+      }px)`;
+
+
+    sparkle.style.top =
+      `calc(50% + ${
+        Math.sin(angle) * radius
+      }px)`;
+
+
+    sparkle.style.animationDelay =
+      `${i * 0.04}s`;
+
+
+    el.parentElement.appendChild(
+      sparkle
+    );
+
+
+    setTimeout(
+      () => sparkle.remove(),
+      750
+    );
+  }
+}
+
+
+/* =========================================================
+   SMALL CONFETTI
+========================================================= */
+
+function fireConfettiAt(el) {
+
+  if (!window.confetti) return;
+
+
+  const rect =
+    el.getBoundingClientRect();
+
+
+  confetti({
+
+    particleCount: 22,
+
+    spread: 55,
+
+    startVelocity: 26,
+
+    origin: {
+
+      x:
+        (rect.left +
+          rect.width / 2) /
+        window.innerWidth,
+
+      y:
+        (rect.top +
+          rect.height / 2) /
+        window.innerHeight
+    },
+
+    colors: [
+      "#e6473f",
+      "#3a6fd8",
+      "#f7b733",
+      "#8bba8a",
+      "#c9a8e0"
+    ]
+  });
+}
+
+
+/* =========================================================
+   BIG CONFETTI
+========================================================= */
+
+function fireBigConfetti() {
+
+  if (!window.confetti) return;
+
+
+  const duration = 1800;
+
+  const end =
+    Date.now() + duration;
+
+
+  (function frame() {
+
+    confetti({
+      particleCount: 6,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 }
+    });
+
+
+    confetti({
+      particleCount: 6,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 }
+    });
+
+
+    if (Date.now() < end) {
+
+      requestAnimationFrame(frame);
+
+    }
+
+  })();
+}
+
+
+/* =========================================================
+   CORRECT / WRONG POPUP
+========================================================= */
+
+function speak(t) {
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-UK";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+function playPop(isCorrect) {
+
+  const popup =
+    document.getElementById(
+      "answerPopup"
+    );
+
+  const icon =
+    document.getElementById(
+      "popupIcon"
+    );
+
+  const title =
+    document.getElementById(
+      "popupTitle"
+    );
+
+  const msg =
+    document.getElementById(
+      "popupMsg"
+    );
+
+
+  popup.className =
+    "popup " +
+    (
+      isCorrect
+        ? "correct"
+        : "wrong"
+    );
+
+
+  popup.style.display =
+    "flex";
+
+
+  if (isCorrect) {
+
+    icon.textContent = "🎉";
+
+    title.textContent =
+      "Correct!";
+
+    msg.textContent =
+      "Great sorting!";
+
+  } else {
+
+    icon.textContent = "❌";
+
+    title.textContent =
+      "Try Again!";
+
+    msg.textContent =
+      "Check if it's below or above 50.";
+  }
+
+
+  clearTimeout(
+    playPop._t
+  );
+
+
+  playPop._t =
+    setTimeout(() => {
+
+      popup.style.display =
+        "none";
+
+    }, 1100);
+}
+
+
+/* =========================================================
+   FINAL POPUP
+========================================================= */
+
+function showFinal() {
+
+  const finalPopup =
+    document.getElementById(
+      "finalPopup"
+    );
+
+
+  finalPopup.style.display =
+    "flex";
+
+
+  document.getElementById(
+    "finalScore"
+  ).textContent =
+    `${placedCount} / ${total} Correct`;
+
+
+  const starCount =
+    Math.max(
+      1,
+      Math.round(
+        (placedCount / total) * 3
+      )
+    );
+
+
+  document.getElementById(
+    "stars"
+  ).textContent =
+    "⭐".repeat(starCount);
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+document
+  .getElementById("resetBtn")
+  .addEventListener(
+    "click",
+    () => location.reload()
+  );
+
+</script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shape Patterns · Chapter 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/quiz.css?v=16">
+<style>
+/* the row of shapes, then the two boxes to fill */
+.pattern-strip {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1vw, 14px);
+  max-width: 100%;
+}
+.pattern-strip .shape-tile { flex: none; }
+.pattern-strip .shape-tile.mystery { cursor: pointer; }
+.pattern-strip .shape-tile.picked {
+  cursor: pointer;
+  border-color: var(--indigo);
+  box-shadow: 0 5px 0 var(--indigo-dark);
+}
+.pattern-strip .shape-tile.good {
+  border-color: var(--green); background: var(--green-light);
+  box-shadow: 0 5px 0 var(--green);
+}
+.pattern-strip .shape-tile.bad {
+  border-color: var(--red); background: var(--red-light);
+  box-shadow: 0 5px 0 var(--red);
+}
+
+/* a shape already sitting in a box is dimmed in the row of choices */
+.shape-pick.used { opacity: .38; }
+
+/* One size for both rows. A shape offered as a choice is drawn in exactly the
+   same box as a shape in the pattern, so the two pictures match each other. */
+body { --tile: clamp(72px, 7.8vw, 106px); }
+.pattern-strip .shape-tile,
+.shape-pick {
+  width: var(--tile);
+  height: var(--tile);
+  padding: 8px;
+  border-radius: 18px;
+}
+
+@media (min-width: 1600px) {
+  body { --tile: 140px; }
+  .pattern-strip .shape-tile.mystery { font-size: 54px; }
+  .field-label { font-size: 24px; }
+}
+
+@media (max-width: 900px) {
+  /* smaller tiles so the eight boxes still sit on one line */
+  body { --tile: clamp(50px, 9vw, 70px); }
+  .pattern-strip { gap: 6px; }
+  .pattern-strip .shape-tile.mystery { font-size: 28px; }
+}
+</style>
+</head>
+<body>
+<script src="../assets/confetti.js?v=3"></script>
+<script src="../assets/quiz.js?v=19"></script>
+<script>
+/* Section 4.8 Q2 — "Complete the shapes pattern."
+   The two rows of the book, a) and b). Each row ends in two empty boxes.
+   One set of shapes sits underneath: tap them in order to fill the boxes,
+   tap again (or tap a filled box) to take one back out. */
+
+var INK = '#1F2440', PAPER = '#FFFFFF';
+
+function svg(inner) {
+  return '<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">' + inner + '</svg>';
+}
+
+/* ------------------------------------------------------------
+   The two rows are traced from the textbook page (4.8, question 2).
+   a) the dot sits on the middle of the top edge of the square, then on
+      the middle of the bottom edge, turn and turn about.
+   b) a hexagon turns a little further each step and carries its dot
+      round with it, so the dot creeps clockwise inside the shape.
+   ------------------------------------------------------------ */
+
+/* a) — square 52 wide, dot tucked against the top or the bottom edge */
+function sqDot(where) {
+  var cy = where === 'top' ? 22.5 : 57.5;
+  return svg('<rect x="14" y="14" width="52" height="52" fill="' + PAPER +
+             '" stroke="' + INK + '" stroke-width="3"/>' +
+             '<circle cx="40" cy="' + cy + '" r="8.5" fill="' + INK + '"/>');
+}
+/* a wrong one to choose from: the dot against the left edge */
+function sqDotSide() {
+  return svg('<rect x="14" y="14" width="52" height="52" fill="' + PAPER +
+             '" stroke="' + INK + '" stroke-width="3"/>' +
+             '<circle cx="22.5" cy="40" r="8.5" fill="' + INK + '"/>');
+}
+function triPlain() {
+  return svg('<polygon points="40,15 68.5,64.5 11.5,64.5" fill="' + PAPER +
+             '" stroke="' + INK + '" stroke-width="3" stroke-linejoin="round"/>');
+}
+function circPlain() {
+  return svg('<circle cx="40" cy="40" r="26" fill="' + PAPER +
+             '" stroke="' + INK + '" stroke-width="3"/>');
+}
+
+/* b) — the hexagon at step 0 has its dot at the bottom, a shade to the
+   left, exactly as the book draws the first shape; every step turns the
+   whole thing 54 degrees further round. */
+function hexTurn(step) {
+  var cx = 40, cy = 40, R = 29;
+  var ang = (103 + step * 54) * Math.PI / 180;
+  var pts = [];
+  for (var i = 0; i < 6; i++) {
+    var a = ang + i * Math.PI / 3;
+    pts.push((cx + R * Math.cos(a)).toFixed(1) + ',' + (cy + R * Math.sin(a)).toFixed(1));
+  }
+  var dx = cx + 0.535 * R * Math.cos(ang);
+  var dy = cy + 0.535 * R * Math.sin(ang);
+  return svg('<polygon points="' + pts.join(' ') + '" fill="' + PAPER +
+             '" stroke="' + INK + '" stroke-width="3" stroke-linejoin="round"/>' +
+             '<circle cx="' + dx.toFixed(1) + '" cy="' + dy.toFixed(1) +
+             '" r="8.4" fill="' + INK + '"/>');
+}
+
+var ITEMS = [
+  {
+    letter: 'a',
+    shown: [sqDot('top'), triPlain(), sqDot('bottom'), triPlain(), sqDot('top'), triPlain()],
+    answers: ['sq-bottom', 'tri'],
+    options: [
+      { id: 'sq-top',    html: sqDot('top') },
+      { id: 'circ',      html: circPlain() },
+      { id: 'sq-bottom', html: sqDot('bottom') },
+      { id: 'tri',       html: triPlain() },
+      { id: 'sq-side',   html: sqDotSide() }
+    ],
+    why: 'Square and triangle take turns, and the dot in the square hops from the top edge to the bottom edge each time. So a square with the dot at the bottom comes next, then a triangle.'
+  },
+  {
+    letter: 'b',
+    shown: [hexTurn(0), hexTurn(1), hexTurn(2), hexTurn(3), hexTurn(4), hexTurn(5)],
+    answers: ['h6', 'h7'],
+    options: [
+      { id: 'h3', html: hexTurn(3) },
+      { id: 'h2', html: hexTurn(2) },
+      { id: 'h6', html: hexTurn(6) },
+      { id: 'h7', html: hexTurn(7) },
+      { id: 'h4', html: hexTurn(4) }
+    ],
+    why: 'The hexagon turns a little further each step and carries its dot round with it, so the dot creeps clockwise: bottom, left, upper-left, top, upper-right, right — and on to the lower-right, then back down to the bottom.'
+  }
+];
+
+Quiz.mount({
+  title: 'Shape Patterns',
+  hint: 'Look at what changes each step and what stays the same, then tap two shapes to fill the empty boxes.',
+  questions: ITEMS.map(function (it) {
+    return {
+      short: it.letter + ')',
+      stem: 'Complete the shapes pattern.',
+      praise: it.why,
+      build: function (host, Q) {
+        var slots = [], chosen = [], buttons = {}, shown = '', locked = false;
+
+        /* ---- the row of shapes, ending in the two empty boxes ---- */
+        var strip = Q.el('div', 'pattern-strip');
+        it.shown.forEach(function (h) {
+          var t = Q.el('div', 'shape-tile');
+          t.innerHTML = h;
+          strip.appendChild(t);
+        });
+        for (var s = 0; s < 2; s++) {
+          (function (index) {
+            var box = Q.el('div', 'shape-tile mystery');
+            box.textContent = '?';
+            box.addEventListener('click', function () {
+              if (locked || chosen.length <= index) return;
+              chosen.splice(index, 1);
+              shown = '';
+              paint();
+              Quiz._clearMsg();
+            });
+            slots.push(box);
+            strip.appendChild(box);
+          })(s);
+        }
+        host.appendChild(strip);
+
+        /* ---- one set of shapes to choose from ---- */
+        host.appendChild(Q.el('div', 'field-label', 'Tap two shapes to fill the empty boxes.'));
+
+        var picks = Q.el('div', 'shape-picks');
+        it.options.forEach(function (opt) {
+          var b = Q.el('button', 'shape-pick');
+          b.type = 'button';
+          b.innerHTML = opt.html;
+          b.setAttribute('aria-label', opt.id);
+          b.addEventListener('click', function () {
+            if (locked) return;
+            var at = chosen.indexOf(opt.id);
+            if (at > -1) chosen.splice(at, 1);
+            else if (chosen.length < 2) chosen.push(opt.id);
+            else return;
+            shown = '';
+            paint();
+            Quiz._clearMsg();
+          });
+          buttons[opt.id] = b;
+          picks.appendChild(b);
+        });
+        host.appendChild(picks);
+
+        function htmlFor(id) {
+          var found = '';
+          it.options.forEach(function (o) { if (o.id === id) found = o.html; });
+          return found;
+        }
+
+        function paint() {
+          slots.forEach(function (box, i) {
+            var id = chosen[i];
+            if (id == null) {
+              box.className = 'shape-tile mystery';
+              box.textContent = '?';
+              return;
+            }
+            var right = id === it.answers[i];
+            box.className = 'shape-tile ' +
+              (shown === 'good' ? 'good' : shown === 'bad' ? (right ? 'good' : 'bad') : 'picked');
+            box.innerHTML = htmlFor(id);
+          });
+
+          it.options.forEach(function (o) {
+            var b = buttons[o.id];
+            var at = chosen.indexOf(o.id);
+            b.classList.remove('on', 'good', 'bad', 'used');
+            if (at > -1) {
+              var right = o.id === it.answers[at];
+              b.classList.add(shown === 'good' ? 'good'
+                            : shown === 'bad' ? (right ? 'good' : 'bad') : 'on');
+            } else if (chosen.length === 2 && !shown) {
+              b.classList.add('used');
+            }
+          });
+        }
+
+        picks._f = {
+          el: picks,
+          filled: function () { return chosen.length === 2; },
+          correct: function () {
+            return chosen[0] === it.answers[0] && chosen[1] === it.answers[1];
+          },
+          mark: function (state) { shown = state || ''; paint(); },
+          clear: function () { chosen = []; shown = ''; paint(); },
+          lock: function () {
+            locked = true;
+            it.options.forEach(function (o) { buttons[o.id].disabled = true; });
+          },
+          reveal: function () { chosen = it.answers.slice(); paint(); },
+          value: function () { return chosen.join(','); },
+          setValue: function (v) {
+            chosen = String(v || '').split(',').filter(function (x) { return x; });
+            paint();
+          },
+          focus: function () { buttons[it.options[0].id].focus(); }
+        };
+
+        paint();
+      }
+    };
+  })
+});
+</script>
+</body>
+</html>

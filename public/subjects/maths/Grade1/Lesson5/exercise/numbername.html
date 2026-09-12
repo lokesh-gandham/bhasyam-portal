@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number Name Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Livvic',sans-serif;user-select:none}
+body{
+ min-height:100vh;width:100vw;overflow:hidden;
+ 
+ color:#2f4f4f;
+ display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 15px;
+}
+.heading{font-size:22px;font-weight:400;color:#2f4f4f;text-align:center;padding:0 10px}
+
+.game-stage{
+ width:100%;max-width:1180px;flex:1;min-height:0;position:relative;
+ display:flex;align-items:center;justify-content:center;overflow:hidden;
+}
+
+.game-stage:after{
+ content:'';position:absolute;width:510px;height:510px;border:1px solid rgba(230,126,34,.14);
+ border-radius:50%;left:50%;top:50%;transform:translate(-50%,-48%);
+}
+.star{position:absolute;width:8px;height:8px;border-radius:50%;background:#f0b64e;opacity:.65}
+.s1{top:15%;left:10%}.s2{top:28%;right:12%;width:6px;height:6px}.s3{bottom:19%;left:15%;width:5px;height:5px}.s4{bottom:13%;right:16%;width:9px;height:9px;background:#92bfb0}
+.quest{
+ position:relative;z-index:2;width:min(1050px,96vw);height:100%;
+ min-height:490px;display:grid;grid-template-columns:1fr 1.05fr;align-items:center;gap:55px;
+}
+
+/* top example is a tiny checkpoint, not a card */
+.example{
+ position:absolute;top:10px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;
+ white-space:nowrap;color:#65706e;font-size:15px;font-weight:400;opacity:.9;
+}
+.example b{font-weight:700;color:#8b7b50;letter-spacing:.8px;font-size:12px}
+.example-circle{
+ width:42px;height:42px;border:2px solid #536a6b;border-radius:50%;display:grid;place-items:center;font-size:19px;
+}
+.example-line{width:110px;border-bottom:2px solid #e67e22;padding-bottom:5px;text-align:center}
+
+/* central mission */
+.mission{
+ position:absolute;left:50%;top:15%;transform:translateX(-50%);z-index:5;text-align:center;
+}
+.mission-label{font-size:13px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:#9a8b63;margin-bottom:8px}
+.clue{
+ display:flex;align-items:center;justify-content:center;gap:14px;
+ font-size:30px;font-weight:500;color:#2f4f4f;line-height:1;
+}
+.clue .token{
+ display:inline-flex;align-items:center;justify-content:center;min-width:142px;height:64px;
+ padding:0 18px;border-radius:34px;background:rgba(255,255,255,.72);
+ border:2px solid rgba(91,145,136,.18);
+ box-shadow:0 7px 0 rgba(91,145,136,.13),0 12px 24px rgba(75,68,48,.06);
+ position:relative;
+}
+.clue .token:first-child{transform:rotate(-2deg)}
+.clue .token:last-child{transform:rotate(2deg)}
+.clue .token:before{
+ content:'';position:absolute;width:9px;height:9px;border-radius:50%;
+ top:8px;left:18px;background:#f0b64e;opacity:.7;
+}
+.clue .token:last-child:before{left:auto;right:18px;background:#83bdb0}
+.clue-plus{
+ width:42px;height:42px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+ background:rgba(255,255,255,.62);border:1px dashed rgba(230,126,34,.45);
+ color:#e67e22;font-weight:400;font-size:32px;
+}
+
+/* NUMBER PLANETS */
+.number-zone{padding-top:85px;display:flex;flex-direction:column;align-items:center}
+.zone-title{font-size:18px;font-weight:600;color:#596967;margin-bottom:30px}
+.number-orbit{width:100%;height:270px;position:relative;display:flex;align-items:center;justify-content:center}
+.number-orbit:before{
+ content:'';position:absolute;width:330px;height:210px;border:2px dashed rgba(82,109,105,.23);border-radius:50%;
+}
+.number-badge{
+ position:absolute;width:102px;height:102px;border:0;background:#fffdf6;color:#2f4f4f;
+ font-size:22px;font-weight:400;cursor:pointer;border-radius:50%;
+ box-shadow:0 9px 0 #ded5bf,0 15px 25px rgba(60,55,40,.08);transition:.2s ease;
+ display:flex;align-items:center;justify-content:center;
+}
+.number-badge:nth-child(1){transform:translate(-135px,18px)}
+.number-badge:nth-child(2){transform:translate(0,-72px)}
+.number-badge:nth-child(3){transform:translate(135px,18px)}
+.number-badge:after{
+ content:'';position:absolute;inset:-8px;border:3px solid transparent;border-radius:50%;transition:.2s ease;
+}
+.number-badge:hover{margin-top:-7px}
+.number-badge:active{margin-top:5px;box-shadow:0 4px 0 #ded5bf}
+.number-badge.selected:after{border-color:#e67e22;transform:rotate(-9deg) scale(1.08)}
+.number-badge.selected{box-shadow:0 9px 0 #e0b866,0 0 0 7px rgba(230,126,34,.1)}
+
+/* NAME PATH */
+.name-zone{padding-top:85px;display:flex;flex-direction:column;align-items:center}
+.name-path{width:100%;position:relative;display:flex;flex-direction:column;align-items:center;gap:18px}
+.name-path:before{
+ content:'';position:absolute;left:28px;top:20px;bottom:20px;border-left:2px dashed rgba(230,126,34,.28);
+}
+.word-card{
+ position:relative;width:min(360px,90%);min-height:60px;background:transparent;border:0;border-bottom:2px solid #d9caa8;
+ color:#2f4f4f;font-size:22px;font-weight:400;cursor:pointer;text-align:left;padding:0 20px 0 48px;
+ opacity:.4;pointer-events:none;transition:.2s ease;
+}
+.word-card:before{
+ content:'?';position:absolute;left:0;top:50%;transform:translateY(-50%);
+ width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
+ background:#fffdf6;border:1px solid #dfd3b8;color:#9b8a63;font-size:17px;font-weight:600;
+}
+.word-card.active{opacity:1;pointer-events:auto}
+.word-card.active:hover{padding-left:57px;color:#e67e22;border-bottom-color:#e67e22}
+.word-card.selected{color:#e67e22;border-bottom-color:#e67e22;padding-left:57px}
+.word-card.selected:before{content:'✓';background:#fff6e4;border-color:#e67e22;color:#e67e22}
+
+/* navigation exactly retained */
+.footer{width:100%;max-width:1100px;display:flex;justify-content:space-between;align-items:center;padding:5px 0}
+.nav-btn{background:#e67e22;color:#fff;border:none;width:178px;height:45px;padding:0;font-size:20px;font-weight:500;border-radius:40px;cursor:pointer;box-shadow:0 6px 0 #d35400;transition:.1s ease}
+.nav-btn:active:not(:disabled){transform:translateY(4px);box-shadow:0 2px 0 #d35400}
+.nav-btn:disabled{background:#b2bec3;box-shadow:0 6px 0 #636e72;cursor:not-allowed;opacity:.7}
+.check-btn{background:#00b894;box-shadow:0 6px 0 #008f72}
+.check-btn:active:not(:disabled){box-shadow:0 2px 0 #008f72}
+.replay-btn{
+  background:linear-gradient(180deg,#1599ed 0%,#0984e3 100%);
+  box-shadow:0 5px 0 #0874bd,0 8px 16px rgba(9,132,227,.22);
+  width:185px;min-width:185px;height:46px;padding:0 20px;margin-top:14px;
+  font-size:22px;font-weight:600;line-height:46px;border-radius:23px;
+  border:2px solid rgba(255,255,255,.35);letter-spacing:.2px;
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.replay-btn:hover{transform:translateY(-2px);box-shadow:0 7px 0 #0874bd,0 11px 20px rgba(9,132,227,.26)}
+.replay-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #0874bd,0 4px 8px rgba(9,132,227,.18)}
+
+/* SAME popup */
+.popup-overlay{position:fixed;inset:0;display:flex;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:.3s;z-index:100}
+.popup-overlay.active{opacity:1;pointer-events:auto}
+.popup-card{position:relative;width:520px;height:300px;max-width:calc(100vw - 30px);padding:30px;border-radius:36px;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.1);transform:scale(.8);transition:.35s cubic-bezier(.175,.885,.32,1.275);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.popup-card:before,.popup-card:after{content:'';position:absolute;border-radius:50%;pointer-events:none}
+.popup-card:before{width:220px;height:220px;top:-60px;right:-50px}.popup-card:after{width:180px;height:180px;bottom:-70px;left:-40px}
+.popup-card.correct{background:#edfbf4;border:6px solid #00c885}.popup-card.correct:before,.popup-card.correct:after{background:rgba(162,245,209,.45)}
+.popup-card.correct .popup-title{color:#00a86b}.popup-card.correct .popup-subtitle{color:#2e7d5b}
+.popup-card.wrong{background:#fff0f2;border:6px solid #ff6b7a}.popup-card.wrong:before,.popup-card.wrong:after{background:rgba(255,196,203,.45)}
+.popup-card.wrong .popup-title{color:#d33847}.popup-card.wrong .popup-subtitle{color:#a33b45}
+.popup-card.complete{background:#f0f3ff;border:6px solid #6c5ce7}.popup-card.complete:before,.popup-card.complete:after{background:rgba(162,155,254,.35)}
+.popup-card.complete .popup-title{color:#6c5ce7}.popup-card.complete .popup-subtitle{color:#4834d4}
+.popup-overlay.active .popup-card{transform:scale(1)}
+.popup-icon{font-size:4.8rem;margin-bottom:12px;z-index:2;line-height:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,.1))}.popup-title{font-size:3rem;font-weight:600;margin-bottom:8px;z-index:2}.popup-subtitle{font-size:1.4rem;font-weight:500;z-index:2}
+
+@media(min-width:1600px){
+  .heading{font-size:30px}
+  .game-stage{width:min(1500px,94vw)}
+  .quest{width:min(1300px,92vw);min-height:590px;grid-template-columns:1fr 1fr;gap:80px}
+  .mission{top:14%}
+  .clue{font-size:36px;font-weight:500}
+  .clue .token{height:72px;min-width:165px}
+  .zone-title{font-size:21px}
+  .number-badge{width:116px;height:116px;font-size:25px}
+  .word-card{font-size:24px;min-height:66px}
+  .number-orbit{height:310px}
+  .footer{width:min(1300px,94vw);margin-left:auto;margin-right:auto}
+  .nav-btn{width:200px;min-width:200px;height:60px;padding:0;font-size:30px;border-radius:50px}
+}
+@media(max-width:760px){
+ body{overflow:auto}.heading{font-size:18px}.quest{grid-template-columns:1fr;gap:10px;height:auto;padding-top:125px}.game-stage{overflow:visible}
+ .mission{top:65px;width:100%}.clue{font-size:24px;font-weight:500;gap:7px}.clue .token{min-width:105px;height:48px;padding:0 10px}.clue-plus{width:32px;height:32px;font-size:25px}
+ .example{top:10px;font-size:12px}.example b{display:none}.number-zone,.name-zone{padding-top:0}.number-orbit{height:220px}
+ .number-badge{width:78px;height:78px}.number-badge:nth-child(1){transform:translate(-95px,18px)}.number-badge:nth-child(2){transform:translate(0,-55px)}.number-badge:nth-child(3){transform:translate(95px,18px)}
+ .footer{position:sticky;bottom:0;background:#f7f1df;padding:10px 0}.nav-btn{width:30vw;font-size:15px}
+}
+
+/* ===== EXACT SAME CONFETTI EFFECT ===== */
+#confettiContainer{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    z-index:200;
+}
+.confetti-piece{
+    position:absolute;
+    width:9px;
+    height:14px;
+    border-radius:2px;
+    opacity:0;
+    animation:pageConfetti 1700ms cubic-bezier(.16,.72,.3,1) forwards;
+    will-change:transform,opacity;
+}
+.final-confetti-piece{
+    width:10px;
+    height:16px;
+    animation-duration:2300ms;
+}
+.final-confetti-piece:nth-child(3n){border-radius:50%}
+.final-confetti-piece:nth-child(4n){
+    width:7px;
+    height:19px;
+    border-radius:1px;
+}
+.final-confetti-piece:nth-child(5n){
+    width:13px;
+    height:8px;
+    border-radius:2px;
+}
+@keyframes pageConfetti{
+    0%{
+        opacity:1;
+        transform:translate3d(0,0,0) rotate(0deg) scale(1);
+    }
+    55%{opacity:1}
+    100%{
+        opacity:0;
+        transform:translate3d(var(--x),var(--y),0) rotate(var(--r)) scale(.72);
+    }
+}
+.popup-card.complete{
+    box-shadow:
+        0 20px 45px rgba(108,92,231,.18),
+        0 0 0 8px rgba(162,155,254,.12);
+}
+.popup-card.complete .replay-btn{margin-top:14px}
+.popup-card.complete .popup-icon{
+    animation:finalTrophyBounce 1.2s ease-in-out infinite;
+}
+@keyframes finalTrophyBounce{
+    0%,100%{transform:translateY(0) rotate(0deg) scale(1)}
+    50%{transform:translateY(-5px) rotate(-4deg) scale(1.06)}
+}
+
+/* ===== CHAPTER 5: UNIFIED FINAL POPUP ===== */
+.popup-overlay{
+    position:fixed !important;
+    inset:0 !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    background:transparent !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+    transition:opacity .3s ease,background .3s ease !important;
+    z-index:1000 !important;
+}
+.popup-overlay.active{
+    opacity:1 !important;
+    pointer-events:auto !important;
+    background:transparent !important;
+}
+.popup-overlay.active .popup-card{transform:scale(1) !important}
+.popup-overlay .popup-card{
+    position:relative !important;
+    width:520px !important;
+    height:300px !important;
+    max-width:calc(100vw - 30px) !important;
+    padding:30px !important;
+    border-radius:36px !important;
+    text-align:center !important;
+    transform:scale(.8) !important;
+    transition:transform .35s cubic-bezier(.175,.885,.32,1.275) !important;
+    overflow:hidden !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    margin:0 !important;
+}
+.popup-overlay .popup-card::before,
+.popup-overlay .popup-card::after{
+    content:'' !important;
+    position:absolute !important;
+    border-radius:50% !important;
+    pointer-events:none !important;
+}
+.popup-overlay .popup-card::before{width:220px !important;height:220px !important;top:-60px !important;right:-50px !important}
+.popup-overlay .popup-card::after{width:180px !important;height:180px !important;bottom:-70px !important;left:-40px !important}
+.popup-overlay .popup-card.correct{background:#edfbf4 !important;border:6px solid #00c885 !important}
+.popup-overlay .popup-card.correct::before,
+.popup-overlay .popup-card.correct::after{background:rgba(162,245,209,.45) !important}
+.popup-overlay .popup-card.correct .popup-title{color:#00a86b !important}
+.popup-overlay .popup-card.correct .popup-subtitle{color:#2e7d5b !important}
+.popup-overlay .popup-card.wrong{background:#fff0f2 !important;border:6px solid #ff6b7a !important}
+.popup-overlay .popup-card.wrong::before,
+.popup-overlay .popup-card.wrong::after{background:rgba(255,196,203,.45) !important}
+.popup-overlay .popup-card.wrong .popup-title{color:#d33847 !important}
+.popup-overlay .popup-card.wrong .popup-subtitle{color:#a33b45 !important}
+.popup-overlay .popup-card.complete{
+    background:#f0f3ff !important;
+    border:6px solid #6c5ce7 !important;
+    box-shadow:0 20px 45px rgba(108,92,231,.18),0 0 0 8px rgba(162,155,254,.12) !important;
+}
+.popup-overlay .popup-card.complete::before,
+.popup-overlay .popup-card.complete::after{background:rgba(162,155,254,.35) !important}
+.popup-overlay .popup-card.complete .popup-title{color:#6c5ce7 !important}
+.popup-overlay .popup-card.complete .popup-subtitle{color:#4834d4 !important}
+.popup-overlay .popup-icon{
+    font-size:4.8rem !important;
+    margin:0 0 12px !important;
+    padding:0 !important;
+    height:auto !important;
+    width:auto !important;
+    line-height:1 !important;
+    z-index:2 !important;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.1)) !important;
+    position:relative !important;
+}
+.popup-overlay .popup-title,
+.popup-overlay h2.popup-title{
+    font-size:3rem !important;
+    font-weight:600 !important;
+    margin:0 0 8px !important;
+    padding:0 !important;
+    height:auto !important;
+    line-height:1.15 !important;
+    z-index:2 !important;
+    position:relative !important;
+}
+.popup-overlay .popup-subtitle,
+.popup-overlay p.popup-subtitle{
+    font-size:1.4rem !important;
+    font-weight:500 !important;
+    margin:0 !important;
+    padding:0 !important;
+    height:auto !important;
+    line-height:1.35 !important;
+    z-index:2 !important;
+    text-align:center !important;
+    position:relative !important;
+}
+.popup-overlay .replay-btn,
+.popup-overlay #playAgainBtn,
+.popup-overlay .replay{
+    background:linear-gradient(180deg,#1599ed 0%,#0984e3 100%) !important;
+    box-shadow:0 5px 0 #0874bd,0 8px 16px rgba(9,132,227,.22) !important;
+    width:185px !important;
+    min-width:185px !important;
+    height:46px !important;
+    padding:0 20px !important;
+    margin-top:14px !important;
+    font-size:22px !important;
+    font-weight:600 !important;
+    line-height:46px !important;
+    border-radius:23px !important;
+    border:2px solid rgba(255,255,255,.35) !important;
+    letter-spacing:.2px !important;
+    color:#fff !important;
+    cursor:pointer !important;
+    z-index:2 !important;
+    font-family:'Livvic',sans-serif !important;
+    transition:transform .12s ease,box-shadow .12s ease !important;
+}
+.popup-overlay .replay-btn:hover,
+.popup-overlay #playAgainBtn:hover,
+.popup-overlay .replay:hover{
+    transform:translateY(-2px) !important;
+    box-shadow:0 7px 0 #0874bd,0 11px 20px rgba(9,132,227,.26) !important;
+}
+.popup-overlay .replay-btn:active,
+.popup-overlay #playAgainBtn:active,
+.popup-overlay .replay:active{
+    transform:translateY(3px) !important;
+    box-shadow:0 2px 0 #0874bd,0 4px 8px rgba(9,132,227,.18) !important;
+}
+.popup-overlay .popup-card.complete .popup-icon{
+    animation:ch5FinalTrophyBounce 1.2s ease-in-out infinite !important;
+}
+@keyframes ch5FinalTrophyBounce{
+    0%,100%{transform:translateY(0) rotate(0deg) scale(1)}
+    50%{transform:translateY(-5px) rotate(-4deg) scale(1.06)}
+}
+@media (max-width:520px){
+    .popup-overlay .popup-card{
+        width:calc(100vw - 24px) !important;
+        height:auto !important;
+        min-height:260px !important;
+        padding:24px 18px !important;
+    }
+    .popup-overlay .popup-title,
+    .popup-overlay h2.popup-title{font-size:2.2rem !important}
+    .popup-overlay .popup-subtitle,
+    .popup-overlay p.popup-subtitle{font-size:1.1rem !important}
+    .popup-overlay .popup-icon{font-size:3.6rem !important}
+}
+
+</style>
+</head>
+<body>
+<header><h2 class="heading">Circle the correct number and write its number name. One has been done for you.</h2></header>
+
+<main class="game-stage">
+ <i class="star s1"></i><i class="star s2"></i><i class="star s3"></i><i class="star s4"></i>
+ <div class="quest">
+   <div class="example"><b>DONE</b><span>5 tens + 7 ones</span><span>→</span><span class="example-circle">57</span><span>→</span><span class="example-line">Fifty seven</span></div>
+
+   <div class="mission">
+    <div class="mission-label">Number Quest</div>
+    <div class="clue" id="clueText"></div>
+   </div>
+
+   <section class="number-zone">
+    <div class="zone-title">Find the number</div>
+    <div class="number-orbit" id="numbersRow"></div>
+   </section>
+
+   <section class="name-zone">
+    <div class="zone-title">Unlock its name</div>
+    <div class="name-path" id="wordsRow"></div>
+   </section>
+ </div>
+</main>
+
+<footer class="footer">
+ <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>PREV</button>
+ <button class="nav-btn check-btn" id="submitBtn" onclick="checkAnswer()" disabled>SUBMIT</button>
+ <button class="nav-btn" id="nextBtn" onclick="navigate(1)" disabled>NEXT</button>
+</footer>
+
+<div id="confettiContainer"></div>
+<div class="popup-overlay" id="popup"><div class="popup-card" id="popupCard">
+ <div class="popup-icon" id="popupIcon">🌟</div><h2 class="popup-title" id="popupTitle">Amazing!</h2>
+ <p class="popup-subtitle" id="popupSubtitle">You got it right! ✨</p>
+ <button class="nav-btn replay-btn" id="playAgainBtn" style="display:none" onclick="restartGame()">Play Again</button>
+</div></div>
+
+<script>
+const quizData=[
+ {tens:3,ones:9,correctNum:39,numOptions:[39,49,59],correctName:'Thirty Nine',nameOptions:['Thirty Nine','Forty Nine','Fifty Nine']},
+ {tens:2,ones:6,correctNum:26,numOptions:[46,26,56],correctName:'Twenty Six',nameOptions:['Forty Six','Twenty Six','Fifty Six']},
+ {tens:6,ones:0,correctNum:60,numOptions:[54,51,60],correctName:'Sixty',nameOptions:['Fifty Four','Fifty One','Sixty']},
+ {tens:5,ones:3,correctNum:53,numOptions:[53,58,55],correctName:'Fifty Three',nameOptions:['Fifty Three','Fifty Eight','Fifty Five']},
+ {tens:4,ones:8,correctNum:48,numOptions:[28,48,58],correctName:'Forty Eight',nameOptions:['Twenty Eight','Forty Eight','Fifty Eight']},
+ {tens:5,ones:0,correctNum:50,numOptions:[40,30,50],correctName:'Fifty',nameOptions:['Forty','Thirty','Fifty']}
+];
+let currentIndex=0,selectedNumber=null,selectedName=null,solved=Array(quizData.length).fill(false),savedAnswers=Array(quizData.length).fill(null),popupTimer=null;
+
+
+let audioCtx = null;
+
+function playTone(type) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === "correct") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    } else if (type === "wrong") {
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+      osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    }
+  } catch (error) {
+    console.log("Audio error:", error);
+  }
+}
+
+
+function loadQuestion(){
+ const q=quizData[currentIndex];
+ const saved=savedAnswers[currentIndex];
+ selectedNumber=saved ? saved.number : null;
+ selectedName=saved ? saved.name : null;
+
+ document.getElementById('clueText').innerHTML=`<span class="token">${q.tens} tens</span><span class="clue-plus">+</span><span class="token">${q.ones} ones</span>`;
+
+ const nr=document.getElementById('numbersRow');nr.innerHTML='';
+ q.numOptions.forEach(num=>{
+  const b=document.createElement('button');b.className='number-badge';b.type='button';b.textContent=num;
+  if(saved && saved.number===num)b.classList.add('selected');
+  if(!solved[currentIndex])b.onclick=()=>selectNumber(b,num);
+  nr.appendChild(b);
+ });
+
+ const wr=document.getElementById('wordsRow');wr.innerHTML='';
+ q.nameOptions.forEach(name=>{
+  const b=document.createElement('button');b.className='word-card';b.type='button';b.textContent=name.toLowerCase().replace(/^./,c=>c.toUpperCase());
+  if(selectedNumber!==null)b.classList.add('active');
+  if(saved && saved.name===name)b.classList.add('selected');
+  if(!solved[currentIndex])b.onclick=()=>selectWord(b,name);
+  wr.appendChild(b);
+ });
+ updateButtons();
+}
+function selectNumber(el,num){
+ if(solved[currentIndex])return;selectedNumber=num;
+ document.querySelectorAll('.number-badge').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');
+ document.querySelectorAll('.word-card').forEach(x=>x.classList.add('active'));updateButtons();
+}
+function selectWord(el,name){
+ if(solved[currentIndex]||selectedNumber===null)return;selectedName=name;
+ document.querySelectorAll('.word-card').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');updateButtons();
+}
+function checkAnswer(){
+ if(selectedNumber===null||!selectedName)return;
+ const q=quizData[currentIndex];
+
+ if(selectedNumber===q.correctNum&&selectedName===q.correctName){
+  savedAnswers[currentIndex]={number:selectedNumber,name:selectedName};
+  solved[currentIndex]=true;
+  playTone('correct');
+  speak('Correct');
+
+  const final=solved.every(Boolean);
+
+  if(final){
+   // Match Number Lock Match final-popup flow.
+   showPopup('correct','🌟','Amazing!','You got it right! ✨',false);
+   showSmallConfetti(false);
+
+   clearTimeout(popupTimer);
+   popupTimer=setTimeout(()=>{
+    showPopup('complete','🏆','Congratulations!','Fantastic job! You solved all questions! 🎉',true);
+    showSmallConfetti(true);
+   },1800);
+
+  }else{
+   showPopup(
+    'correct',
+    '🌟',
+    'Amazing!',
+    'You got it right! ✨',
+    false
+   );
+   showSmallConfetti(false);
+  }
+ }else{
+  speak('Wrong');
+  showPopup('wrong','😟','Keep Going!','Try again, you can do it! 🌈');
+ }
+
+ updateButtons();
+}
+
+function showSmallConfetti(isFinal=false){
+    const confettiContainer=document.getElementById('confettiContainer');
+    if(!confettiContainer)return;
+
+    confettiContainer.innerHTML='';
+
+    const count=isFinal?95:42;
+
+    const colors=[
+        '#00b894',
+        '#e67e22',
+        '#6c5ce7',
+        '#0984e3',
+        '#fdcb6e',
+        '#ff6b7a',
+        '#00cec9',
+        '#a29bfe'
+    ];
+
+    for(let i=0;i<count;i++){
+        const piece=document.createElement('span');
+
+        piece.className=isFinal
+            ?'confetti-piece final-confetti-piece'
+            :'confetti-piece';
+
+        const startX=Math.random()*100;
+        const startY=-8+Math.random()*10;
+
+        const drift=(Math.random()*520-260)*(isFinal?1.15:.9);
+        const fall=window.innerHeight*(.82+Math.random()*.48);
+        const rotation=Math.random()*1400-700;
+
+        piece.style.left=startX+'%';
+        piece.style.top=startY+'%';
+        piece.style.setProperty('--x',drift+'px');
+        piece.style.setProperty('--y',fall+'px');
+        piece.style.setProperty('--r',rotation+'deg');
+        piece.style.background=colors[Math.floor(Math.random()*colors.length)];
+        piece.style.animationDelay=(Math.random()*(isFinal?500:220))+'ms';
+
+        confettiContainer.appendChild(piece);
+
+        setTimeout(()=>piece.remove(),isFinal?2900:2050);
+    }
+}
+
+function speak(text){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.volume=.8;u.rate=1;u.pitch=1;speechSynthesis.speak(u)}
+function updateButtons(){
+ document.getElementById('prevBtn').disabled=currentIndex===0;
+ document.getElementById('submitBtn').disabled=solved[currentIndex]||selectedNumber===null||!selectedName;
+ document.getElementById('nextBtn').disabled=currentIndex===quizData.length-1||!solved[currentIndex];
+}
+function navigate(d){const n=currentIndex+d;if(n<0||n>=quizData.length)return;currentIndex=n;loadQuestion()}
+function showPopup(status,icon,title,subtitle,isFinal=false){
+ const c=document.getElementById('popupCard');c.className='popup-card '+status;
+ document.getElementById('popupIcon').textContent=icon;document.getElementById('popupTitle').textContent=title;
+ document.getElementById('popupSubtitle').textContent=subtitle;document.getElementById('playAgainBtn').style.display=isFinal?'inline-block':'none';
+ document.getElementById('popup').classList.add('active');
+ clearTimeout(popupTimer);
+ if(!isFinal){
+  popupTimer=setTimeout(()=>{
+   closePopup();
+   if(status==='wrong'){
+    selectedNumber=null;
+    selectedName=null;
+    document.querySelectorAll('.number-badge').forEach(x=>x.classList.remove('selected'));
+    document.querySelectorAll('.word-card').forEach(x=>x.classList.remove('selected','active'));
+    updateButtons();
+   }
+  },1800);
+ }
+}
+function closePopup(){document.getElementById('popup').classList.remove('active')}
+function restartGame(){
+ clearTimeout(popupTimer);
+ closePopup();
+ const c=document.getElementById('confettiContainer');if(c)c.innerHTML='';
+ currentIndex=0;
+ solved=Array(quizData.length).fill(false);
+ savedAnswers=Array(quizData.length).fill(null);
+ loadQuestion();
+}
+loadQuestion();
+</script>
+</body>
+</html>

@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>True or False</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="../assets/css/reuse.css">
+
+<style>
+/* =========================================================
+   BASE STYLES
+   Page-specific styles only.
+   Next/Prev, answer popup and final popup come from reuse.css.
+   ========================================================= */
+
+*{box-sizing:border-box}
+
+html,body{
+    width:100%;
+    height:100%;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+}
+
+body{
+    font-family:"Livvic",sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#33424f;
+    background:#fffdf8;
+}
+
+.quiz{
+    width:100%;
+    height:100vh;
+    height:100dvh;
+    padding:clamp(8px,1.4vh,18px) clamp(14px,3vw,48px) clamp(8px,1.2vh,16px);
+    display:flex;
+    flex-direction:column;
+    gap:clamp(6px,1vh,14px);
+    overflow:hidden;
+    background:
+        radial-gradient(circle at 7% 5%,rgba(238,232,255,.72),transparent 24%),
+        radial-gradient(circle at 93% 8%,rgba(222,245,233,.68),transparent 23%),
+        linear-gradient(180deg,#fffefb 0%,#fffaf2 100%);
+}
+
+.topbar{
+    width:100%;
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:90px minmax(0,1fr) 90px;
+    align-items:start;
+    gap:10px;
+}
+
+.icon-btn{
+    background:none;
+    border:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    cursor:pointer;
+}
+
+.icon-circle{
+    width:clamp(42px,4.2vw,62px);
+    height:clamp(42px,4.2vw,62px);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:clamp(18px,1.8vw,27px);
+    transition:transform .2s ease;
+}
+
+.icon-btn:hover .icon-circle{
+    transform:scale(1.06);
+}
+
+.icon-circle.home{
+    background:linear-gradient(145deg,#8b6fe0,#6f42c1);
+    box-shadow:0 4px 0 #4f2e93;
+}
+
+.icon-circle.hint{
+    background:linear-gradient(145deg,#ffc94d,#f7a800);
+    box-shadow:0 4px 0 #c17e00;
+}
+
+.title-block{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.title{
+    margin:0;
+    text-align:center;
+    color:#1f2d3d;
+    font-size:26px;
+    line-height:1.12;
+    /* font-weight:400; */
+}
+
+.quiz-layout{
+    flex:1 1 auto;
+    min-height:0;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(9px,1.25vh,16px);
+    overflow:hidden;
+}
+
+.question-line{
+    width:min(1100px,94vw);
+    flex:0 0 auto;
+    display:flex;
+    align-items:baseline;
+    justify-content:center;
+    gap:clamp(7px,1vw,14px);
+    color:#33424f;
+}
+
+.question-number{
+    flex:0 0 auto;
+    margin:0;
+    font-size:30px;
+    line-height:1.15;
+    /* font-weight:400; */
+    white-space:nowrap;
+}
+
+.question-statement{
+    min-width:0;
+    margin:0;
+    font-size:30px;
+    line-height:1.2;
+    /* font-weight:400; */
+    text-align:left;
+}
+
+.correction-text{
+    width:min(1100px,94vw);
+    margin:0;
+    font-size:20px;
+    line-height:1.3;
+    color:#1c7c54;
+    text-align:center;
+}
+
+.correction-text[hidden]{
+    display:none;
+}
+
+.question-image-wrap{
+    width:min(1100px,94vw);
+    height:clamp(150px,30vh,300px);
+    flex:0 1 auto;
+    min-height:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    padding:clamp(5px,.8vh,10px);
+}
+
+.question-image{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+    pointer-events:none;
+    -webkit-user-drag:none;
+}
+
+.tf-options{
+    width:min(720px,88vw);
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:clamp(16px,2.5vw,30px);
+}
+
+.tf-btn{
+    min-width:0;
+    height:clamp(68px,8.5vh,92px);
+    border:3px solid #dfd4f1;
+    border-radius:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    background:linear-gradient(145deg,#fff,#f7f3ff);
+    color:#3e4350;
+    font-family:"Livvic",sans-serif;
+    font-size:clamp(19px,1.8vw,27px);
+    font-weight:400;
+    cursor:pointer;
+    box-shadow:0 5px 0 #d8cbe9,0 8px 20px rgba(111,66,193,.08);
+    transition:transform .18s ease,box-shadow .18s ease,background .18s ease,border-color .18s ease;
+}
+
+.tf-btn[data-value="T"]{
+    background:linear-gradient(145deg,#f1fbf5,#e2f5e9);
+    border-color:#c9e6d2;
+    box-shadow:0 5px 0 #afd3bb,0 8px 20px rgba(87,160,111,.09);
+}
+
+.tf-btn[data-value="F"]{
+    background:linear-gradient(145deg,#fff5f2,#ffe9e3);
+    border-color:#efd0c7;
+    box-shadow:0 5px 0 #dfb9ad,0 8px 20px rgba(210,113,96,.09);
+}
+
+.tf-btn:hover:not(:disabled){
+    transform:translateY(-3px);
+    box-shadow:0 8px 0 #d8cbe9,0 12px 24px rgba(111,66,193,.12);
+}
+
+.tf-btn[data-value="T"]:hover:not(:disabled){
+    box-shadow:0 8px 0 #afd3bb,0 12px 24px rgba(87,160,111,.13);
+}
+
+.tf-btn[data-value="F"]:hover:not(:disabled){
+    box-shadow:0 8px 0 #dfb9ad,0 12px 24px rgba(210,113,96,.13);
+}
+
+.tf-btn:active:not(:disabled){
+    transform:translateY(3px);
+    box-shadow:0 2px 0 #d8cbe9;
+}
+
+.tf-circle{
+    width:clamp(38px,3.2vw,52px);
+    height:clamp(38px,3.2vw,52px);
+    flex:0 0 auto;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#fff;
+    border:3px solid #b9a9d4;
+    font-size:.8em;
+    font-weight:400;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+.tf-btn[data-value="T"] .tf-circle{
+    border-color:#83b995;
+    color:#4e8964;
+}
+
+.tf-btn[data-value="F"] .tf-circle{
+    border-color:#d69a8e;
+    color:#b86658;
+}
+
+.tf-btn.correct{
+    border-color:#73b88d;
+    background:linear-gradient(145deg,#eafff0,#d9f1e1);
+    color:#397553;
+    box-shadow:0 5px 0 #67a87f;
+}
+
+.tf-btn.correct .tf-circle{
+    border-color:#57a975;
+    background:#fff;
+    color:#39a05e;
+    font-size:1em;
+}
+
+.tf-btn.wrong{
+    border-color:#df8f95;
+    background:linear-gradient(145deg,#fff0f0,#ffe0e0);
+    color:#a94e57;
+    animation:tfShake .42s ease;
+}
+
+.tf-btn.wrong .tf-circle{
+    border-color:#df8f95;
+    color:#c75b66;
+}
+
+.tf-btn:disabled{
+    cursor:default;
+}
+
+@keyframes tfShake{
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-7px)}
+    50%{transform:translateX(7px)}
+    75%{transform:translateX(-4px)}
+}
+
+.hint-overlay{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:3500;
+    background:rgba(0,0,0,.25);
+}
+
+.hint-overlay.show{
+    display:flex;
+}
+
+.hint-box{
+    width:min(420px,calc(100vw - 32px));
+    padding:26px 28px;
+    background:#fff;
+    border-radius:24px;
+    text-align:center;
+    box-shadow:0 12px 35px rgba(0,0,0,.18);
+}
+
+.hint-box h3{
+    margin:0 0 10px;
+    font-size:clamp(24px,3vw,32px);
+    font-weight:400;
+    color:#e08e00;
+}
+
+.hint-box p{
+    margin:0;
+    font-size:clamp(16px,1.6vw,21px);
+    line-height:1.45;
+    color:#1f2d3d;
+}
+
+.hint-close{
+    margin-top:18px;
+    min-width:110px;
+    height:44px;
+    border:0;
+    border-radius:24px;
+    background:linear-gradient(145deg,#ffc94d,#f7a800);
+    color:#fff;
+    font-family:"Livvic",sans-serif;
+    font-size:17px;
+    font-weight:400;
+    cursor:pointer;
+    box-shadow:0 4px 0 #c17e00;
+}
+
+.hint-close:active{
+    transform:translateY(3px);
+    box-shadow:0 1px 0 #c17e00;
+}
+
+.controls{
+    flex:0 0 auto;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+/* =========================================================
+   RESPONSIVE MEDIA QUERIES
+   Ordered from smallest to largest.
+   Shared navigation/popup styles are not redefined here.
+   ========================================================= */
+
+@media (max-width:400px){
+    .quiz{
+        padding:5px 7px;
+        gap:3px;
+    }
+
+    .topbar{
+        grid-template-columns:42px minmax(0,1fr) 42px;
+    }
+
+    .icon-circle{
+        width:34px;
+        height:34px;
+        font-size:14px;
+    }
+
+    .title{
+        font-size:15px;
+    }
+
+    .quiz-layout{
+        gap:5px;
+    }
+
+    .question-line{
+        width:95vw;
+        gap:5px;
+        justify-content:flex-start;
+    }
+
+    .question-number{
+        font-size:15px;
+    }
+
+    .question-statement{
+        font-size:12px;
+        line-height:1.15;
+    }
+
+    .question-image-wrap{
+        width:95vw;
+        height:clamp(105px,25vh,145px);
+        border-radius:14px;
+        padding:3px;
+    }
+
+    .tf-options{
+        width:95vw;
+        gap:8px;
+    }
+
+    .tf-btn{
+        height:48px;
+        border-width:2px;
+        border-radius:14px;
+        font-size:13px;
+        gap:5px;
+    }
+
+    .tf-circle{
+        width:27px;
+        height:27px;
+        border-width:2px;
+    }
+}
+
+@media (max-width:600px){
+    .quiz{
+        padding:6px 9px;
+        gap:4px;
+    }
+
+    .topbar{
+        grid-template-columns:46px minmax(0,1fr) 46px;
+    }
+
+    .icon-circle{
+        width:37px;
+        height:37px;
+        font-size:15px;
+    }
+
+    .title{
+        font-size:clamp(16px,4.5vw,21px);
+    }
+
+    .quiz-layout{
+        gap:6px;
+    }
+
+    .question-line{
+        width:94vw;
+        gap:6px;
+        justify-content:flex-start;
+    }
+
+    .question-number{
+        font-size:16px;
+    }
+
+    .question-statement{
+        font-size:13.5px;
+    }
+
+    .question-image-wrap{
+        width:94vw;
+        height:clamp(120px,27vh,175px);
+        border-radius:16px;
+    }
+
+    .tf-options{
+        width:94vw;
+        gap:10px;
+    }
+
+    .tf-btn{
+        height:56px;
+        border-radius:16px;
+        font-size:15px;
+    }
+
+    .tf-circle{
+        width:31px;
+        height:31px;
+        border-width:2px;
+    }
+}
+
+@media (max-width:900px){
+    .quiz{
+        padding:8px 12px;
+        gap:5px;
+    }
+
+    .topbar{
+        grid-template-columns:55px minmax(0,1fr) 55px;
+    }
+
+    .quiz-layout{
+        gap:8px;
+    }
+
+    .question-line{
+        width:92vw;
+        gap:8px;
+    }
+
+    .question-number{
+        font-size:19px;
+    }
+
+    .question-statement{
+        font-size:15px;
+    }
+
+    .question-image-wrap{
+        width:92vw;
+        height:clamp(145px,29vh,220px);
+        border-radius:18px;
+    }
+
+    .tf-options{
+        width:min(650px,92vw);
+        gap:14px;
+    }
+
+    .tf-btn{
+        height:62px;
+        border-radius:18px;
+        font-size:17px;
+    }
+
+    .tf-circle{
+        width:36px;
+        height:36px;
+    }
+}
+
+@media (min-width:1200px){
+    .quiz{
+        padding-left:40px;
+        padding-right:40px;
+    }
+
+    .question-line{
+        width:min(1150px,90vw);
+        gap:12px;
+    }
+
+    .question-number{
+        font-size:30px;
+    }
+
+    .question-statement{
+        font-size:30px;
+    }
+
+    .question-image-wrap{
+        width:min(1150px,90vw);
+        height:34vh;
+        border-radius:22px;
+    }
+
+    .tf-options{
+        width:min(760px,72vw);
+        gap:24px;
+    }
+
+    .tf-btn{
+        height:80px;
+        font-size:25px;
+        border-radius:22px;
+    }
+}
+
+@media (min-width:1600px){
+    .title{
+        font-size:40px !important;
+    }
+}
+
+@media (min-width:1440px){
+    .question-line{
+        width:1150px;
+    }
+
+    .question-number{
+        font-size:30px;
+    }
+
+    .question-statement{
+        font-size:30px;
+    }
+
+    .question-image-wrap{
+        width:1150px;
+        height:37vh;
+    }
+
+    .tf-options{
+        width:780px;
+        gap:28px;
+    }
+
+    .tf-btn{
+        height:88px;
+        font-size:27px;
+        border-radius:24px;
+    }
+
+    .tf-circle{
+        width:50px;
+        height:50px;
+    }
+}
+
+/* Question text: 30px on laptops (base), 40px on large monitors */
+@media (min-width:1600px){
+    .question-number{
+        font-size:40px;
+    }
+
+    .question-statement{
+        font-size:40px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="quiz" id="quizCard">
+
+    <div class="topbar">
+        <button class="icon-btn" id="homeBtn" aria-label="Home">
+            <span class="icon-circle home"><i class="fa-solid fa-house"></i></span>
+        </button>
+
+        <div class="title-block">
+            <p class="title">True or False</p>
+        </div>
+
+        <button class="icon-btn" id="hintBtn" aria-label="Hint">
+            <span class="icon-circle hint"><i class="fa-solid fa-lightbulb"></i></span>
+        </button>
+    </div>
+
+    <div class="quiz-layout">
+
+        <div class="question-line">
+            <p class="question-number" id="questionNumber">Q1.</p>
+            <p class="question-statement" id="questionStatement"></p>
+        </div>
+
+        <p class="correction-text" id="correctionText" hidden></p>
+
+        <div class="question-image-wrap">
+            <img class="question-image" id="questionImage" src="../assets/images/tf1.png" alt="">
+        </div>
+
+        <div class="tf-options" id="options">
+            <button class="tf-btn" data-value="T" type="button">
+                <span class="tf-circle" aria-hidden="true">T</span>
+                <span>True</span>
+            </button>
+
+            <button class="tf-btn" data-value="F" type="button">
+                <span class="tf-circle" aria-hidden="true">F</span>
+                <span>False</span>
+            </button>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <button class="prev" id="prevBtn" disabled>
+            <i class="fa-solid fa-circle-arrow-left"></i> Prev
+        </button>
+
+        <button class="next" id="nextBtn" disabled>
+            Next <i class="fa-solid fa-circle-arrow-right"></i>
+        </button>
+    </div>
+
+</div>
+
+<div class="hint-overlay" id="hintOverlay">
+    <div class="hint-box">
+        <h3>Hint</h3>
+        <p id="hintText"></p>
+        <button class="hint-close" id="closeHintBtn">Got it!</button>
+    </div>
+</div>
+
+<div id="answerPopup" class="kid-popup">
+    <div class="kid-card">
+        <div class="kid-icon" id="popupIcon"></div>
+        <h3 id="popupTitle"></h3>
+        <p id="popupMsg"></p>
+    </div>
+</div>
+
+<div id="finalPopup">
+    <div class="final-kid-box">
+        <h2>🎉 Congratulations!</h2>
+        <p id="finalScore"></p>
+        <div id="stars"></div>
+        <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+    </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<script>
+const QUESTIONS = [
+    {
+        label:"Q1.",
+        text:"The acute angle is more than 90° and less than 0°.",
+        answer:"F",
+        image:"../assets/images/acute.png",
+        hint:"An acute angle is greater than 0° and less than 90°."
+    },
+    {
+        label:"Q2.",
+        text:"The straight angle has exactly 190°.",
+        answer:"F",
+        image:"../assets/images/straightAngle.png",
+        hint:"A straight angle has exactly 180°."
+    },
+    {
+        label:"Q3.",
+        text:"Two right angles combined together form a straight angle.",
+        answer:"T",
+        image:"../assets/images/straightAngle.png",
+        hint:"Two 90° right angles make 180°, which is a straight angle."
+    },
+    {
+        label:"Q4.",
+        text:"Reflex angle is greater than 90° and less than 180°.",
+        answer:"F",
+        image:"../assets/images/reflexAngle.png",
+        hint:"A reflex angle is greater than 180° and less than 360°."
+    },
+    {
+        label:"Q5.",
+        text:"The total angle formed by keeping the 2 protractors upside down is a complete angle.",
+        answer:"T",
+        image:"../assets/images/2(5).png",
+        hint:"Two 180° halves make a complete 360° angle."
+    },
+    {
+        label:"Q6.",
+        text:"24 coins can be arranged to form a square.",
+        answer:"F",
+        image:"../assets/images/24coins.png",
+        hint:"24 is not a perfect square number."
+    },
+    {
+        label:"Q7.",
+        text:"All even numbers are not perfect square numbers.",
+        answer:"F",
+        image:"../assets/images/perfectNumber.png",
+        hint:"Some even numbers, such as 4 and 16, are perfect squares."
+    },
+    {
+        label:"Q8.",
+        text:"A number multiplied by 1 gives a perfect square number.",
+        answer:"F",
+        image:"../assets/images/2(8).png",
+        hint:"Multiplying a number by 1 does not always give a perfect square."
+    },
+    {
+        label:"Q9.",
+        text:"All perfect square numbers are odd numbers.",
+        answer:"F",
+        image:"../assets/images/2(9).png",
+        hint:"Some perfect squares, such as 4 and 16, are even."
+    },
+    {
+        label:"Q10.",
+        text:"1 is a perfect square number.",
+        answer:"T",
+        image:"../assets/images/2(10).png",
+        hint:"1 = 1 × 1, so 1 is a perfect square."
+    }
+];
+
+const total=QUESTIONS.length;
+let current=0;
+let score=0;
+const answered=QUESTIONS.map(()=>false);
+
+const questionNumber=document.getElementById("questionNumber");
+const questionStatement=document.getElementById("questionStatement");
+const questionImage=document.getElementById("questionImage");
+const correctionText=document.getElementById("correctionText");
+const optionsBox=document.getElementById("options");
+const prevBtn=document.getElementById("prevBtn");
+const nextBtn=document.getElementById("nextBtn");
+const correctSound=document.getElementById("correctSound");
+const wrongSound=document.getElementById("wrongSound");
+const homeBtn=document.getElementById("homeBtn");
+if(window.top!==window.self)homeBtn.style.visibility="hidden";
+const hintBtn=document.getElementById("hintBtn");
+const hintOverlay=document.getElementById("hintOverlay");
+const closeHintBtn=document.getElementById("closeHintBtn");
+const hintText=document.getElementById("hintText");
+
+function speak(t) {
+    if (!window.speechSynthesis) return;
+
+    speechSynthesis.cancel();
+
+    const msg = new SpeechSynthesisUtterance(t);
+    msg.lang = "en-GB";
+    msg.volume = 0.25;
+    msg.rate = 1;
+    msg.pitch = 0.8;
+
+    speechSynthesis.speak(msg);
+}
+
+function smallConfetti(){
+    if(!window.confetti)return;
+    confetti({
+        particleCount:40,
+        spread:60,
+        origin:{y:.7},
+        scalar:.8
+    });
+}
+
+function showPopup(isCorrect,message){
+    const popup=document.getElementById("answerPopup");
+    const icon=document.getElementById("popupIcon");
+    const title=document.getElementById("popupTitle");
+    const msg=document.getElementById("popupMsg");
+
+    popup.className="kid-popup "+(isCorrect?"kid-correct":"kid-wrong");
+    popup.style.display="flex";
+
+    if(isCorrect){
+        icon.textContent="🎉";
+        title.textContent="Correct!";
+        msg.textContent=message||"";
+    }else{
+        icon.textContent="🥲";
+        title.textContent="Try again";
+        msg.textContent="";
+    }
+
+    clearTimeout(showPopup._t);
+    showPopup._t=setTimeout(()=>{
+        popup.style.display="none";
+    },message?2600:1400);
+}
+
+function showFinal(){
+    const popup=document.getElementById("finalPopup");
+
+    document.getElementById("finalScore").textContent=
+        `Your Score: ${score} / ${total}`;
+
+    document.getElementById("stars").textContent=
+        "⭐".repeat(Math.max(0,Math.min(5,Math.round(score/total*5))));
+
+    popup.style.display="flex";
+
+    if(window.confetti){
+        confetti({
+            particleCount:150,
+            spread:100,
+            origin:{y:.5}
+        });
+
+        setTimeout(()=>{
+            confetti({
+                particleCount:100,
+                spread:70,
+                origin:{y:.6}
+            });
+        },300);
+    }
+}
+
+function renderOptions(){
+    const buttons=optionsBox.querySelectorAll(".tf-btn");
+
+    buttons.forEach(button=>{
+        button.className="tf-btn";
+        button.disabled=false;
+
+        const circle=button.querySelector(".tf-circle");
+        circle.textContent=button.dataset.value;
+
+        if(answered[current]){
+            button.disabled=true;
+
+            if(button.dataset.value===QUESTIONS[current].answer){
+                button.classList.add("correct");
+                circle.textContent="✓";
+            }
+        }
+
+        button.onclick=()=>selectAnswer(button,button.dataset.value);
+    });
+}
+
+function selectAnswer(button,value){
+    if(answered[current])return;
+
+    const q=QUESTIONS[current];
+
+    if(value===q.answer){
+        button.classList.add("correct");
+
+        const circle=button.querySelector(".tf-circle");
+        circle.textContent="✓";
+
+        button.disabled=true;
+
+        const buttons=optionsBox.querySelectorAll(".tf-btn");
+        buttons.forEach(btn=>btn.disabled=true);
+
+        answered[current]=true;
+        score++;
+
+        correctSound.currentTime=0;
+        correctSound.play().catch(()=>{});
+
+        speak("Correct");
+        showPopup(true,q.answer==="F"?`Correct statement: ${q.hint}`:"");
+        smallConfetti();
+
+        if(q.answer==="F"){
+            correctionText.textContent=`Correct statement: ${q.hint}`;
+            correctionText.hidden=false;
+        }
+
+        nextBtn.disabled=false;
+
+        if(current===total-1){
+            nextBtn.disabled=true;
+            setTimeout(showFinal,1000);
+        }
+    }else{
+        button.classList.remove("wrong");
+        void button.offsetWidth;
+        button.classList.add("wrong");
+
+        wrongSound.currentTime=0;
+        wrongSound.play().catch(()=>{});
+
+        speak("Try again");
+        showPopup(false);
+
+        setTimeout(()=>{
+            if(!answered[current]){
+                button.classList.remove("wrong");
+            }
+        },450);
+    }
+}
+
+function renderQuestion(){
+    const q=QUESTIONS[current];
+
+    questionNumber.textContent=q.label;
+    questionStatement.textContent=q.text;
+    questionImage.src=q.image;
+    questionImage.alt="";
+
+    if(answered[current]&&q.answer==="F"){
+        correctionText.textContent=`Correct statement: ${q.hint}`;
+        correctionText.hidden=false;
+    }else{
+        correctionText.textContent="";
+        correctionText.hidden=true;
+    }
+
+    renderOptions();
+
+    prevBtn.disabled=current===0;
+    nextBtn.disabled=!answered[current]||current===total-1;
+}
+
+prevBtn.addEventListener("click",()=>{
+    if(current===0)return;
+    current--;
+    renderQuestion();
+});
+
+nextBtn.addEventListener("click",()=>{
+    if(nextBtn.disabled)return;
+
+    if(current<total-1){
+        current++;
+        renderQuestion();
+    }
+});
+
+homeBtn.addEventListener("click",()=>{
+    window.location.href="../Grade2_chapter1.html";
+});
+
+hintBtn.addEventListener("click",()=>{
+    hintText.textContent=QUESTIONS[current].hint;
+    hintOverlay.classList.add("show");
+});
+
+closeHintBtn.addEventListener("click",()=>{
+    hintOverlay.classList.remove("show");
+});
+
+hintOverlay.addEventListener("click",e=>{
+    if(e.target===hintOverlay){
+        hintOverlay.classList.remove("show");
+    }
+});
+
+renderQuestion();
+</script>
+</body>
+</html>

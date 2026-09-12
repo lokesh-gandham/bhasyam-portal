@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<title>Numeral Adventure</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:'Livvic',sans-serif;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+}
+
+body{
+    color:#2f4f4f;
+    
+}
+
+/* ---------- FULL PAGE GAME SCREEN ---------- */
+.game-screen{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    min-height:100vh;
+    overflow:hidden;
+}
+
+/* playful background objects */
+.doodle{
+    position:absolute;
+    pointer-events:none;
+    user-select:none;
+    opacity:.8;
+    z-index:0;
+}
+.doodle.one{top:9%;left:4%;font-size:36px;transform:rotate(-15deg)}
+.doodle.two{top:23%;right:5%;font-size:34px;transform:rotate(14deg)}
+.doodle.three{bottom:13%;left:7%;font-size:32px;transform:rotate(-12deg)}
+.doodle.four{bottom:20%;right:6%;font-size:36px;transform:rotate(10deg)}
+
+.topbar{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:96px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:5;
+}
+
+.top-heading{
+    color:#2f4f4f;
+    font-size:22px;
+    font-weight:400;
+    letter-spacing:.2px;
+    text-align:center;
+    line-height:1.25;
+}
+
+
+
+
+
+/* ---------- QUESTION STAGE ---------- */
+.stage{
+    position:absolute;
+    inset:96px 0 88px;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:12px clamp(28px,7vw,120px);
+}
+
+.question-layout{
+    width:min(1180px,100%);
+    min-height:min(500px,66vh);
+    display:grid;
+    grid-template-columns:minmax(280px,.8fr) minmax(420px,1.2fr);
+    align-items:center;
+    gap:clamp(35px,7vw,105px);
+}
+
+/* Keep the same image/question alignment for every question. */
+
+.visual-side{
+    position:relative;
+    min-height:330px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.image-orbit{
+    position:absolute;
+    width:min(330px,28vw);
+    aspect-ratio:1;
+    border-radius:50%;
+    border:2px dashed rgba(47,79,79,.17);
+    animation:slowSpin 20s linear infinite;
+}
+
+.image-orbit::before,
+.image-orbit::after{
+    content:"✦";
+    position:absolute;
+    color:#ffb648;
+    font-size:25px;
+}
+.image-orbit::before{top:0;left:18%}
+.image-orbit::after{bottom:3%;right:15%;color:#69bf9a}
+
+@keyframes slowSpin{
+    to{transform:rotate(360deg)}
+}
+
+.image-wrap{
+    width:min(285px,25vw);
+    aspect-ratio:1;
+    position:relative;
+    border-radius:42% 58% 52% 48%;
+    overflow:hidden;
+    background:linear-gradient(145deg,#fff,#edf8f2);
+    border:7px solid rgba(255,255,255,.85);
+    box-shadow:0 18px 45px rgba(47,79,79,.14);
+    display:grid;
+    place-items:center;
+    transform:rotate(-4deg);
+}
+
+.image-right .image-wrap{
+    transform:rotate(4deg);
+    border-radius:58% 42% 48% 52%;
+}
+
+.quiz-image{
+    width:85%;
+    height:85%;
+    object-fit:contain;
+    display:block;
+}
+
+/* visible fallback if image path is not yet replaced */
+.image-fallback{
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    font-size:92px;
+    background:linear-gradient(145deg,#fff8df,#e7f7ed);
+}
+
+.quiz-image.loaded + .image-fallback{
+    display:none;
+}
+
+.content-side{
+    position:relative;
+}
+
+.instruction{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 16px;
+    margin-bottom:20px;
+    border-radius:14px;
+    background:#fff4cb;
+    color:#2f4f4f;
+    font-size:20px;
+    font-weight:500;
+    box-shadow:0 6px 0 rgba(226,185,78,.10);
+}
+
+.instruction span{
+    display:inline-block;
+    padding:1px 8px;
+    background:rgba(255,255,255,.72);
+    border-radius:7px;
+}
+
+.question-text{
+    color:#2f4f4f;
+    font-size:30px;
+    font-weight:400;
+    line-height:1.55;
+    letter-spacing:.1px;
+    max-width:690px;
+}
+
+.answer-row{
+    margin-top:30px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+}
+
+.answer-box{
+    width:178px;
+    height:45px;
+    border:2px solid #efa45f;
+    border-radius:12px;
+    outline:none;
+    background:rgba(255,255,255,.92);
+    color:#2f4f4f;
+    text-align:center;
+    font-size:21px;
+    font-weight:500;
+    transition:.22s ease;
+    box-shadow:0 7px 18px rgba(239,164,95,.12);
+}
+
+.answer-box::placeholder{
+    color:#9aabaa;
+    font-size:15px;
+}
+
+.answer-box:focus{
+    border-color:#2f4f4f;
+    box-shadow:0 0 0 4px rgba(47,79,79,.10);
+    transform:translateY(-1px);
+}
+
+.answer-box.correct{
+    border-color:#57ba85;
+    background:#effbf3;
+}
+
+.answer-box.wrong{
+    border-color:#e77669;
+    background:#fff4f2;
+    animation:shake .36s ease;
+}
+
+.answer-tip{
+    font-size:16px;
+    color:#708684;
+}
+
+@keyframes shake{
+    0%,100%{transform:translateX(0)}
+    25%{transform:translateX(-7px)}
+    50%{transform:translateX(7px)}
+    75%{transform:translateX(-4px)}
+}
+
+/* ---------- BOTTOM CONTROLS ---------- */
+.bottom-controls{
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:100%;
+    height:82px;
+    z-index:10;
+    pointer-events:none;
+}
+
+.nav-btn,
+.submit-btn{
+    position:absolute;
+    pointer-events:auto;
+    border:none;
+    cursor:pointer;
+    font-family:'Livvic',sans-serif;
+    font-size:20px;
+    font-weight:500;
+    transition:.2s ease;
+}
+
+.nav-btn{
+    bottom:22px;
+    min-width:126px;
+    height:46px;
+    padding:0 19px;
+    border-radius:15px;
+    color:#2f4f4f;
+    border:2px solid rgba(47,79,79,.12);
+    box-shadow:0 8px 18px rgba(47,79,79,.12);
+}
+
+#prevBtn{
+    background:#a9cbe2;
+}
+
+#nextBtn{
+    background:#efbca6;
+}
+
+.nav-btn:hover:not(:disabled){
+    transform:translateY(-3px);
+    box-shadow:0 11px 22px rgba(47,79,79,.14);
+}
+
+.nav-btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+#prevBtn{
+    left:clamp(20px,4vw,70px);
+}
+
+#nextBtn{
+    right:clamp(20px,4vw,70px);
+}
+
+.submit-btn{
+    left:50%;
+    bottom:20px;
+    transform:translateX(-50%);
+    min-width:155px;
+    height:50px;
+    padding:0 28px;
+    border-radius:18px;
+    background:#2f4f4f;
+    color:#fff;
+    box-shadow:0 8px 0 rgba(22,59,59,.18),0 13px 25px rgba(47,79,79,.20);
+}
+
+.submit-btn:hover{
+    transform:translateX(-50%) translateY(-3px);
+}
+
+.submit-btn:active{
+    transform:translateX(-50%) translateY(2px);
+    box-shadow:0 4px 0 rgba(22,59,59,.18),0 8px 18px rgba(47,79,79,.16);
+}
+
+/* ---------- COMPACT GAME FEEDBACK ---------- */
+.feedback{
+    position:absolute;
+    top:50%;
+    left:50%;
+    z-index:30;
+    width:min(440px,88vw);
+    min-height:215px;
+    padding:26px 30px 28px;
+    border-radius:30px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    text-align:center;
+    opacity:0;
+    pointer-events:none;
+    transform:translate(-50%,-50%) scale(.7) rotate(-4deg);
+    transition:.28s cubic-bezier(.2,.9,.25,1.25);
+    box-shadow:0 20px 50px rgba(32,57,57,.22);
+}
+
+.feedback.show{
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1) rotate(0);
+}
+
+.feedback.correct-popup{
+    background:linear-gradient(135deg,#e2f6e9,#f4fcf6);
+    border:5px solid #16834f;
+}
+
+.feedback.wrong-popup{
+    background:linear-gradient(135deg,#fde6e2,#fff7f5);
+    border:5px solid #c94740;
+}
+
+.feedback-icon{
+    width:68px;
+    height:68px;
+    flex:0 0 68px;
+    border-radius:24px 24px 24px 8px;
+    display:grid;
+    place-items:center;
+    color:#fff;
+    font-size:36px;
+    box-shadow:0 5px 0 rgba(0,0,0,.08);
+}
+
+.correct-popup .feedback-icon{background:#16834f}
+.wrong-popup .feedback-icon{background:#c94740}
+
+.feedback-copy{
+    text-align:center;
+}
+
+.feedback-copy h3{
+    font-size:28px;
+    font-weight:600;
+    margin-bottom:3px;
+}
+
+.feedback-copy p{
+    font-size:17px;
+    color:#607878;
+}
+
+
+/* FINAL LEVEL COMPLETE POPUP */
+.final-popup{
+    position:absolute;
+    top:50%;
+    left:50%;
+    z-index:35;
+    width:min(520px,91vw);
+    padding:38px 36px 32px;
+    text-align:center;
+    border-radius:34px;
+    background:
+        radial-gradient(circle at 14% 15%,rgba(255,255,255,.70) 0 8px,transparent 9px),
+        radial-gradient(circle at 87% 18%,rgba(255,222,115,.78) 0 12px,transparent 13px),
+        radial-gradient(circle at 16% 83%,rgba(255,190,214,.50) 0 10px,transparent 11px),
+        linear-gradient(145deg,#eadcff,#cbb5f4 58%,#b89ae8);
+    border:5px solid #7350a8;
+    box-shadow:0 10px 0 rgba(83,55,126,.18),0 28px 70px rgba(55,38,80,.30);
+    opacity:0;
+    pointer-events:none;
+    transform:translate(-50%,-50%) scale(.72) rotate(-3deg);
+    transition:.34s cubic-bezier(.2,.9,.25,1.25);
+}
+
+.final-popup.show{
+    opacity:1;
+    pointer-events:auto;
+    transform:translate(-50%,-50%) scale(1) rotate(0);
+}
+
+.final-emoji{
+    font-size:78px;
+    margin-bottom:8px;
+    animation:celebrate 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes celebrate{
+    from{transform:translateY(0) rotate(-3deg)}
+    to{transform:translateY(-7px) rotate(3deg)}
+}
+
+.final-popup h2{
+    font-size:36px;
+    font-weight:500;
+    color:#4c3272;
+    margin-bottom:8px;
+}
+
+.final-popup p{
+    font-size:18px;
+    color:#5f4a7a;
+    margin-bottom:24px;
+    font-weight:400;
+}
+
+.play-again-btn{
+    min-width:185px;
+    height:52px;
+    padding:0 28px;
+    border:none;
+    border-radius:17px;
+    background:#68449a;
+    color:#fff;
+    font-family:'Livvic',sans-serif;
+    font-size:20px;
+    font-weight:500;
+    cursor:pointer;
+    box-shadow:0 7px 0 rgba(70,44,106,.20),0 13px 24px rgba(89,59,131,.24);
+    transition:.2s ease;
+}
+
+.play-again-btn:hover{
+    transform:translateY(-3px);
+}
+
+.play-again-btn:active{
+    transform:translateY(2px);
+    box-shadow:0 4px 0 rgba(70,44,106,.18),0 8px 18px rgba(89,59,131,.18);
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media(min-width:1400px){
+    /* Monitor / large-screen layout */
+    .top-heading{
+        font-size:30px;
+    }
+
+    .question-text{
+        font-size:40px;
+    }
+
+    /* All bottom buttons are monitor responsive */
+    .nav-btn,
+    .submit-btn{
+        width:200px;
+        min-width:200px;
+        height:60px;
+        font-size:30px;
+        padding:0;
+    }
+
+    .nav-btn{
+        bottom:22px;
+    }
+
+    .submit-btn{
+        bottom:20px;
+    }
+
+    /* Answer area scales with the monitor layout */
+    .answer-box{
+        width:220px;
+        height:60px;
+        font-size:30px;
+        border-radius:14px;
+    }
+
+    .answer-box::placeholder{
+        font-size:20px;
+    }
+
+    .answer-tip{
+        font-size:20px;
+    }
+
+    /* Keep the illustration balanced with the larger question */
+    .image-wrap{
+        width:min(330px,25vw);
+    }
+
+    .image-orbit{
+        width:min(380px,29vw);
+    }
+}
+
+@media(max-width:850px){
+    .topbar{
+        height:76px;
+        padding:12px 20px;
+    }
+
+    .stage{
+        inset:76px 0 92px;
+        padding:10px 24px;
+    }
+
+    .question-layout,
+    .question-layout.image-right{
+        grid-template-columns:1fr;
+        gap:10px;
+        text-align:center;
+    }
+
+    .question-layout.image-right .visual-side{
+        order:-1;
+    }
+
+    .visual-side{
+        min-height:185px;
+    }
+
+    .image-orbit{
+        width:180px;
+    }
+
+    .image-wrap{
+        width:150px;
+    }
+
+    .image-fallback{
+        font-size:56px;
+    }
+
+    .instruction{
+        font-size:18px;
+        margin-bottom:13px;
+    }
+
+    .question-text{
+        font-size:26px;
+        max-width:100%;
+    }
+
+    .answer-row{
+        justify-content:center;
+        margin-top:22px;
+    }
+
+    .content-side{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+    }
+}
+
+@media(max-width:560px){
+    .feedback{
+        width:min(380px,90vw);
+        min-height:190px;
+        padding:22px 18px;
+        gap:15px;
+    }
+
+    .feedback-icon{
+        width:62px;
+        height:62px;
+        flex-basis:62px;
+        font-size:31px;
+    }
+
+    .feedback-copy h3{font-size:23px}
+    .feedback-copy p{font-size:15px}
+
+    .final-popup{
+        padding:30px 22px 26px;
+    }
+
+    .final-emoji{font-size:64px}
+    .final-popup h2{font-size:30px}
+    .final-popup p{font-size:16px}
+    .play-again-btn{height:48px;font-size:18px}
+
+    .game-mark{
+        width:40px;
+        height:40px;
+        font-size:19px;
+    }
+
+    .heading{
+        font-size:18px;
+    }
+
+    .question-chip{
+        font-size:13px;
+        padding:8px 11px;
+    }
+
+    .stage{
+        padding:6px 16px;
+    }
+
+    .visual-side{
+        min-height:150px;
+    }
+
+    .image-wrap{
+        width:120px;
+        border-width:5px;
+    }
+
+    .image-orbit{
+        width:145px;
+    }
+
+    .instruction{
+        font-size:16px;
+        padding:7px 11px;
+    }
+
+    .question-text{
+        font-size:21px;
+        line-height:1.42;
+    }
+
+    .answer-row{
+        margin-top:16px;
+    }
+
+    .answer-tip{
+        display:none;
+    }
+
+    .bottom-controls{
+        height:74px;
+    }
+
+    .nav-btn{
+        bottom:15px;
+        min-width:86px;
+        height:42px;
+        padding:0 11px;
+        font-size:16px;
+    }
+
+    .submit-btn{
+        bottom:13px;
+        min-width:125px;
+        height:46px;
+        font-size:17px;
+        padding:0 15px;
+    }
+
+    #prevBtn{left:13px}
+    #nextBtn{right:13px}
+}
+</style>
+</head>
+
+<body>
+
+<main class="game-screen">
+
+
+    <header class="topbar">
+        <div class="top-heading">Write the <span>numeral</span> formed for the following</div>
+    </header>
+
+
+    <section class="stage">
+
+        <div class="question-layout" id="questionLayout">
+
+            <div class="visual-side">
+                <div class="image-orbit"></div>
+
+                <div class="image-wrap">
+                    <img id="quizImage"
+                         class="quiz-image"
+                         src=""
+                         alt="Question illustration"
+                         onload="this.classList.add('loaded')"
+                         onerror="this.style.display='none'">
+
+                    <div class="image-fallback" id="imageFallback">🔢</div>
+                </div>
+            </div>
+
+
+            <div class="content-side">
+
+                <div class="question-text" id="questionText"></div>
+
+                <div class="answer-row">
+                    <input type="text"
+                           id="answer"
+                           class="answer-box"
+                           inputmode="numeric"
+                           autocomplete="off"
+                           placeholder="Your answer">
+
+                    <div class="answer-tip">Think about each place value.</div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Bottom Left / Center / Right Controls -->
+    <div class="bottom-controls">
+        <button class="nav-btn" id="prevBtn">← Back</button>
+
+        <button class="submit-btn" id="submitBtn">Submit ✓</button>
+
+        <button class="nav-btn" id="nextBtn">Next →</button>
+    </div>
+
+
+    <!-- Compact innovative feedback -->
+    <div class="feedback correct-popup" id="correctPopup">
+        <div class="feedback-icon">🎉</div>
+        <div class="feedback-copy">
+            <h3>Perfect!</h3>
+            <p>You cracked the numeral.</p>
+        </div>
+    </div>
+
+    <div class="feedback wrong-popup" id="wrongPopup">
+        <div class="feedback-icon">😕</div>
+        <div class="feedback-copy">
+            <h3>Try again!</h3>
+            <p>Check the place values once more</p>
+        </div>
+    </div>
+
+    <div class="final-popup" id="finalPopup">
+        <div class="final-emoji">🏆</div>
+        <h2>Awesome!</h2>
+        <p>You cracked every numeral challenge. Brilliant work!</p>
+        <button class="play-again-btn" id="playAgainBtn">↻ Play Again</button>
+    </div>
+
+</main>
+
+
+<script>
+
+/* -------------------------------------------------------
+   REPLACE THESE TWO IMAGE PATHS WITH YOUR ACTUAL IMAGES
+-------------------------------------------------------- */
+const questions = [
+    {
+        text: "Q1. 6 ones 3 hundreds 2 lakhs 4 thousands 8 ten thousands",
+        answer: "284306",
+
+        /* Question 1 image path */
+        image: "../images/kid1.1.png",
+
+        /* Question 1 = image LEFT */
+        layout: "image-left",
+
+        fallback: "🔢"
+    },
+    {
+        text: "Q2. 7 hundreds 9 tens 5 ones 3 ten thousands 1 thousand",
+        answer: "31795",
+
+        /* Question 2 image path */
+        image: "../images/kid2.png",
+
+        /* Question 2 = image RIGHT */
+        layout: "image-right",
+
+        fallback: "🧩"
+    }
+];
+
+let currentQuestion = 0;
+
+/* Keeps each correct answer when the learner navigates back */
+const answers = Array(questions.length).fill("");
+const completed = Array(questions.length).fill(false);
+
+const questionText = document.getElementById("questionText");
+const answerInput = document.getElementById("answer");
+const questionLayout = document.getElementById("questionLayout");
+const quizImage = document.getElementById("quizImage");
+const imageFallback = document.getElementById("imageFallback");
+
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const submitBtn = document.getElementById("submitBtn");
+
+const correctPopup = document.getElementById("correctPopup");
+const wrongPopup = document.getElementById("wrongPopup");
+const finalPopup = document.getElementById("finalPopup");
+const playAgainBtn = document.getElementById("playAgainBtn");
+
+
+/* USER REQUESTED SPEECH FUNCTION */
+function speak(t) {
+
+    speechSynthesis.cancel();
+
+    const msg = new SpeechSynthesisUtterance(t);
+
+    msg.lang = "en-US";
+
+    msg.volume = 0.25;
+
+    msg.rate = 1;
+
+    msg.pitch = 1;
+
+    speechSynthesis.speak(msg);
+
+}
+
+
+function cleanAnswer(value){
+    return value
+        .replace(/,/g,"")
+        .replace(/\s/g,"")
+        .trim();
+}
+
+
+function hidePopups(){
+    correctPopup.classList.remove("show");
+    wrongPopup.classList.remove("show");
+}
+
+
+function loadQuestion(){
+
+    hidePopups();
+
+    const question = questions[currentQuestion];
+
+    questionText.textContent = question.text;
+
+    /* Different alignment for each question */
+    questionLayout.classList.remove("image-right");
+
+    if(question.layout === "image-right"){
+        questionLayout.classList.add("image-right");
+    }
+
+    /* Question-specific image path */
+    quizImage.style.display = "block";
+    quizImage.classList.remove("loaded");
+    quizImage.src = question.image;
+
+    imageFallback.textContent = question.fallback;
+
+    /* Preserve and lock completed answers */
+    answerInput.value = answers[currentQuestion] || "";
+    answerInput.classList.remove("correct","wrong");
+
+    if(completed[currentQuestion]){
+        answerInput.classList.add("correct");
+        answerInput.readOnly = true;
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = ".45";
+        submitBtn.style.cursor = "not-allowed";
+    }else{
+        answerInput.readOnly = false;
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = "";
+        submitBtn.style.cursor = "";
+    }
+
+    prevBtn.disabled = currentQuestion === 0;
+
+    /* Next is unlocked only after the current question is correct */
+    nextBtn.disabled =
+        currentQuestion === questions.length - 1 ||
+        !completed[currentQuestion];
+
+    if(!completed[currentQuestion]){
+        setTimeout(() => answerInput.focus(), 120);
+    }
+}
+
+function showCorrect(){
+
+    hidePopups();
+
+    answers[currentQuestion] = cleanAnswer(answerInput.value);
+    completed[currentQuestion] = true;
+
+    answerInput.classList.remove("wrong");
+    answerInput.classList.add("correct");
+    answerInput.readOnly = true;
+
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = ".45";
+    submitBtn.style.cursor = "not-allowed";
+
+    correctPopup.classList.add("show");
+
+    speak("Correct!");
+
+    /* Stay on the question. User chooses Next after seeing feedback. */
+    setTimeout(() => {
+
+        correctPopup.classList.remove("show");
+
+        if(currentQuestion === questions.length - 1){
+            finalPopup.classList.add("show");
+            
+        }else{
+            nextBtn.disabled = false;
+        }
+
+    }, 1500);
+}
+
+function showWrong(){
+
+    hidePopups();
+
+    answerInput.classList.remove("correct");
+    answerInput.classList.add("wrong");
+
+    wrongPopup.classList.add("show");
+
+    speak("Try again.");
+
+    setTimeout(() => {
+        wrongPopup.classList.remove("show");
+
+        /* Automatically remove the wrong answer */
+        answerInput.value = "";
+        answerInput.classList.remove("wrong");
+
+        answerInput.focus();
+    }, 1400);
+}
+
+
+function submitAnswer(){
+
+    if(completed[currentQuestion]){
+        return;
+    }
+
+    const userAnswer = cleanAnswer(answerInput.value);
+
+    if(!userAnswer){
+        answerInput.focus();
+        return;
+    }
+
+    const correctAnswer = questions[currentQuestion].answer;
+
+    if(userAnswer === correctAnswer){
+        showCorrect();
+    }else{
+        showWrong();
+    }
+}
+
+
+submitBtn.addEventListener("click", submitAnswer);
+
+answerInput.addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+        submitAnswer();
+    }
+});
+
+
+nextBtn.addEventListener("click", function(){
+
+    if(currentQuestion < questions.length - 1){
+        currentQuestion++;
+        loadQuestion();
+    }
+
+});
+
+
+prevBtn.addEventListener("click", function(){
+
+    if(currentQuestion > 0){
+        currentQuestion--;
+        loadQuestion();
+    }
+
+});
+
+
+playAgainBtn.addEventListener("click", function(){
+
+    currentQuestion = 0;
+
+    for(let i = 0; i < questions.length; i++){
+        answers[i] = "";
+        completed[i] = false;
+    }
+
+    finalPopup.classList.remove("show");
+    hidePopups();
+    loadQuestion();
+
+});
+
+loadQuestion();
+
+</script>
+
+<script>
+/* ===== CONFETTI CELEBRATION (right & final popups) ===== */
+(function () {
+  let canvas, ctx, pieces = [], raf = null;
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    resize();
+    window.addEventListener("resize", resize);
+  }
+  function resize() {
+    if (!canvas) return;
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  const colors = ["#16834f", "#d99c36", "#7350a8", "#c94740", "#3a8fb7", "#e86ea4", "#ffd257"];
+  function burst(count) {
+    ensureCanvas();
+    for (let i = 0; i < count; i++) {
+      pieces.push({
+        x: innerWidth / 2 + (Math.random() - .5) * 180,
+        y: innerHeight / 2 + (Math.random() - .5) * 90,
+        vx: (Math.random() - .5) * 11,
+        vy: Math.random() * -13 - 4,
+        g: 0.30 + Math.random() * 0.14,
+        s: 6 + Math.random() * 7,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - .5) * 0.4,
+        color: colors[i % colors.length],
+        life: 0
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces = pieces.filter(p => p.life < 280 && p.y < innerHeight + 40);
+    pieces.forEach(p => {
+      p.life++;
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.99;
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6);
+      ctx.restore();
+    });
+    if (pieces.length) { raf = requestAnimationFrame(tick); }
+    else { raf = null; ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  }
+  window.fireConfetti = function (big) {
+    if (big) {
+      burst(170);
+      let n = 0;
+      const iv = setInterval(() => { burst(90); if (++n >= 4) clearInterval(iv); }, 400);
+    } else {
+      burst(90);
+    }
+  };
+  function watch(id, big) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let was = el.classList.contains("show");
+    new MutationObserver(() => {
+      const now = el.classList.contains("show");
+      if (now && !was) window.fireConfetti(big);
+      was = now;
+    }).observe(el, { attributes: true, attributeFilter: ["class"] });
+  }
+  function init() { watch("correctPopup", false); watch("finalPopup", true); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+
+</html>

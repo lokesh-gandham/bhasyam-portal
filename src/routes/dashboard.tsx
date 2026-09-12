@@ -36,7 +36,7 @@ const navItems: NavItem[] = [
   { id: "grades", label: "Grades", icon: GraduationCap },
 ];
 
-const allowedSubjectIds = ["science", "hindi", "social", "english"];
+const allowedSubjectIds = ["science", "hindi", "social", "english", "maths"];
 
 const SIDEBAR_EXPANDED = 220;
 const SIDEBAR_COLLAPSED = 56;

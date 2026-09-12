@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Math Rocket - Calculate Orally</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/shared/quiz-ui.css">
+  <link rel="stylesheet" href="../assets/shared/grade3-chapter1.css">
+  <script src="../assets/shared/quiz-ui.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Livvic', sans-serif;
+      font-weight: 400;
+    }
+
+    :root {
+      --purple: #6847e8;
+      --purple2: #8b6cf2;
+      --orange: #ff8a2a;
+      --green: #55b449;
+      --greenDark: #3c9633;
+      --red: #e74c3c;
+      --blue: #4d8ff7;
+      --ink: #26344d;
+      --muted: #778198;
+      --card: #fff;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    button {
+      font: inherit
+    }
+
+    .app {
+      width: min(1500px, 92vw);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .title h1 {
+      font-size: 22px;
+      margin: 0
+    }
+
+    .title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .game {
+      margin-top: 20px;
+      /* background: white;
+      border: 1px solid #e3e7f0; */
+      border-radius: 30px;
+      padding: 25px;
+      /* box-shadow: 0 15px 38px #24345115 */
+
+    }
+
+    .topLine {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      display: none;
+    }
+
+    .badge {
+      padding: 9px 16px;
+      background: #f0ecff;
+      color: #5f43d7;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 1000
+    }
+
+    .instructions {
+      color: #788298;
+      font-size: 13px;
+      font-weight: 800
+    }
+
+    .questionCard {
+      display: grid;
+      grid-template-columns: 285px 1fr;
+      gap: 28px;
+      align-items: center;
+      padding: 22px;
+      border: 2px solid #e7eaf3;
+      border-radius: 25px;
+      background: linear-gradient(145deg, #fcfdff, #f5f7ff)
+    }
+
+    /* ================= BUS QUESTION CARD ================= */
+    .questionCard {
+      position: relative;
+      overflow: visible;
+      border: 3px solid #6b4be8;
+      border-radius: 30px 42px 42px 30px;
+      background: linear-gradient(180deg, #fff 0%, #f5f2ff 100%);
+      box-shadow: 0 15px 0 #d9d0ff, 0 22px 35px #26344d18;
+      transform: translateX(0);
+      will-change: transform, opacity;
+    }
+
+    /* Bus roof / destination sign */
+    .questionCard::before {
+      content: "MATH BUS  •  NEXT STOP: ANSWER";
+      position: absolute;
+      top: -17px;
+      left: 42px;
+      right: 110px;
+      height: 31px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 15px;
+      border: 3px solid #6b4be8;
+      border-bottom: 0;
+      border-radius: 17px 17px 0 0;
+      background: #ffd75a;
+      color: #4b369e;
+      font-size: 10px;
+      font-weight: 1000;
+      letter-spacing: .7px;
+      z-index: 3;
+    }
+
+    /* Bus front */
+    .questionCard::after {
+      content: "";
+      position: absolute;
+      right: -12px;
+      top: 48%;
+      width: 25px;
+      height: 82px;
+      border-radius: 0 18px 18px 0;
+      background: #ff9a38;
+      border: 3px solid #6b4be8;
+      border-left: 0;
+      transform: translateY(-50%);
+      z-index: 2;
+    }
+
+    /* Bus wheels */
+    .questionCard .bus-wheel {
+      position: absolute;
+      bottom: -21px;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: #26344d;
+      border: 7px solid #fff;
+      box-shadow: 0 0 0 3px #6b4be8;
+      z-index: 5;
+    }
+
+    .questionCard .bus-wheel::after {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border-radius: 50%;
+      background: #aeb7c7;
+    }
+
+    .questionCard .wheel-left {
+      left: 115px
+    }
+
+    .questionCard .wheel-right {
+      right: 115px
+    }
+
+    /* Bus movement */
+    .questionCard.bus-exit-right {
+      animation: busExitRight .48s cubic-bezier(.65, 0, .9, 1) forwards;
+    }
+
+    .questionCard.bus-enter-left {
+      animation: busEnterLeft .55s cubic-bezier(.2, .8, .2, 1) forwards;
+    }
+
+    .questionCard.bus-exit-left {
+      animation: busExitLeft .48s cubic-bezier(.65, 0, .9, 1) forwards;
+    }
+
+    .questionCard.bus-enter-right {
+      animation: busEnterRight .55s cubic-bezier(.2, .8, .2, 1) forwards;
+    }
+
+    @keyframes busExitRight {
+      0% {
+        transform: translateX(0);
+        opacity: 1
+      }
+
+      100% {
+        transform: translateX(115vw);
+        opacity: .35
+      }
+    }
+
+    @keyframes busEnterLeft {
+      0% {
+        transform: translateX(-115vw);
+        opacity: .35
+      }
+
+      100% {
+        transform: translateX(0);
+        opacity: 1
+      }
+    }
+
+    @keyframes busExitLeft {
+      0% {
+        transform: translateX(0);
+        opacity: 1
+      }
+
+      100% {
+        transform: translateX(-115vw);
+        opacity: .35
+      }
+    }
+
+    @keyframes busEnterRight {
+      0% {
+        transform: translateX(115vw);
+        opacity: .35
+      }
+
+      100% {
+        transform: translateX(0);
+        opacity: 1
+      }
+    }
+
+    /* Keep the card stable during the swap */
+    .questionCard.is-moving {
+      pointer-events: none;
+    }
+
+    .character {
+      height: 250px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #eef9ff, #fff);
+      border: 1px solid #dfe8f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden
+    }
+
+    .character .rocket {
+      font-size: 95px;
+      filter: drop-shadow(0 10px 8px #0002);
+      animation: float 2.3s ease-in-out infinite
+    }
+
+    .character .stars {
+      position: absolute;
+      inset: 0;
+      font-size: 20px
+    }
+
+    .star {
+      position: absolute;
+      animation: twinkle 1.6s infinite alternate
+    }
+
+    .star:nth-child(1) {
+      top: 20px;
+      left: 25px
+    }
+
+    .star:nth-child(2) {
+      top: 65px;
+      right: 25px
+    }
+
+    .star:nth-child(3) {
+      bottom: 35px;
+      left: 35px
+    }
+
+    .star:nth-child(4) {
+      bottom: 55px;
+      right: 45px
+    }
+
+    @keyframes float {
+      50% {
+        transform: translateY(-9px) rotate(-2deg)
+      }
+    }
+
+    @keyframes twinkle {
+      from {
+        opacity: .25;
+        transform: scale(.7)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1.2)
+      }
+    }
+
+    .questionContent {
+      text-align: center
+    }
+
+    .qnum {
+      font-size: 25px;
+      color: #2f4f4f;
+      font-weight: 1000;
+      margin-bottom: 10px
+    }
+
+    .qtitle {
+      font-size: 20px;
+      color: #2f4f4f;
+      font-weight: 900;
+      margin-bottom: 25px
+    }
+
+    .equation {
+      font-size: clamp(45px, 5vw, 58px);
+      font-weight: 1000;
+      line-height: 1.9
+    }
+
+    .answerBox {
+      display: inline-flex;
+      vertical-align: middle;
+      width: 105px;
+      height: 58px;
+      align-items: center;
+      justify-content: center;
+      background: #fffaf5;
+      border: 3px dashed var(--orange);
+      border-radius: 13px;
+      color: var(--purple);
+      font-size: 27px;
+      margin-left: 8px
+    }
+
+    .answerBox.correct {
+      border-style: solid;
+      border-color: var(--green);
+      background: #e9fff2;
+      color: #168653
+    }
+
+    .answerBox.wrong {
+      animation: shake .45s
+    }
+
+    @keyframes shake {
+      25% {
+        transform: translateX(-6px)
+      }
+
+      75% {
+        transform: translateX(6px)
+      }
+    }
+
+    .challenge {
+      margin-top: 16px;
+      text-align: center;
+      color: #667189;
+      font-size: 12px;
+      font-weight: 900
+    }
+
+    .optionsPanel {
+      margin-top: 16px;
+      padding: 17px;
+      border-radius: 21px;
+      background: #fafbff;
+      border: 1px solid #e4e8f1
+    }
+
+    .optionsTitle {
+      text-align: center;
+      font-size: 18px;
+      color: #778197;
+      font-weight: 1000;
+      letter-spacing: .7px;
+      margin: 20px auto 25px;
+    }
+
+    .options {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .option {
+      min-width: 100px;
+      padding: 13px 20px;
+      border-radius: 14px;
+      border: 3px solid #4164b4;
+      background: #fff;
+      color: #33415d;
+      font-size: 26px;
+      font-weight: 400;
+      cursor: pointer;
+      box-shadow: 0 5px 12px #23324b0a;
+      transition: .16s
+    }
+
+    .option:hover:not(:disabled) {
+      transform: translateY(-3px);
+      border-color: #8b73ed
+    }
+
+    .option:disabled {
+      cursor: default;
+      opacity: .52
+    }
+
+    .option.good {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff
+    }
+
+    .option.bad {
+      background: #fff0ed;
+      border-color: var(--red);
+      color: #c52f24;
+      animation: shake .4s
+    }
+
+    .feedback {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 900;
+      margin-top: 7px
+    }
+
+    .feedback.good {
+      color: #16813b
+    }
+
+    .feedback.bad {
+      color: #c52f24
+    }
+
+    .nav {
+      width: 60%;
+      margin-top: 15px;
+      padding-top: 17px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center
+    }
+
+    .nav button {
+      min-width: 125px;
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 21px;
+      background: var(--green);
+      color: white;
+      font-size: 15px;
+      font-weight: 900;
+      box-shadow: 0 5px 0 var(--greenDark);
+      cursor: pointer
+    }
+
+    .nav button:hover:not(:disabled) {
+      transform: translateY(-2px)
+    }
+
+    .nav button:disabled {
+      opacity: .4;
+      cursor: default
+    }
+
+    #prev {
+      justify-self: start
+    }
+
+    #next {
+      justify-self: end
+    }
+
+    .counter {
+      font-size: 17px;
+      font-weight: 900;
+      color: #12265d;
+      display: none;
+    }
+
+    .lock {
+      text-align: center;
+      color: #8a93a5;
+      font-size: 11px;
+      font-weight: 800;
+      margin-top: 8px
+    }
+
+    /* popup */
+    .pop {
+      position: fixed;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%);
+      font-size: 78px;
+      z-index: 1000;
+      pointer-events: none;
+      animation: pop 1.05s forwards
+    }
+
+    @keyframes pop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.3)
+      }
+
+      20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.15)
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -72%) scale(.8)
+      }
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: #12265d22;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fade .3s
+    }
+
+    .modal {
+      width: min(430px, 90%);
+      background: white;
+      border-radius: 48px 20px 48px 20px;
+      padding: 35px;
+      text-align: center;
+      box-shadow: 0 30px 70px #0004;
+      animation: modal .4s cubic-bezier(.175, .885, .32, 1.275)
+    }
+
+    .modalIcon {
+      font-size: 58px
+    }
+
+    .modal h2 {
+      font-size: 31px;
+      margin: 8px 0
+    }
+
+    .modal p {
+      color: #535d70;
+      font-size: 16px
+    }
+
+    .play {
+      border: 0;
+      border-radius: 999px;
+      padding: 13px 35px;
+      background: linear-gradient(180deg, #ffb44e, #f48a2d);
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    @keyframes modal {
+      from {
+        opacity: 0;
+        transform: scale(.8)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    .title h1 {
+      font-size: 26px
+    }
+
+    .title p {
+      font-size: 14px
+    }
+
+    .game {
+      margin-top: 25px;
+      padding: 30px;
+      border-radius: 34px
+    }
+
+    .questionCard {
+      grid-template-columns: 360px 1fr;
+      min-height: 385px;
+      padding: 30px;
+      gap: 40px
+    }
+
+    .character {
+      height: 325px
+    }
+
+    .character .rocket {
+      font-size: 120px
+    }
+
+    .questionContent {
+      padding: 0 30px
+    }
+
+    .qnum {
+      font-size: 25px
+    }
+
+    .qtitle {
+      font-size: 20px
+    }
+
+    .equation {
+      font-size: 44px
+    }
+
+    .answerBox {
+      width: 125px;
+      height: 68px;
+      font-size: 31px
+    }
+
+    .optionsPanel {
+      padding: 21px
+    }
+
+    .option {
+      min-width: 150px;
+      height: 80px;
+      padding: 15px 24px;
+      font-size: 24px !important;
+    }
+
+    .nav button {
+      min-width: 150px;
+      padding: 13px 26px;
+      font-size: 17px
+    }
+
+    .game {
+      margin-top: 14px;
+      padding: 21px
+    }
+
+    .questionCard {
+      min-height: 280px;
+      grid-template-columns: 290px 1fr;
+      padding: 20px;
+      gap: 25px
+    }
+
+    .character {
+      height: 245px
+    }
+
+    .character .rocket {
+      font-size: 90px
+    }
+
+    .equation {
+      font-size: 42px
+    }
+
+    .answerBox {
+      width: 92px;
+      height: 49px;
+      font-size: 23px
+    }
+
+    .optionsPanel {
+      margin-top: 12px;
+      padding: 13px
+    }
+
+    .option {
+      padding: 10px 17px;
+      font-size: 18px
+    }
+
+    .nav {
+      margin-top: 9px;
+      padding-top: 13px
+    }
+
+    @media (max-width:900px) {
+      .questionCard {
+        grid-template-columns: 220px 1fr;
+        gap: 15px
+      }
+
+      .character {
+        height: 210px
+      }
+    }
+
+    @media (max-width:650px) {
+      .app {
+        width: 95%;
+        margin: 12px auto 25px
+      }
+
+      .title h1 {
+        font-size: 18px
+      }
+
+      .game {
+        padding: 13px;
+        border-radius: 22px
+      }
+
+      .questionCard {
+        grid-template-columns: 1fr;
+        padding: 12px
+      }
+
+      .character {
+        height: 170px
+      }
+
+      .character .rocket {
+        font-size: 75px
+      }
+
+      .equation {
+        font-size: 24px
+      }
+
+      .answerBox {
+        width: 82px;
+        height: 48px;
+        font-size: 21px
+      }
+
+      .option {
+        min-width: 75px;
+        padding: 10px 13px;
+        font-size: 17px
+      }
+
+      .nav button {
+        min-width: 92px;
+        padding: 9px 13px;
+        font-size: 13px
+      }
+
+      .counter {
+        font-size: 14px
+      }
+    }
+
+    @media (max-width:400px) {
+      .title p {
+        display: none
+      }
+
+      .equation {
+        font-size: 21px
+      }
+
+      .answerBox {
+        width: 70px;
+        height: 43px
+      }
+
+      .option {
+        min-width: 65px;
+        font-size: 15px
+      }
+    }
+
+    @media (max-width:900px) {
+      .questionCard::before {
+        left: 25px;
+        right: 70px;
+        font-size: 8px
+      }
+
+      .questionCard::after {
+        right: -10px;
+        width: 20px
+      }
+
+      .questionCard .wheel-left {
+        left: 70px
+      }
+
+      .questionCard .wheel-right {
+        right: 70px
+      }
+    }
+
+    @media (max-width:650px) {
+      .questionCard {
+        border-radius: 24px 34px 34px 24px
+      }
+
+      .questionCard::before {
+        top: -14px;
+        height: 26px;
+        left: 20px;
+        right: 48px;
+        font-size: 7px
+      }
+
+      .questionCard::after {
+        width: 15px;
+        height: 60px;
+        right: -8px
+      }
+
+      .questionCard .bus-wheel {
+        width: 35px;
+        height: 35px;
+        bottom: -17px;
+        border-width: 5px
+      }
+
+      .questionCard .bus-wheel::after {
+        inset: 8px
+      }
+
+      .questionCard .wheel-left {
+        left: 45px
+      }
+
+      .questionCard .wheel-right {
+        right: 45px
+      }
+    }
+
+
+    /* ================= FULL RESPONSIVE LAYOUT ================= */
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      min-height: 100svh;
+    }
+
+    .app {
+      width: min(1500px, 94vw);
+      margin: clamp(12px, 2.5vw, 36px) auto clamp(20px, 3vw, 45px);
+    }
+
+    .game {
+      width: 100%;
+      margin-top: 0;
+      padding: clamp(16px, 2vw, 32px);
+      border-radius: clamp(20px, 2.2vw, 34px);
+    }
+
+    .topLine {
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .questionCard {
+      width: 100%;
+      grid-template-columns: minmax(220px, 30%) minmax(0, 1fr);
+      min-height: clamp(280px, 30vw, 420px);
+      gap: clamp(18px, 3vw, 45px);
+      padding: clamp(16px, 2.5vw, 32px);
+    }
+
+    .character {
+      width: 100%;
+      height: clamp(220px, 25vw, 340px);
+    }
+
+    .questionContent {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .equation {
+      overflow-wrap: anywhere;
+    }
+
+    .optionsPanel {
+      width: 100%;
+    }
+
+    .options {
+      width: 100%;
+    }
+
+    .option {
+      flex: 0 1 auto;
+    }
+
+    .nav {
+      width: 60%;
+      gap: 12px;
+      margin-inline: auto;
+      margin-top: 20px;
+    }
+
+    .nav button {
+      max-width: 180px;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        width: min(96vw, 760px);
+        margin: 12px auto 25px;
+      }
+
+      .game {
+        padding: 16px;
+      }
+
+      .questionCard {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        gap: 18px;
+      }
+
+      .character {
+        height: clamp(180px, 38vw, 270px);
+      }
+
+      .questionContent {
+        padding: 0;
+      }
+
+      .questionCard .wheel-left {
+        left: 70px
+      }
+
+      .questionCard .wheel-right {
+        right: 70px
+      }
+
+      .questionCard::before {
+        left: 25px;
+        right: 70px;
+        font-size: 8px;
+      }
+
+      .questionCard::after {
+        right: -10px;
+        width: 20px;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .app {
+        width: 96vw;
+        margin: 8px auto 18px;
+      }
+
+      .game {
+        padding: 12px;
+        border-radius: 20px;
+      }
+
+      .topLine {
+        margin-bottom: 14px;
+      }
+
+      .badge {
+        font-size: 10px;
+        padding: 8px 12px;
+      }
+
+      .instructions {
+        width: 100%;
+        font-size: 11px;
+      }
+
+      .questionCard {
+        padding: 12px;
+        border-radius: 24px 34px 34px 24px;
+      }
+
+      .character {
+        height: 165px;
+      }
+
+      .character .rocket {
+        font-size: 72px;
+      }
+
+      .equation {
+        font-size: clamp(20px, 6vw, 28px);
+        line-height: 1.65;
+      }
+
+      .answerBox {
+        width: 76px;
+        height: 44px;
+        font-size: 20px;
+        margin-left: 5px;
+      }
+
+      .challenge {
+        font-size: 11px;
+      }
+
+      .optionsPanel {
+        padding: 12px;
+        margin-top: 12px;
+      }
+
+      .options {
+        gap: 8px;
+      }
+
+      .option {
+        min-width: 64px;
+        padding: 9px 12px;
+        font-size: 16px;
+      }
+
+      .feedback {
+        min-height: 38px;
+        font-size: 12px;
+      }
+
+      .nav {
+        grid-template-columns: 1fr auto 1fr;
+        padding-top: 12px;
+        margin-top: 10px;
+      }
+
+      .nav button {
+        min-width: 80px;
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+
+      .counter {
+        font-size: 13px;
+      }
+
+      .lock {
+        font-size: 10px;
+      }
+
+      .questionCard::before {
+        top: -14px;
+        height: 26px;
+        left: 20px;
+        right: 48px;
+        font-size: 7px;
+      }
+
+      .questionCard::after {
+        width: 15px;
+        height: 60px;
+        right: -8px;
+      }
+
+      .questionCard .bus-wheel {
+        width: 35px;
+        height: 35px;
+        bottom: -17px;
+        border-width: 5px;
+      }
+
+      .questionCard .bus-wheel::after {
+        inset: 8px;
+      }
+
+      .questionCard .wheel-left {
+        left: 45px
+      }
+
+      .questionCard .wheel-right {
+        right: 45px
+      }
+    }
+
+    @media (max-width: 400px) {
+      .game {
+        padding: 10px;
+      }
+
+      .badge {
+        font-size: 9px;
+      }
+
+      .instructions {
+        font-size: 10px;
+      }
+
+      .character {
+        height: 145px;
+      }
+
+      .character .rocket {
+        font-size: 62px;
+      }
+
+      .equation {
+        font-size: 20px;
+      }
+
+      .answerBox {
+        width: 66px;
+        height: 40px;
+        font-size: 18px;
+      }
+
+      .option {
+        min-width: 58px;
+        padding: 8px 10px;
+        font-size: 14px;
+      }
+
+      .nav button {
+        min-width: 72px;
+        font-size: 11px;
+      }
+    }
+
+    @media (max-height: 700px) and (min-width: 651px) {
+      .app {
+        margin-top: 10px;
+        margin-bottom: 15px;
+      }
+
+      .game {
+        padding: 15px;
+      }
+
+      .questionCard {
+        min-height: 250px;
+      }
+
+      .character {
+        height: 210px;
+      }
+
+      .optionsPanel {
+        margin-top: 10px;
+        padding: 12px;
+      }
+
+      .nav {
+        margin-top: 9px;
+        padding-top: 10px;
+      }
+    }
+
+    @media (min-width: 1600px) {
+      .app {
+        width: min(1500px, 92vw);
+      }
+
+      .qnum{
+        font-size: 30px;
+      }
+
+      .optionsTitle {
+        font-size: 25px;
+      }
+
+      .qtitle{
+        font-size: 25px;
+        margin-bottom: 25px;
+        margin-top: 15px;
+      }
+
+      .game {
+        padding: 30px;
+      }
+
+      .questionCard {
+        min-height: 390px;
+      }
+
+      .character {
+        height: 320px;
+      }
+
+      .equation {
+        font-size: 45px;
+      }
+
+      .answerBox{
+        width: 160px;
+        height: 80px;
+      }
+
+      .answerBox.correct {
+        font-size: 45px
+      }
+
+      .option {
+        min-width: 180px;
+        height: 80px;
+        padding: 15px 24px;
+        font-size: 28px;
+      }
+    }
+
+    /* ================= CENTER GAME ON ALL SCREENS ================= */
+    html {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app {
+      width: min(1500px, 92vw);
+      margin: 0 auto;
+      flex: 0 1 auto;
+    }
+
+    .game {
+      width: 100%;
+      margin: 0;
+    }
+
+    /* Large desktop / monitor */
+    @media (min-width:1200px) {
+      .app {
+        width: min(1500px, 95vw);
+      }
+    }
+
+    /* Laptop / tablet landscape */
+    @media (min-width:651px) and (max-width:1199px) {
+      body {
+        align-items: center;
+      }
+
+      .app {
+        width: min(94vw, 1000px);
+      }
+    }
+
+    /* Mobile */
+    @media (max-width:650px) {
+      body {
+        align-items: flex-start;
+        padding: 10px 0;
+      }
+
+      .app {
+        width: 96vw;
+        margin: auto;
+      }
+    }
+
+    /* Short desktop screens: keep everything centered without excessive top space */
+    @media (min-width:651px) and (max-height:760px) {
+      body {
+        align-items: center;
+      }
+
+      .app {
+        transform: scale(.94);
+        transform-origin: center center;
+      }
+    }
+
+    @media (min-width:651px) and (max-height:620px) {
+      .app {
+        transform: scale(.84);
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="../../shared/quiz-ui.css">
+</head>
+
+<body>
+  <div class="app">
+    <main class="game">
+      <div class="topLine">
+        <div class="badge">LEVEL 1 • ROCKET MISSION</div>
+        <div class="instructions">Choose the correct answer to launch 🚀</div>
+      </div>
+
+      <section class="questionCard" id="questionCard">
+        <span class="bus-wheel wheel-left"></span>
+        <span class="bus-wheel wheel-right"></span>
+        <div class="character">
+          <div class="stars">
+            <span class="star">✦</span><span class="star">✧</span><span class="star">✦</span><span class="star">✧</span>
+          </div>
+          <div class="rocket">🚀</div>
+        </div>
+        <div class="questionContent">
+          <div class="qnum" id="qnum">QUESTION 1</div>
+          <div class="qtitle">Calculate orally and choose the answer.</div>
+          <div class="equation" id="equation"></div>
+          <!-- <div class="challenge">🎯 Select the answer that belongs in the box.</div> -->
+        </div>
+      </section>
+
+      <section class="optionsPanel">
+        <div class="optionsTitle">🔢 CHOOSE YOUR ANSWER</div>
+        <div class="options" id="options"></div>
+      </section>
+
+      <!-- <div class="feedback" id="feedback">Choose an answer to continue.</div> -->
+
+      <nav class="nav">
+        <button id="prev" disabled>Prev</button>
+        <div class="counter" id="counter">1/8</div>
+        <button id="next" disabled>Next</button>
+      </nav>
+      <!-- <div class="lock" id="lock">🔒 Next is locked until the answer is correct.</div> -->
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const questions = [
+        { a: "15 × 10 =", ans: 150, opts: [150, 105, 50] },
+        { a: "25 × 100 =", ans: 2500, opts: [2500, 250, 2050] },
+        { a: "38 × 100 =", ans: 3800, opts: [3800, 3080, 380] },
+        { a: "9 × 1000 =", ans: 9000, opts: [9000, 900, 9900] },
+        { a: "8 × 1000 =", ans: 8000, opts: [8000, 800, 80000] },
+        { a: "62 × 20 =", ans: 1240, opts: [1240, 1204, 124] },
+        { a: "30 × 100 =", ans: 3000, opts: [3000, 300, 3300] },
+        { a: "4 × 300 =", ans: 1200, opts: [1200, 120, 900] }
+      ];
+      const state = questions.map(() => ({ done: false, attempts: 0 }));
+      let current = 0, ctx = null;
+
+      const $ = id => document.getElementById(id);
+      function audio() {
+        try {
+          ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+          if (ctx.state === "suspended") ctx.resume();
+          return ctx;
+        } catch (e) { return null }
+      }
+      function beep(f, d, type = "sine") {
+        const c = audio(); if (!c) return;
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = type; o.frequency.value = f; o.connect(g); g.connect(c.destination);
+        g.gain.setValueAtTime(.15, c.currentTime);
+        g.gain.exponentialRampToValueAtTime(.0001, c.currentTime + d / 1000);
+        o.start(); o.stop(c.currentTime + d / 1000);
+      }
+      function correctSound() { beep(660, 110); setTimeout(() => beep(880, 160), 110) }
+      function wrongSound() { beep(180, 220, "sawtooth") }
+      function finishSound() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 150), i * 130)) }
+      function pop(emoji) {
+        const p = document.createElement("div"); p.className = "pop"; p.textContent = emoji;
+        document.body.appendChild(p); setTimeout(() => p.remove(), 1100)
+      }
+
+      function render() {
+        const q = questions[current], s = state[current];
+        $("qnum").textContent = "QUESTION " + (current + 1);
+        $("equation").innerHTML = q.a + ' <span class="answerBox ' + (s.done ? "correct" : "") + '">' + (s.done ? q.ans : "") + '</span>';
+        $("counter").textContent = `${current + 1}/${questions.length}`;
+        const pct = Math.round((current + 1) / questions.length * 100);
+        if ($("progressText")) $("progressText").textContent = `Question ${current + 1} of ${questions.length}`;
+        if ($("percent")) $("percent").textContent = pct + "%";
+        if ($("fill")) $("fill").style.width = pct + "%";
+        if ($("score")) $("score").textContent = state.filter(x => x.done).length;
+
+        $("options").innerHTML = "";
+        q.opts.forEach(n => {
+          const b = document.createElement("button");
+          b.className = "option"; b.textContent = n; b.type = "button";
+          if (s.done) b.disabled = true;
+          b.onclick = () => choose(n, b);
+          $("options").appendChild(b);
+        });
+
+        $("prev").disabled = current === 0;
+        $("next").disabled = !s.done;
+        $("next").style.display = "block";
+        // $("feedback").className = "feedback " + (s.done ? "good" : "");
+        // $("feedback").textContent = s.done ? "🎉 Correct! Great work!" : "Choose an answer to continue.";
+        // $("lock").textContent = s.done ? "🔓 Correct answer! Next is unlocked." : "🔒 Next is locked until the answer is correct.";
+      }
+
+      function choose(n, b) {
+        const s = state[current], q = questions[current];
+        if (s.done) return;
+        if (n !== q.ans) {
+          s.attempts++; wrongSound(); pop("😔");
+          b.classList.remove("bad"); void b.offsetWidth; b.classList.add("bad");
+          // $("feedback").className = "feedback bad";
+          // $("feedback").textContent = "Not quite! Try another answer.";
+          setTimeout(() => b.classList.remove("bad"), 450);
+          return;
+        }
+        s.done = true; correctSound(); pop("🥳");
+        b.classList.add("good");
+        // $("feedback").className = "feedback good";
+        // $("feedback").textContent = "✓ Correct! Rocket mission complete!";
+        render();
+        setTimeout(() => { if (current === questions.length - 1) showFinal() }, 450);
+      }
+
+      let moving = false;
+
+      function moveBus(direction) {
+        if (moving) return;
+
+        const card = $("questionCard");
+
+        if (direction === "next" && !state[current].done) return;
+
+        if (direction === "next" && current === questions.length - 1) {
+          showFinal();
+          return;
+        }
+
+        if (direction === "prev" && current === 0) return;
+
+        moving = true;
+        card.classList.add("is-moving");
+        card.classList.remove("bus-enter-left", "bus-enter-right");
+
+        const exitClass = direction === "next" ? "bus-exit-right" : "bus-exit-left";
+        const enterClass = direction === "next" ? "bus-enter-left" : "bus-enter-right";
+
+        card.classList.add(exitClass);
+        beep(430, 80);
+
+        setTimeout(() => {
+          current += direction === "next" ? 1 : -1;
+          render();
+
+          const newCard = $("questionCard");
+          newCard.classList.remove(exitClass, "bus-exit-right", "bus-exit-left");
+          newCard.classList.add("is-moving", enterClass);
+
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              newCard.classList.add(enterClass);
+            });
+          });
+
+          setTimeout(() => {
+            newCard.classList.remove("is-moving", enterClass);
+            moving = false;
+          }, 560);
+        }, 480);
+      }
+
+      $("prev").onclick = () => moveBus("prev");
+      $("next").onclick = () => moveBus("next");
+
+      function showFinal() {
+        if (document.querySelector(".overlay")) return;
+        finishSound();
+        const o = document.createElement("div"); o.className = "overlay";
+        const m = document.createElement("div"); m.className = "modal";
+        m.innerHTML = `<div class="modalIcon">🎉</div>
+   <h2>All Done!</h2>
+   <p>Amazing! You got them all right!</p>
+   <button class="play"><i class="fa-solid fa-rotate-right"></i> Play Again</button>`;
+        o.appendChild(m); document.body.appendChild(o);
+        m.querySelector(".play").onclick = () => {
+          o.remove(); state.forEach(s => { s.done = false; s.attempts = 0 }); current = 0; render();
+        };
+      }
+      render();
+    })();
+  </script>
+  <script src="../../shared/quiz-ui.js"></script>
+</body>
+
+</html>

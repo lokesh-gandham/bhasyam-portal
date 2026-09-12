@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ordinal Number Balloon Game</title>
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+
+
+    <style>
+        * {
+
+            box-sizing: border-box;
+
+            margin: 0;
+
+            padding: 0;
+
+            font-family: "Livvic", sans-serif;
+
+        }
+
+
+        html,
+        body {
+
+            width: 100%;
+
+            height: 100%;
+
+            overflow: hidden;
+
+        }
+
+
+        body {
+
+            color: #435266;
+
+        }
+
+
+        /* =====================================================
+   MAIN GAME
+===================================================== */
+
+
+        .game {
+
+            width: 100%;
+
+            height: 100dvh;
+
+            padding:
+
+                clamp(15px, 2vh, 28px) clamp(18px, 4vw, 70px);
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            position: relative;
+
+            overflow: hidden;
+
+        }
+
+
+        /* =====================================================
+   FLOATING DECORATIONS
+===================================================== */
+
+
+
+
+
+
+        .header {
+
+            width: 100%;
+
+            text-align: center;
+
+            position: relative;
+
+            z-index: 5;
+
+        }
+
+
+        .header-text {
+
+            font-size: clamp(22px, 2vw, 30px);
+
+            font-weight: 400;
+
+            color: #2f4f4f;
+
+            line-height: 1.35;
+
+        }
+
+
+        /* =====================================================
+   QUESTION AREA
+===================================================== */
+
+
+        .question-area {
+
+            text-align: center;
+
+            margin-top: clamp(8px, 1.5vh, 18px);
+
+            position: relative;
+
+            z-index: 5;
+
+        }
+
+
+        .question-label {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 10px;
+
+            padding: 10px 30px;
+
+            border-radius: 40px;
+
+            background: rgba(255, 255, 255, .78);
+
+            border: 3px solid #f0c56b;
+
+            box-shadow:
+
+                0 7px 0 rgba(213, 177, 105, .18);
+
+            font-size: clamp(21px, 2vw, 30px);
+
+            font-weight: 500;
+
+            color: #435266;
+
+        }
+
+
+        .ordinal-target {
+
+            color: #e67e22;
+
+            font-weight: 500;
+
+        }
+
+
+        /* =====================================================
+   INSTRUCTION
+===================================================== */
+
+
+        .instruction {
+
+            margin-top: 12px;
+
+            font-size: clamp(16px, 1.4vw, 22px);
+
+            font-weight: 500;
+
+            color: #617181;
+
+        }
+
+
+        /* =====================================================
+   GAME STAGE
+===================================================== */
+
+
+        .stage {
+
+            flex: 1;
+
+            width: 100%;
+
+            min-height: 0;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            position: relative;
+
+            z-index: 4;
+
+        }
+
+
+        .balloon-playground {
+
+            width: min(96vw, 1400px);
+
+            height: min(52vh, 480px);
+
+            position: relative;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+        }
+
+
+        /* =====================================================
+   CLOUDS
+===================================================== */
+
+
+        .cloud {
+
+            position: absolute;
+
+            width: 150px;
+
+            height: 45px;
+
+            border-radius: 60px;
+
+            background: rgba(255, 255, 255, .62);
+
+            opacity: .75;
+
+        }
+
+
+        .cloud::before,
+
+        .cloud::after {
+
+            content: "";
+
+            position: absolute;
+
+            border-radius: 50%;
+
+            background: rgba(255, 255, 255, .62);
+
+        }
+
+
+        .cloud::before {
+
+            width: 60px;
+
+            height: 60px;
+
+            left: 20px;
+
+            top: -25px;
+
+        }
+
+
+        .cloud::after {
+
+            width: 75px;
+
+            height: 75px;
+
+            right: 15px;
+
+            top: -35px;
+
+        }
+
+
+        .cloud.one {
+
+            top: 8%;
+
+            left: 2%;
+
+            transform: scale(.7);
+
+        }
+
+
+        .cloud.two {
+
+            bottom: 10%;
+
+            right: 2%;
+
+            transform: scale(.8);
+
+        }
+
+
+        /* =====================================================
+   BALLOON ROW
+===================================================== */
+
+
+        .balloon-row {
+
+            width: 100%;
+
+            display: flex;
+
+            align-items: flex-start;
+
+            justify-content: space-evenly;
+
+            gap: clamp(4px, .8vw, 16px);
+
+            position: relative;
+
+            z-index: 5;
+
+        }
+
+
+        /* =====================================================
+   BALLOON ITEM
+===================================================== */
+
+
+        .balloon-item {
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            cursor: pointer;
+
+            position: relative;
+
+            transition:
+
+                transform .2s ease,
+
+                opacity .2s ease;
+
+        }
+
+
+        .balloon-item:hover:not(.locked):not(.correct-float) {
+
+            transform: translateY(-8px);
+
+        }
+
+
+        .balloon-item.locked {
+
+            cursor: default;
+
+        }
+
+
+        /* =====================================================
+   BALLOON BODY
+===================================================== */
+
+
+        .balloon {
+
+            width: clamp(55px, 6.8vw, 100px);
+
+            height: clamp(76px, 9.3vw, 132px);
+
+            border-radius:
+
+                50% 50% 48% 48% / 55% 55% 45% 45%;
+
+            position: relative;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            border: 3px solid rgba(255, 255, 255, .82);
+
+            box-shadow:
+
+                inset 10px 10px 15px rgba(255, 255, 255, .28),
+
+                inset -10px -12px 18px rgba(0, 0, 0, .12),
+
+                0 8px 13px rgba(0, 0, 0, .13);
+
+            transition:
+
+                transform .25s,
+
+                box-shadow .25s;
+
+        }
+
+
+        /* Balloon shine */
+
+
+        .balloon::before {
+
+            content: "";
+
+            position: absolute;
+
+            width: 22%;
+
+            height: 35%;
+
+            left: 18%;
+
+            top: 15%;
+
+            border-radius: 50%;
+
+            background: rgba(255, 255, 255, .52);
+
+            transform: rotate(18deg);
+
+        }
+
+
+        /* Balloon knot */
+
+
+        .balloon::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 14px;
+
+            height: 14px;
+
+            bottom: -8px;
+
+            left: 50%;
+
+            transform:
+
+                translateX(-50%) rotate(45deg);
+
+            background: inherit;
+
+        }
+
+
+        /* =====================================================
+   ORDINAL TEXT INSIDE BALLOON
+===================================================== */
+
+
+        .balloon-answer {
+
+            position: relative;
+
+            z-index: 4;
+
+            color: #2f4f4f;
+
+            font-size: clamp(16px, 2vw, 28px);
+
+
+
+            opacity: 0;
+
+            transform: scale(.5);
+
+            transition:
+
+                opacity .25s ease,
+
+                transform .25s ease;
+
+
+        }
+
+
+        .balloon.show-answer .balloon-answer {
+
+            opacity: 1;
+
+            transform: scale(1);
+
+        }
+
+
+        /* =====================================================
+   STRING
+===================================================== */
+
+
+        .string {
+
+            width: 2px;
+
+            height: clamp(35px, 5vh, 62px);
+
+            background: #b7a68d;
+
+            margin-top: 5px;
+
+            position: relative;
+
+        }
+
+
+        .string::after {
+
+            content: "";
+
+            width: 7px;
+
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #fff;
+
+            position: absolute;
+
+            bottom: -4px;
+
+            left: 50%;
+
+            transform: translateX(-50%);
+
+        }
+
+
+        /* =====================================================
+   POSITION BADGE
+===================================================== */
+
+
+        .position-badge {
+            display: none;
+
+            margin-top: 8px;
+
+            width: clamp(28px, 2.8vw, 40px);
+
+            height: clamp(28px, 2.8vw, 40px);
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background: rgba(255, 255, 255, .9);
+
+            border: 2px solid #d9e2ea;
+
+            color: #536273;
+
+            font-size: clamp(13px, 1vw, 18px);
+
+            font-weight: 500;
+
+        }
+
+
+        /* =====================================================
+   BALLOON COLORS
+===================================================== */
+
+
+        .balloon.black {
+
+            background: #99cf63;
+
+        }
+
+
+        .balloon.silver {
+
+            background: #aeb7c2;
+
+        }
+
+
+        .balloon.white {
+
+            background: #e7edf3;
+
+        }
+
+
+        .balloon.yellow {
+
+            background: #f5c842;
+
+        }
+
+
+        .balloon.gold {
+
+            background: #e6a72d;
+
+        }
+
+
+        .balloon.orange {
+
+            background: #ef8b2d;
+
+        }
+
+
+        .balloon.red {
+
+            background: #e95b57;
+
+        }
+
+
+        .balloon.pink {
+
+            background: #df7da5;
+
+        }
+
+
+        .balloon.purple {
+
+            background: #a782bd;
+
+        }
+
+
+        .balloon.blue {
+
+            background: #6689bc;
+
+        }
+
+
+        /* =====================================================
+   SELECTED EFFECT
+===================================================== */
+
+
+        .balloon-item.selected .balloon {
+
+            outline:
+
+                5px solid rgba(230, 126, 34, .28);
+
+            outline-offset: 6px;
+
+            transform: scale(1.06);
+
+        }
+
+        .balloon-item.correct-float {
+
+            pointer-events: none;
+
+            z-index: 20;
+
+            animation:
+                wholeBalloonFloat 2.2s ease-in-out infinite;
+
+        }
+
+
+        @keyframes wholeBalloonFloat {
+
+            0% {
+
+                transform:
+                    translateY(0) rotate(-1deg);
+
+            }
+
+            50% {
+
+                transform:
+                    translateY(-18px) rotate(1deg);
+
+            }
+
+            100% {
+
+                transform:
+                    translateY(0) rotate(-1deg);
+
+            }
+
+        }
+
+
+        .balloon-item.correct-float .string {
+
+            animation:
+
+                stringFloat 1.8s ease-in-out infinite;
+
+        }
+
+
+        .balloon-item.correct-float .position-badge {
+            display: none;
+
+            animation:
+
+                badgeFade 1.2s forwards;
+
+        }
+
+
+        @keyframes happyBalloon {
+
+            0%,
+            100% {
+
+                transform:
+                    translateY(0) rotate(-2deg) scale(1.08);
+
+            }
+
+            25% {
+
+                transform:
+                    translateY(-12px) rotate(2deg) scale(1.1);
+
+            }
+
+            50% {
+
+                transform:
+                    translateY(-20px) rotate(-1deg) scale(1.1);
+
+            }
+
+            75% {
+
+                transform:
+                    translateY(-10px) rotate(2deg) scale(1.09);
+
+            }
+
+        }
+
+
+        @keyframes stringFloat {
+
+            0%,
+            100% {
+
+                transform:
+                    translateX(0) rotate(-1deg);
+
+            }
+
+            50% {
+
+                transform:
+                    translateX(3px) rotate(2deg);
+
+            }
+
+        }
+
+
+        @keyframes badgeFade {
+
+            to {
+
+                opacity: 0;
+
+                transform: scale(.85);
+
+            }
+
+        }
+
+
+        /* =====================================================
+   WRONG SHAKE
+===================================================== */
+
+
+        .shake {
+
+            animation: shake .42s;
+
+        }
+
+
+        @keyframes shake {
+
+            20% {
+
+                transform: translateX(-10px);
+
+            }
+
+            40% {
+
+                transform: translateX(10px);
+
+            }
+
+            60% {
+
+                transform: translateX(-8px);
+
+            }
+
+            80% {
+
+                transform: translateX(8px);
+
+            }
+
+        }
+
+
+        /* =====================================================
+   POPUP
+===================================================== */
+
+        .popup-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s;
+        }
+
+        .popup-bg.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup {
+            position: relative;
+            width: 90%;
+            max-width: 520px;
+            padding: 40px 30px;
+            border-radius: 36px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .1);
+            transform: scale(.8);
+            transition: transform .35s cubic-bezier(.175, .885, .32, 1.275);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup::before {
+            content: "";
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            top: -60px;
+            right: -50px;
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        .popup::after {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            bottom: -70px;
+            left: -40px;
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        .popup.correct {
+            background: #edfbf4;
+            border: 6px solid #00c885;
+        }
+
+        .popup.correct::before,
+        .popup.correct::after {
+            background: rgba(162, 245, 209, .45);
+        }
+
+        .popup.wrong {
+            background: #fff0f2;
+            border: 6px solid #ff6b7a;
+        }
+
+        .popup.wrong::before,
+        .popup.wrong::after {
+            background: rgba(255, 196, 203, .45);
+        }
+
+        .popup.final {
+            background: #f0f3ff;
+            border: 6px solid #6c5ce7;
+            width: 520px;
+            max-width: 90vw;
+            height: 300px;
+            padding: 40px 30px;
+            box-sizing: border-box;
+            border-radius: 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup.final::before,
+        .popup.final::after {
+            background: rgba(162, 155, 254, .35);
+        }
+
+        .popup-bg.show .popup {
+            transform: scale(1);
+        }
+
+        .popup-icon {
+            font-size: 4.8rem;
+            margin-bottom: 12px;
+            z-index: 2;
+            line-height: 1;
+            filter: drop-shadow(0 5px 5px rgba(0, 0, 0, .08));
+        }
+
+        .popup h2 {
+            margin: 0 0 8px;
+            font-size: 3rem;
+            font-weight: 600;
+            z-index: 2;
+            letter-spacing: -.5px;
+        }
+
+        .popup p {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 500;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .correct h2 {
+            color: #00a86b;
+        }
+
+        .correct p {
+            color: #2e7d5b;
+        }
+
+        .wrong h2 {
+            color: #d33847;
+        }
+
+        .wrong p {
+            color: #a33b45;
+        }
+
+        .final h2 {
+            color: #6c5ce7;
+        }
+
+        .final p {
+            color: #4834d4;
+        }
+
+        .play {
+            margin-top: 20px;
+            padding: 10px 35px;
+            border: none;
+            border-radius: 30px;
+            background: #0984e3;
+            color: white;
+            font-size: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 5px #0975c7;
+            z-index: 2;
+        }
+
+        .play:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px #0975c7;
+        }
+
+        /* =====================================================
+   RESPONSIVE
+===================================================== */
+
+
+        @media (max-width: 900px) {
+
+
+            .balloon-row {
+
+                gap: 2px;
+
+            }
+
+
+            .balloon {
+
+                border-width: 2px;
+
+            }
+
+
+        }
+
+
+        @media (max-width: 650px) {
+
+
+            .game {
+
+                padding: 12px 8px;
+
+            }
+
+
+            .header-text {
+
+                font-size: 18px;
+
+            }
+
+
+            .question-label {
+
+                font-size: 18px;
+
+                padding: 8px 18px;
+
+            }
+
+
+            .instruction {
+
+                font-size: 14px;
+
+            }
+
+
+            .balloon-playground {
+
+                height: 42vh;
+
+            }
+
+
+            .balloon-row {
+
+                transform: scale(.82);
+
+                width: 120%;
+
+            }
+
+
+        }
+
+        @media screen and (min-width: 1441px) and (max-width: 1920px) {
+            .balloon {
+
+                width: clamp(90px, 7.5vw, 150px);
+                height: clamp(100px, 10vw, 200px);
+            }
+
+            .balloon-answer {
+
+                position: relative;
+
+                z-index: 4;
+
+                color: #2f4f4f;
+
+                font-size: clamp(23px, 2vw, 35px);
+
+            }
+        }
+
+
+
+            #confettiContainer {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                overflow: hidden;
+                z-index: 90;
+            }
+
+            .confetti-piece {
+                position: absolute;
+                width: 9px;
+                height: 14px;
+                border-radius: 2px;
+                opacity: 0;
+                animation: pageConfetti 1700ms cubic-bezier(.16, .72, .3, 1) forwards;
+                will-change: transform, opacity;
+            }
+
+            .final-confetti-piece {
+                width: 10px;
+                height: 16px;
+                animation-duration: 2300ms;
+            }
+
+            .final-confetti-piece:nth-child(3n) {
+                border-radius: 50%;
+            }
+
+            .final-confetti-piece:nth-child(4n) {
+                width: 7px;
+                height: 19px;
+                border-radius: 1px;
+            }
+
+            .final-confetti-piece:nth-child(5n) {
+                width: 13px;
+                height: 8px;
+                border-radius: 2px;
+            }
+
+            @keyframes pageConfetti {
+                0% {
+                    opacity: 1;
+                    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+                }
+
+                55% {
+                    opacity: 1;
+                }
+
+                100% {
+                    opacity: 0;
+                    transform: translate3d(var(--x), var(--y), 0) rotate(var(--r)) scale(0.72);
+                }
+            }
+
+            .final-confetti-piece::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                border-radius: inherit;
+                background: inherit;
+            }
+
+            .popup.final.complete {
+                box-shadow:
+                    0 20px 45px rgba(108, 92, 231, 0.18),
+                    0 0 0 8px rgba(162, 155, 254, 0.12);
+            }
+
+            .popup.final.complete .play {
+                margin-top: 20px;
+            }
+
+            .popup.final.complete .popup-icon {
+                animation: finalTrophyBounce 1.2s ease-in-out infinite;
+            }
+
+            @keyframes finalTrophyBounce {
+
+                0%,
+                100% {
+                    transform: translateY(0) rotate(0deg) scale(1);
+                }
+
+                50% {
+                    transform: translateY(-5px) rotate(-4deg) scale(1.06);
+                }
+            }
+    </style>
+
+</head>
+
+
+<body>
+
+    <div id="confettiContainer"></div>
+
+
+    <div class="game">
+
+
+        <!-- HEADER -->
+
+
+        <div class="header">
+
+            <div class="header-text">
+
+                Write the position of the given balloons in ordinal numbers.
+
+            </div>
+
+        </div>
+
+
+        <!-- QUESTION -->
+
+
+        <div class="question-area">
+
+            <div class="question-label">
+
+                Find the
+
+                <span class="ordinal-target" id="targetOrdinal">
+                    4th
+                </span>
+
+                Balloon
+
+            </div>
+
+
+            <div class="instruction">
+
+                Click the balloon in the correct position.
+
+            </div>
+
+        </div>
+
+
+        <!-- GAME AREA -->
+
+
+        <main class="stage">
+
+            <div class="balloon-playground">
+
+
+                <div class="cloud one"></div>
+
+
+                <div class="cloud two"></div>
+
+
+                <div class="balloon-row" id="balloonRow"></div>
+
+
+            </div>
+
+        </main>
+
+
+    </div>
+
+
+    <!-- POPUP -->
+
+
+    <div class="popup-bg" id="popupBg">
+
+
+        <div class="popup" id="popup">
+
+
+            <div class="popup-icon" id="popupIcon">
+                ⭐
+            </div>
+
+
+            <h2 id="popupTitle">
+                Amazing!
+            </h2>
+
+
+            <p id="popupText">
+                You got it right!
+            </p>
+
+
+            <button class="play" id="playAgain" onclick="restart()" style="display:none">
+                Play Again
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+    <script>
+
+        /* =========================
+           EXACT SAME CORRECT / WRONG SOUND
+           FROM BIG AND SMALL
+           ========================= */
+        const audioCtx =
+            new (
+                window.AudioContext ||
+                window.webkitAudioContext
+            )();
+
+        function playAudioTone(isCorrect) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            }
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+
+
+        function showSmallConfetti(isFinal = false) {
+            const confettiContainer = document.getElementById('confettiContainer');
+            if (!confettiContainer) return;
+
+            confettiContainer.innerHTML = '';
+
+            const count = isFinal ? 95 : 42;
+
+            const colors = [
+                '#00b894',
+                '#e67e22',
+                '#6c5ce7',
+                '#0984e3',
+                '#fdcb6e',
+                '#ff6b7a',
+                '#00cec9',
+                '#a29bfe'
+            ];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('span');
+
+                piece.className =
+                    isFinal
+                        ? 'confetti-piece final-confetti-piece'
+                        : 'confetti-piece';
+
+                const startX = Math.random() * 100;
+                const startY = -8 + Math.random() * 10;
+
+                const drift =
+                    (Math.random() * 520 - 260) *
+                    (isFinal ? 1.15 : 0.9);
+
+                const fall =
+                    window.innerHeight *
+                    (0.82 + Math.random() * 0.48);
+
+                const rotation =
+                    Math.random() * 1400 - 700;
+
+                piece.style.left = startX + '%';
+                piece.style.top = startY + '%';
+
+                piece.style.setProperty('--x', drift + 'px');
+                piece.style.setProperty('--y', fall + 'px');
+                piece.style.setProperty('--r', rotation + 'deg');
+
+                piece.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+
+                piece.style.animationDelay =
+                    (Math.random() * (isFinal ? 500 : 220)) + 'ms';
+
+                confettiContainer.appendChild(piece);
+
+                setTimeout(
+                    () => piece.remove(),
+                    isFinal ? 2900 : 2050
+                );
+            }
+        }
+
+
+
+        /* =====================================================
+           BALLOON DATA
+        ===================================================== */
+
+
+        const balloons = [
+
+            {
+                ordinal: "1st",
+                color: "black"
+            },
+
+            {
+                ordinal: "2nd",
+                color: "silver"
+            },
+
+            {
+                ordinal: "3rd",
+                color: "white"
+            },
+
+            {
+                ordinal: "4th",
+                color: "yellow"
+            },
+
+            {
+                ordinal: "5th",
+                color: "gold"
+            },
+
+            {
+                ordinal: "6th",
+                color: "orange"
+            },
+
+            {
+                ordinal: "7th",
+                color: "red"
+            },
+
+            {
+                ordinal: "8th",
+                color: "pink"
+            },
+
+            {
+                ordinal: "9th",
+                color: "purple"
+            },
+
+            {
+                ordinal: "10th",
+                color: "blue"
+            }
+
+        ];
+
+
+        /* =====================================================
+           QUESTIONS
+        ===================================================== */
+
+
+        const questions = [
+            { target: 2 },  // 3rd
+            { target: 5 },  // 6th
+            { target: 1 },  // 2nd
+            { target: 6 },  // 7th
+            { target: 4 },  // 5th
+            { target: 8 },  // 9th
+            { target: 0 },  // 1st
+            { target: 7 },  // 8th
+            { target: 9 },  // 10th
+            { target: 3 }   // 4th
+        ];
+
+
+        let round = 0;
+
+        let paused = false;
+
+
+        /* =====================================================
+           PERMANENTLY REMEMBER CORRECT BALLOONS
+        ===================================================== */
+
+        let solvedBalloons = new Set();
+
+        let popupTimer;
+
+
+        /* =====================================================
+           VOICE
+           ONLY CORRECT AND WRONG
+        ===================================================== */
+
+
+        function speak(t) {
+
+
+            speechSynthesis.cancel();
+
+
+            const msg = new SpeechSynthesisUtterance(t);
+
+
+            msg.lang = "en-US";
+
+            msg.volume = 0.25;
+
+            msg.rate = 1;
+
+            msg.pitch = 1;
+
+
+            speechSynthesis.speak(msg);
+
+
+        }
+
+
+        /* =====================================================
+           LOAD QUESTION
+        ===================================================== */
+
+
+        function loadQuestion() {
+
+
+            paused = false;
+
+
+            const targetIndex = questions[round].target;
+
+
+            document.getElementById(
+                "targetOrdinal"
+            ).textContent =
+                balloons[targetIndex].ordinal;
+
+
+            renderBalloons();
+
+
+        }
+
+
+        /* =====================================================
+           RENDER BALLOONS
+        ===================================================== */
+
+
+        function renderBalloons() {
+
+
+            const row =
+                document.getElementById(
+                    "balloonRow"
+                );
+
+
+            row.innerHTML = "";
+
+
+            balloons.forEach(
+                (
+                    balloon,
+                    index
+                ) => {
+
+
+                    const item =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    item.className =
+                        "balloon-item";
+
+
+                    /* RESTORE PREVIOUSLY CORRECT BALLOONS */
+
+                    if (
+                        solvedBalloons.has(index)
+                    ) {
+
+                        item.classList.add(
+                            "correct-float"
+                        );
+
+                        item.classList.add(
+                            "locked"
+                        );
+
+                    }
+
+
+                    item.innerHTML = `
+
+                <div
+                    class="balloon ${balloon.color}
+                    ${solvedBalloons.has(index)
+                            ? "show-answer"
+                            : ""
+                        }"
+                >
+
+                    <div
+                        class="balloon-answer"
+                    >
+                        ${balloon.ordinal}
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="string"
+                ></div>
+
+
+
+
+            `;
+
+
+                    item.addEventListener(
+                        "click",
+                        () => {
+
+
+                            /* ALREADY SOLVED BALLOONS
+                               CANNOT BE CLICKED AGAIN */
+
+                            if (
+                                solvedBalloons.has(index)
+                            ) {
+
+                                return;
+
+                            }
+
+
+                            selectBalloon(index);
+
+                        }
+                    );
+
+
+                    row.appendChild(item);
+
+                }
+            );
+
+
+        }
+
+
+        /* =====================================================
+           SELECT BALLOON
+        ===================================================== */
+
+
+        function selectBalloon(index) {
+
+
+            if (paused) return;
+
+
+            paused = true;
+
+
+            const correctIndex =
+                questions[round].target;
+
+
+            const items =
+                document.querySelectorAll(
+                    ".balloon-item"
+                );
+
+
+            items.forEach(
+                item =>
+                    item.classList.add(
+                        "locked"
+                    )
+            );
+
+
+            if (
+                index === correctIndex
+            ) {
+
+
+                correctAnswer(
+                    index
+                );
+
+
+            } else {
+
+
+                wrongAnswer(
+                    index
+                );
+
+
+            }
+
+
+        }
+        function correctAnswer(index) {
+
+
+            speak("Correct");
+            playAudioTone(true);
+
+            showSmallConfetti(false);
+
+
+            const items =
+                document.querySelectorAll(
+                    ".balloon-item"
+                );
+
+
+            const correctBalloon =
+                items[index];
+
+
+            const balloon =
+                correctBalloon.querySelector(
+                    ".balloon"
+                );
+
+
+            /* =================================================
+               SAVE THE CORRECT BALLOON PERMANENTLY
+            ================================================= */
+
+            solvedBalloons.add(
+                index
+            );
+
+
+            /* SHOW THE ORDINAL INSIDE THE BALLOON */
+
+            balloon.classList.add(
+                "show-answer"
+            );
+
+
+            /* FLOAT THE WHOLE BALLOON + STRING */
+
+            correctBalloon.classList.add(
+                "correct-float"
+            );
+
+
+            correctBalloon.classList.add(
+                "locked"
+            );
+
+
+            /* HIDE THE SMALL POSITION BADGE */
+
+            const badge =
+                correctBalloon.querySelector(
+                    ".position-badge"
+                );
+
+
+            if (badge) {
+
+                badge.style.opacity = "0";
+
+            }
+
+
+            /* LOCK ALL OTHER BALLOONS DURING FEEDBACK */
+
+            items.forEach(
+                (
+                    item,
+                    itemIndex
+                ) => {
+
+                    if (
+                        itemIndex !== index
+                    ) {
+
+                        item.classList.add(
+                            "locked"
+                        );
+
+                    }
+
+                }
+            );
+
+
+            setTimeout(
+                () => {
+
+                    showPopup(
+
+                        "correct",
+
+                        "🌟",
+
+                        "Amazing!",
+
+                        `Correct! It is the ${balloons[index].ordinal} balloon.`,
+
+                        false
+
+                    );
+
+                },
+
+                300
+            );
+
+
+            setTimeout(
+                () => {
+
+                    closePopup();
+
+                },
+
+                1600
+            );
+
+
+            /* =================================================
+               LOAD NEXT QUESTION
+        
+               IMPORTANT:
+               solvedBalloons remembers every correct balloon,
+               so its ordinal remains visible permanently.
+            ================================================= */
+
+            setTimeout(
+                () => {
+
+                    if (
+                        round <
+                        questions.length - 1
+                    ) {
+
+                        round++;
+
+
+                        loadQuestion();
+
+                    }
+
+                    else {
+
+                        showSmallConfetti(true);
+                        showFinal();
+
+                    }
+
+                },
+
+                1600
+            );
+
+
+        }
+
+
+        /* =====================================================
+           WRONG ANSWER
+        ===================================================== */
+
+
+        function wrongAnswer(index) {
+
+
+            speak("Wrong");
+            playAudioTone(false);
+
+
+            const items =
+                document.querySelectorAll(
+                    ".balloon-item"
+                );
+
+
+            const wrongBalloon =
+                items[index];
+
+
+            wrongBalloon.classList.add(
+                "shake"
+            );
+
+
+            setTimeout(
+                () => {
+
+
+                    wrongBalloon.classList.remove(
+                        "shake"
+                    );
+
+
+                    showPopup(
+
+                        "wrong",
+
+                        "😟",
+
+                        "Keep Going!",
+
+                        "Try again, you can do it!",
+
+                        false
+
+                    );
+
+
+                },
+                300
+            );
+
+
+            setTimeout(
+                () => {
+
+
+                    closePopup();
+
+
+                    paused = false;
+
+
+                    items.forEach(
+                        item =>
+                            item.classList.remove(
+                                "locked"
+                            )
+                    );
+
+
+                },
+                1900
+            );
+
+
+        }
+
+
+        /* =====================================================
+           SHOW FINAL POPUP
+        ===================================================== */
+
+
+        function showFinal() {
+
+
+            showPopup(
+
+                "final",
+
+                "🏆",
+
+                "Congratulations!",
+
+                "Great job! You completed it! 🎉",
+
+                true
+
+            );
+
+
+        }
+
+
+        /* =====================================================
+           POPUP
+        ===================================================== */
+
+
+        function showPopup(
+
+            type,
+
+            icon,
+
+            title,
+
+            text,
+
+            final
+
+        ) {
+
+
+            clearTimeout(
+                popupTimer
+            );
+
+
+            const popup =
+                document.getElementById(
+                    "popup"
+                );
+
+
+            popup.className =
+                "popup " + type + (final ? " complete" : "");
+
+
+            document.getElementById(
+                "popupIcon"
+            ).textContent =
+                icon;
+
+
+            document.getElementById(
+                "popupTitle"
+            ).textContent =
+                title;
+
+
+            document.getElementById(
+                "popupText"
+            ).textContent =
+                text;
+
+
+            document.getElementById(
+                "playAgain"
+            ).style.display =
+
+                final
+
+                    ?
+
+                    "inline-block"
+
+                    :
+
+                    "none";
+
+
+            document.getElementById(
+                "popupBg"
+            ).classList.add(
+                "show"
+            );
+
+
+        }
+
+
+        /* =====================================================
+           CLOSE POPUP
+        ===================================================== */
+
+
+        function closePopup() {
+
+
+            document.getElementById(
+                "popupBg"
+            ).classList.remove(
+                "show"
+            );
+
+
+        }
+
+
+        /* =====================================================
+           RESTART
+        ===================================================== */
+
+
+        function restart() {
+
+
+            round = 0;
+
+
+            paused = false;
+
+
+            /* START A COMPLETELY FRESH GAME */
+
+            solvedBalloons.clear();
+
+
+            const confettiContainer = document.getElementById("confettiContainer");
+            if (confettiContainer) confettiContainer.innerHTML = "";
+
+
+            closePopup();
+
+
+            loadQuestion();
+
+
+        }
+
+
+        /* =====================================================
+           START GAME
+        ===================================================== */
+
+
+        window.addEventListener(
+
+            "load",
+
+            loadQuestion
+
+        );
+
+
+    </script>
+
+
+</body>
+
+</html>

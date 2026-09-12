@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Math Power Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{
+  font-family:"Livvic",sans-serif;
+  color:#2f4f4f;
+}
+
+/* =========================
+   PLAYFUL GAME BACKGROUND
+   ========================= */
+.game{
+  width:100%;
+  height:100vh;
+  min-height:600px;
+  position:relative;
+  overflow:hidden;
+  
+}
+.star,.plus,.diamond{
+  position:absolute;
+  z-index:1;
+  pointer-events:none;
+  user-select:none;
+  font-weight:600;
+  opacity:.7;
+  animation:float 4s ease-in-out infinite;
+}
+.star{left:7%;top:24%;font-size:38px;color:#d99074}
+.plus{right:8%;top:34%;font-size:42px;color:#69b5a4;animation-delay:1s}
+.diamond{left:9%;bottom:18%;font-size:30px;color:#a98bd4;animation-delay:1.5s}
+@keyframes float{
+  0%,100%{transform:translateY(0) rotate(-5deg)}
+  50%{transform:translateY(-10px) rotate(7deg)}
+}
+
+/* =========================
+   HEADER
+   ========================= */
+.header{
+  position:absolute;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:10;
+}
+.game-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:9px 22px;
+  border-radius:20px;
+  
+  border:0;
+  
+}
+.title-icon{
+  width:36px;height:36px;
+  display:grid;place-items:center;
+  border-radius:12px;
+  background:#d9c7f0;
+  border:2px solid #a98bd4;
+  font-size:20px;
+}
+h1{
+  margin:0;
+  color:#2f4f4f;
+  font-size:22px;
+  line-height:1;
+  font-weight:400;
+}
+
+/* =========================
+   ONE QUESTION SCREEN
+   ========================= */
+.screen{
+  position:relative;
+  z-index:3;
+  width:min(1120px,90vw);
+  height:100%;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:70px 0 82px;
+}
+.question-zone{
+  position:relative;
+  width:100%;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+
+
+.energy-frame{
+  position:relative;
+  width:100%;
+  padding:42px 65px 42px;
+  border-radius:38px;
+  background:rgba(255,255,255,.72);
+  border:0;
+  box-shadow:
+    0 12px 0 rgba(86,67,106,.09),
+    0 25px 55px rgba(75,57,92,.13);
+}
+
+/* colorful game corners */
+.energy-frame:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:38px;
+  border:4px solid #a98bd4;
+  clip-path:polygon(
+    0 0,18% 0,18% 7px,82% 7px,82% 0,100% 0,
+    100% 18%,calc(100% - 7px) 18%,calc(100% - 7px) 82%,
+    100% 82%,100% 100%,82% 100%,82% calc(100% - 7px),
+    18% calc(100% - 7px),18% 100%,0 100%,0 82%,
+    7px 82%,7px 18%,0 18%
+  );
+  pointer-events:none;
+}
+.energy-frame:after{
+  content:"";
+  position:absolute;
+  inset:12px;
+  border:2px dashed rgba(169,139,212,.34);
+  border-radius:29px;
+  pointer-events:none;
+}
+
+
+.question-text{
+  position:relative;
+  z-index:2;
+  max-width:930px;
+  margin:0 auto 28px;
+  text-align:center;
+  color:#334e4e;
+  font-size:30px;
+  line-height:1.28;
+  font-weight:400;
+}
+.highlight{
+  color:#795f32;
+  font-weight:500;
+}
+
+.answer-zone{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+}
+.answer-caption{
+  color:#607878;
+  font-size:18px;
+  font-weight:500;
+}
+.answer{
+  width:190px;
+  height:62px;
+  border:3px solid #efb28f;
+  border-radius:17px;
+  outline:none;
+  background:#fffdf9;
+  color:#2f4f4f;
+  text-align:center;
+  font-family:"Livvic",sans-serif;
+  font-size:30px;
+  font-weight:400;
+  box-shadow:inset 0 2px 0 #fff,0 5px 0 rgba(110,68,52,.09);
+  transition:.18s ease;
+}
+.answer:focus{
+  border-color:#d99c36;
+  background:#fff8dd;
+  box-shadow:0 0 0 5px rgba(217,156,54,.14),0 5px 0 rgba(110,68,52,.08);
+}
+.answer.correct{
+  border-color:#16834f;
+  background:#dcf5e5;
+  color:#16834f;
+}
+.answer.wrong{
+  border-color:#c94740;
+  background:#ffe8e4;
+  color:#c94740;
+}
+
+.submit-btn{
+  position:relative;
+  z-index:2;
+  display:block;
+  min-width:155px;
+  height:50px;
+  padding:0 28px;
+  margin:20px auto 0;
+  border:0;
+  border-radius:18px;
+  background:#2f4f4f;
+  color:#fff;
+  font-family:"Livvic",sans-serif;
+  font-size:20px;
+  font-weight:500;
+  cursor:pointer;
+  box-shadow:0 8px 0 rgba(22,59,59,.18),0 13px 25px rgba(47,79,79,.20);
+  transition:.16s ease;
+}
+.submit-btn:hover{transform:translateY(-2px)}
+.submit-btn:active{
+  transform:translateY(3px);
+  box-shadow:0 4px 0 rgba(22,59,59,.18);
+}
+.submit-btn:disabled{
+  opacity:.65;
+  cursor:default;
+  transform:none;
+}
+
+
+/* question navigation */
+.nav-btn{
+  position:fixed;
+  bottom:22px;
+  z-index:30;
+  min-width:126px;
+  height:46px;
+  padding:0 19px;
+  border-radius:15px;
+  font-family:"Livvic",sans-serif;
+  font-size:20px;
+  font-weight:500;
+  color:#2f4f4f;
+  border:2px solid rgba(47,79,79,.12);
+  cursor:pointer;
+  box-shadow:0 8px 18px rgba(47,79,79,.12);
+  transition:.16s ease;
+}
+.nav-btn:hover{transform:translateY(-2px)}
+.nav-btn:active{transform:translateY(2px)}
+.nav-btn:disabled{
+  opacity:.55;
+  cursor:default;
+  transform:none;
+  pointer-events:none;
+}
+#prevBtn{
+  left:clamp(20px,4vw,70px);
+  background:#a9cbe2;
+  border-color:#79a9c7;
+}
+#nextBtn{
+  right:clamp(20px,4vw,70px);
+  background:#efbca6;
+  border-color:#d99074;
+}
+
+/* =========================
+   SAME POPUP STYLE
+   ========================= */
+.feedback{
+  position:fixed;
+  top:50%;left:50%;
+  z-index:100;
+  width:min(440px,88vw);
+  min-height:215px;
+  padding:26px 30px 28px;
+  border-radius:30px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  text-align:center;
+  opacity:0;
+  pointer-events:none;
+  transform:translate(-50%,-50%) scale(.7);
+  transition:.28s cubic-bezier(.2,.9,.25,1.25);
+  box-shadow:0 20px 50px #20393938;
+}
+.feedback.show{
+  opacity:1;
+  transform:translate(-50%,-50%) scale(1);
+}
+.correct-popup{
+  background:linear-gradient(135deg,#e2f6e9,#f4fcf6);
+  border:5px solid #16834f;
+}
+.wrong-popup{
+  background:linear-gradient(135deg,#fde6e2,#fff7f5);
+  border:5px solid #c94740;
+}
+.feedback-icon{
+  width:68px;height:68px;
+  display:grid;place-items:center;
+  border-radius:24px 24px 24px 8px;
+  font-size:34px;color:#fff;
+  box-shadow:0 5px 0 #00000014;
+}
+.correct-popup .feedback-icon{background:#16834f}
+.wrong-popup .feedback-icon{background:#c94740}
+.feedback h3{
+  margin:0;
+  font-size:28px;
+  font-weight:600;
+  color:#2f4f4f;
+}
+.feedback p{
+  margin:0;
+  font-size:17px;
+  color:#607878;
+}
+
+/* final popup */
+.final-popup{
+  position:fixed;
+  top:50%;left:50%;
+  z-index:200;
+  width:min(520px,91vw);
+  padding:38px 36px 32px;
+  text-align:center;
+  border-radius:34px;
+  background:
+    radial-gradient(circle at 20% 20%,#fff6a6 0 7px,transparent 8px),
+    radial-gradient(circle at 80% 25%,#fff 0 6px,transparent 7px),
+    linear-gradient(145deg,#eadcff,#cbb5f4 58%,#b89ae8);
+  border:5px solid #7350a8;
+  box-shadow:0 10px 0 rgba(83,55,126,.18),0 28px 70px rgba(55,38,80,.30);
+  opacity:0;
+  pointer-events:none;
+  transform:translate(-50%,-50%) scale(.72);
+  transition:.34s;
+}
+.final-popup.show{
+  opacity:1;
+  pointer-events:auto;
+  transform:translate(-50%,-50%) scale(1);
+}
+.final-emoji{font-size:78px;margin-bottom:8px}
+.final-popup h2{
+  margin:0 0 8px;
+  font-size:36px;
+  font-weight:600;
+  color:#4c3272;
+}
+.final-popup p{
+  margin:0 0 24px;
+  font-size:18px;
+  color:#5f4a7a;
+}
+.play-again-btn{
+  min-width:185px;height:52px;
+  padding:0 28px;
+  border:0;border-radius:17px;
+  background:#68449a;color:#fff;
+  font-family:"Livvic",sans-serif;
+  font-size:20px;font-weight:500;
+  cursor:pointer;
+  box-shadow:0 7px 0 rgba(70,44,106,.20),0 13px 24px rgba(89,59,131,.24);
+}
+
+/* =========================
+   MONITOR RESPONSIVE
+   ========================= */
+@media(min-width:1400px){
+  /* Large monitor: reserve separate zones so nothing can overlap. */
+  .header{
+    top:18px;
+    left:50%;
+  }
+  .game-title{padding:12px 28px;border-width:4px;border-radius:23px}
+  .title-icon{width:46px;height:46px;border-width:3px;font-size:25px;border-radius:14px}
+  h1{font-size:30px}
+
+  .screen{
+    width:min(1450px,90vw);
+    height:calc(100vh - 118px);
+    min-height:0;
+    padding:112px 0 88px;
+    align-items:center;
+  }
+  .question-zone{
+    width:100%;
+    min-height:0;
+  }
+  .quest-label{
+    margin-bottom:-18px;
+    padding:10px 28px;
+    border-width:4px;
+    border-radius:20px;
+    font-size:20px;
+  }
+  .energy-frame{
+    padding:52px 80px 42px;
+    border-radius:42px;
+    box-shadow:0 12px 0 rgba(86,67,106,.09),0 25px 55px rgba(75,57,92,.13);
+  }
+  .energy-frame:before{border-width:5px;border-radius:42px}
+  .energy-frame:after{inset:14px;border-radius:32px;border-width:2px}
+
+  .level-row{gap:18px;margin-bottom:28px}
+  .level-orb{
+    width:78px;height:78px;
+    border-width:5px;
+    font-size:34px;
+  }
+  .level-copy small{font-size:18px}
+  .level-copy strong{font-size:40px}
+
+  .question-text{
+    max-width:1200px;
+    margin:0 auto 30px;
+    font-size:40px;
+    line-height:1.22;
+  }
+  .answer-zone{gap:22px}
+  .answer-caption{font-size:21px}
+  .answer{
+    width:clamp(210px,12vw,240px);
+    height:clamp(70px,4.2vw,86px);
+    border-width:4px;
+    border-radius:20px;
+    font-size:40px;
+  }
+  .submit-btn{
+    display:block;
+    min-width:155px;
+    width:auto;
+    height:50px;
+    padding:0 28px;
+    margin:18px auto 0;
+    border-radius:18px;
+    font-size:20px;
+  }
+  .progress{width:330px;height:12px;margin:24px auto 0}
+
+  /* Navigation lives only in the bottom safe area. */
+  .nav-btn{
+    min-width:clamp(155px,9vw,190px);
+    width:auto;
+    height:clamp(56px,3.4vw,68px);
+    padding:0 24px;
+    border-radius:18px;
+    border-width:3px;
+    font-size:30px;
+    bottom:18px;
+  }
+  #prevBtn{left:clamp(24px,4vw,70px)}
+  #nextBtn{right:clamp(24px,4vw,70px)}
+
+  .feedback{
+    width:min(560px,42vw);
+    min-height:270px;
+    padding:32px 40px 36px;
+    border-radius:36px;
+    border-width:6px;
+  }
+  .feedback-icon{width:82px;height:82px;font-size:40px}
+  .feedback h3{font-size:34px}
+  .feedback p{font-size:20px}
+
+  .final-popup{
+    width:min(650px,48vw);
+    padding:46px 48px 40px;
+    border-radius:40px;
+    border-width:6px;
+  }
+  .final-emoji{font-size:92px}
+  .final-popup h2{font-size:44px}
+  .final-popup p{font-size:21px}
+  .play-again-btn{
+    min-width:215px;height:60px;
+    border-radius:20px;font-size:23px;
+  }
+}
+
+@media(max-width:900px){
+  .screen{width:92vw;padding:92px 0 82px}
+  .energy-frame{padding:44px 40px}
+  .question-text{font-size:26px}
+  .answer-zone{flex-direction:column;gap:10px}
+  .answer-caption{font-size:16px}
+}
+
+@media(max-width:650px){
+  .game{min-height:520px}
+  .header{top:12px}
+  .game-title{padding:7px 14px;border-width:2px;border-radius:16px}
+  .title-icon{width:30px;height:30px;font-size:16px;border-width:2px}
+  h1{font-size:20px}
+  .screen{width:94vw;padding:72px 0 72px}
+  .question-zone{min-height:0}
+  .quest-label{
+    margin-bottom:-13px;
+    padding:7px 16px;
+    border-width:2px;
+    border-radius:14px;
+    font-size:12px;
+  }
+  .energy-frame{
+    padding:34px 17px 30px;
+    border-radius:25px;
+  }
+  .energy-frame:before{border-width:3px;border-radius:25px}
+  .energy-frame:after{inset:9px;border-radius:19px;border-width:1.5px}
+  .level-row{gap:10px;margin-bottom:22px}
+  .level-orb{
+    width:48px;height:48px;
+    border-width:2px;
+    font-size:21px;
+  }
+  .level-copy small{font-size:11px}
+  .level-copy strong{font-size:22px}
+  .question-text{
+    font-size:20px;
+    line-height:1.25;
+    margin-bottom:22px;
+  }
+  .answer-zone{gap:7px}
+  .answer-caption{font-size:13px}
+  .submit-btn{
+    min-width:125px;
+    height:43px;
+    padding:0 15px;
+    margin-top:12px;
+    border-radius:15px;
+    font-size:17px;
+  }
+  .answer{
+    width:130px;height:46px;
+    border-width:2px;border-radius:12px;
+    font-size:22px;
+  }
+  .progress{width:180px;height:8px;margin-top:22px}
+  .nav-btn{
+    min-width:82px;height:40px;
+    padding:0 8px;border-radius:13px;
+    font-size:15px;bottom:12px;
+  }
+  .star{left:3%;font-size:27px}
+  .plus{right:3%;font-size:30px}
+  .diamond{left:4%;font-size:23px}
+  .feedback{width:min(440px,88vw);min-height:215px}
+  .final-popup{width:91vw;padding:30px 22px}
+  .final-popup h2{font-size:30px}
+  .final-emoji{font-size:65px}
+}
+</style>
+</head>
+
+<body>
+<main class="game">
+
+  <header class="header">
+    <div class="game-title">
+      <div class="title-icon">🎮</div>
+      <h1>Find the Value</h1>
+    </div>
+  </header>
+
+  <section class="screen">
+    <div class="question-zone">
+
+      <div class="energy-frame">
+
+        <div id="questionText" class="question-text"></div>
+
+        <div class="answer-zone">
+          <div class="answer-caption">Enter your answer</div>
+          <input id="answer" class="answer" type="text" inputmode="numeric" autocomplete="off" aria-label="Answer">
+        </div>
+
+        <button id="submitBtn" class="submit-btn" type="button">Submit</button>
+
+      </div>
+    </div>
+  </section>
+
+  <button class="nav-btn" id="prevBtn">← Back</button>
+  <button class="nav-btn" id="nextBtn">Next →</button>
+
+  <!-- Same popup colors/sizes/family -->
+  <div id="correctPopup" class="feedback correct-popup">
+    <div class="feedback-icon">🎉</div>
+    <h3>Perfect!</h3>
+    <p>Correct answer!</p>
+  </div>
+
+  <div id="wrongPopup" class="feedback wrong-popup">
+    <div class="feedback-icon">😕</div>
+    <h3>Try Again!</h3>
+    <p>Check your answer and try again.</p>
+  </div>
+
+  <div id="finalPopup" class="final-popup">
+    <div class="final-emoji">🏆</div>
+    <h2>Math Champion!</h2>
+    <p>You completed every math challenge!</p>
+    <button id="playAgainBtn" class="play-again-btn">↻ Play Again</button>
+  </div>
+
+</main>
+
+<script>
+function speak(t){
+  if(!("speechSynthesis" in window))return;
+  speechSynthesis.cancel();
+  const msg=new SpeechSynthesisUtterance(t);
+  msg.lang="en-US";
+  msg.volume=.25;
+  msg.rate=1;
+  msg.pitch=1;
+  speechSynthesis.speak(msg);
+}
+
+const questions=[
+  {
+    text:"Q1. 3 hundreds 33 ones more than the <span class='highlight'>least 7 digit number</span>",
+    answer:"1000333"
+  },
+  {
+    text:"Q2. 5500 more than <span class='highlight'>7896428</span>",
+    answer:"7901928"
+  }
+];
+
+let current=0;
+let solved=[false,false];
+let userAnswers=["",""];
+
+const answer=document.getElementById("answer");
+const questionText=document.getElementById("questionText");
+const correctPopup=document.getElementById("correctPopup");
+const wrongPopup=document.getElementById("wrongPopup");
+const finalPopup=document.getElementById("finalPopup");
+const prevBtn=document.getElementById("prevBtn");
+const nextBtn=document.getElementById("nextBtn");
+const playAgainBtn=document.getElementById("playAgainBtn");
+const submitBtn=document.getElementById("submitBtn");
+
+function renderQuestion(){
+  const q=questions[current];
+  questionText.innerHTML=q.text;
+
+  /* Keep the answer when moving between questions. */
+  answer.value=userAnswers[current] || "";
+  answer.classList.remove("correct","wrong");
+  answer.readOnly=false;
+  submitBtn.disabled=false;
+
+  /* A correctly submitted answer is locked when the user comes back. */
+  if(solved[current]){
+    answer.classList.add("correct");
+    answer.readOnly=true;
+    submitBtn.disabled=true;
+  }
+
+  prevBtn.style.visibility="visible";
+  nextBtn.textContent="Next →";
+}
+
+function showPopup(el){
+  el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),1500);
+}
+
+function setNavigationLocked(locked){
+  prevBtn.disabled=locked;
+  nextBtn.disabled=locked;
+  prevBtn.style.pointerEvents=locked?"none":"auto";
+  nextBtn.style.pointerEvents=locked?"none":"auto";
+  prevBtn.setAttribute("aria-disabled",String(locked));
+  nextBtn.setAttribute("aria-disabled",String(locked));
+}
+
+
+
+function submitCurrentAnswer(){
+  const value=answer.value.trim();
+
+  if(value===""){
+    answer.focus();
+    answer.animate(
+      [{transform:"translateX(0)"},{transform:"translateX(-5px)"},{transform:"translateX(5px)"},{transform:"translateX(0)"}],
+      {duration:280}
+    );
+    return false;
+  }
+
+  userAnswers[current]=value;
+
+  const normalizedValue=value.replace(/,/g,"");
+  const correct=normalizedValue===questions[current].answer;
+
+  if(correct){
+    answer.classList.remove("wrong");
+    answer.classList.add("correct");
+    answer.readOnly=true;
+    solved[current]=true;
+    submitBtn.disabled=true;
+    showPopup(correctPopup);
+    speak("Correct!");
+
+    /* On the final question, open the final popup automatically.
+       The user does not need to press Next/Finish. */
+    if(current===questions.length-1){
+      setTimeout(()=>{
+        finalPopup.classList.add("show");
+      },1500);
+    }
+
+    return true;
+  }
+
+  /* Wrong answer disappears automatically. */
+  answer.classList.add("wrong");
+  showPopup(wrongPopup);
+  speak("Try again!");
+
+  setTimeout(()=>{
+    answer.value="";
+    userAnswers[current]="";
+    answer.classList.remove("wrong");
+    answer.focus();
+  },500);
+
+  return false;
+}
+
+answer.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    e.preventDefault();
+    submitCurrentAnswer();
+  }
+});
+
+submitBtn.addEventListener("click",()=>{
+  submitCurrentAnswer();
+});
+
+nextBtn.addEventListener("click",()=>{
+  /* Navigation is completely disabled once the final popup is open. */
+  if(finalPopup.classList.contains("show")) return;
+
+  if(!answer.readOnly){
+    userAnswers[current]=answer.value;
+  }
+
+  if(!solved[current]){
+    answer.focus();
+    answer.animate(
+      [{transform:"translateX(0)"},{transform:"translateX(-5px)"},{transform:"translateX(5px)"},{transform:"translateX(0)"}],
+      {duration:280}
+    );
+    return;
+  }
+
+  if(current<questions.length-1){
+    current++;
+    renderQuestion();
+  }
+});
+
+prevBtn.addEventListener("click",()=>{
+  /* Navigation is completely disabled once the final popup is open. */
+  if(finalPopup.classList.contains("show")) return;
+
+  if(!answer.readOnly){
+    userAnswers[current]=answer.value;
+  }
+
+  if(current>0){
+    current--;
+    renderQuestion();
+  }
+  /* On the first question Prev remains visible but does not leave the quiz. */
+});
+
+playAgainBtn.addEventListener("click",()=>{
+  current=0;
+  solved=[false,false];
+  userAnswers=["",""];
+  finalPopup.classList.remove("show");
+  renderQuestion();
+});
+
+setNavigationLocked(false);
+renderQuestion();
+</script>
+<script>
+/* ===== CONFETTI CELEBRATION (right & final popups) ===== */
+(function () {
+  let canvas, ctx, pieces = [], raf = null;
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    resize();
+    window.addEventListener("resize", resize);
+  }
+  function resize() {
+    if (!canvas) return;
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  const colors = ["#16834f", "#d99c36", "#7350a8", "#c94740", "#3a8fb7", "#e86ea4", "#ffd257"];
+  function burst(count) {
+    ensureCanvas();
+    for (let i = 0; i < count; i++) {
+      pieces.push({
+        x: innerWidth / 2 + (Math.random() - .5) * 180,
+        y: innerHeight / 2 + (Math.random() - .5) * 90,
+        vx: (Math.random() - .5) * 11,
+        vy: Math.random() * -13 - 4,
+        g: 0.30 + Math.random() * 0.14,
+        s: 6 + Math.random() * 7,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - .5) * 0.4,
+        color: colors[i % colors.length],
+        life: 0
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces = pieces.filter(p => p.life < 280 && p.y < innerHeight + 40);
+    pieces.forEach(p => {
+      p.life++;
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.99;
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6);
+      ctx.restore();
+    });
+    if (pieces.length) { raf = requestAnimationFrame(tick); }
+    else { raf = null; ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  }
+  window.fireConfetti = function (big) {
+    if (big) {
+      burst(170);
+      let n = 0;
+      const iv = setInterval(() => { burst(90); if (++n >= 4) clearInterval(iv); }, 400);
+    } else {
+      burst(90);
+    }
+  };
+  function watch(id, big) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let was = el.classList.contains("show");
+    new MutationObserver(() => {
+      const now = el.classList.contains("show");
+      if (now && !was) window.fireConfetti(big);
+      was = now;
+    }).observe(el, { attributes: true, attributeFilter: ["class"] });
+  }
+  function init() { watch("correctPopup", false); watch("finalPopup", true); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+
+</html>

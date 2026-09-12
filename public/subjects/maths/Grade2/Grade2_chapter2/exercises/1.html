@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Write the number and represent the same in the table</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="../assets/css/reuse.css">
+
+    <style>
+        /* =========================================================
+   BASE STYLES (page-specific — controls/popups come from
+   reuse.css and are NOT redefined here)
+   ========================================================= */
+
+        /* =========================================================
+   PLACE VALUE QUIZ — FULL VIEWPORT / NO SCROLL
+   ========================================================= */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+        }
+
+        /* =========================================================
+   MAIN QUIZ
+   ========================================================= */
+
+        .quiz {
+            width: 100%;
+            height: 100vh;
+            /* height: 100dvh; */
+            max-width: none;
+            max-height: none;
+
+            padding: clamp(8px, 1.4vh, 18px) clamp(14px, 2.5vw, 42px) clamp(8px, 1.2vh, 16px);
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* align-items: center; */
+
+
+            gap: 50px;
+
+            /* background: #fff; */
+            border-radius: 0;
+
+            overflow: hidden;
+        }
+
+        /* =========================================================
+   HINT POPUP
+   ========================================================= */
+
+        .hint-overlay {
+            position: fixed;
+            inset: 0;
+
+            display: none;
+
+            align-items: center;
+            justify-content: center;
+
+            z-index: 3500;
+
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .hint-overlay.show {
+            display: flex;
+        }
+
+        .hint-box {
+            width: min(420px, calc(100vw - 32px));
+
+            padding: 26px 28px;
+
+            background: #ffffff;
+
+            border-radius: 24px;
+
+            text-align: center;
+
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
+
+            animation: hintPop .35s ease;
+        }
+
+        .hint-box h3 {
+            margin: 0 0 10px;
+
+            font-size: clamp(24px, 3vw, 32px);
+
+            font-weight: 700;
+
+            color: #e08e00;
+        }
+
+        .hint-box p {
+            margin: 0;
+
+            font-size: clamp(16px, 1.6vw, 21px);
+
+            line-height: 1.45;
+
+            color: #1f2d3d;
+        }
+
+        .hint-close {
+            margin-top: 18px;
+
+            min-width: 110px;
+            height: 44px;
+
+            border: none;
+            border-radius: 24px;
+
+            background: linear-gradient(145deg, #ffc94d, #f7a800);
+
+            color: #fff;
+
+            font-family: "Livvic", sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            box-shadow: 0 4px 0 #c17e00;
+        }
+
+        .hint-close:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #c17e00;
+        }
+
+        @keyframes hintPop {
+            from {
+                opacity: 0;
+                transform: scale(.85);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* =========================================================
+   TOP BAR
+   HOME LEFT | TITLE CENTER | HINT RIGHT
+   ========================================================= */
+
+        .topbar {
+            width: 100%;
+            flex: 0 0 auto;
+
+            display: grid;
+            grid-template-columns: 90px minmax(0, 1fr) 90px;
+            align-items: start;
+
+            gap: 10px;
+        }
+
+        /* Home + Hint */
+
+        .icon-btn {
+            background: none;
+            border: 0;
+            padding: 0;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+
+            cursor: pointer;
+        }
+
+        .icon-circle {
+            width: clamp(42px, 4.2vw, 62px);
+            height: clamp(42px, 4.2vw, 62px);
+
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #fff;
+            font-size: clamp(18px, 1.8vw, 27px);
+
+            transition: transform .2s ease;
+        }
+
+        .icon-btn:hover .icon-circle {
+            transform: scale(1.06);
+        }
+
+        .icon-circle.home {
+            background: linear-gradient(145deg, #8b6fe0, #6f42c1);
+            box-shadow: 0 4px 0 #4f2e93;
+        }
+
+        .icon-circle.hint {
+            background: linear-gradient(145deg, #ffc94d, #f7a800);
+            box-shadow: 0 4px 0 #c17e00;
+        }
+
+        .icon-label {
+            font-size: clamp(10px, .9vw, 15px);
+            font-weight: 700;
+        }
+
+        .home-label {
+            color: #6f42c1;
+        }
+
+        .hint-label {
+            color: #e08e00;
+        }
+
+        /* =========================================================
+   TITLE
+   ========================================================= */
+
+        .title-block {
+            min-width: 0;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .title {
+            margin: 0;
+
+            text-align: center;
+
+            color: #1f2d3d;
+            /* font-weight: 700; */
+
+            font-size: clamp(21px, 2.7vw, 40px);
+            line-height: 1.12;
+        }
+
+        /* Question tag is displayed above the images instead */
+
+        .qtag {
+            display: none;
+        }
+
+        /* =========================================================
+   MAIN CONTENT
+   ========================================================= */
+
+        .quiz-layout {
+            /* flex: 1 1 auto; */
+            min-height: 200px;
+
+            display: grid;
+
+            grid-template-columns: minmax(0, 1.35fr) minmax(330px, 0.55fr);
+
+            gap: clamp(18px, 3vw, 55px);
+
+            align-items: center;
+        }
+
+        /* =========================================================
+   LEFT SIDE
+   ========================================================= */
+
+        .work-col {
+            min-width: 0;
+            min-height: 0;
+            height: 100%;
+
+            display: flex;
+            flex-direction: column;
+
+            justify-content: center;
+
+            gap: clamp(8px, 1.5vh, 18px);
+        }
+
+        /* Question appears above the images */
+
+        .work-col::before {
+            content: attr(data-question);
+
+            display: block;
+
+            align-self: flex-start;
+
+            color: #1f2d3d;
+
+            font-size: clamp(18px, 1.8vw, 28px);
+            font-weight: 700;
+
+            line-height: 1;
+        }
+
+        /* =========================================================
+   HUNDREDS / TENS / ONES
+   ========================================================= */
+
+        .groups-row {
+            width: 100%;
+
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+
+            align-items: start;
+
+            gap: clamp(5px, 1vw, 18px);
+        }
+
+        .group {
+            min-width: 0;
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+
+            gap: clamp(4px, .8vh, 10px);
+        }
+
+        .group-label {
+            font-size: clamp(18px, 1.8vw, 28px);
+            font-weight: 700;
+        }
+
+        .group-label.h {
+            color: #6f42c1;
+        }
+
+        .group-label.t {
+            color: #2f6fed;
+        }
+
+        .group-label.o {
+            color: #e6349c;
+        }
+
+        /* =========================================================
+   IMAGES
+   ========================================================= */
+
+        .pictures {
+            width: 100%;
+
+            min-height: clamp(100px, 18vh, 190px);
+
+            display: flex;
+            flex-wrap: wrap;
+
+            align-content: center;
+            justify-content: center;
+
+            gap: clamp(5px, .4vw, 12px);
+
+            overflow: hidden;
+        }
+
+        /*
+   Large on desktop,
+   automatically reduced on smaller screens.
+*/
+
+        .picture {
+            width: clamp(42px, 6vw, 96px);
+            height: clamp(42px, 6vw, 96px);
+
+            object-fit: contain;
+
+            display: block;
+
+            flex: 0 0 auto;
+
+            pointer-events: none;
+
+            -webkit-user-drag: none;
+        }
+
+        /* Plus signs */
+
+        .op-sign {
+            align-self: center;
+
+            padding: 0;
+
+            font-size: clamp(25px, 2.8vw, 42px);
+
+            font-weight: 700;
+
+            color: #1f2d3d;
+        }
+
+        /* =========================================================
+   EQUATION
+   HUNDREDS BOX UNDER HUNDREDS
+   TENS BOX UNDER TENS
+   ONES BOX UNDER ONES
+   TOTAL AT END
+   ========================================================= */
+
+        .equation-row {
+            width: 95%;
+
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(80px, 1fr);
+
+            align-items: flex-start;
+
+            gap: clamp(5px, 1vw, 16px);
+            margin-top: 35px;
+        }
+
+        .eq-box {
+            width: 80%;
+            /* max-width: 115px; */
+
+            height: clamp(44px, 6vh, 68px);
+
+            justify-self: center;
+
+            border-radius: 13px;
+
+            border: 3px solid;
+
+            background: #fff;
+
+            text-align: center;
+
+            outline: none;
+
+            color: #1f2d3d;
+
+            font-size: clamp(20px, 2vw, 32px);
+
+            font-weight: 600;
+        }
+
+        .eq-box.h {
+            border-color: #6f42c1;
+        }
+
+        .eq-box.t {
+            border-color: #2f6fed;
+        }
+
+        .eq-box.o {
+            border-color: #e6349c;
+        }
+
+        .eq-box.tot {
+            border-color: #29b44c;
+        }
+
+        .eq-box.correct {
+            border-color: #29b44c;
+            background: #eafff0;
+            color: #1c7c54;
+        }
+
+        .eq-box.wrong {
+            border-color: #ff4444;
+            animation: eqShake .45s ease;
+        }
+
+        .eq-op {
+            font-size: clamp(22px, 2.4vw, 36px);
+            font-weight: 700;
+            color: #1f2d3d;
+        }
+
+        /* =========================================================
+   REPRESENTATION TABLE
+   ========================================================= */
+
+        .table-col {
+            width: 100%;
+            max-width: 620px;
+
+            justify-self: center;
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+
+            gap: clamp(6px, 1vh, 12px);
+        }
+
+        .rep-title {
+            margin: 0;
+
+            font-size: clamp(20px, 2vw, 31px);
+
+            /* font-weight: 700; */
+
+            color: #1f2d3d;
+
+            text-align: center;
+        }
+
+        .rep-table {
+            width: 100%;
+
+            border-collapse: separate;
+            border-spacing: 0;
+
+            border: 3px solid #6f42c1;
+
+            border-radius: 16px;
+
+            overflow: hidden;
+
+            background: #fff;
+        }
+
+        .rep-table th,
+        .rep-table td {
+            border-right: 2px solid #d6d6d6;
+            border-bottom: 2px solid #d6d6d6;
+
+            text-align: center;
+
+            padding: clamp(8px, 1.5vh, 18px) 5px;
+        }
+
+        .rep-table th:last-child,
+        .rep-table td:last-child {
+            border-right: 0;
+        }
+
+        .rep-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .rep-table th {
+            font-size: clamp(17px, 1.6vw, 26px);
+            font-weight: 700;
+            color: #1f2d3d;
+        }
+
+        .th-h {
+            background: #ede4ff;
+        }
+
+        .th-t {
+            background: #dce9fd;
+        }
+
+        .th-o {
+            background: #fbdcef;
+        }
+
+        .rep-input {
+            width: clamp(48px, 5vw, 82px);
+            height: clamp(40px, 5.5vh, 60px);
+
+            border: 3px solid #c9c9c9;
+
+            border-radius: 11px;
+
+            text-align: center;
+
+            outline: none;
+
+            color: #1f2d3d;
+
+            font-size: clamp(18px, 1.8vw, 28px);
+
+            font-weight: 600;
+        }
+
+        .rep-input.correct {
+            border-color: #29b44c;
+            background: #eafff0;
+            color: #1c7c54;
+        }
+
+        .rep-input.wrong {
+            border-color: #ff4444;
+            animation: eqShake .45s ease;
+        }
+
+        /* =========================================================
+   KEEP EXISTING NEXT/PREV FROM REUSE.CSS
+   ========================================================= */
+
+        .controls {
+            flex: 0 0 auto;
+            margin-top: 0 !important;
+        }
+
+        .controls button {
+            margin-top: 0px;
+        }
+
+        /* =========================================================
+   MOBILE / TABLET
+   NO SCROLL
+   ========================================================= */
+
+        @media (max-width: 900px) {
+
+            .quiz {
+                padding:
+                    8px 12px 8px;
+
+                gap: 5px;
+            }
+
+            .topbar {
+                grid-template-columns: 55px minmax(0, 1fr) 55px;
+            }
+
+            .quiz-layout {
+                grid-template-columns: 1fr;
+
+                gap: 8px;
+
+                align-items: center;
+            }
+
+            .work-col {
+                height: auto;
+
+                gap: 6px;
+
+                justify-content: center;
+            }
+
+            .work-col::before {
+                font-size: 17px;
+            }
+
+            .groups-row {
+                gap: 4px;
+            }
+
+            .pictures {
+                min-height: 75px;
+                gap: 3px;
+            }
+
+            .picture {
+                width: clamp(32px, 7vw, 58px);
+                height: clamp(32px, 7vw, 58px);
+            }
+
+            .group-label {
+                font-size: 16px;
+            }
+
+            .op-sign {
+                font-size: 22px;
+            }
+
+            .equation-row {
+                gap: 4px;
+            }
+
+            .eq-box {
+                height: 40px;
+                /* max-width: 90px; */
+                border-width: 2px;
+                border-radius: 9px;
+                font-size: 18px;
+            }
+
+            .eq-op {
+                font-size: 21px;
+            }
+
+            .table-col {
+                max-width: 600px;
+                width: 92%;
+            }
+
+            .rep-title {
+                font-size: 19px;
+            }
+
+            .rep-table th {
+                font-size: 15px;
+                padding: 7px 3px;
+            }
+
+            .rep-input {
+                width: 48px;
+                height: 38px;
+                font-size: 18px;
+            }
+        }
+
+        /* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+        @media (max-width: 600px) {
+
+            .quiz {
+                padding: 6px 8px;
+                gap: 4px;
+            }
+
+            .topbar {
+                grid-template-columns: 48px minmax(0, 1fr) 48px;
+            }
+
+            .icon-circle {
+                width: 38px;
+                height: 38px;
+                font-size: 16px;
+            }
+
+            .icon-label {
+                font-size: 9px;
+            }
+
+            .title {
+                font-size: clamp(15px, 4.5vw, 21px);
+            }
+
+            .quiz-layout {
+                gap: 5px;
+            }
+
+            .work-col::before {
+                font-size: 15px;
+            }
+
+            .groups-row {
+                gap: 2px;
+            }
+
+            .group-label {
+                font-size: 14px;
+            }
+
+            .pictures {
+                min-height: 62px;
+                gap: 2px;
+            }
+
+            .picture {
+                width: clamp(27px, 8.5vw, 46px);
+                height: clamp(27px, 8.5vw, 46px);
+            }
+
+            .op-sign {
+                font-size: 19px;
+            }
+
+            .equation-row {
+                gap: 2px;
+            }
+
+            .eq-box {
+                height: 34px;
+                font-size: 15px;
+                border-width: 2px;
+            }
+
+            .eq-op {
+                font-size: 18px;
+            }
+
+            .table-col {
+                width: 96%;
+            }
+
+            .rep-title {
+                font-size: 17px;
+            }
+
+            .rep-table th {
+                font-size: 12px;
+                padding: 5px 2px;
+            }
+
+            .rep-input {
+                width: 40px;
+                height: 32px;
+                font-size: 15px;
+                border-width: 2px;
+            }
+
+            /*
+       Keep reuse.css controls visible but compact.
+       This does NOT change their functionality.
+    */
+
+            .controls {
+                margin-top: 0px !important;
+                gap: 35px !important;
+            }
+
+            .controls button {
+                width: 90px;
+                height: 38px;
+                font-size: 15px;
+            }
+
+            .controls button i {
+                font-size: 15px;
+            }
+        }
+
+        /* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+        @media (max-width: 400px) {
+
+            .title {
+                font-size: 14px;
+            }
+
+            .icon-circle {
+                width: 34px;
+                height: 34px;
+                font-size: 14px;
+            }
+
+            .icon-label {
+                font-size: 8px;
+            }
+
+            .work-col::before {
+                font-size: 14px;
+            }
+
+            .pictures {
+                min-height: 52px;
+            }
+
+            .picture {
+                width: 24px;
+                height: 24px;
+            }
+
+            .group-label {
+                font-size: 12px;
+            }
+
+            .op-sign {
+                font-size: 16px;
+            }
+
+            .eq-box {
+                height: 30px;
+                font-size: 13px;
+            }
+
+            .eq-op {
+                font-size: 16px;
+            }
+
+            .rep-title {
+                font-size: 15px;
+            }
+
+            .rep-table th {
+                font-size: 10px;
+            }
+
+            .rep-input {
+                width: 34px;
+                height: 28px;
+                font-size: 13px;
+            }
+
+            .controls {
+                gap: 20px !important;
+            }
+
+            .controls button {
+                width: 78px;
+                height: 34px;
+                font-size: 13px;
+            }
+
+            .controls button i {
+                font-size: 13px;
+            }
+        }
+
+        /* =========================================================
+   LARGE DESKTOP
+   ========================================================= */
+
+        @media (min-width: 1200px) {
+
+            .quiz {
+                padding-left: 40px;
+                padding-right: 40px;
+                gap: 50px;
+            }
+
+            .picture {
+                width: clamp(65px, 6vw, 105px);
+                height: clamp(65px, 6vw, 105px);
+            }
+
+            .pictures {
+                min-height: 170px;
+            }
+
+            .group-label {
+                font-size: 28px;
+            }
+
+            .eq-box {
+                /* max-width: 125px; */
+                height: 68px;
+            }
+
+            .rep-table th {
+                font-size: 25px;
+            }
+
+            .rep-input {
+                width: 82px;
+                height: 60px;
+            }
+        }
+
+        /* =========================================================
+   EXTRA LARGE DESKTOP
+   ========================================================= */
+
+        @media (min-width: 1440px) {
+
+            .title {
+                font-size: 40px;
+            }
+
+            .picture {
+                width: 105px;
+                height: 105px;
+            }
+
+            .pictures {
+                min-height: 200px;
+                gap: 12px;
+                gap: clamp(5px, .7vw, 12px);
+            }
+
+            .quiz-layout {
+                grid-template-columns: minmax(0, 1.35fr) minmax(330px, 0.85fr);
+                gap: 60px;
+            }
+
+            .equation-row {
+                width: 80%;
+            }
+
+            .group-label {
+                font-size: 30px;
+            }
+
+            .eq-box {
+                height: 72px;
+                /* max-width: 135px; */
+                font-size: 32px;
+            }
+
+            .rep-title {
+                font-size: 31px;
+            }
+
+            .rep-table th {
+                font-size: 27px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="quiz" id="quizCard">
+
+        <div class="topbar">
+            <button class="icon-btn" id="homeBtn" aria-label="Home">
+                <span class="icon-circle home"><i class="fa-solid fa-house"></i></span>
+                <!-- <span class="icon-label home-label">Home</span> -->
+            </button>
+
+            <div class="title-block">
+                <span class="qtag" id="qTag">Q1.</span>
+                <h1 class="title" id="titleText">Write the number and represent the same in the table.</h1>
+            </div>
+
+            <button class="icon-btn" id="hintBtn" aria-label="Hint">
+                <span class="icon-circle hint"><i class="fa-solid fa-lightbulb"></i></span>
+                <!-- <span class="icon-label hint-label">Hint</span> -->
+            </button>
+        </div>
+
+        <div class="quiz-layout">
+
+            <div class="work-col">
+                <div class="groups-row" id="groupsRow"></div>
+            </div>
+
+            <div class="table-col">
+                <p class="rep-title">Number Representation</p>
+                <table class="rep-table">
+                    <thead>
+                        <tr>
+                            <th class="th-h">Hundreds</th>
+                            <th class="th-t">Tens</th>
+                            <th class="th-o">Ones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="repRow"></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="equation-row" id="equationRow"></div>
+
+        <div class="controls">
+            <button class="prev" id="prevBtn" disabled><i class="fa-solid fa-circle-arrow-left"></i> Prev</button>
+            <button class="next" id="nextBtn" disabled>Next <i class="fa-solid fa-circle-arrow-right"></i></button>
+        </div>
+
+    </div>
+
+    <div class="hint-overlay" id="hintOverlay">
+        <div class="hint-box">
+            <h3>Hint</h3>
+            <p id="hintText"></p>
+            <button class="hint-close" id="closeHintBtn">Got it!</button>
+        </div>
+    </div>
+
+    <div id="answerPopup" class="kid-popup">
+        <div class="kid-card">
+            <div class="kid-icon" id="popupIcon"></div>
+            <h3 id="popupTitle"></h3>
+            <p id="popupMsg"></p>
+        </div>
+    </div>
+
+    <div id="finalPopup">
+        <div class="final-kid-box">
+            <h2>🎉 Congratulations!</h2>
+            <p id="finalScore"></p>
+            <div id="stars"></div>
+            <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+        </div>
+    </div>
+
+    <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="wrongSound"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        /* =========================================================
+   ASSET IMAGES — replace only these filenames if your
+   project uses different asset names.
+   ========================================================= */
+
+const IMG_SRC = {
+    hundred: "../assets/images/100.png",
+    ten: "../assets/images/10.png",
+    one: "../assets/images/1.png"
+};
+
+/* =========================================================
+   QUESTION DATA — exact values from the worksheet image
+   a) 500 + 60 + 2 = 562   H-5 T-6 O-2
+   b) 600 + 0  + 8 = 608   H-6 T-0 O-8
+   ========================================================= */
+
+const QUESTIONS = [
+    {
+        label: "Q1.",
+        hCount: 5, tCount: 6, oCount: 2,
+        hVal: 500, tVal: 60, oVal: 2, total: 562,
+        hDig: 5, tDig: 6, oDig: 2,
+        hint: "Count the ₹100 notes, ₹10 coins and ₹1 coins. Add them to get the total, then write each count under Hundreds, Tens and Ones."
+    },
+    {
+        label: "Q2.",
+        hCount: 6, tCount: 0, oCount: 8,
+        hVal: 600, tVal: 0, oVal: 8, total: 608,
+        hDig: 6, tDig: 0, oDig: 8,
+        hint: "There are no ₹10 coins here, so the Tens value and the Tens digit are both 0."
+    }
+];
+
+const total = QUESTIONS.length;
+let current = 0;
+
+const FIELDS = [
+    "hEq", "tEq", "oEq", "total",
+    "hDig", "tDig", "oDig"
+];
+
+const state = QUESTIONS.map(() => {
+    const s = { answered: false };
+    FIELDS.forEach(f => s[f] = false);
+    return s;
+});
+
+const qTag = document.getElementById("qTag");
+const groupsRow = document.getElementById("groupsRow");
+const equationRow = document.getElementById("equationRow");
+const repRow = document.getElementById("repRow");
+
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+const homeBtn = document.getElementById("homeBtn");
+const hintBtn = document.getElementById("hintBtn");
+const hintOverlay = document.getElementById("hintOverlay");
+const closeHintBtn = document.getElementById("closeHintBtn");
+const hintText = document.getElementById("hintText");
+
+function speak(t) {
+    if (!window.speechSynthesis) return;
+
+    speechSynthesis.cancel();
+
+    const msg = new SpeechSynthesisUtterance(t);
+    msg.lang = "en-UK";
+    msg.volume = 0.25;
+    msg.rate = 1;
+    msg.pitch = 1;
+
+    speechSynthesis.speak(msg);
+}
+
+function smallConfetti() {
+    if (!window.confetti) return;
+
+    confetti({
+        particleCount: 40,
+        spread: 60,
+        origin: { y: 0.7 },
+        scalar: 0.8
+    });
+}
+
+function showPopup(isCorrect) {
+    const popup = document.getElementById("answerPopup");
+    const icon = document.getElementById("popupIcon");
+    const title = document.getElementById("popupTitle");
+    const msg = document.getElementById("popupMsg");
+
+    popup.className = "kid-popup " + (isCorrect ? "kid-correct" : "kid-wrong");
+    popup.style.display = "flex";
+
+    if (isCorrect) {
+        icon.textContent = "🎉";
+        title.textContent = "Great Job!";
+        msg.textContent = "You got it right!";
+    } else {
+        icon.textContent = "🥲";
+        title.textContent = "Oops!";
+        msg.textContent = "Try again, you can do it!";
+    }
+
+    clearTimeout(showPopup._t);
+
+    showPopup._t = setTimeout(() => {
+        popup.style.display = "none";
+    }, 1400);
+}
+
+function showFinal() {
+    const popup = document.getElementById("finalPopup");
+
+    document.getElementById("finalScore").textContent =
+        `Your Score: ${total} / ${total}`;
+
+    document.getElementById("stars").textContent = "⭐".repeat(total);
+
+    popup.style.display = "flex";
+
+    confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.5 }
+    });
+
+    setTimeout(() => {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+    }, 300);
+}
+
+/* ---- rendering ---- */
+
+function makePictures(container, count, src) {
+    for (let i = 0; i < count; i++) {
+        const img = document.createElement("img");
+
+        img.className = "picture";
+        img.src = src;
+        img.alt = "";
+        img.draggable = false;
+
+        container.appendChild(img);
+    }
+}
+
+function buildGroups(q) {
+    groupsRow.innerHTML = "";
+
+    function group(labelText, cls, count, src) {
+        const g = document.createElement("div");
+        g.className = "group";
+
+        const label = document.createElement("div");
+        label.className = "group-label " + cls;
+        label.textContent = labelText;
+
+        const pics = document.createElement("div");
+        pics.className = "pictures";
+
+        makePictures(pics, count, src);
+
+        g.appendChild(label);
+        g.appendChild(pics);
+
+        return g;
+    }
+
+    function plus() {
+        const p = document.createElement("div");
+
+        p.className = "op-sign";
+        p.textContent = "+";
+
+        return p;
+    }
+
+    groupsRow.appendChild(
+        group("Hundreds", "h", q.hCount, IMG_SRC.hundred)
+    );
+
+    groupsRow.appendChild(plus());
+
+    groupsRow.appendChild(
+        group("Tens", "t", q.tCount, IMG_SRC.ten)
+    );
+
+    groupsRow.appendChild(plus());
+
+    groupsRow.appendChild(
+        group("Ones", "o", q.oCount, IMG_SRC.one)
+    );
+}
+
+
+/* =========================================================
+   INPUT VALIDATION
+   IMPORTANT:
+   - Empty inputs are completely ignored.
+   - Validation only happens when there is a number.
+   - Clicking/focusing another empty box will NOT show
+     a wrong popup.
+   ========================================================= */
+
+function makeInput(field, expected, cls, st) {
+    const input = document.createElement("input");
+
+    input.type = "text";
+    input.inputMode = "numeric";
+    input.autocomplete = "off";
+    input.maxLength = String(expected).length;
+    input.setAttribute("aria-label", field);
+
+    const locked = st[field];
+
+    if (locked) {
+        input.value = expected;
+        input.disabled = true;
+        input.classList.add("correct");
+    }
+
+    function validate(e) {
+        if (input.disabled) return;
+
+        /*
+         * Allow numbers only.
+         */
+        input.value = input.value
+            .replace(/\D/g, "")
+            .slice(0, String(expected).length);
+
+        /*
+         * IMPORTANT FIX:
+         * If the box is empty, do absolutely nothing.
+         * Do NOT show wrong popup.
+         * Do NOT play wrong sound.
+         * Do NOT add wrong class.
+         */
+        if (input.value === "") {
+            input.classList.remove("wrong");
+            return;
+        }
+
+        const isBlur = e && e.type === "blur";
+
+        const typed = input.value;
+        const expectedText = String(expected);
+
+        /*
+         * For multi-digit answers, don't mark an incomplete
+         * value wrong while the child is still typing.
+         *
+         * Example:
+         * Expected = 600
+         * User types = 6
+         * User types = 60
+         *
+         * No wrong popup is shown until the complete number
+         * has been entered.
+         */
+        if (
+            expectedText.length > 1 &&
+            typed.length < expectedText.length
+        ) {
+            /*
+             * Even on blur, do not check an incomplete value.
+             * This prevents the popup from appearing when the
+             * child moves to another input box.
+             */
+            if (isBlur) {
+                return;
+            }
+
+            return;
+        }
+
+        const number = Number(typed);
+
+        /*
+         * Correct answer
+         */
+        if (number === expected) {
+            input.classList.remove("wrong");
+            input.classList.add("correct");
+            input.disabled = true;
+
+            st[field] = true;
+
+            correctSound.currentTime = 0;
+            correctSound.play().catch(() => { });
+
+            speak("Correct");
+            showPopup(true);
+            smallConfetti();
+
+            checkQuestionComplete();
+
+        } else {
+            /*
+             * Wrong answer
+             */
+            input.classList.remove("wrong");
+
+            void input.offsetWidth;
+
+            input.classList.add("wrong");
+
+            wrongSound.currentTime = 0;
+            wrongSound.play().catch(() => { });
+
+            speak("try again");
+            showPopup(false);
+
+            setTimeout(() => {
+                if (!input.disabled) {
+                    input.value = "";
+                    input.classList.remove("wrong");
+                    input.focus();
+                }
+            }, 450);
+        }
+    }
+
+    /*
+     * While typing:
+     * - Empty = ignored
+     * - Incomplete number = ignored
+     * - Complete correct number = accepted
+     * - Complete wrong number = wrong
+     */
+    input.addEventListener("input", () => {
+        validate({ type: "input" });
+    });
+
+    /*
+     * Enter validates the current value.
+     */
+    input.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+
+            /*
+             * Do not validate an empty input.
+             */
+            if (input.value.trim() === "") {
+                return;
+            }
+
+            validate(e);
+
+            /*
+             * Only blur after there is a value.
+             */
+            if (input.value.trim() !== "") {
+                input.blur();
+            }
+        }
+    });
+
+    /*
+     * IMPORTANT:
+     * Blur no longer makes an empty box wrong.
+     * It also does not mark incomplete numbers wrong.
+     */
+    input.addEventListener("blur", e => {
+        if (input.value.trim() === "") {
+            return;
+        }
+
+        validate(e);
+    });
+
+    return input;
+}
+
+
+function buildEquation(q, st) {
+    equationRow.innerHTML = "";
+
+    function op(text) {
+        const o = document.createElement("div");
+
+        o.className = "eq-op";
+        o.textContent = text;
+
+        return o;
+    }
+
+    // Each equation box validates the individual value
+    const hBox = makeInput("hEq", q.hVal, "h", st);
+    hBox.classList.add("eq-box", "h");
+
+    const tBox = makeInput("tEq", q.tVal, "t", st);
+    tBox.classList.add("eq-box", "t");
+
+    const oBox = makeInput("oEq", q.oVal, "o", st);
+    oBox.classList.add("eq-box", "o");
+
+    // Total still validates the complete number
+    const totBox = makeInput("total", q.total, "tot", st);
+    totBox.classList.add("eq-box", "tot");
+
+    equationRow.appendChild(hBox);
+    equationRow.appendChild(op("+"));
+    equationRow.appendChild(tBox);
+    equationRow.appendChild(op("+"));
+    equationRow.appendChild(oBox);
+    equationRow.appendChild(op("="));
+    equationRow.appendChild(totBox);
+}
+
+
+function buildTable(q, st) {
+    repRow.innerHTML = "";
+
+    [
+        ["hDig", q.hDig],
+        ["tDig", q.tDig],
+        ["oDig", q.oDig]
+    ].forEach(([field, val]) => {
+        const td = document.createElement("td");
+
+        const input = makeInput(field, val, "", st);
+
+        input.classList.add("rep-input");
+
+        td.appendChild(input);
+        repRow.appendChild(td);
+    });
+}
+
+
+function checkQuestionComplete() {
+    const st = state[current];
+
+    const allDone = FIELDS.every(f => st[f]);
+
+    if (allDone) {
+        st.answered = true;
+
+        /* Next is enabled if another question exists */
+        nextBtn.disabled = current === total - 1;
+
+        /* Only show final popup after every blank is correct */
+        if (current === total - 1) {
+            setTimeout(showFinal, 1000);
+        }
+    }
+}
+
+
+function renderQuestion() {
+    const q = QUESTIONS[current];
+    const st = state[current];
+
+    qTag.textContent = q.label;
+
+    buildGroups(q);
+    buildEquation(q, st);
+    buildTable(q, st);
+
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = !st.answered || current === total - 1;
+}
+
+
+prevBtn.addEventListener("click", () => {
+    if (current === 0) return;
+
+    current--;
+
+    renderQuestion();
+});
+
+
+nextBtn.addEventListener("click", () => {
+    if (nextBtn.disabled) return;
+
+    if (current < total - 1) {
+        current++;
+
+        renderQuestion();
+    }
+});
+
+
+homeBtn.addEventListener("click", () => {
+    window.location.href = "../Grade2_chapter2.html";
+});
+
+
+hintBtn.addEventListener("click", () => {
+    hintText.textContent = QUESTIONS[current].hint;
+
+    hintOverlay.classList.add("show");
+});
+
+
+closeHintBtn.addEventListener("click", () => {
+    hintOverlay.classList.remove("show");
+});
+
+
+hintOverlay.addEventListener("click", e => {
+    if (e.target === hintOverlay) {
+        hintOverlay.classList.remove("show");
+    }
+});
+
+
+renderQuestion();
+    </script>
+
+</body>
+
+</html>

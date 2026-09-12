@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Matching Activity - Angles and Polygons</title>
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link rel="stylesheet" href="../assets/css/quiz-popup.css">
+<script src="../assets/js/quiz-popup.js"></script>
+<style>
+  *{box-sizing:border-box}
+  html,body{width:100%;height:100%;margin:0;overflow:hidden}
+  body{font-family:"Livvic",sans-serif;color:#353535;background:#fffdf8}
+  button{font:inherit}
+
+  :root{
+    --lavender:#eee8ff;
+    --lavender-2:#d8ccff;
+    --peach:#ffe5d8;
+    --mint:#def5e9;
+    --sky:#deefff;
+    --butter:#fff4c9;
+    --rose:#ffe4ef;
+    --ink:#343434;
+    --muted:#777;
+    --line:#9486b6;
+    --good:#79b995;
+    --bad:#df8f95;
+  }
+
+  .quiz{
+    width:100%;height:100vh;height:100dvh;overflow:hidden;
+    display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+    padding:clamp(8px,1.4vh,16px) clamp(12px,3.2vw,48px) clamp(8px,1.2vh,14px);
+    background:
+      radial-gradient(circle at 10% 5%, rgba(238,232,255,.85), transparent 23%),
+      radial-gradient(circle at 90% 12%, rgba(222,245,233,.8), transparent 20%),
+      linear-gradient(180deg,#fffdf8 0%,#fffaf1 100%);
+  }
+
+  .topbar{
+    display:grid;grid-template-columns:70px minmax(0,1fr) 70px;align-items:center;
+    min-height:56px;gap:10px;z-index:5;
+  }
+  .icon-btn{border:0;background:transparent;padding:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .icon-circle{
+    width:clamp(40px,4vw,58px);height:clamp(40px,4vw,58px);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:clamp(17px,1.7vw,25px);
+    transition:transform .18s ease;
+  }
+  .icon-circle.home{background:linear-gradient(145deg,#9e8ae8,#7760c9);box-shadow:0 4px 0 #5e4ba8}
+  .icon-circle.hint{background:linear-gradient(145deg,#ffd76f,#f3b72e);box-shadow:0 4px 0 #ce9418}
+  .icon-btn:hover .icon-circle{transform:translateY(-2px) scale(1.03)}
+
+  .title-wrap{text-align:center;min-width:0}
+  .eyebrow{font-size:clamp(11px,1vw,14px);font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:#8c7aaa;margin-bottom:2px}
+  .title{margin:0;font-size:26px;line-height:1.12;color:#2f4f4f}
+  .subtitle{margin:3px 0 0;font-size:clamp(11px,1.1vw,15px);color:#7a7581;font-weight:400}
+
+  .game-area{min-height:0;display:flex;align-items:center;justify-content:center;padding:clamp(2px,.4vh,6px) 0;overflow:hidden}
+  /* No content card/box around the matching activity */
+  .board{
+    position:relative;width:min(1100px,100%);height:100%;min-height:0;overflow:hidden;
+    background:transparent;border:0;border-radius:0;box-shadow:none;
+    padding:clamp(4px,.7vh,10px) clamp(4px,1vw,16px);
+  }
+  .board::before{display:none}
+  #lineCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;overflow:visible}
+  .rows{position:relative;z-index:2;width:100%;height:100%;display:grid;gap:clamp(4px,.65vh,8px)}
+  .rows.six{grid-template-rows:repeat(6,minmax(0,1fr))}
+  .rows.eight{grid-template-rows:repeat(8,minmax(0,1fr))}
+
+  /* Matching rows: roomy cards with a clear, comfortable center gap */
+  .match-row{
+    display:grid;
+    grid-template-columns:minmax(0,0.88fr) clamp(110px,10vw,145px) minmax(0,0.88fr);
+    align-items:center;
+    min-height:0;
+  }
+
+  .match-item{
+    position:relative;
+    min-width:0;
+    width:78%;
+    height:92%;
+    min-height:34px;
+    display:flex;
+    align-items:center;
+    cursor:pointer;
+    user-select:none;
+    border:2px solid #e5d9f1;
+    border-radius:18px;
+    background:#fffdfb;
+    box-shadow:0 3px 0 rgba(181,158,202,.12),0 5px 14px rgba(111,91,130,.05);
+    transition:transform .18s ease,opacity .18s ease,filter .18s ease,background .18s ease,border-color .18s ease;
+  }
+  .match-item:hover{transform:translateY(-2px);border-color:#cfc0e5}
+  .left-item{justify-self:end;justify-content:center;text-align:center;padding:8px clamp(18px,2vw,28px) 8px clamp(10px,1.2vw,18px);background:#fff9f4;border-color:#f0d9ca}
+  .right-item{justify-self:start;justify-content:center;text-align:center;padding:8px clamp(14px,1.8vw,24px);background:#f8fbff;border-color:#d5e4f2}
+
+  .left-content{
+    font-size:clamp(18px,1.7vw,24px);line-height:1.12;color:#2f4f4f;max-width:100%;white-space:normal;text-align:center;
+  }
+  .right-content{
+    width:100%;display:flex;align-items:center;justify-content:center;gap:clamp(10px,1vw,16px);
+    font-size:clamp(18px,1.7vw,24px);line-height:1.08;color:#2f4f4f;
+    min-width:0;
+  }
+  .answer-visual{
+    width:clamp(58px,5vw,76px);height:clamp(58px,5vw,76px);flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .answer-visual svg{width:100%;height:100%;display:block}
+  .answer-text{max-width:min(290px,70%);text-align:center}
+
+  .dot{
+    position:absolute;top:50%;width:clamp(13px,1.25vw,18px);height:clamp(13px,1.25vw,18px);
+    border-radius:50%;transform:translateY(-50%);z-index:7;
+    background:#c8b9e7;border:3px solid #fff;box-shadow:0 2px 7px rgba(80,66,107,.18)
+  }
+  .left-item .dot{right:clamp(-9px,-.75vw,-6px)}
+  .right-item .dot{left:clamp(-9px,-.75vw,-6px)}
+  .match-item.selected{background:#fff5da;border-color:#e9c77b;transform:translateY(-2px)}
+  .match-item.selected .dot{background:#f3bf68;box-shadow:0 0 0 5px rgba(243,191,104,.22)}
+  .match-item.selected .left-content,.match-item.selected .right-content{filter:drop-shadow(0 2px 3px rgba(127,101,170,.18))}
+  .match-item.matched{cursor:default;opacity:.82;background:#f1faef;border-color:#b9d9bd}
+  .match-item.matched .dot{background:var(--good)}
+  .match-item.matched .left-content,.match-item.matched .right-content{color:#54856b}
+  .match-item.wrong{animation:shake .36s ease}
+  .match-item.wrong .dot{background:var(--bad)}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
+
+  .controls{height:clamp(50px,7vh,68px);display:flex;align-items:center;justify-content:flex-end;width:min(1180px,100%);margin:0 auto}
+  .next{
+    border:0;border-radius:999px;background:linear-gradient(145deg,#a995ee,#8570d1);color:#fff;
+    min-width:clamp(118px,12vw,155px);height:clamp(42px,5.6vh,54px);font-size:clamp(15px,1.3vw,18px);font-weight:400;
+    box-shadow:0 5px 0 #6955b4;cursor:pointer;display:none;align-items:center;justify-content:center;gap:8px;
+  }
+  .next.show{display:flex;animation:pop .34s ease}
+  .next:active{transform:translateY(3px);box-shadow:0 2px 0 #6955b4}
+  @keyframes pop{0%{transform:scale(.75);opacity:0}100%{transform:scale(1);opacity:1}}
+
+  .hint-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(72,60,88,.22);backdrop-filter:blur(3px);z-index:4000}
+  .hint-overlay.show{display:flex}
+  .hint-box{width:min(430px,92vw);border-radius:28px;background:#fffdfb;padding:clamp(22px,4vw,34px);text-align:center;box-shadow:0 22px 55px rgba(80,62,99,.18);border:1px solid #ece2f5}
+  .hint-icon{width:76px;height:76px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:36px;background:var(--butter)}
+  .hint-box h3{margin:0 0 8px;color:#4a4254}
+  .hint-box p{margin:0;color:#6c6571;font-size:clamp(15px,1.5vw,18px);line-height:1.45}
+  .hint-close{margin-top:18px;border:0;border-radius:999px;min-width:120px;height:44px;cursor:pointer;font-weight:400;color:#fff;background:#e6b74b}
+
+  /* Final popup — shared design, matches the other Chapter 4 quizzes (reuse.css) */
+  #finalPopup{
+    position:fixed;inset:0;display:none;justify-content:center;align-items:center;
+    z-index:5000;animation:popupFade .5s ease;
+  }
+  @keyframes popupFade{0%{opacity:0}100%{opacity:1}}
+  .final-kid-box{
+    background:linear-gradient(160deg,#ffffff 0%,#f8fafc 100%);
+    padding:40px 40px 35px;border-radius:55px;text-align:center;
+    width:520px;max-width:92vw;
+    animation:finalPop .8s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow:0 30px 80px rgba(0,0,0,.25);position:relative;overflow:hidden;
+  }
+  .final-kid-box::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:10px;
+    background:linear-gradient(90deg,#ff6b6b 0%,#ffd93d 20%,#6bcb77 40%,#4d96ff 60%,#9b59b6 80%,#ff6b6b 100%);
+    background-size:200% 100%;animation:stripeMove 3s linear infinite;
+  }
+  @keyframes stripeMove{0%{background-position:0% 0%}100%{background-position:200% 0%}}
+  .final-kid-box::after{
+    content:'\2726 \2726 \2726';position:absolute;bottom:12px;right:20px;
+    font-size:12px;color:#d1d5db;letter-spacing:6px;opacity:.5;
+  }
+  .final-kid-box h2{
+    font-family:"Livvic",sans-serif;font-size:3em;color:#0f766e;
+    margin:0 0 8px;letter-spacing:-0.5px;font-weight:400;line-height:1.15;
+  }
+  .final-kid-box h2 span{display:block;margin-top:5px}
+  .final-kid-box p{
+    font-size:1.6em;font-family:"Livvic",sans-serif;color:#1e293b;
+    margin:4px 0;letter-spacing:.3px;font-weight:400;
+  }
+  #stars{
+    font-size:clamp(2rem,7vw,3.2em);margin:14px 0 12px;letter-spacing:normal;
+    display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+    gap:8px;max-width:100%;line-height:1;animation:starSpin 3s ease-in-out infinite;
+  }
+  @keyframes starSpin{0%,100%{transform:scale(1) rotate(0deg)}50%{transform:scale(1.1) rotate(10deg)}}
+  .playAgain-btn{
+    background:linear-gradient(145deg,#ffb347,#ff8a00);color:#fff;border:none;
+    padding:18px 48px;border-radius:55px;font-size:1.2em;font-family:"Livvic",sans-serif;
+    cursor:pointer;margin-top:14px;
+    box-shadow:0 8px 0 #cc7a00,0 12px 35px rgba(255,138,0,.3);
+    transition:all .15s ease;letter-spacing:.5px;position:relative;
+  }
+  .playAgain-btn::after{content:'\2192';margin-left:10px;display:inline-block;transition:transform .3s ease}
+  .playAgain-btn:hover{transform:translateY(-3px);box-shadow:0 11px 0 #cc7a00,0 18px 45px rgba(255,138,0,.4)}
+  .playAgain-btn:hover::after{transform:translateX(6px)}
+  .playAgain-btn:active{transform:translateY(5px);box-shadow:0 3px 0 #cc7a00,0 12px 35px rgba(255,138,0,.3)}
+  @keyframes finalPop{
+    0%{transform:scale(0.3) rotate(-8deg);opacity:0}
+    55%{transform:scale(1.06) rotate(2deg);opacity:1}
+    75%{transform:scale(0.97)}
+    100%{transform:scale(1) rotate(0deg);opacity:1}
+  }
+
+  /* <= 1024 */
+  @media (max-width:1024px){
+    .quiz{padding-left:16px;padding-right:16px}
+    .topbar{grid-template-columns:58px minmax(0,1fr) 58px}
+    .board{padding-left:4px;padding-right:4px}
+    .match-row{grid-template-columns:minmax(0,1fr) 82px minmax(0,1fr)}
+    .match-item{width:78%;height:92%}
+    .answer-text{max-width:68%;text-align:center}
+  }
+
+  /* <= 768 */
+  @media (max-width:768px){
+    .quiz{padding:6px 8px 5px}
+    .topbar{grid-template-columns:44px minmax(0,1fr) 44px;min-height:44px}
+    .icon-circle{width:36px;height:36px;font-size:15px}
+    .subtitle{display:none}
+    .board{padding:2px 3px}
+    .match-row{grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr)}
+    .match-item{width:86%;height:92%;border-radius:14px}
+    .left-item{padding:5px 10px 5px 6px}.right-item{padding:5px 7px}
+    .left-content{font-size:clamp(12px,3vw,16px)}
+    .right-content{gap:5px;font-size:clamp(12px,3vw,16px)}
+    .answer-visual{width:clamp(42px,9vw,56px);height:clamp(42px,9vw,56px)}
+    .answer-text{max-width:74%;text-align:center}
+    .dot{width:11px;height:11px;border-width:2px}
+    .left-item .dot{right:-5px}.right-item .dot{left:-5px}
+    .controls{height:46px}
+    .next{height:40px;min-width:110px;font-size:14px}
+  }
+
+  /* very small phones */
+  @media (max-width:420px){
+    .title{font-size:15px}.eyebrow{font-size:9px}
+    .match-row{grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr)}
+    .match-item{width:88%;height:92%;border-width:1.5px;border-radius:11px}
+    .left-item{padding:4px 7px 4px 4px}.right-item{padding:4px 4px}
+    .left-content{font-size:11.5px}
+    .right-content{font-size:11.5px;gap:2px}
+    .answer-visual{width:38px;height:38px}
+    .answer-text{max-width:76%;text-align:center}
+    .controls{height:42px}.next{height:36px;min-width:100px;font-size:12px}
+  }
+
+  /* short landscape screens: compress without scroll */
+  @media (max-height:540px){
+    .quiz{padding-top:4px;padding-bottom:4px}
+    .topbar{min-height:40px}
+    .icon-circle{width:34px;height:34px;font-size:14px}
+    .eyebrow{font-size:9px}.title{font-size:clamp(14px,2.4vw,22px)}.subtitle{display:none}
+    .game-area{padding:0}.board{padding-top:2px;padding-bottom:2px}
+    .rows{gap:2px}
+    .answer-visual{width:clamp(34px,7vh,48px);height:clamp(34px,7vh,48px)}
+    .match-item{height:90%;border-radius:12px}
+    .left-content{font-size:clamp(15px,2.6vh,20px)}
+    .right-content{font-size:clamp(15px,2.6vh,20px)}
+    .controls{height:38px}.next{height:34px;min-width:96px;font-size:12px}
+  }
+  /* Heading: 30px on laptops (base), 40px on large monitors */
+  @media (min-width:1600px){ .title{font-size:40px} }
+</style>
+</head>
+<body>
+<div class="quiz" id="quizCard">
+  <div class="topbar">
+    <button class="icon-btn" id="homeBtn" aria-label="Home"><span class="icon-circle home"><i class="fa-solid fa-house"></i></span></button>
+    <div class="title-wrap">
+      <div class="eyebrow" id="setLabel">Matching Set 1</div>
+      <p class="title" id="title">Match Each Angle with Its Type</p>
+    </div>
+    <button class="icon-btn" id="hintBtn" aria-label="Hint"><span class="icon-circle hint"><i class="fa-solid fa-lightbulb"></i></span></button>
+  </div>
+
+  <main class="game-area">
+    <div class="board" id="board">
+      <svg id="lineCanvas" aria-hidden="true"></svg>
+      <div class="rows six" id="rows"></div>
+    </div>
+  </main>
+
+  <div class="controls">
+    <button class="next" id="nextBtn">Next <i class="fa-solid fa-circle-arrow-right"></i></button>
+  </div>
+</div>
+
+<div class="hint-overlay" id="hintOverlay">
+  <div class="hint-box">
+    <div class="hint-icon">💡</div>
+    <h3>Hint</h3>
+    <p id="hintText"></p>
+    <button class="hint-close" id="closeHintBtn">Got it!</button>
+  </div>
+</div>
+
+<div id="finalPopup">
+
+    <div class="final-kid-box">
+
+        <h2>
+            🎉
+            <span>Congratulations!</span>
+        </h2>
+
+        <p id="finalScore"></p>
+
+        <div id="stars"></div>
+
+        <button
+            class="playAgain-btn"
+            onclick="location.reload()">
+
+            Play Again
+
+        </button>
+
+    </div>
+
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+const angleIcon = type => {
+  const common='stroke="#71648f" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+  const arc='stroke="#d7a45f" stroke-width="3" fill="none" stroke-linecap="round"';
+  const svgs={
+    complete:`<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="19" ${common}/><path d="M32 8l5 8-9 1" ${common}/><circle cx="32" cy="32" r="2.5" fill="#71648f"/></svg>`,
+    zero:`<svg viewBox="0 0 64 64"><path d="M13 45L32 30L53 13" ${common}/><path d="M13 45L32 30L53 13" ${common}/><circle cx="32" cy="30" r="2.5" fill="#71648f"/></svg>`,
+    reflex:`<svg viewBox="0 0 64 64"><path d="M12 46L31 31L51 39" ${common}/><path d="M48 37C43 15 18 13 12 38" ${arc}/><circle cx="31" cy="31" r="2.5" fill="#71648f"/></svg>`,
+    obtuse:`<svg viewBox="0 0 64 64"><path d="M11 45L31 31L52 17" ${common}/><path d="M42 24Q31 18 20 37" ${arc}/><circle cx="31" cy="31" r="2.5" fill="#71648f"/></svg>`,
+    acute:`<svg viewBox="0 0 64 64"><path d="M12 46L31 31L45 12" ${common}/><path d="M37 23Q32 20 25 36" ${arc}/><circle cx="31" cy="31" r="2.5" fill="#71648f"/></svg>`,
+    right:`<svg viewBox="0 0 64 64"><path d="M13 48H32V13" ${common}/><path d="M32 36H24V44" ${arc}/><circle cx="32" cy="48" r="2.5" fill="#71648f"/></svg>`
+  }; return svgs[type];
+};
+
+function polygonIcon(sides){
+  const n=sides, cx=32, cy=32, r=22, pts=[];
+  for(let i=0;i<n;i++){const a=-Math.PI/2+i*2*Math.PI/n;pts.push(`${(cx+r*Math.cos(a)).toFixed(1)},${(cy+r*Math.sin(a)).toFixed(1)}`)}
+  return `<svg viewBox="0 0 64 64"><polygon points="${pts.join(' ')}" fill="#edf7f1" stroke="#71648f" stroke-width="3" stroke-linejoin="round"/></svg>`;
+}
+
+const sets=[
+  {
+    title:"Match Each Angle with Its Type",
+    hint:"Use the size of the angle: acute is less than 90°, right is 90°, obtuse is between 90° and 180°, reflex is more than 180°, zero is 0°, and complete is 360°.",
+    pairs:[
+      {id:"a1",left:"90° < X < 180°",right:"Obtuse angle",visual:angleIcon('obtuse')},
+      {id:"a2",left:"0° < X < 90°",right:"Acute angle",visual:angleIcon('acute')},
+      {id:"a3",left:"90° = ∠AOB",right:"Right angle",visual:angleIcon('right')},
+      {id:"a4",left:"180° < X < 270°",right:"Reflex angle",visual:angleIcon('reflex')},
+      {id:"a5",left:"X = 0°",right:"Zero angle",visual:angleIcon('zero')},
+      {id:"a6",left:"∠X = 360°",right:"Complete angle",visual:angleIcon('complete')}
+    ]
+  },
+  {
+    title:"Match the Polygon Clues",
+    hint:"Match each number or polygon name with the correct polygon name or number of equal sides.",
+    pairs:[
+      {id:"p1",left:"7",right:"Heptagon",visual:polygonIcon(7)},
+      {id:"p2",left:"8",right:"Octagon",visual:polygonIcon(8)},
+      {id:"p3",left:"10",right:"Decagon",visual:polygonIcon(10)},
+      {id:"p4",left:"Square",right:"4 equal sides",visual:polygonIcon(4)},
+      {id:"p5",left:"9",right:"Nonagon",visual:polygonIcon(9)},
+      {id:"p6",left:"Regular pentagon",right:"5 equal sides",visual:polygonIcon(5)},
+      {id:"p7",left:"4",right:"Quadrilateral",visual:polygonIcon(4)},
+      {id:"p8",left:"6",right:"Hexagon",visual:polygonIcon(6)}
+    ]
+  }
+];
+
+const rows=document.getElementById('rows');
+const board=document.getElementById('board');
+const svg=document.getElementById('lineCanvas');
+const title=document.getElementById('title');
+const setLabel=document.getElementById('setLabel');
+const nextBtn=document.getElementById('nextBtn');
+const hintBtn=document.getElementById('hintBtn');
+const hintOverlay=document.getElementById('hintOverlay');
+const hintText=document.getElementById('hintText');
+const closeHintBtn=document.getElementById('closeHintBtn');
+const correctSound=document.getElementById('correctSound');
+const wrongSound=document.getElementById('wrongSound');
+
+let setIndex=0,selectedLeft=null,matches=0,connections=[],score=0;
+let pairs=sets[0].pairs;
+function shuffle(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x}
+function sound(a){a.currentTime=0;a.play().catch(()=>{})}
+function speak(t) {
+  speechSynthesis.cancel();
+  const msg = new SpeechSynthesisUtterance(t);
+  msg.lang = "en-US";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+function burst(){if(!window.confetti)return;confetti({particleCount:34,spread:64,origin:{y:.72},scalar:.75})}
+function bigBurst(){if(!window.confetti)return;confetti({particleCount:150,spread:100,origin:{y:.55}});setTimeout(()=>confetti({particleCount:90,spread:70,origin:{y:.6}}),260)}
+
+function item(pair,type){
+  const el=document.createElement('div');el.className=`match-item ${type==='left'?'left-item':'right-item'}`;el.dataset.pair=pair.id;el.dataset.type=type;
+  if(type==='left') el.innerHTML=`<div class="left-content">${pair.left}</div><span class="dot"></span>`;
+  else el.innerHTML=`<span class="dot"></span><div class="right-content"><span class="answer-visual">${pair.visual}</span><span class="answer-text">${pair.right}</span></div>`;
+  return el;
+}
+
+function renderSet(){
+  const set=sets[setIndex];
+  pairs=set.pairs;title.textContent=set.title;setLabel.textContent=`Matching Set ${setIndex+1}`;hintText.textContent=set.hint;
+  rows.innerHTML='';svg.innerHTML='';connections=[];selectedLeft=null;matches=0;nextBtn.classList.remove('show');
+  rows.className=`rows ${set.pairs.length===8?'eight':'six'}`;
+  const rights=shuffle(set.pairs);
+  set.pairs.forEach((leftPair,i)=>{
+    const row=document.createElement('div');row.className='match-row';
+    const left=item(leftPair,'left');const center=document.createElement('div');const right=item(rights[i],'right');
+    left.addEventListener('click',()=>selectLeft(left));right.addEventListener('click',()=>selectRight(right));
+    row.append(left,center,right);rows.appendChild(row);
+  });
+}
+
+function selectLeft(el){
+  if(el.classList.contains('matched'))return;
+  document.querySelectorAll('.left-item.selected').forEach(x=>x.classList.remove('selected'));
+  el.classList.add('selected');selectedLeft=el;
+}
+function selectRight(el){
+  if(el.classList.contains('matched')||!selectedLeft)return;
+  if(el.dataset.pair===selectedLeft.dataset.pair){
+    const left=selectedLeft;left.classList.remove('selected');left.classList.add('matched');el.classList.add('matched');selectedLeft=null;
+    connections.push({left,right:el});drawConnection(left,el);matches++;score=matches;sound(correctSound);speak('Correct');burst();
+    if(matches===sets[setIndex].pairs.length)setTimeout(completeSet,550);
+  }else{
+    el.classList.remove('wrong');void el.offsetWidth;el.classList.add('wrong');sound(wrongSound);speak('wrong');setTimeout(()=>el.classList.remove('wrong'),430);
+  }
+}
+function drawConnection(left,right){
+  const ld=left.querySelector('.dot').getBoundingClientRect(),rd=right.querySelector('.dot').getBoundingClientRect(),br=board.getBoundingClientRect();
+  const x1=ld.left+ld.width/2-br.left,y1=ld.top+ld.height/2-br.top,x2=rd.left+rd.width/2-br.left,y2=rd.top+rd.height/2-br.top,m=(x1+x2)/2;
+  const p=document.createElementNS('http://www.w3.org/2000/svg','path');p.setAttribute('d',`M ${x1} ${y1} C ${m} ${y1}, ${m} ${y2}, ${x2} ${y2}`);p.setAttribute('fill','none');p.setAttribute('stroke','#9b8bb9');p.setAttribute('stroke-width','3');p.setAttribute('stroke-linecap','round');p.setAttribute('opacity','.76');svg.appendChild(p);
+}
+function redraw(){svg.innerHTML='';connections.forEach(c=>drawConnection(c.left,c.right))}
+
+function completeSet(){
+  bigBurst();
+  score=matches;
+
+  // Show final popup only after the LAST matching set
+  if(setIndex===sets.length-1){
+    showFinal();
+  }else{
+    // First set completed — show Next button, no final popup
+    setTimeout(()=>{
+      nextBtn.classList.add('show');
+    },550);
+  }
+}
+
+function showFinal() {
+    QuizPopup.final(score, pairs.length);
+    if (window.confetti) {
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+        setTimeout(() => { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }, 300);
+    }
+}
+
+nextBtn.addEventListener('click',()=>{
+  if(setIndex!==0)return;
+  nextBtn.classList.remove('show');
+  setIndex=1;
+  renderSet();
+});
+
+hintBtn.addEventListener('click',()=>hintOverlay.classList.add('show'));
+closeHintBtn.addEventListener('click',()=>hintOverlay.classList.remove('show'));
+hintOverlay.addEventListener('click',e=>{if(e.target===hintOverlay)hintOverlay.classList.remove('show')});
+if(window.top!==window.self)document.getElementById('homeBtn').style.visibility='hidden';
+document.getElementById('homeBtn').addEventListener('click',()=>{window.location.href='../Grade2_chapter1.html'});
+window.addEventListener('resize',()=>requestAnimationFrame(redraw));
+renderSet();
+</script>
+</body>
+</html>

@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Match the Following</title>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/shared/quiz-ui.css">
+  <script src="../assets/shared/quiz-ui.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Livvic', sans-serif;
+      font-weight: 400;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      padding: 16px 10px;
+    }
+
+    .main {
+      width: 100%;
+      max-width: 1120px;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .game-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: clamp(45px, 9vw, 150px);
+      padding: 8px 18px;
+    }
+
+    #line-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      overflow: visible;
+    }
+
+    .column {
+      width: min(440px, 43%);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 2;
+    }
+
+    .item {
+      position: relative;
+      width: 100%;
+      flex: 1 1 0;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      overflow: hidden;
+      border: 2px solid rgba(245, 158, 11, .34);
+      border-radius: 18px 7px 18px 7px;
+      background: linear-gradient(135deg, #fffef8, #fff8df);
+      color: #273449;
+      font-size: clamp(13px, 1.55vw, 23px);
+      font-weight: 600;
+      padding: 4px 18px;
+      box-shadow:
+        0 5px 0 rgba(245, 158, 11, .08),
+        0 9px 20px rgba(55, 65, 81, .08);
+      transition:
+        transform .22s ease,
+        box-shadow .22s ease,
+        border-color .22s ease,
+        background .22s ease;
+      animation: optionFloat .55s ease both;
+    }
+
+    .item:nth-child(2) {
+      animation-delay: .04s;
+    }
+
+    .item:nth-child(3) {
+      animation-delay: .08s;
+    }
+
+    .item:nth-child(4) {
+      animation-delay: .12s;
+    }
+
+    .item:nth-child(5) {
+      animation-delay: .16s;
+    }
+
+    .item:nth-child(6) {
+      animation-delay: .20s;
+    }
+
+    .item:nth-child(7) {
+      animation-delay: .24s;
+    }
+
+    .item:nth-child(8) {
+      animation-delay: .28s;
+    }
+
+    .item::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -80%;
+      width: 55%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .75), transparent);
+      transform: skewX(-20deg);
+      transition: left .6s ease;
+      pointer-events: none;
+    }
+
+    .item:hover:not(.matched) {
+      transform: translateY(-4px) scale(1.012);
+      border-color: #f59e0b;
+      box-shadow:
+        0 7px 0 rgba(245, 158, 11, .12),
+        0 15px 28px rgba(55, 65, 81, .13);
+    }
+
+    .item:hover:not(.matched)::before {
+      left: 125%;
+    }
+
+    .item.active {
+      transform: translateY(-3px) scale(1.015);
+      border-color: #f59e0b;
+      background: linear-gradient(135deg, #fff7d6, #ffedb0);
+      box-shadow:
+        0 0 0 4px rgba(245, 158, 11, .10),
+        0 12px 26px rgba(245, 158, 11, .18);
+    }
+
+    .item.matched {
+      cursor: default;
+      border-color: #22c55e;
+      background: linear-gradient(135deg, #f0fff4, #dcfce7);
+      box-shadow:
+        0 5px 0 rgba(34, 197, 94, .10),
+        0 10px 24px rgba(34, 197, 94, .14);
+      animation: matchedPop .45s ease both;
+    }
+
+    .item.error {
+      border-color: #ef4444;
+      background: linear-gradient(135deg, #fff1f2, #ffe4e6);
+      animation: wrongShake .38s ease;
+    }
+
+    .number {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 13px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid rgba(245, 158, 11, .38);
+      color: #a16207;
+      font-size: .78em;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, .06);
+    }
+
+    .right .item {
+      padding-left: 15px;
+    }
+
+    .letter {
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 13px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 2px solid rgba(14, 165, 233, .28);
+      color: #0369a1;
+      font-size: .78em;
+      font-weight: 600;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, .06);
+    }
+
+    .right .item {
+      border-color: rgba(14, 165, 233, .30);
+      background: linear-gradient(135deg, #fbfeff, #eefaff);
+    }
+
+    .right .item:hover:not(.matched) {
+      border-color: #0ea5e9;
+      box-shadow:
+        0 7px 0 rgba(14, 165, 233, .10),
+        0 15px 28px rgba(14, 165, 233, .13);
+    }
+
+    .right .item.active {
+      border-color: #0ea5e9;
+      background: linear-gradient(135deg, #e0f7ff, #c9efff);
+      box-shadow:
+        0 0 0 4px rgba(14, 165, 233, .10),
+        0 12px 26px rgba(14, 165, 233, .16);
+    }
+
+    .right .item.matched {
+      border-color: #22c55e;
+      background: linear-gradient(135deg, #f0fff4, #dcfce7);
+    }
+
+
+    @keyframes optionFloat {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes matchedPop {
+      0% {
+        transform: scale(1);
+      }
+
+      55% {
+        transform: scale(1.035);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes wrongShake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-7px) rotate(-1deg);
+      }
+
+      75% {
+        transform: translateX(7px) rotate(1deg);
+      }
+    }
+
+    @keyframes popupSlide {
+      0% {
+        transform: scale(.65) translateY(45px) rotate(-3deg);
+        opacity: 0;
+      }
+
+      65% {
+        transform: scale(1.04) translateY(-5px) rotate(1deg);
+      }
+
+      100% {
+        transform: scale(1) translateY(0) rotate(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes iconPop {
+      0% {
+        transform: scale(0) rotate(-25deg);
+      }
+
+      60% {
+        transform: scale(1.18) rotate(8deg);
+      }
+
+      100% {
+        transform: scale(1) rotate(0);
+      }
+    }
+
+    @keyframes starDance {
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+
+      55% {
+        transform: scale(1.25) rotate(8deg);
+      }
+
+      100% {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+      }
+    }
+
+    .emoji-pop {
+      position: fixed;
+      left: 50%;
+      top: 45%;
+      transform: translate(-50%, -50%);
+      font-size: 82px;
+      pointer-events: none;
+      z-index: 9999;
+      animation: emojiPop 1.1s ease-out forwards;
+    }
+
+    @keyframes emojiPop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.35);
+      }
+
+      22% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.18);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -75%) scale(.82);
+      }
+    }
+
+    .final-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      animation: fadeIn .4s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    .final-modal {
+      background: #fff;
+      max-width: 400px;
+      width: 90%;
+      padding: 36px 28px 32px;
+      border-radius: 56px 20px 56px 20px;
+      text-align: center;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, .3);
+      animation: popUp .4s cubic-bezier(.175, .885, .32, 1.275);
+    }
+
+    @keyframes popUp {
+      from {
+        transform: scale(.8);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .final-modal .icon-big {
+      font-size: 52px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .final-modal h2 {
+      font-size: 30px;
+      font-weight: 800;
+      color: #1e1e2a;
+      margin-bottom: 8px;
+    }
+
+    .final-modal p {
+      font-size: 17px;
+      color: #3d3d4a;
+      margin-bottom: 22px;
+    }
+
+    .final-modal .btn-playagain {
+      border: none;
+      background: linear-gradient(180deg, #ffb347, #f58a2e);
+      padding: 12px 36px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 18px;
+      color: #2d1f00;
+      box-shadow: 0 12px 24px rgba(245, 138, 46, .3);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 18px 10px;
+        overflow-y: auto;
+      }
+
+      .game-container {
+        gap: 28px;
+        padding: 8px 4px;
+      }
+
+      .column {
+        width: calc(50% - 14px);
+        gap: 10px;
+      }
+
+      .item {
+        min-height: 0;
+        font-size: 17px;
+        padding: 8px 10px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .game-container {
+        gap: 18px;
+      }
+
+      .column {
+        width: calc(50% - 9px);
+        gap: 9px;
+      }
+
+      .item {
+        min-height: 0;
+        border-radius: 14px 6px 14px 6px;
+        font-size: 15px;
+        padding: 7px 8px;
+      }
+
+      .number,
+      .letter {
+        width: 29px;
+        height: 29px;
+        flex-basis: 29px;
+        margin-right: 8px;
+      }
+
+      #line-canvas {
+        display: block;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 14px 6px;
+      }
+
+      .game-container {
+        gap: 8px;
+        padding: 4px 2px;
+      }
+
+      .column {
+        width: calc(50% - 4px);
+        gap: 8px;
+      }
+
+      #line-canvas {
+        display: block;
+      }
+    }
+
+    @media screen and (min-width: 1025px) and (max-width: 1440px) {
+      .main {
+        max-width: 1050px;
+      }
+
+      .game-container {
+        gap: 85px;
+      }
+
+      .item {
+        min-height: 0;
+        font-size: 22px;
+      }
+    }
+
+    @media screen and (min-width: 1441px) and (max-width: 1920px) {
+      .main {
+        max-width: 1180px;
+      }
+
+      .game-container {
+        gap: 105px;
+      }
+
+      .item {
+        min-height: 0;
+        font-size: 24px;
+      }
+    }
+
+    @media screen and (min-width: 1921px) {
+      .main {
+        max-width: 1320px;
+      }
+
+      .game-container {
+        gap: 125px;
+      }
+
+      .item {
+        min-height: 0;
+        font-size: 25px;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="../../shared/quiz-ui.css">
+  <link rel="stylesheet" href="../assets/shared/grade3-chapter1.css">
+</head>
+
+<body>
+  <div class="main">
+    <div class="game-container">
+      <svg id="line-canvas"></svg>
+      <div class="column left" id="leftColumn"></div>
+      <div class="column right" id="rightColumn"></div>
+    </div>
+  </div>
+
+  <script>
+    const leftData = [
+      { id: "1", text: "823 − 0 = ________", match: "d" },
+      { id: "2", text: "717 − 717 = ________", match: "g" },
+      { id: "3", text: "________ − 565 = 0", match: "a" },
+      { id: "4", text: "________ − 0 = 655", match: "e" },
+      { id: "5", text: "672 − 76 = ________", match: "b" },
+      { id: "6", text: "389 − 94 = 295; 94 = ________", match: "h" },
+      { id: "7", text: "427 − 356 = 71; 427 = ________", match: "f" },
+      { id: "8", text: "919 − 789 = 130; 789 = ________", match: "c" }
+    ];
+
+    const rightData = [
+      { match: "a", text: "565" },
+      { match: "b", text: "596" },
+      { match: "c", text: "919 − 130" },
+      { match: "d", text: "823" },
+      { match: "e", text: "655" },
+      { match: "f", text: "356 + 71" },
+      { match: "g", text: "0" },
+      { match: "h", text: "389 − 295" }
+    ];
+
+    let selectedLeft = null;
+    let matchesFound = 0;
+    let score = 0;
+    let connections = [];
+
+    const leftCol = document.getElementById("leftColumn");
+    const rightCol = document.getElementById("rightColumn");
+    const svg = document.getElementById("line-canvas");
+
+    let audioCtx = null;
+
+    function getCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function beep(frequency, duration, type = "sine") {
+      try {
+        const ctx = getCtx();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+
+        gain.gain.setValueAtTime(.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + duration / 1000);
+
+        oscillator.start();
+        oscillator.stop(ctx.currentTime + duration / 1000);
+      } catch (e) { }
+    }
+
+    const sound = {
+      correct() {
+        beep(660, 110);
+        setTimeout(() => beep(880, 160), 110);
+      },
+      wrong() {
+        beep(180, 220, "sawtooth");
+      },
+      finish() {
+        [523, 659, 784, 1047].forEach((frequency, index) => {
+          setTimeout(() => beep(frequency, 150), index * 130);
+        });
+      }
+    };
+
+    function burstConfetti(element) {
+      const rect = element.getBoundingClientRect();
+
+      if (typeof confetti === "function") {
+        confetti({
+          particleCount: 34,
+          spread: 70,
+          startVelocity: 22,
+          origin: {
+            x: (rect.left + rect.width / 2) / innerWidth,
+            y: (rect.top + rect.height / 2) / innerHeight
+          },
+          colors: ["#6635dc", "#ff4e83", "#4e8ff0", "#76b93b", "#f4ae25", "#4ecdc4"]
+        });
+      }
+    }
+
+    function showEmoji(emoji) {
+      const element = document.createElement("div");
+      element.className = "emoji-pop";
+      element.textContent = emoji;
+      document.body.appendChild(element);
+
+      setTimeout(() => element.remove(), 1600);
+    }
+
+    function showFinalPopup() {
+      if (document.querySelector(".final-overlay")) return;
+
+      const overlay = document.createElement("div");
+      const modal = document.createElement("div");
+
+      overlay.className = "final-overlay";
+      modal.className = "final-modal";
+
+      modal.innerHTML = `
+        <span class="icon-big">🎉</span>
+        <h2>All Done!</h2>
+        <p>Amazing! You got them all right!</p>
+        <button class="btn-playagain" type="button">
+          <i class="fa-solid fa-rotate-right"></i>
+          Play again
+        </button>
+      `;
+
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+
+      setTimeout(() => burstConfetti(modal), 80);
+      setTimeout(() => burstConfetti(modal), 350);
+      setTimeout(() => burstConfetti(modal), 650);
+
+      modal.querySelector(".btn-playagain").addEventListener("click", () => {
+        overlay.remove();
+        resetGame();
+      });
+    }
+
+    function resetGame() {
+      selectedLeft = null;
+      matchesFound = 0;
+      score = 0;
+      connections = [];
+
+      leftCol.innerHTML = "";
+      rightCol.innerHTML = "";
+      svg.innerHTML = "";
+
+      init();
+    }
+
+    function createItem(text, label, type, match) {
+      const div = document.createElement("div");
+      div.className = "item";
+      div.dataset.match = match;
+
+      const badge = document.createElement("span");
+      badge.className = type === "left" ? "number" : "letter";
+      badge.textContent = label;
+
+      const span = document.createElement("span");
+      span.textContent = text;
+
+      div.appendChild(badge);
+      div.appendChild(span);
+      return div;
+    }
+
+    function init() {
+      leftData.forEach(item => {
+        const div = createItem(item.text, item.id + ")", "left", item.match);
+
+        div.onclick = () => {
+          if (div.classList.contains("matched")) return;
+
+          document.querySelectorAll(".left .item").forEach(el => {
+            el.classList.remove("active");
+          });
+
+          div.classList.add("active");
+          selectedLeft = div;
+        };
+
+        leftCol.appendChild(div);
+      });
+
+      rightData.forEach(item => {
+        const div = createItem(item.text, item.match + ")", "right", item.match);
+        div.dataset.id = item.match;
+
+        div.onclick = () => {
+          if (!selectedLeft || div.classList.contains("matched")) return;
+
+          if (selectedLeft.dataset.match === div.dataset.id) {
+            handleMatch(selectedLeft, div);
+          } else {
+            sound.wrong();
+            showEmoji("😔");
+            div.classList.remove("error");
+            void div.offsetWidth;
+            div.classList.add("error");
+            setTimeout(() => div.classList.remove("error"), 400);
+          }
+        };
+
+        rightCol.appendChild(div);
+      });
+
+      requestAnimationFrame(updateSVG);
+    }
+
+    function handleMatch(leftEl, rightEl) {
+      score++;
+      matchesFound++;
+
+      leftEl.classList.add("matched");
+      rightEl.classList.add("matched");
+      leftEl.classList.remove("active");
+      selectedLeft = null;
+
+      sound.correct();
+      showEmoji("🥳");
+      burstConfetti(rightEl);
+
+      connections.push({ from: leftEl, to: rightEl });
+      updateSVG();
+
+      if (matchesFound === leftData.length) {
+        setTimeout(() => {
+          sound.finish();
+          showFinalPopup();
+        }, 700);
+      }
+    }
+
+    function updateSVG() {
+      const game = document.querySelector(".game-container");
+      const rect = game.getBoundingClientRect();
+
+      svg.setAttribute("width", game.clientWidth);
+      svg.setAttribute("height", game.clientHeight);
+      svg.setAttribute("viewBox", `0 0 ${game.clientWidth} ${game.clientHeight}`);
+      svg.innerHTML = "";
+
+      connections.forEach(connection => {
+        drawCurve(connection.from, connection.to, rect);
+      });
+    }
+
+    function drawCurve(el1, el2, containerRect) {
+      const rect1 = el1.getBoundingClientRect();
+      const rect2 = el2.getBoundingClientRect();
+
+      const x1 = rect1.right - containerRect.left;
+      const y1 = rect1.top + rect1.height / 2 - containerRect.top;
+
+      const x2 = rect2.left - containerRect.left;
+      const y2 = rect2.top + rect2.height / 2 - containerRect.top;
+
+      const offset = Math.max(25, (x2 - x1) * 0.35);
+
+      const d = `
+        M ${x1},${y1}
+        C ${x1 + offset},${y1}
+          ${x2 - offset},${y2}
+          ${x2},${y2}
+      `;
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", d);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "#22c55e");
+      path.setAttribute("stroke-width", "4");
+      path.setAttribute("stroke-linecap", "round");
+      path.setAttribute("stroke-dasharray", "8 6");
+      path.style.filter = "drop-shadow(0 2px 3px rgba(34,197,94,.18))";
+
+      svg.appendChild(path);
+    }
+
+    window.addEventListener("resize", updateSVG);
+    init();
+  </script>
+  <script src="../../shared/quiz-ui.js"></script>
+</body>
+
+</html>

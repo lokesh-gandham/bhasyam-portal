@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Roman Number Vault</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Livvic,sans-serif}
+html,body{width:100%;height:100%;overflow:hidden}
+body{color:#304f4d}
+.game{position:relative;width:100%;height:100vh;overflow:hidden;background:#f4f1f7}
+.game:before{display:none}
+.game:after{display:none}
+.header{position:absolute;top:0;left:0;right:0;height:78px;display:flex;align-items:center;justify-content:center;padding:5px 90px;z-index:10}
+.heading{font-size:22px;font-weight:400;text-align:center;color:#304f4d}
+.home{position:absolute;right:28px;top:17px;width:58px;height:58px;border:2px solid #9b7ac8;border-radius:18px;background:#7954b3;color:#fff;font-size:30px;box-shadow:0 7px 0 #5f4a7a33;cursor:pointer;z-index:30}
+.stage{position:absolute;top:78px;bottom:80px;left:0;right:0;display:flex;align-items:center;justify-content:center;padding:0 20px}
+.arena{position:relative;width:min(900px,94vw);height:min(620px,calc(100vh - 145px))}
+.lock-title{position:absolute;top:4px;left:50%;transform:translateX(-50%);padding:8px 25px;border:3px solid #a7c8bd;border-radius:18px;background:#e8f5ee;color:#56766d;font-size:12px;font-weight:700;letter-spacing:1.7px;white-space:nowrap;box-shadow:0 5px 0 #536e6620}
+.vault{position:absolute;left:50%;top:62px;transform:translateX(-50%);width:min(700px,86vw);height:450px;border:5px solid #b7a1c9;border-radius:38px;background:#f8f1fa;box-shadow:0 14px 0 #5b53641e,0 28px 55px #596b6620;padding:25px}
+.vault:before{content:"";position:absolute;inset:14px;border:2px dashed #d7c9df;border-radius:27px;pointer-events:none}
+.vault-head{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:12px;color:#765f78;font-size:11px;font-weight:700;letter-spacing:1.8px}
+.vault-head:before,.vault-head:after{content:"";width:70px;height:3px;border-radius:3px;background:#d7b9c9}
+.lock-zone{position:absolute;top:68px;left:50%;transform:translateX(-50%);width:min(420px,72%);height:190px;display:flex;align-items:center;justify-content:center}
+.ring{position:absolute;border-radius:50%;border:4px solid #c8b4d6}
+.r1{width:190px;height:190px}.r2{width:150px;height:150px;border-color:#decf9d}.r3{width:116px;height:116px;border:10px solid #e5c76b;background:#fff4c9;box-shadow:0 7px 0 #79632a25}
+.core{position:relative;width:82px;height:82px;border-radius:50%;background:#fff9df;border:4px solid #caa84e;display:grid;place-items:center;color:#725d2d;font-size:30px;font-weight:700;z-index:2}
+.core small{position:absolute;top:-27px;font-size:8px;letter-spacing:1.5px;white-space:nowrap;color:#8b743b}
+.roman-caption{position:absolute;top:254px;left:50%;transform:translateX(-50%);font-size:9px;font-weight:500;letter-spacing:2px;color:#967d4c}
+.roman-display{position:absolute;top:272px;left:50%;transform:translateX(-50%);font-size:52px;font-weight:400;letter-spacing:4px;color:#304f4d;white-space:nowrap}
+.prompt{position:absolute;top:330px;left:50%;transform:translateX(-50%);font-size:15px;font-weight:400;color:#2f4f4f;white-space:nowrap}
+.entry{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:min(540px,80%);height:82px;border:4px solid #d99bb3;border-radius:25px;background:#fffafb;display:flex;align-items:center;justify-content:center;gap:18px;box-shadow:0 8px 0 #664b5b18;z-index:4}
+.entry-label{font-size:10px;font-weight:700;letter-spacing:1.3px;color:#805f72;white-space:nowrap}
+.answer-shell{height:54px;width:min(335px,62%);display:flex;align-items:center;border:3px solid #e0a070;border-radius:15px;background:#fff;overflow:hidden}
+.answer-icon{width:45px;display:grid;place-items:center;font-size:20px}
+.answer{width:1px;flex:1;height:48px;border:0;border-left:2px solid #f0d5c1;outline:0;background:#fff;text-align:center;font-size:25px;font-weight:400;color:#304f4d}
+.answer::placeholder{font-size:12px;font-weight:400;color:#a9b4b0;letter-spacing:1px}
+.answer-arrow{width:45px;display:grid;place-items:center;font-size:23px;font-weight:700;color:#8aa19b}
+.submit-btn{position:absolute;left:50%;bottom:13px;transform:translateX(-50%);min-width:155px;height:50px;padding:0 28px;border:0;border-radius:17px;background:#2f4f4f;color:#fff;font-size:20px;font-weight:500;cursor:pointer;box-shadow:0 8px 0 #1439392e;z-index:40}
+.submit-btn:hover:not(:disabled){transform:translateX(-50%) translateY(-3px)}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.nav-btn{position:absolute;bottom:17px;min-width:126px;height:46px;padding:0 18px;border-radius:15px;font-size:20px;font-weight:500;color:#2f4f4f;cursor:pointer;z-index:40;box-shadow:0 8px 18px #2f4f4f1f}
+#prevBtn{left:clamp(20px,4vw,70px);background:#a9cbe2;border:2px solid #79a9c7}
+#nextBtn{right:clamp(20px,4vw,70px);background:#efbca6;border:2px solid #d99074}
+.nav-btn:disabled{opacity:.5;cursor:not-allowed}
+.feedback{position:fixed;top:50%;left:50%;z-index:100;width:min(440px,88vw);min-height:215px;padding:26px 30px 28px;border-radius:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;opacity:0;pointer-events:none;transform:translate(-50%,-50%) scale(.7);transition:.28s cubic-bezier(.2,.9,.25,1.25);box-shadow:0 20px 50px #20393938}
+.feedback.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.correct-popup{background:linear-gradient(135deg,#e2f6e9,#f4fcf6);border:5px solid #16834f}
+.wrong-popup{background:linear-gradient(135deg,#fde6e2,#fff7f5);border:5px solid #c94740}
+.feedback-icon{width:68px;height:68px;display:grid;place-items:center;border-radius:24px 24px 24px 8px;font-size:34px;color:#fff;box-shadow:0 5px 0 #00000014}
+.correct-popup .feedback-icon{background:#16834f}.wrong-popup .feedback-icon{background:#c94740}
+.feedback h3{font-size:28px;font-weight:500;color:#2f4f4f}.feedback p{font-size:17px;color:#607878}
+.final-popup{position:fixed;top:50%;left:50%;z-index:200;width:min(520px,91vw);padding:38px 36px 32px;text-align:center;border-radius:34px;background:linear-gradient(145deg,#d8d0ff,#aeb8f4 58%,#8999e2);border:5px solid #5d55a6;box-shadow:0 10px 0 #28286438,0 28px 70px #0003;opacity:0;pointer-events:none;transform:translate(-50%,-50%) scale(.72);transition:.34s}
+.final-popup.show{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.final-emoji{font-size:78px;margin-bottom:8px}.final-popup h2{font-size:36px;font-weight:700;color:#34306e;margin-bottom:8px}.final-popup p{font-size:18px;font-weight:500;color:#454879;margin-bottom:24px}
+.play-again-btn{min-width:185px;height:52px;padding:0 28px;border:0;border-radius:17px;background:#55479a;color:#fff;font-size:20px;font-weight:500;cursor:pointer;box-shadow:0 7px 0 #2d265a40}
+@media(min-width:1400px){
+    .header{
+        height:100px;
+        padding:10px 120px;
+    }
+    .heading{
+        font-size:30px;
+        font-weight:400;
+        line-height:1.3;
+    }
+    .stage{
+        top:100px;
+        bottom:90px;
+        padding:8px 4vw;
+    }
+    .arena{
+        width:min(1180px,92vw);
+        height:min(650px,calc(100vh - 190px));
+    }
+    .vault{
+        top:70px;
+        width:min(900px,88vw);
+        height:500px;
+        border-radius:40px;
+        padding:30px;
+    }
+    .vault-head{
+        font-size:14px;
+        letter-spacing:1.8px;
+    }
+    .vault-head:before,.vault-head:after{
+        width:80px;
+    }
+    .lock-zone{
+        top:78px;
+        width:min(500px,72%);
+        height:210px;
+    }
+    .r1{width:210px;height:210px}
+    .r2{width:165px;height:165px}
+    .r3{width:128px;height:128px}
+    .core{
+        width:90px;
+        height:90px;
+        font-size:34px;
+    }
+    .core small{
+        top:-30px;
+        font-size:9px;
+    }
+    .roman-caption{
+        top:285px;
+        font-size:11px;
+        letter-spacing:2px;
+    }
+    .roman-display{
+        top:305px;
+        font-size:58px;
+        font-weight:500;
+    }
+    .prompt{
+        top:365px;
+        font-size:20px;
+        font-weight:400;
+    }
+    .entry{
+        bottom:25px;
+        width:min(620px,75%);
+        height:90px;
+        border-radius:27px;
+    }
+    .entry-label{
+        font-size:12px;
+    }
+    .answer-shell{
+        height:60px;
+        width:min(390px,65%);
+    }
+    .answer{
+        height:54px;
+        font-size:30px;
+        font-weight:400;
+    }
+    .answer::placeholder{
+        font-size:16px;
+        font-weight:400;
+    }
+    .submit-btn,.nav-btn{
+        width:200px;
+        min-width:200px;
+        height:60px;
+        font-size:30px;
+        padding:0;
+    }
+    .submit-btn{bottom:18px}
+    .nav-btn{bottom:20px}
+    #prevBtn{left:clamp(20px,4vw,80px)}
+    #nextBtn{right:clamp(20px,4vw,80px)}
+    .feedback{
+        width:min(520px,42vw);
+        min-height:250px;
+        padding:30px 34px;
+    }
+    .feedback h3{font-size:30px}
+    .feedback p{font-size:19px}
+    .final-popup{
+        width:min(600px,45vw);
+        padding:42px 40px 36px;
+    }
+    .final-emoji{font-size:86px}
+    .final-popup h2{font-size:40px}
+    .final-popup p{font-size:20px}
+    .play-again-btn{
+        min-width:200px;
+        height:60px;
+        font-size:24px;
+    }
+}
+@media(min-width:651px) and (max-height:760px){
+.stage{top:66px;bottom:78px}.arena{height:min(550px,calc(100vh - 138px))}
+.vault{top:48px;height:370px}.lock-zone{top:52px;height:138px}.r1{width:140px;height:140px}.r2{width:110px;height:110px}.r3{width:86px;height:86px}.roman-caption{top:196px}.roman-display{top:212px;font-size:40px}.prompt{top:260px}.entry{bottom:18px;height:64px}.answer-shell{height:44px}.answer{height:40px}.submit-btn{bottom:11px}
+}
+@media(max-width:650px){
+.header{height:58px;padding:4px 58px 4px 8px}.heading{font-size:16px}.home{width:44px;height:44px;right:10px;top:7px;font-size:21px;border-radius:14px}
+.stage{top:58px;bottom:67px;padding:0 5px}.arena{width:100%;height:min(500px,calc(100vh - 128px))}
+.lock-title{top:0;font-size:7px;padding:6px 13px;letter-spacing:.8px}
+.vault{top:45px;width:94vw;height:330px;border-width:3px;border-radius:25px;padding:17px 14px}.vault:before{inset:9px;border-radius:18px}.vault-head{font-size:7px;letter-spacing:1px}.vault-head:before,.vault-head:after{width:32px;height:2px}
+.lock-zone{top:49px;width:70%;height:115px}.r1{width:115px;height:115px;border-width:3px}.r2{width:88px;height:88px;border-width:3px}.r3{width:68px;height:68px;border-width:7px}.core{width:54px;height:54px;border-width:3px;font-size:21px}.core small{top:-20px;font-size:6px}
+.roman-caption{top:160px;font-size:6px;letter-spacing:1.2px}.roman-display{top:176px;font-size:31px;letter-spacing:2px}.prompt{top:218px;font-size:7px}
+.entry{bottom:18px;width:84%;height:62px;border-width:3px;border-radius:15px;gap:6px;padding:5px 8px}.entry-label{font-size:6px;letter-spacing:.5px}.answer-shell{height:43px;width:65%;border-width:2px}.answer-icon,.answer-arrow{width:30px;font-size:14px}.answer{height:39px;border-left:1px solid #f0d5c1;font-size:20px}.answer::placeholder{font-size:8px}
+.submit-btn{bottom:10px;min-width:155px;height:50px;font-size:18px}.nav-btn{bottom:12px;min-width:126px;height:46px;padding:0 10px;font-size:18px}#prevBtn{left:7px}#nextBtn{right:7px}
+.feedback{width:min(440px,90vw);min-height:215px}.final-popup{width:91vw;padding:30px 22px}.final-popup h2{font-size:30px}.final-emoji{font-size:64px}
+}
+</style>
+</head>
+<body>
+<div class="game">
+<header class="header"><div class="heading">Write the following Roman numerals in Hindu Arabic numerals.</div></header>
+<!-- <button class="home" onclick="location.href='index.html'">⌂</button> -->
+<main class="stage">
+<div class="arena">
+
+<div class="vault">
+<div class="vault-head"><span>Unlock the number</span></div>
+<div class="lock-zone">
+<div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+<div class="core"><small>Secret code</small>?</div>
+</div>
+<div class="roman-caption">Roman code</div><div class="roman-display" id="romanNumber"></div>
+
+<div class="entry">
+<div class="entry-label">Enter the value</div>
+<div class="answer-shell">
+<span class="answer-icon">🔢</span>
+<input id="answerInput" class="answer" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="Type the number">
+<span class="answer-arrow">→</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<button id="submitBtn" class="submit-btn">Submit ✓</button>
+<button id="prevBtn" class="nav-btn" disabled>← Back</button>
+<button id="nextBtn" class="nav-btn" disabled>Next →</button>
+<div id="correctPopup" class="feedback correct-popup"><div class="feedback-icon">🎉</div><h3>Perfect!</h3><p>Excellent Roman numeral conversion.</p></div>
+<div id="wrongPopup" class="feedback wrong-popup"><div class="feedback-icon">😕</div><h3>Try again!</h3><p>Check the Roman numeral value and try again.</p></div>
+<div id="finalPopup" class="final-popup"><div class="final-emoji">🏆</div><h2>Awesome!</h2><p>You completed every Roman numeral mission!</p><button id="playAgainBtn" class="play-again-btn">↻ Play again</button></div>
+</div>
+<script>
+const questions=[{roman:"DXIII",answer:"513"},{roman:"MMMLVIII",answer:"3058"}];
+let current=0,locked=false;
+const saved=questions.map(()=>({answer:"",done:false}));
+const romanNumber=document.getElementById("romanNumber"),answerInput=document.getElementById("answerInput"),submit=document.getElementById("submitBtn"),back=document.getElementById("prevBtn"),next=document.getElementById("nextBtn"),correct=document.getElementById("correctPopup"),wrong=document.getElementById("wrongPopup"),final=document.getElementById("finalPopup");
+function speak(t){speechSynthesis.cancel();const m=new SpeechSynthesisUtterance(t);m.lang="en-US";m.volume=.25;m.rate=1;m.pitch=1;speechSynthesis.speak(m)}
+function load(){const q=questions[current],s=saved[current];locked=s.done;romanNumber.textContent=q.roman;answerInput.value=s.answer;answerInput.disabled=locked;submit.disabled=locked||!answerInput.value.trim();next.disabled=!locked||current===questions.length-1;back.disabled=current===0;document.querySelector(".core").textContent=locked?"✓":"?"}
+function check(){if(locked||!answerInput.value.trim())return;const q=questions[current],v=answerInput.value.trim();if(v===q.answer){saved[current]={answer:q.answer,done:true};locked=true;answerInput.value=q.answer;answerInput.disabled=true;submit.disabled=true;document.querySelector(".core").textContent="✓";next.disabled=current===questions.length-1;correct.classList.add("show");speak("Correct!");setTimeout(()=>{correct.classList.remove("show");if(current===questions.length-1){final.classList.add("show");back.disabled=true;next.disabled=true;back.style.pointerEvents="none";next.style.pointerEvents="none";back.setAttribute("aria-disabled","true");next.setAttribute("aria-disabled","true")}},1500)}else{wrong.classList.add("show");speak("Try again.");setTimeout(()=>{wrong.classList.remove("show");answerInput.value="";submit.disabled=true;answerInput.focus()},1500)}}
+answerInput.addEventListener("input",()=>{if(locked)return;answerInput.value=answerInput.value.replace(/\D/g,"");submit.disabled=!answerInput.value.trim()});
+answerInput.addEventListener("keydown",e=>{if(e.key==="Enter"&&!submit.disabled)check()});
+submit.addEventListener("click",check);
+next.addEventListener("click",()=>{if(saved[current].done&&current<questions.length-1){current++;load()}});
+back.addEventListener("click",()=>{if(current>0){current--;load()}});
+document.getElementById("playAgainBtn").addEventListener("click",()=>{saved.forEach(q=>{q.answer="";q.done=false});current=0;final.classList.remove("show");back.style.pointerEvents="";next.style.pointerEvents="";back.removeAttribute("aria-disabled");next.removeAttribute("aria-disabled");load()});
+load();
+</script>
+<script>
+/* ===== CONFETTI CELEBRATION (right & final popups) ===== */
+(function () {
+  let canvas, ctx, pieces = [], raf = null;
+  function ensureCanvas() {
+    if (canvas) return;
+    canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999";
+    document.body.appendChild(canvas);
+    ctx = canvas.getContext("2d");
+    resize();
+    window.addEventListener("resize", resize);
+  }
+  function resize() {
+    if (!canvas) return;
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  }
+  const colors = ["#16834f", "#d99c36", "#7350a8", "#c94740", "#3a8fb7", "#e86ea4", "#ffd257"];
+  function burst(count) {
+    ensureCanvas();
+    for (let i = 0; i < count; i++) {
+      pieces.push({
+        x: innerWidth / 2 + (Math.random() - .5) * 180,
+        y: innerHeight / 2 + (Math.random() - .5) * 90,
+        vx: (Math.random() - .5) * 11,
+        vy: Math.random() * -13 - 4,
+        g: 0.30 + Math.random() * 0.14,
+        s: 6 + Math.random() * 7,
+        rot: Math.random() * 6.28,
+        vr: (Math.random() - .5) * 0.4,
+        color: colors[i % colors.length],
+        life: 0
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces = pieces.filter(p => p.life < 280 && p.y < innerHeight + 40);
+    pieces.forEach(p => {
+      p.life++;
+      p.vy += p.g;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.99;
+      p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6);
+      ctx.restore();
+    });
+    if (pieces.length) { raf = requestAnimationFrame(tick); }
+    else { raf = null; ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  }
+  window.fireConfetti = function (big) {
+    if (big) {
+      burst(170);
+      let n = 0;
+      const iv = setInterval(() => { burst(90); if (++n >= 4) clearInterval(iv); }, 400);
+    } else {
+      burst(90);
+    }
+  };
+  function watch(id, big) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let was = el.classList.contains("show");
+    new MutationObserver(() => {
+      const now = el.classList.contains("show");
+      if (now && !was) window.fireConfetti(big);
+      was = now;
+    }).observe(el, { attributes: true, attributeFilter: ["class"] });
+  }
+  function init() { watch("correctPopup", false); watch("finalPopup", true); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+
+</html>

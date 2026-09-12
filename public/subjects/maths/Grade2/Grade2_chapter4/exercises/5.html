@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subtraction with Bricks</title>
+
+<!-- Removed reuse.css dependency -->
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Livvic&display=swap');
+
+/* =========================================================
+   BASE STYLES
+   ========================================================= */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    cursor:none !important;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+}
+
+body{
+    font-family:"Livvic",sans-serif;
+    background:
+        radial-gradient(circle at 8% 16%,rgba(255,255,255,.8) 0 34px,transparent 35px),
+        radial-gradient(circle at 86% 14%,rgba(255,255,255,.72) 0 44px,transparent 45px),
+        linear-gradient(135deg,#f1e8ff 0%,#fff5f8 48%,#e9f9ff 100%);
+    color:#332267;
+    overflow-x:hidden;
+}
+
+
+button{
+    font:inherit;
+    border:0;
+    background:none;
+}
+
+.quiz-page{
+    width:100%;
+    height:100vh;
+    min-height:0;
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    padding:16px 28px 86px;
+}
+
+.top-bar{
+    position:relative;
+    z-index:5;
+    height:88px;
+    flex:0 0 88px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+}
+
+.title-wrap{
+    text-align:center;
+    padding-top:8px;
+}
+
+.page-title{
+    font-size:30px;
+    line-height:1;
+    color:#3d247b;
+    letter-spacing:.2px;
+}
+
+.title-dots{
+    margin:16px auto 0;
+    width:min(480px,58vw);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+}
+
+.title-dots span{
+    width:11px;
+    height:6px;
+    border-radius:999px;
+    display:block;
+}
+
+.title-dots span:nth-child(5n+1){background:#ff8caf}
+.title-dots span:nth-child(5n+2){background:#ffc76f}
+.title-dots span:nth-child(5n+3){background:#83d7c5}
+.title-dots span:nth-child(5n+4){background:#cbb6ff}
+.title-dots span:nth-child(5n){background:#9fd6ff}
+
+.icon-button{
+    position:absolute;
+    top:0;
+    width:76px;
+    height:76px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 7px 16px rgba(76,56,124,.16),inset 0 0 0 4px rgba(255,255,255,.9);
+}
+
+.home-button{
+    left:2px;
+    background:linear-gradient(145deg,#b8a1ff,#8d78ef);
+}
+
+.hint-button{
+    right:2px;
+    background:linear-gradient(145deg,#7fe4e5,#56cdd2);
+}
+
+.icon-button img{
+    width:54%;
+    height:54%;
+    object-fit:contain;
+    pointer-events:none;
+}
+
+/* =========================================================
+   QUESTION
+   ========================================================= */
+.question-line{
+    position:relative;
+    z-index:4;
+    flex:0 0 48px;
+    min-height:48px;
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    padding-left:14px;
+}
+
+.question-number{
+    font-size:30px;
+    line-height:1;
+    color:#333;
+}
+
+/* =========================================================
+   GAME AREA
+   ========================================================= */
+.game-area{
+    position:relative;
+    z-index:3;
+    width:min(1280px,100%);
+    flex:1;
+    min-height:0;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.abacus-value{
+    margin:4px auto 0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+}
+
+.abacus-row{
+    width:100%;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr) 48px minmax(0,1fr);
+    align-items:center;
+}
+
+.abacus-operator{
+    font-size:34px;
+    color:#30235e;
+    text-align:center;
+    user-select:none;
+}
+
+.abacus-card{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.abacus-board{
+    width:min(330px,100%);
+    height:300px;
+    display:flex;
+    align-items:stretch;
+    justify-content:center;
+    padding:8px 18px 0;
+}
+
+.rod{
+    position:relative;
+    flex:1;
+    min-width:0;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.rod-line{
+    position:absolute;
+    top:0;
+    bottom:58px;
+    width:2px;
+    border-radius:2px;
+    background:#595959;
+    pointer-events:none;
+}
+
+/* =========================================================
+   BEAD STACK
+   Beads fill from the BOTTOM upward: the first bead added
+   sits just above the rod label, and each new bead (appended
+   via appendChild in JS) stacks on top of the previous one.
+   ========================================================= */
+.bead-stack{
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    top:0;
+    bottom:58px;
+    display:flex;
+    flex-direction:column-reverse;
+    align-items:center;
+    justify-content:flex-start;
+    gap:0;
+    z-index:3;
+}
+
+.bead{
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    flex:0 0 auto;
+    box-shadow:0 2px 3px rgba(0,0,0,.25) inset,0 3px 6px rgba(0,0,0,.18);
+}
+
+.bead.yellow{background:radial-gradient(circle at 35% 30%,#ffe58a,#f0b429);}
+.bead.green{background:radial-gradient(circle at 35% 30%,#8de6b0,#2fa968);}
+.bead.blue{background:radial-gradient(circle at 35% 30%,#8fd8ff,#1f9fe0);}
+
+.rod-label{
+    position:absolute;
+    bottom:20px;
+    z-index:5;
+    width:56px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:18px;
+    color:#fff;
+    font-size:17px;
+    line-height:1;
+    font-weight:500;
+    box-shadow:0 3px 0 rgba(0,0,0,.14);
+    pointer-events:none;
+}
+
+.rod-th{background:#ff3b91}
+.rod-h{background:#ffc21a}
+.rod-t{background:#00c86b}
+.rod-o{background:#12b8ed}
+
+.rod-count{
+    position:absolute;
+    right:calc(50% - 29px);
+    bottom:47px;
+    z-index:6;
+    width:27px;
+    height:27px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#29345d;
+    color:#fff;
+    border:2px solid #fff;
+    font-size:13px;
+    line-height:1;
+    pointer-events:none;
+}
+
+.rod.clickable{
+    cursor:pointer;
+}
+
+
+
+.rod.locked::after{
+    animation:none;
+    background:transparent;
+    box-shadow:none;
+}
+
+.rod.locked .rod-count{
+    background:#5d8d31;
+}
+
+/* The result rods used to sit on a tinted, pulsing panel while the child
+   was entering beads. Removed — they now sit on the plain background. */
+
+.rod.result-correct .rod-label{
+    box-shadow:0 3px 0 rgba(77,137,43,.20);
+}
+
+
+/* =========================================================
+   HAND POINTER
+   ========================================================= */
+.hand-pointer{
+    position:fixed;
+    left:0;
+    top:0;
+    width:62px;
+    height:62px;
+    object-fit:contain;
+    z-index:99999;
+    pointer-events:none;
+    transform:translate(-10px,-8px);
+    opacity:0;
+    transition:opacity .12s ease;
+    filter:drop-shadow(0 4px 4px rgba(0,0,0,.18));
+}
+
+.hand-pointer.show{
+    opacity:1;
+}
+
+.bead-enter{
+    animation:beadEnter .45s ease-out both;
+    animation-delay:var(--bead-delay,0s);
+}
+
+@keyframes beadEnter{
+    from{
+        opacity:0;
+        transform:translateY(-18px) scale(.55);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+    }
+}
+
+.navigation{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:26px;
+    z-index:6;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:min(42vw,520px);
+    pointer-events:none;
+}
+
+.nav-button{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    pointer-events:auto;
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    box-shadow:0 7px 16px rgba(76,56,124,.18),inset 0 0 0 4px rgba(255,255,255,.9);
+    transition:transform .18s ease,opacity .18s ease,filter .18s ease;
+}
+
+.prev-button{background:linear-gradient(145deg,#ff91af,#ff6f99)}
+.next-button{background:linear-gradient(145deg,#73b9ff,#4d9cf4)}
+
+.nav-button img{
+    width:52%;
+    height:52%;
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+    display:block;
+    pointer-events:none;
+}
+
+.nav-button:hover:not(:disabled){
+    transform:translateY(-3px) scale(1.04);
+}
+
+.nav-button:active:not(:disabled){
+    transform:translateY(2px) scale(.98);
+}
+
+.nav-button:disabled{
+    opacity:.3;
+    filter:grayscale(.2);
+    cursor:not-allowed;
+}
+
+.next-button:not(:disabled){
+    animation:nextButtonMove 1s ease-in-out infinite;
+}
+
+@keyframes nextButtonMove{
+    0%,100%{transform:translateX(0) scale(1)}
+    40%{transform:translateX(9px) scale(1.05)}
+    60%{transform:translateX(5px) scale(1.02)}
+}
+
+/* =========================================================
+   POPUPS  (identical to reference — same to same)
+========================================================= */
+.popup-overlay{
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:22px;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:opacity .22s ease,visibility .22s ease;
+}
+
+.popup-overlay.show{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+}
+
+.popup-card{
+    width:min(470px,92vw);
+    padding:32px 28px 28px;
+    border:2px solid rgba(206,186,240,.7);
+    border-radius:28px;
+    background:#fffdfd;
+    text-align:center;
+    transform:scale(.84) translateY(15px);
+    transition:transform .24s ease;
+}
+
+.popup-overlay.show .popup-card{
+    transform:scale(1) translateY(0);
+}
+
+.popup-icon{
+    width:70px;
+    height:70px;
+    margin:0 auto 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.popup-icon img{
+    width:70px;
+    height:70px;
+    object-fit:contain;
+    display:block;
+}
+
+.popup-title{
+    margin-bottom:10px;
+    color:#402a75;
+    font-size:34px;
+}
+
+.popup-message{
+    color:#5a4b78;
+    font-size:19px;
+    line-height:1.45;
+}
+
+.popup-button{
+    min-width:150px;
+    min-height:52px;
+    margin-top:22px;
+    padding:10px 24px;
+    border:0;
+    border-radius:16px;
+    background:linear-gradient(135deg,#9b85f5,#7c68df);
+    color:#fff;
+    font-size:19px;
+    cursor:pointer;
+}
+
+.final-card{
+    width:min(540px,94vw);
+    max-height:calc(100vh - 44px);
+    overflow:auto;
+    padding:38px 30px 32px;
+    background:linear-gradient(145deg,#fffdfc,#f8f2ff);
+    border-color:#e2cfff;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 24px 60px rgba(76,56,124,.22);
+}
+
+.final-card .popup-icon{
+    width:100px;
+    height:100px;
+    margin:0 auto 16px;
+}
+
+.final-card .popup-icon img{
+    width:90px;
+    height:90px;
+    object-fit:contain;
+}
+
+.final-card .popup-title{
+    font-size:40px;
+    margin-bottom:10px;
+}
+
+.final-card .popup-message{
+    max-width:420px;
+    margin:0 auto;
+}
+
+.final-card .play-again-button{
+    margin-top:22px;
+}
+
+.play-again-button{
+    background:linear-gradient(135deg,#ff8eae,#8f7bf1);
+}
+
+/* =========================================================
+   CONFETTI  (identical to reference)
+========================================================= */
+.confetti-piece{
+    position:fixed;
+    top:-20px;
+    width:10px;
+    height:16px;
+    border-radius:3px;
+    z-index:12000;
+    pointer-events:none;
+    animation:confettiFall 1.55s ease-in forwards;
+}
+
+@keyframes confettiFall{
+    to{
+        transform:translateY(110vh) rotate(760deg);
+        opacity:.3;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE MEDIA QUERIES
+   Ordered: mobile -> tablet -> laptop -> desktop
+    Responsive navigation and popup styles
+   ========================================================= */
+@media (max-width:600px){
+    .quiz-page{
+        padding:8px 8px 66px;
+    }
+
+    .top-bar{
+        height:62px;
+        flex-basis:62px;
+    }
+
+    .page-title{
+        font-size:30px;
+        padding-top:5px;
+    }
+
+    .title-dots{
+        margin-top:10px;
+        width:58vw;
+        gap:7px;
+    }
+
+    .title-dots span{
+        width:7px;
+        height:4px;
+    }
+
+    .icon-button{
+        width:54px;
+        height:54px;
+    }
+
+    .question-line{
+        flex-basis:38px;
+        min-height:38px;
+        padding-left:5px;
+    }
+
+    .question-number{
+        font-size:21px;
+    }
+
+    .game-area{
+        width:100%;
+    }
+
+    .abacus-row{
+        grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr) 18px minmax(0,1fr);
+    }
+
+    .abacus-operator{
+        font-size:22px;
+    }
+
+    .abacus-board{
+        height:190px;
+        padding:5px 3px 0;
+    }
+
+    .rod-line{
+        bottom:39px;
+        width:2px;
+    }
+
+    .rod-label{
+        bottom:10px;
+        width:35px;
+        height:23px;
+        border-radius:12px;
+        font-size:10px;
+    }
+
+    .rod-count{
+        right:calc(50% - 19px);
+        bottom:30px;
+        width:19px;
+        height:19px;
+        font-size:9px;
+        border-width:1px;
+    }
+
+    .bead-stack{
+        top:3px;
+        bottom:41px;
+        width:30px;
+        gap:0;
+    }
+
+    .bead{
+        width:16px;
+        height:16px;
+    }
+
+    .abacus-value{
+        width:61px;
+        height:29px;
+        margin-top:4px;
+        border-radius:6px;
+        font-size:16px;
+    }
+
+    .popup-title{
+        font-size:28px;
+    }
+
+    .popup-message{
+        font-size:17px;
+    }
+}
+
+@media (min-width:601px) and (max-width:900px){
+    .quiz-page{
+        padding:9px 14px 72px;
+    }
+
+    .top-bar{
+        height:70px;
+        flex-basis:70px;
+    }
+
+    .page-title{
+        font-size:30px;
+    }
+
+    .icon-button{
+        width:66px;
+        height:66px;
+    }
+
+    .question-line{
+        flex-basis:42px;
+        min-height:42px;
+        padding-left:8px;
+    }
+
+    .question-number{
+        font-size:25px;
+    }
+
+    .abacus-row{
+        grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr) 28px minmax(0,1fr);
+    }
+
+    .abacus-operator{
+        font-size:29px;
+    }
+
+    .abacus-board{
+        height:260px;
+        padding:7px 8px 0;
+    }
+
+    .rod-line{
+        bottom:48px;
+    }
+
+    .rod-label{
+        bottom:15px;
+        width:46px;
+        height:28px;
+        border-radius:15px;
+        font-size:13px;
+    }
+
+    .rod-count{
+        right:calc(50% - 24px);
+        bottom:39px;
+        width:23px;
+        height:23px;
+        font-size:11px;
+    }
+
+    .bead-stack{
+        bottom:50px;
+        width:38px;
+    }
+
+    .bead{
+        width:21px;
+        height:21px;
+    }
+
+    .abacus-value{
+        width:91px;
+        height:38px;
+        font-size:22px;
+    }
+}
+
+@media (min-width:901px) and (max-width:1440px){
+    .quiz-page{
+        padding:10px 20px 74px;
+    }
+
+    .top-bar{
+        height:76px;
+        flex-basis:76px;
+    }
+
+    .page-title{
+        font-size:30px;
+    }
+
+    .icon-button{
+        width:72px;
+        height:72px;
+    }
+
+    .question-line{
+        flex-basis:44px;
+        min-height:44px;
+        padding-left:10px;
+    }
+
+    .question-number{
+        font-size:28px;
+    }
+
+    .game-area{
+        width:min(1120px,100%);
+    }
+
+    .abacus-row{
+        grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr) 38px minmax(0,1fr);
+    }
+
+    .abacus-operator{
+        font-size:31px;
+    }
+
+    .abacus-board{
+        height:270px;
+        padding:7px 10px 0;
+    }
+
+    .rod-line{
+        bottom:51px;
+    }
+
+    .rod-label{
+        bottom:17px;
+        width:51px;
+        height:31px;
+        border-radius:16px;
+        font-size:15px;
+    }
+
+    .rod-count{
+        right:calc(50% - 27px);
+        bottom:44px;
+        width:25px;
+        height:25px;
+        font-size:12px;
+    }
+
+    .bead-stack{
+        bottom:53px;
+    }
+
+    .bead{
+        width:22px;
+        height:22px;
+    }
+
+    .abacus-value{
+        width:102px;
+        height:42px;
+        font-size:24px;
+    }
+}
+
+@media (min-width:1441px){
+    .quiz-page{
+        padding:10px 32px 88px;
+    }
+
+    .top-bar{
+        height:88px;
+        flex-basis:88px;
+    }
+
+    .page-title{
+        font-size:40px;
+    }
+
+    .icon-button{
+        width:78px;
+        height:78px;
+    }
+
+    .question-line{
+        flex-basis:50px;
+        min-height:50px;
+        padding-left:18px;
+    }
+
+    .question-number{
+        font-size:30px;
+    }
+
+    .game-area{
+        width:min(1280px,100%);
+    }
+
+    .abacus-row{
+        grid-template-columns:minmax(0,1fr) 50px minmax(0,1fr) 50px minmax(0,1fr);
+    }
+
+    .abacus-board{
+        height:330px;
+        max-width:360px;
+        padding:9px 20px 0;
+    }
+
+    .rod-line{
+        bottom:63px;
+    }
+
+    .rod-label{
+        bottom:22px;
+        width:62px;
+        height:38px;
+        border-radius:20px;
+        font-size:19px;
+    }
+
+    .rod-count{
+        right:calc(50% - 32px);
+        bottom:54px;
+        width:29px;
+        height:29px;
+        font-size:13px;
+    }
+
+    .bead-stack{
+        bottom:65px;
+    }
+
+    .bead{
+        width:28px;
+        height:28px;
+    }
+
+    .abacus-value{
+        width:125px;
+        height:51px;
+        font-size:29px;
+    }
+}
+
+@media (max-width:600px){
+    .navigation{bottom:10px;gap:42vw}
+    .nav-button{width:54px;height:54px}
+}
+
+@media (min-width:601px) and (max-width:900px){
+    .navigation{bottom:14px;gap:38vw}
+    .nav-button{width:66px;height:66px}
+}
+
+@media (min-width:901px) and (max-width:1440px){
+    .navigation{bottom:18px;gap:min(42vw,520px)}
+    .nav-button{width:76px;height:76px}
+}
+
+@media (min-width:1441px){
+    .navigation{bottom:26px;gap:min(42vw,620px)}
+    .nav-button{width:90px;height:90px}
+}
+</style>
+</head>
+
+<body>
+<div class="quiz-page" id="quizPage">
+
+    <div class="top-bar">
+        <button class="icon-button home-button hand-target" id="homeButton" type="button" aria-label="Home" title="Home">
+            <img src="../assets/images/home.png" alt="">
+        </button>
+
+        <div class="title-wrap">
+            <div class="page-title">Subtraction with Beads</div>
+            <div class="title-dots" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <button class="icon-button hint-button hand-target" id="hintButton" type="button" aria-label="Hint" title="Hint">
+            <img src="../assets/images/hint.png" alt="">
+        </button>
+    </div>
+
+    <div class="question-line" id="questionLine">
+        <span class="question-number" id="questionNumber">Q1.</span>
+    </div>
+
+    <main class="game-area">
+        <div class="abacus-row">
+
+            <section class="abacus-card">
+                <div class="abacus-board" id="firstAbacus"></div>
+                <div class="abacus-value" id="firstValue">97</div>
+            </section>
+
+            <div class="abacus-operator">−</div>
+
+            <section class="abacus-card">
+                <div class="abacus-board" id="secondAbacus"></div>
+                <div class="abacus-value" id="secondValue">34</div>
+            </section>
+
+            <div class="abacus-operator">=</div>
+
+            <section class="abacus-card result-card">
+                <div class="abacus-board" id="resultAbacus"></div>
+                <div class="abacus-value result-value answer-hidden" id="resultValue">?</div>
+            </section>
+
+        </div>
+    </main>
+
+    <div class="navigation">
+        <button class="nav-button prev-button hand-target" id="prevButton" type="button" aria-label="Previous question" disabled>
+            <img src="../assets/images/left-arrow.png" alt="">
+        </button>
+
+        <button class="nav-button next-button hand-target" id="nextButton" type="button" aria-label="Next question" disabled>
+            <img src="../assets/images/right-arrow.png" alt="">
+        </button>
+    </div>
+</div>
+
+<img class="hand-pointer" id="handPointer" src="../assets/images/handPointer.png" alt="" aria-hidden="true">
+
+<!-- HINT POPUP -->
+<div class="popup-overlay" id="hintOverlay" aria-hidden="true">
+    <div class="popup-card">
+        <div class="popup-icon"><img src="../assets/images/hint.png" alt=""></div>
+        <div class="popup-title">Hint</div>
+        <div class="popup-message" id="hintMessage"></div>
+        <button class="popup-button hand-target" id="hintCloseButton" type="button">OK</button>
+    </div>
+</div>
+
+<!-- CORRECT POPUP — auto-dismisses, no button -->
+<div class="popup-overlay" id="correctOverlay" aria-hidden="true">
+    <div class="popup-card">
+        <div class="popup-icon"><img src="../assets/images/correct.png" alt="Correct"></div>
+        <div class="popup-title">Correct!</div>
+        <div class="popup-message">Great job! Your subtraction is correct.</div>
+    </div>
+</div>
+
+<!-- WRONG POPUP — auto-dismisses, no button -->
+<div class="popup-overlay" id="wrongOverlay" aria-hidden="true">
+    <div class="popup-card">
+        <div class="popup-icon"><img src="../assets/images/wrong.png" alt="Wrong"></div>
+        <div class="popup-title">Try Again</div>
+        <div class="popup-message" id="wrongMessage">That answer is not correct yet. Try once more.</div>
+    </div>
+</div>
+
+<!-- FINAL POPUP -->
+<div class="popup-overlay" id="finalOverlay" aria-hidden="true">
+    <div class="popup-card final-card" role="dialog" aria-modal="true" aria-labelledby="finalPopupTitle">
+        <div class="popup-icon">
+            <img src="../assets/images/trophy.png" alt="Trophy">
+        </div>
+        <div class="popup-title" id="finalPopupTitle">Activity Complete!</div>
+        <div class="popup-message">You finished all the subtraction questions.</div>
+        <button class="popup-button play-again-button hand-target" id="playAgainButton" type="button">
+            Play Again
+        </button>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    {
+        first: 97,
+        second: 34,
+        answer: 63,
+        hint: "Build 97 first and 34 next. Then build the difference.",
+        places: ["T","O"]
+    },
+    {
+        first: 275,
+        second: 103,
+        answer: 172,
+        hint: "Build 275 and 103 using Hundreds, Tens and Ones. Then build the difference.",
+        places: ["H","T","O"]
+    },
+    {
+        first: 859,
+        second: 647,
+        answer: 212,
+        hint: "Build 859 and 647 using Hundreds, Tens and Ones. Then build the difference.",
+        places: ["H","T","O"]
+    }
+];
+
+let currentQuestion = 0;
+const progressState = quizData.map(() => ({
+    first: null,
+    second: null,
+    result: null,
+    firstLocked: false,
+    secondLocked: false,
+    resultLocked: false,
+    completed: false
+}));
+
+const firstAbacus = document.getElementById("firstAbacus");
+const secondAbacus = document.getElementById("secondAbacus");
+const resultAbacus = document.getElementById("resultAbacus");
+const firstValue = document.getElementById("firstValue");
+const secondValue = document.getElementById("secondValue");
+const resultValue = document.getElementById("resultValue");
+const questionNumber = document.getElementById("questionNumber");
+
+const prevButton = document.getElementById("prevButton");
+const nextButton = document.getElementById("nextButton");
+const hintButton = document.getElementById("hintButton");
+const homeButton = document.getElementById("homeButton");
+const handPointer = document.getElementById("handPointer");
+
+const hintOverlay = document.getElementById("hintOverlay");
+const correctOverlay = document.getElementById("correctOverlay");
+const wrongOverlay = document.getElementById("wrongOverlay");
+const finalOverlay = document.getElementById("finalOverlay");
+const hintMessage = document.getElementById("hintMessage");
+const wrongMessage = document.getElementById("wrongMessage");
+
+function getDigits(number, places){
+    const value = String(number).padStart(places.length,"0");
+    return value.split("").map(Number);
+}
+
+function placeLabels(count){
+    return count === 2 ? ["T","O"] : ["H","T","O"];
+}
+
+function beadColor(index,count){
+    if(count === 2) return index === 0 ? "green" : "blue";
+    return ["yellow","green","blue"][index];
+}
+
+function createRod(label,index,totalPlaces,beadCount,mode,questionIndex){
+    const rod = document.createElement("div");
+    rod.className = "rod";
+
+    if(mode === "first" || mode === "second"){
+        rod.classList.add("clickable");
+    }
+
+    if(mode === "result" && progressState[questionIndex].firstLocked && progressState[questionIndex].secondLocked){
+        rod.classList.add("result-unlocked");
+    }
+
+    const line = document.createElement("div");
+    line.className = "rod-line";
+
+    const stack = document.createElement("div");
+    stack.className = "bead-stack";
+
+    for(let i = 0; i < beadCount; i++){
+        const bead = document.createElement("span");
+        bead.className = `bead bead-enter ${beadColor(index,totalPlaces)}`;
+        bead.style.setProperty("--bead-delay", `${i * .07}s`);
+        stack.appendChild(bead);
+    }
+
+    const labelEl = document.createElement("div");
+    labelEl.className = `rod-label rod-${label.toLowerCase()}`;
+    labelEl.textContent = label;
+
+    const countEl = document.createElement("div");
+    countEl.className = "rod-count";
+    countEl.textContent = beadCount;
+    countEl.setAttribute("aria-hidden","true");
+
+    rod.append(line,stack,labelEl,countEl);
+
+    return rod;
+}
+
+function createAbacus(container, number, mode, questionIndex){
+    container.innerHTML = "";
+
+    const q = quizData[questionIndex];
+    const state = progressState[questionIndex];
+    const labels = placeLabels(q.places.length);
+
+    let counts = [0,0,0];
+
+    if(mode === "first"){
+        counts = state.first ? [...state.first] : new Array(labels.length).fill(0);
+    }
+
+    if(mode === "second"){
+        counts = state.second ? [...state.second] : new Array(labels.length).fill(0);
+    }
+
+    if(mode === "result"){
+        counts = state.result ? [...state.result] : new Array(labels.length).fill(0);
+    }
+
+    labels.forEach((label,index) => {
+        const rod = createRod(
+            label,
+            index,
+            labels.length,
+            counts[index],
+            mode,
+            questionIndex
+        );
+
+        rod.dataset.mode = mode;
+        rod.dataset.index = index;
+        rod.dataset.target = String(getDigits(number,labels.length)[index] || 0);
+        rod.dataset.count = String(counts[index]);
+
+        if(Number(rod.dataset.target) === 0){
+            rod.classList.add("locked");
+        }
+
+        if(
+            (mode === "first" && state.firstLocked) ||
+            (mode === "second" && state.secondLocked) ||
+            (mode === "result" && state.resultLocked)
+        ){
+            rod.classList.add("locked");
+        }
+
+        if(mode === "result" && !(state.firstLocked && state.secondLocked)){
+            rod.style.pointerEvents = "none";
+            rod.style.opacity = ".72";
+        }
+
+        rod.addEventListener("click", () => handleRodClick(rod));
+
+        container.appendChild(rod);
+    });
+}
+
+function renderQuestion(){
+    const q = quizData[currentQuestion];
+    const state = progressState[currentQuestion];
+
+    questionNumber.textContent = `Q${currentQuestion + 1}.`;
+
+    createAbacus(firstAbacus,q.first,"first",currentQuestion);
+    createAbacus(secondAbacus,q.second,"second",currentQuestion);
+    createAbacus(resultAbacus,q.answer,"result",currentQuestion);
+
+    firstValue.textContent = q.first;
+    secondValue.textContent = q.second;
+
+    if(state.firstLocked && state.secondLocked){
+        resultValue.textContent = q.answer;
+        resultValue.classList.remove("answer-hidden");
+        resultAbacus.classList.add("active");
+    }else{
+        resultValue.textContent = "?";
+        resultValue.classList.add("answer-hidden");
+        resultAbacus.classList.remove("active");
+    }
+
+    updateNavigation();
+}
+
+function rodCounts(container){
+    return [...container.querySelectorAll(".rod")].map(rod => Number(rod.dataset.count));
+}
+
+function handleRodClick(rod){
+    const q = quizData[currentQuestion];
+    const state = progressState[currentQuestion];
+
+    const mode = rod.dataset.mode;
+    const index = Number(rod.dataset.index);
+    const target = Number(rod.dataset.target);
+    const current = Number(rod.dataset.count);
+
+    if(mode === "result" && !(state.firstLocked && state.secondLocked)){
+        return;
+    }
+
+    if(rod.classList.contains("locked")){
+        showWrong(`This rod is already complete. It needs exactly ${target} bead${target === 1 ? "" : "s"}.`);
+        return;
+    }
+
+    if(current >= target){
+        rod.classList.add("locked");
+        showWrong(`This rod needs exactly ${target} bead${target === 1 ? "" : "s"}.`);
+        return;
+    }
+
+    const nextCount = current + 1;
+    rod.dataset.count = String(nextCount);
+
+    const countEl = rod.querySelector(".rod-count");
+    if(countEl) countEl.textContent = nextCount;
+
+    const bead = document.createElement("span");
+    bead.className = `bead bead-enter ${beadColor(index,q.places.length)}`;
+    rod.querySelector(".bead-stack").appendChild(bead);
+
+    if(nextCount === target){
+        rod.classList.add("locked");
+
+        if(mode === "first"){
+            const counts = rodCounts(firstAbacus);
+            state.first = counts;
+            if(counts.every((value,i) => value === getDigits(q.first,q.places.length)[i])){
+                state.firstLocked = true;
+                renderQuestion();
+                if(state.secondLocked){
+                    unlockResult();
+                }
+            }
+        }
+
+        if(mode === "second"){
+            const counts = rodCounts(secondAbacus);
+            state.second = counts;
+            if(counts.every((value,i) => value === getDigits(q.second,q.places.length)[i])){
+                state.secondLocked = true;
+                renderQuestion();
+                if(state.firstLocked){
+                    unlockResult();
+                }
+            }
+        }
+
+        if(mode === "result"){
+            const counts = rodCounts(resultAbacus);
+            state.result = counts;
+
+            const answerDigits = getDigits(q.answer,q.places.length);
+            if(counts.every((value,i) => value === answerDigits[i])){
+                state.resultLocked = true;
+                state.completed = true;
+                renderQuestion();
+                finishQuestion();
+            }
+        }
+    }
+}
+
+function unlockResult(){
+    const state = progressState[currentQuestion];
+    const q = quizData[currentQuestion];
+
+    if(!state.firstLocked || !state.secondLocked) return;
+
+    resultValue.textContent = q.answer;
+    resultValue.classList.remove("answer-hidden");
+    resultAbacus.classList.add("active");
+
+    createAbacus(resultAbacus,q.answer,"result",currentQuestion);
+}
+
+/* Correct flow — same to same as reference: show correct popup, play sound,
+   launch confetti; auto-hide after 1500ms, or after 1600ms transition into
+   the final popup when it's the last question. */
+function finishQuestion(){
+    updateNavigation();
+
+    setTimeout(() => {
+        showPopup(correctOverlay);
+        playCorrectSound();
+        launchConfetti(55);
+
+        if(currentQuestion === quizData.length - 1){
+            setTimeout(() => {
+                hidePopup(correctOverlay);
+                showPopup(finalOverlay);
+                playCorrectSound();
+                launchConfetti(110);
+            }, 1600);
+        }else{
+            setTimeout(() => {
+                hidePopup(correctOverlay);
+            }, 1500);
+        }
+    }, 120);
+}
+
+/* Wrong flow — same to same as reference: show wrong popup, play sound,
+   auto-hide after 1500ms. Triggered whenever a rod is clicked past its
+   correct bead count. */
+function showWrong(message){
+    wrongMessage.textContent = message;
+    showPopup(wrongOverlay);
+    playWrongSound();
+
+    setTimeout(() => {
+        hidePopup(wrongOverlay);
+    }, 1500);
+}
+
+function updateNavigation(){
+    prevButton.disabled = currentQuestion === 0;
+    nextButton.disabled = !progressState[currentQuestion].completed;
+}
+
+function showPopup(overlay){
+    overlay.classList.add("show");
+    overlay.setAttribute("aria-hidden","false");
+}
+
+function hidePopup(overlay){
+    overlay.classList.remove("show");
+    overlay.setAttribute("aria-hidden","true");
+}
+
+prevButton.addEventListener("click",() => {
+    if(currentQuestion === 0) return;
+    currentQuestion--;
+    renderQuestion();
+});
+
+nextButton.addEventListener("click",() => {
+    if(!progressState[currentQuestion].completed) return;
+
+    if(currentQuestion === quizData.length - 1){
+        return;
+    }
+
+    currentQuestion++;
+    renderQuestion();
+});
+
+hintButton.addEventListener("click",() => {
+    hintMessage.textContent = quizData[currentQuestion].hint;
+    showPopup(hintOverlay);
+});
+
+document.getElementById("hintCloseButton").addEventListener("click",() => {
+    hidePopup(hintOverlay);
+});
+
+document.getElementById("playAgainButton").addEventListener("click",() => {
+    hidePopup(finalOverlay);
+    progressState.forEach(state => {
+        state.first = null;
+        state.second = null;
+        state.result = null;
+        state.firstLocked = false;
+        state.secondLocked = false;
+        state.resultLocked = false;
+        state.completed = false;
+    });
+    currentQuestion = 0;
+    renderQuestion();
+});
+
+homeButton.addEventListener("click", () => {
+    window.location.href = "../Grade2_chapter4.html";
+});
+
+[hintOverlay,correctOverlay,wrongOverlay].forEach(overlay => {
+    overlay.addEventListener("click",event => {
+        if(event.target === overlay) hidePopup(overlay);
+    });
+});
+
+function launchConfetti(count){
+    const colors = ["#ff8cab","#8a78ed","#65cbd2","#ffd26e","#7BCB5A"];
+
+    for(let i = 0; i < count; i++){
+        const piece = document.createElement("span");
+        piece.className = "confetti-piece";
+        piece.style.left = `${Math.random()*100}vw`;
+        piece.style.background = colors[i % colors.length];
+        piece.style.animationDelay = `${Math.random()*.5}s`;
+        piece.style.transform = `rotate(${Math.random()*180}deg)`;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(),2200);
+    }
+}
+
+function playTone(frequency,duration,type="sine",delay=0){
+    try{
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if(!AudioContextClass) return;
+
+        const ctx = new AudioContextClass();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.value = frequency;
+
+        gain.gain.setValueAtTime(.0001,ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.12,ctx.currentTime+.02+delay);
+        gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+duration+delay);
+
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+
+        oscillator.start(ctx.currentTime+delay);
+        oscillator.stop(ctx.currentTime+duration+delay+.02);
+        oscillator.addEventListener("ended",() => ctx.close());
+    }catch(error){}
+}
+
+function playCorrectSound(){
+    playTone(523,.18,"sine",0);
+    playTone(659,.18,"sine",.12);
+    playTone(784,.26,"sine",.24);
+}
+
+function playWrongSound(){
+    playTone(220,.22,"triangle",0);
+    playTone(174,.3,"triangle",.14);
+}
+
+document.addEventListener("pointermove",event => {
+    handPointer.style.left = `${event.clientX}px`;
+    handPointer.style.top = `${event.clientY}px`;
+    handPointer.classList.add("show");
+});
+
+document.addEventListener("pointerleave",() => {
+    handPointer.classList.remove("show");
+});
+
+document.addEventListener("pointerdown",() => {
+    handPointer.style.transform = "translate(-10px,-8px) scale(.88)";
+});
+
+document.addEventListener("pointerup",() => {
+    handPointer.style.transform = "translate(-10px,-8px) scale(1)";
+});
+
+renderQuestion();
+</script>
+</body>
+</html>

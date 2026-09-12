@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Find the sum and the difference</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&family=Architects+Daughter&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link rel="stylesheet" href="../assets/css/reuse.css">
+
+<style>
+/* =========================================================
+   BASE STYLES
+   ========================================================= */
+
+*{
+  box-sizing:border-box;
+  font-family:"Livvic",sans-serif;
+}
+
+html,
+body{
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  overscroll-behavior:none;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+.quiz-card{
+  width:100%;
+  height:100dvh;
+  min-height:0;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:clamp(10px,2vh,24px) clamp(12px,3vw,44px);
+  overflow:hidden;
+  background:#F8F4FF;
+}
+
+.topbar{
+  width:100%;
+  flex:0 0 auto;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 4px;
+}
+
+.icon-flat{
+  background:transparent;
+  border:0;
+  font-size:28px;
+  line-height:1;
+  padding:0 6px;
+  cursor:pointer;
+  flex:0 0 auto;
+  transition:transform .2s ease;
+}
+
+.icon-flat:hover{
+  transform:scale(1.1);
+}
+
+.topbar-right{
+  display:flex;
+  align-items:center;
+}
+
+.heading{
+  width:100%;
+  margin:clamp(3px,1vh,8px) 0 0;
+  text-align:center;
+  color:#2f2f2f;
+  font-size:clamp(22px,2.2vw,32px);
+  /* font-weight:700; */
+  line-height:1.15;
+  flex:0 0 auto;
+
+}
+
+/* ---- main row: quiz content (left) + teacher mascot (right) ---- */
+
+.main-row{
+  width:100%;
+  max-width:1250px;
+  min-height:0;
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(10px,3vw,36px);
+}
+
+.content-col{
+  min-width:0;
+  min-height:0;
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(10px,1.8vh,20px);
+  height:100%;
+}
+
+/* ---- blackboard ---- */
+
+.blackboard{
+  /* width:100%; */
+  height:300px;
+  flex:0 0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(6px,1.4vh,14px);
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,255,255,.05), transparent 55%),
+    linear-gradient(160deg,#2b4d3a,#1d3a2b 70%);
+  border:clamp(6px,1vw,12px) solid #8a5a34;
+  border-radius:16px;
+  box-shadow:
+    inset 0 0 0 3px rgba(255,255,255,.05),
+    0 6px 0 #6d4526,
+    0 10px 18px rgba(0,0,0,.18);
+  padding:clamp(10px,2vh,22px) clamp(10px,2vw,26px);
+}
+
+.question-heading{
+  width:100%;
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  position: relative;
+  top:-50px;
+  gap:10px;
+  flex:0 0 auto;
+  margin:0;
+  font-family:"Architects Daughter",cursive;
+}
+
+.qlabel,
+.question-text{
+  margin:0;
+  color:#f7f2e2;
+}
+
+.qlabel{
+  font-size:clamp(19px,2vw,27px);
+  color:#ffd66b;
+}
+
+.question-text{
+  font-size:clamp(18px,1.9vw,26px);
+}
+
+.equation-board{
+  width:100%;
+  min-height:0;
+  flex:0 0 auto;
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(8px,1.8vw,20px);
+}
+
+.term{
+  flex:0 0 auto;
+  width:clamp(58px,7.6vw,88px);
+  height:clamp(50px,7vh,66px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.term-num{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#f7f2e2;
+  font-family:"Architects Daughter",cursive;
+  font-size:clamp(24px,2.5vw,36px);
+}
+
+.dropzone{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:3px dashed rgba(247,242,226,.55);
+  border-radius:10px;
+  color:#f7f2e2;
+  font-family:"Architects Daughter",cursive;
+  font-size:clamp(24px,2.5vw,36px);
+  transition:border-color .15s ease, background .15s ease, transform .15s ease;
+}
+
+.dropzone.drag-over{
+  border-color:#ffd66b;
+  border-style:solid;
+  background:rgba(255,214,107,.12);
+  transform:scale(1.06);
+}
+
+.dropzone.wrong-flash{
+  border-color:#ff7a6f;
+  border-style:solid;
+  animation:shake .28s ease;
+}
+
+.dropzone.filled{
+  border-style:solid;
+  border-color:#7be08a;
+  background:rgba(123,224,138,.14);
+  color:#dfffe4;
+}
+
+.operator{
+  flex:0 0 auto;
+  color:#f7f2e2;
+  font-family:"Architects Daughter",cursive;
+  font-size:clamp(24px,2.8vw,38px);
+  line-height:1;
+}
+
+/* ---- options / draggable chips ---- */
+
+.options-row{
+  width:100%;
+  flex:0 0 auto;
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:center;
+  gap:clamp(10px,2.4vw,26px);
+  min-height:clamp(46px,7vh,70px);
+}
+
+.option-chip{
+  position:relative;
+  flex:0 0 auto;
+  width:clamp(52px,7vw,80px);
+  height:clamp(44px,6.4vh,62px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  border:2px solid #ff8a3d;
+  border-radius:12px;
+  color:#2f2f2f;
+  font-size:clamp(20px,2.2vw,30px);
+  font-weight:400;
+  box-shadow:0 3px 0 #e6702a;
+  cursor:grab;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+
+.option-chip.dragging{
+  cursor:grabbing;
+  z-index:20;
+  box-shadow:0 10px 18px rgba(0,0,0,.22);
+  transition:none;
+}
+
+.option-chip.wrong{
+  border-color:#e6473f;
+  animation:shake .28s ease;
+}
+
+.option-chip.correct{
+  border-color:#35c759;
+  background:#f4fff6;
+  color:#237a37;
+  box-shadow:0 3px 0 #2ba249;
+}
+
+.option-chip.used{
+  opacity:0;
+  pointer-events:none;
+}
+
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-5px);}
+  75%{transform:translateX(5px);}
+}
+
+/* ---- teacher mascot panel (right side) ---- */
+
+.teacher-panel{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  min-width:0;
+}
+
+.teacher-img{
+  width:clamp(90px,12vw,220px);
+  height:auto;
+  max-height:70dvh;
+  object-fit:contain;
+  display:block;
+  pointer-events:none;
+  -webkit-user-drag:none;
+  filter:drop-shadow(0 6px 10px rgba(0,0,0,.12));
+  animation:teacherFloat 3.2s ease-in-out infinite;
+}
+
+.teacher-img.shake{
+  animation:teacherShake .5s ease;
+}
+
+.teacher-img.pop{
+  animation:teacherPop .6s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes teacherFloat{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-6px);}
+}
+
+@keyframes teacherShake{
+  0%,100%{transform:rotate(0deg);}
+  20%{transform:rotate(-9deg);}
+  40%{transform:rotate(8deg);}
+  60%{transform:rotate(-6deg);}
+  80%{transform:rotate(5deg);}
+}
+
+@keyframes teacherPop{
+  0%{transform:scale(.6) rotate(-4deg);opacity:.4;}
+  60%{transform:scale(1.12) rotate(3deg);opacity:1;}
+  100%{transform:scale(1) rotate(0deg);}
+}
+
+.nav{
+  width:100%;
+  flex:0 0 auto;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:clamp(14px,2vw,26px);
+  padding:4px 0 0;
+}
+
+/* =========================================================
+   MEDIA QUERIES (ordered, no duplicates)
+   ========================================================= */
+
+@media (min-width:769px){
+  .quiz-card{
+    padding-left:clamp(24px,3.5vw,60px);
+    padding-right:clamp(24px,3.5vw,60px);
+  }
+
+  .heading{
+    font-size:clamp(25px,2.1vw,34px);
+  }
+
+  .main-row{
+    max-width:1320px;
+  }
+
+  .qlabel{
+    font-size:clamp(22px,2vw,30px);
+  }
+
+  .question-text{
+    font-size:clamp(21px,1.9vw,28px);
+  }
+
+  .term{
+    width:clamp(64px,6.4vw,92px);
+    height:clamp(54px,7.4vh,72px);
+  }
+
+  .term-num,
+  .dropzone{
+    font-size:clamp(26px,2.4vw,38px);
+  }
+
+  .operator{
+    font-size:clamp(28px,2.8vw,40px);
+  }
+
+  .option-chip{
+    width:clamp(58px,6vw,86px);
+    height:clamp(48px,6.6vh,66px);
+    font-size:clamp(22px,2vw,32px);
+  }
+}
+
+@media (min-width:1200px){
+  .quiz-card{
+    padding-top:clamp(14px,2.2vh,24px);
+    padding-bottom:clamp(6px,1vh,12px);
+  }
+
+  .heading{
+    font-size:34px;
+    margin-bottom:18px;
+  }
+
+  .main-row{
+    max-width:1400px;
+  }
+
+  .term{
+    width:92px;
+    height:72px;
+  }
+
+  .operator{
+    font-size:40px;
+  }
+
+  .teacher-img{
+    width:220px;
+  }
+}
+
+@media (max-width:768px){
+  .quiz-card{
+    padding:8px 10px 5px;
+  }
+
+  .topbar{
+    padding:0;
+  }
+
+  .icon-flat{
+    font-size:24px;
+  }
+
+  .heading{
+    margin-top:2px;
+    font-size:19px;
+  }
+
+  .main-row{
+    gap:8px;
+  }
+
+  .content-col{
+    gap:6px;
+  }
+
+  .blackboard{
+    padding:8px 10px;
+    border-width:6px;
+    border-radius:12px;
+    gap:6px;
+  }
+
+  .question-heading{
+    gap:6px;
+  }
+
+  .qlabel{
+    font-size:17px;
+  }
+
+  .question-text{
+    font-size:16px;
+  }
+
+  .equation-board{
+    gap:clamp(5px,1.6vw,12px);
+  }
+
+  .term{
+    width:clamp(42px,10vw,58px);
+    height:clamp(38px,6vh,50px);
+  }
+
+  .term-num,
+  .dropzone{
+    font-size:clamp(17px,4.4vw,24px);
+    border-radius:8px;
+  }
+
+  .operator{
+    font-size:clamp(18px,4.6vw,25px);
+  }
+
+  .options-row{
+    gap:clamp(8px,2vw,16px);
+    min-height:clamp(38px,6vh,54px);
+   
+  }
+
+  .option-chip{
+    width:clamp(44px,10.5vw,62px);
+    height:clamp(38px,5.8vh,50px);
+    font-size:clamp(16px,4vw,22px);
+    border-radius:9px;
+  }
+
+  .teacher-img{
+    width:clamp(52px,15vw,92px);
+    
+    
+  }
+
+  .nav{
+    gap:10px;
+  }
+}
+
+@media (max-width:480px){
+  .quiz-card{
+    padding:6px 6px 4px;
+  }
+
+  .heading{
+    font-size:16px;
+  }
+
+  .main-row{
+    gap:5px;
+  }
+
+  .blackboard{
+    padding:6px 8px;
+    border-width:5px;
+  }
+
+  .question-heading{
+    gap:5px;
+  }
+
+  .qlabel{
+    font-size:14px;
+  }
+
+  .question-text{
+    font-size:13px;
+  }
+
+  .equation-board{
+    gap:4px;
+  }
+
+  .term{
+    width:clamp(34px,12vw,46px);
+    height:clamp(32px,5.6vh,42px);
+  }
+
+  .term-num,
+  .dropzone{
+    font-size:clamp(14px,5vw,19px);
+    border-radius:6px;
+    border-width:2px;
+  }
+
+  .operator{
+    font-size:clamp(15px,5.6vw,20px);
+  }
+
+  .options-row{
+    gap:6px;
+  }
+
+  .option-chip{
+    width:clamp(36px,12.5vw,48px);
+    height:clamp(32px,5.4vh,42px);
+    font-size:clamp(13px,4.6vw,18px);
+  }
+
+  .teacher-img{
+    width:clamp(40px,13vw,64px);
+  }
+}
+
+@media (max-height:640px){
+  .quiz-card{
+    padding-top:5px;
+    padding-bottom:3px;
+  }
+
+  .heading{
+    margin-top:1px;
+  }
+
+  .content-col{
+    gap:4px;
+  }
+
+  .blackboard{
+    padding-top:6px;
+    padding-bottom:6px;
+  }
+
+  .term{
+    height:clamp(32px,5.6vh,42px);
+  }
+
+  .options-row{
+    min-height:clamp(34px,5.6vh,46px);
+  }
+
+  .teacher-img{
+    max-height:44dvh;
+  }
+}
+
+@media (max-width:360px){
+  .heading{
+    font-size:14px;
+  }
+
+  .qlabel{
+    font-size:12px;
+  }
+
+  .question-text{
+    font-size:11px;
+  }
+
+  .term{
+    width:32px;
+    height:30px;
+  }
+
+  .term-num,
+  .dropzone{
+    font-size:13px;
+  }
+
+  .operator{
+    font-size:15px;
+  }
+
+  .option-chip{
+    width:34px;
+    height:30px;
+    font-size:13px;
+  }
+
+  .teacher-img{
+    width:36px;
+  }
+}
+/* =========================================================
+   1600px+ DESKTOP
+   ========================================================= */
+@media screen and (min-width:1600px){
+
+  .quiz-card{
+    padding:22px 55px 12px;
+  }
+
+  .icon-flat{
+    font-size:38px;
+  }
+
+  .heading{
+    font-size:40px;
+    margin-top:8px;
+    margin-bottom:22px;
+  }
+
+  .main-row{
+    max-width:1600px;
+    gap:55px;
+  }
+
+  .content-col{
+    gap:26px;
+  }
+
+  .blackboard{
+    width:900px;
+    height:480px;
+    padding:28px 36px;
+    border-width:12px;
+    border-radius:20px;
+    gap:24px;
+  }
+
+  .question-heading{
+    gap:16px;
+  }
+
+  .qlabel{
+    font-size:38px;
+  }
+
+  .question-text{
+    font-size:36px;
+  }
+
+  .equation-board{
+    gap:28px;
+  }
+
+  .term{
+    width:120px;
+    height:94px;
+  }
+
+  .term-num,
+  .dropzone{
+    font-size:48px;
+  }
+
+  .operator{
+    font-size:52px;
+  }
+
+  .options-row{
+    gap:36px;
+    min-height:88px;
+  }
+
+  .option-chip{
+    width:205px;
+    height:82px;
+    font-size:40px;
+    border-radius:16px;
+  }
+
+  .teacher-img{
+    width:290px;
+    max-height:74dvh;
+  }
+}
+
+/* Raise the blackboard while keeping the options below it. */
+.blackboard{
+  transform:translateY(-10px);
+}
+
+/* Laptop screens: keep only a small separation before the options. */
+@media (min-width:769px) and (max-width:1599px){
+  .content-col{
+    gap:12px;
+  }
+
+  .blackboard{
+    transform:translateY(-14px);
+  }
+}
+
+@media (min-width:1600px){
+  .blackboard{
+    transform:translateY(-18px);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="quiz-card" id="quizCard">
+
+  <div class="topbar">
+    <button class="icon-flat" id="homeBtn" style="visibility: hidden;" title="Home" aria-label="Home">🏠</button>
+
+    <div class="topbar-right">
+      <button class="icon-flat" id="hintBtn" title="Hint" aria-label="Hint">💡</button>
+    </div>
+  </div>
+
+  <p class="heading">Fill in the box.</p>
+
+  <div class="main-row">
+
+    <div class="content-col">
+
+      <div class="blackboard">
+        <div class="question-heading">
+          <span class="qlabel" id="qLabel">Q1.</span>
+          <span class="question-text" id="questionText">Find the sum.</span>
+        </div>
+
+        <div class="equation-board" id="equationBoard"></div>
+      </div>
+
+      <div class="options-row" id="optionsRow"></div>
+
+    </div>
+
+    <div class="teacher-panel">
+      <img class="teacher-img" id="teacherImg" src="../assets/images/teacher.png" alt="Teacher">
+    </div>
+
+  </div>
+
+  <div class="nav">
+    <button class="prev" id="prevBtn" disabled>← Prev</button>
+    <button class="next" id="nextBtn" disabled>Next →</button>
+  </div>
+
+</div>
+
+<div class="hint-overlay" id="hintOverlay" aria-live="polite">
+  <div class="hint-box">
+    <h3>Hint</h3>
+    <p id="hintText">Drag the correct number into the box.</p>
+    <button class="popup-btn" id="closeHintBtn">Got it!</button>
+  </div>
+</div>
+
+<!-- POPUPS — supplied by reuse.css -->
+<div id="answerPopup" class="popup">
+  <div class="popup-content">
+    <div class="popup-icon" id="popupIcon"></div>
+    <h3 id="popupTitle"></h3>
+    <p id="popupMsg"></p>
+  </div>
+</div>
+
+<div id="finalPopup">
+  <div class="finalpopup-box">
+    <h2 class="final-heading">🎉 Amazing Job!</h2>
+    <p id="finalScore"></p>
+    <div id="stars">⭐⭐⭐</div>
+    <button onclick="location.reload()" class="playAgain-btn">Play Again</button>
+  </div>
+</div>
+
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+/* =========================================================
+   TEACHER MASCOT IMAGES
+   Replace only these filenames if your project uses
+   different asset names.
+   ========================================================= */
+
+const TEACHER_POINT = "../assets/images/teacher.png";
+const TEACHER_CLAP  = "../assets/images/teacherclap.png";
+
+/* =========================================================
+   QUESTION DATA — EXACT VALUES FROM THE PROVIDED IMAGE
+   a) 5 + 0 = ▢        -> 5   (sum)
+   b) 9 − ▢ = 9        -> 0   (difference)
+   c) ▢ + 0 = 10       -> 10  (sum)
+   d) 1 + 12 = ▢       -> 13  (sum)
+   e) ▢ − 15 = 0       -> 15  (difference)
+   f) 17 − ▢ = 16      -> 1   (difference)
+   ========================================================= */
+
+const QUESTIONS = [
+  { label:"Q1.", left:5,  op:"+", right:0,  result:5,  blank:"result", distractors:[0,6],  hint:"5 plus 0 is still 5. Drag the 5 into the box." },
+  { label:"Q2.", left:9,  op:"−", right:0,  result:9,  blank:"right",  distractors:[9,1],  hint:"9 minus what number leaves 9? Drag the 0 into the box." },
+  { label:"Q3.", left:10, op:"+", right:0,  result:10, blank:"left",   distractors:[0,9],  hint:"What number plus 0 makes 10? Drag the 10 into the box." },
+  { label:"Q4.", left:1,  op:"+", right:12, result:13, blank:"result", distractors:[11,12],hint:"Add 1 and 12 together. Drag the total into the box." },
+  { label:"Q5.", left:15, op:"−", right:15, result:0,  blank:"left",   distractors:[0,16], hint:"What number minus 15 leaves 0? Drag the 15 into the box." },
+  { label:"Q6.", left:17, op:"−", right:1,  result:16, blank:"right",  distractors:[0,17], hint:"17 minus what number leaves 16? Drag the 1 into the box." }
+];
+
+const total = QUESTIONS.length;
+let current = 0;
+
+const state = QUESTIONS.map(() => ({ answered:false }));
+
+const qLabel = document.getElementById("qLabel");
+const questionText = document.getElementById("questionText");
+const equationBoard = document.getElementById("equationBoard");
+const optionsRow = document.getElementById("optionsRow");
+
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+const homeBtn = document.getElementById("homeBtn");
+const hintBtn = document.getElementById("hintBtn");
+const hintOverlay = document.getElementById("hintOverlay");
+const closeHintBtn = document.getElementById("closeHintBtn");
+const hintText = document.getElementById("hintText");
+
+const teacherImg = document.getElementById("teacherImg");
+
+function expectedValue(q){
+  if(q.blank === "left") return q.left;
+  if(q.blank === "right") return q.right;
+  return q.result;
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function speak(text){
+  if(!window.speechSynthesis) return;
+
+  speechSynthesis.cancel();
+
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "en-UK";
+  msg.volume = 0.25;
+  msg.rate = 1;
+  msg.pitch = 1;
+
+  speechSynthesis.speak(msg);
+}
+
+function showPopup(isCorrect,titleOverride,msgOverride){
+  const popup = document.getElementById("answerPopup");
+  const icon = document.getElementById("popupIcon");
+  const title = document.getElementById("popupTitle");
+  const msg = document.getElementById("popupMsg");
+
+  popup.className = "popup " + (isCorrect ? "correct" : "wrong");
+  popup.style.display = "flex";
+
+  if(isCorrect){
+    icon.textContent = "🎉";
+    title.textContent = titleOverride || "Correct!";
+    msg.textContent = msgOverride || "Great job!";
+  }else{
+    icon.textContent = "❌";
+    title.textContent = titleOverride || "Try Again!";
+    msg.textContent = msgOverride || "Check your answer.";
+  }
+
+  clearTimeout(showPopup._t);
+
+  showPopup._t = setTimeout(() => {
+    popup.style.display = "none";
+  },1100);
+}
+
+function fireConfetti(){
+  if(!window.confetti) return;
+
+  confetti({
+    particleCount:24,
+    spread:55,
+    startVelocity:26,
+    origin:{x:.5,y:.4},
+    colors:["#e6473f","#3a6fd8","#f7b733","#8bba8a","#c9a8e0"]
+  });
+}
+
+function fireBigConfetti(){
+  if(!window.confetti) return;
+
+  const end = Date.now() + 1800;
+
+  (function frame(){
+    confetti({
+      particleCount:6,
+      angle:60,
+      spread:55,
+      origin:{x:0}
+    });
+
+    confetti({
+      particleCount:6,
+      angle:120,
+      spread:55,
+      origin:{x:1}
+    });
+
+    if(Date.now() < end){
+      requestAnimationFrame(frame);
+    }
+  })();
+}
+
+/* ---- teacher reactions ---- */
+
+function teacherShakeHead(){
+  teacherImg.classList.remove("pop");
+  void teacherImg.offsetWidth;
+  teacherImg.classList.add("shake");
+
+  setTimeout(() => {
+    teacherImg.classList.remove("shake");
+  },500);
+}
+
+function teacherClap(){
+  teacherImg.classList.remove("shake");
+  teacherImg.src = TEACHER_CLAP;
+  void teacherImg.offsetWidth;
+  teacherImg.classList.add("pop");
+}
+
+function teacherReset(){
+  teacherImg.classList.remove("pop","shake");
+  teacherImg.src = TEACHER_POINT;
+}
+
+/* ---- equation rendering ---- */
+
+function makeNumTerm(value){
+  const wrap = document.createElement("div");
+  wrap.className = "term";
+
+  const num = document.createElement("div");
+  num.className = "term-num";
+  num.textContent = value;
+
+  wrap.appendChild(num);
+  return wrap;
+}
+
+function makeDropzoneTerm(filledValue){
+  const wrap = document.createElement("div");
+  wrap.className = "term";
+
+  const zone = document.createElement("div");
+  zone.className = "dropzone";
+  zone.id = "dropZone";
+
+  if(filledValue !== undefined && filledValue !== null){
+    zone.classList.add("filled");
+    zone.textContent = filledValue;
+  }
+
+  wrap.appendChild(zone);
+  return wrap;
+}
+
+function rectsOverlap(a,b){
+  return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+}
+
+function attachDrag(chip,value,expected,dropZone){
+  let dragging = false;
+  let startX = 0;
+  let startY = 0;
+
+  function onPointerDown(event){
+    if(chip.disabled === true || chip.classList.contains("used")) return;
+
+    dragging = true;
+    startX = event.clientX;
+    startY = event.clientY;
+
+    chip.classList.add("dragging");
+    chip.setPointerCapture(event.pointerId);
+  }
+
+  function onPointerMove(event){
+    if(!dragging) return;
+
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+
+    chip.style.transform = `translate(${dx}px,${dy}px)`;
+
+    const chipRect = chip.getBoundingClientRect();
+    const zoneRect = dropZone.getBoundingClientRect();
+
+    if(rectsOverlap(chipRect,zoneRect)){
+      dropZone.classList.add("drag-over");
+    }else{
+      dropZone.classList.remove("drag-over");
+    }
+  }
+
+  function onPointerUp(event){
+    if(!dragging) return;
+
+    dragging = false;
+    chip.classList.remove("dragging");
+    dropZone.classList.remove("drag-over");
+
+    const chipRect = chip.getBoundingClientRect();
+    const zoneRect = dropZone.getBoundingClientRect();
+    const dropped = rectsOverlap(chipRect,zoneRect);
+
+    if(!dropped){
+      chip.style.transition = "transform .25s ease";
+      chip.style.transform = "translate(0,0)";
+      setTimeout(() => { chip.style.transition = ""; },260);
+      return;
+    }
+
+    if(value === expected){
+      chip.classList.add("correct","used");
+      state[current].answered = true;
+
+      correctSound.currentTime = 0;
+      correctSound.play().catch(() => {});
+
+      speak("Correct!");
+      showPopup(true,"Correct!","The missing number is " + expected + ".");
+      fireConfetti();
+      teacherClap();
+
+      Array.from(optionsRow.querySelectorAll(".option-chip")).forEach(c => {
+        c.disabled = true;
+      });
+
+      setTimeout(() => {
+       renderQuestion(false);
+
+        prevBtn.disabled = current === 0;
+        nextBtn.disabled = current === total - 1;
+
+        if(current === total - 1){
+          setTimeout(() => {
+            fireBigConfetti();
+            showFinal();
+          },900);
+        }
+      },450);
+
+    }else{
+      chip.style.transition = "transform .25s ease";
+      chip.style.transform = "translate(0,0)";
+      chip.classList.add("wrong");
+      dropZone.classList.add("wrong-flash");
+
+      wrongSound.currentTime = 0;
+      wrongSound.play().catch(() => {});
+
+      speak("Try again.");
+      showPopup(false,"Try Again!","Look at the equation again.");
+      teacherShakeHead();
+
+      setTimeout(() => {
+        chip.classList.remove("wrong");
+        chip.style.transition = "";
+        dropZone.classList.remove("wrong-flash");
+      },400);
+    }
+  }
+
+  chip.addEventListener("pointerdown",onPointerDown);
+  chip.addEventListener("pointermove",onPointerMove);
+  chip.addEventListener("pointerup",onPointerUp);
+  chip.addEventListener("pointercancel",onPointerUp);
+}
+
+function renderQuestion(resetTeacher = true){
+  const q = QUESTIONS[current];
+  const st = state[current];
+  const expected = expectedValue(q);
+
+  qLabel.textContent = q.label;
+  questionText.textContent = q.op === "+" ? "Find the sum." : "Find the difference.";
+
+  equationBoard.innerHTML = "";
+
+  const leftTerm = q.blank === "left"
+    ? makeDropzoneTerm(st.answered ? q.left : undefined)
+    : makeNumTerm(q.left);
+
+  const rightTerm = q.blank === "right"
+    ? makeDropzoneTerm(st.answered ? q.right : undefined)
+    : makeNumTerm(q.right);
+
+  const resultTerm = q.blank === "result"
+    ? makeDropzoneTerm(st.answered ? q.result : undefined)
+    : makeNumTerm(q.result);
+
+  const opSign = document.createElement("div");
+  opSign.className = "operator";
+  opSign.textContent = q.op;
+
+  const equalsSign = document.createElement("div");
+  equalsSign.className = "operator";
+  equalsSign.textContent = "=";
+
+  equationBoard.appendChild(leftTerm);
+  equationBoard.appendChild(opSign);
+  equationBoard.appendChild(rightTerm);
+  equationBoard.appendChild(equalsSign);
+  equationBoard.appendChild(resultTerm);
+
+  optionsRow.innerHTML = "";
+
+  if(!st.answered){
+    const dropZone = equationBoard.querySelector("#dropZone");
+    const choices = shuffle([expected, ...q.distractors]);
+
+    choices.forEach(value => {
+      const chip = document.createElement("div");
+      chip.className = "option-chip";
+      chip.textContent = value;
+      optionsRow.appendChild(chip);
+
+      attachDrag(chip,value,expected,dropZone);
+    });
+  }
+
+ if(resetTeacher){
+  teacherReset();
+}
+
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = !st.answered || current === total - 1;
+}
+
+function showFinal(){
+  const finalPopup = document.getElementById("finalPopup");
+
+  finalPopup.style.display = "flex";
+
+  document.getElementById("finalScore").textContent =
+    `${total} / ${total} Completed`;
+
+  document.getElementById("stars").textContent = "⭐⭐⭐";
+}
+
+prevBtn.addEventListener("click",() => {
+  if(current === 0) return;
+
+  current--;
+  renderQuestion();
+});
+
+nextBtn.addEventListener("click",() => {
+  if(nextBtn.disabled) return;
+
+  if(current < total - 1){
+    current++;
+    renderQuestion();
+  }
+});
+
+homeBtn.addEventListener("click",() => {
+  window.location.href = "../Grade2_chapter1.html";
+});
+
+hintBtn.addEventListener("click",() => {
+  hintText.textContent = QUESTIONS[current].hint;
+  hintOverlay.classList.add("show");
+});
+
+closeHintBtn.addEventListener("click",() => {
+  hintOverlay.classList.remove("show");
+});
+
+hintOverlay.addEventListener("click",event => {
+  if(event.target === hintOverlay){
+    hintOverlay.classList.remove("show");
+  }
+});
+
+renderQuestion();
+</script>
+
+</body>
+</html>

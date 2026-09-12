@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Open and Closed Curves · Chapter 4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/quiz.css?v=16">
+  <style>
+    /* four figures across, each with its own box underneath — the book's layout */
+    .curve-row {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: flex-end;
+      justify-content: center;
+      gap: clamp(10px, 1.6vw, 28px);
+      width: 100%;
+    }
+
+    .curve-cell {
+      flex: 1 1 0;
+      min-width: 0;
+      display: grid;
+      gap: clamp(4px, 3vh, 10px);
+      justify-items: center;
+    }
+
+    .curve-tag {
+      justify-self: start;
+      font-size: 26px;
+      color: var(--ink);
+    }
+
+    /* the drawing sits straight on the board, no frame around it */
+    .curve-art {
+      width: 100%;
+      height: clamp(100px, 24vh, 210px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .curve-art svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .curve-art img {
+      width: 80%;
+      height: 80%;
+      display: block;
+      object-fit: contain;
+    }
+
+    /* the answer box, drawn like the empty rectangle in the book */
+    .curve-cell .blank {
+      justify-self: stretch;
+      /* beats the inline width the quiz engine sets, so the box fills the cell */
+      width: 100% !important;
+      min-width: 0;
+      font-size: 30px;
+    }
+
+    @media (min-width: 1600px) {
+      .curve-row {
+        gap: 34px;
+      }
+
+      .curve-tag {
+        font-size: 30px;
+      }
+
+      .curve-art {
+        height: clamp(180px, 34vh, 340px);
+      }
+
+      .curve-cell .blank {
+        min-height: 64px;
+        font-size: 38px;
+      }
+    }
+
+    @media (max-width: 900px) {
+
+      /* the four figures stay on one line, drawn a little smaller */
+      .curve-row {
+        gap: 8px;
+      }
+
+      .curve-art {
+        height: clamp(64px, 12vh, 110px);
+      }
+
+      .curve-tag {
+        font-size: 14px;
+      }
+
+      .curve-cell .blank {
+        font-size: 26px;
+        min-height: 42px;
+        padding: .2em .3em;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <script src="../assets/confetti.js?v=3"></script>
+  <script src="../assets/quiz.js?v=19"></script>
+  <script>
+    /* Section 4.3 Q1 — "Which of the following are Closed Curve(CC),
+       Simple Closed Curve(SCC), Open Curve(OC)?"
+       The eight figures of the book, four to a row, each with its own box. */
+
+    var INK = '#1F2440';
+
+    /* every curve is plotted point by point inside a 200 x 150 box */
+    function plot(fn, t0, t1, close) {
+      var steps = 260, d = '';
+      for (var i = 0; i <= steps; i++) {
+        var t = t0 + (t1 - t0) * i / steps;
+        var p = fn(t);
+        d += (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1);
+      }
+      if (close) d += 'Z';
+      return '<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">' +
+        '<path d="' + d + '" fill="none" stroke="' + INK +
+        '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    }
+
+    var CX = 100, CY = 75, PI = Math.PI;
+
+    /* a) a blob with a small loop inside it — it crosses itself, so it is closed but not simple */
+    var LOOP_BLOB = plot(function (t) {
+      var r = 24 + 52 * Math.cos(t);
+      return [CX + r * Math.cos(t), CY + r * Math.sin(t) * 0.86];
+    }, 0, 2 * PI, true);
+
+    /* b) a squiggle with two loose ends */
+    var SQUIGGLE = plot(function (t) {
+      return [CX + 74 * Math.cos(t), CY + 40 * Math.sin(2 * t)];
+    }, 0.45, 5.35, false);
+
+    /* c) a single arc, open at both ends */
+    var ARC = plot(function (t) {
+      return [22 + 156 * t, 122 - 82 * Math.sin(PI * t)];
+    }, 0, 1, false);
+
+    /* d) a four-petal rose — one closed curve that crosses itself many times */
+    var ROSE = plot(function (t) {
+      var r = 62 * Math.cos(2 * t);
+      return [CX + r * Math.cos(t), CY + r * Math.sin(t) * 0.85];
+    }, 0, 2 * PI, true);
+
+    /* e) a figure of eight — closed, and it crosses itself once */
+    var EIGHT = plot(function (t) {
+      return [CX + 74 * Math.cos(t), CY + 42 * Math.sin(2 * t)];
+    }, 0, 2 * PI, true);
+
+    /* f) a trefoil — closed, and tangled */
+    var TREFOIL = plot(function (t) {
+      return [CX + 42 * Math.cos(t) + 26 * Math.cos(2 * t),
+      CY + (42 * Math.sin(t) - 26 * Math.sin(2 * t)) * 0.82];
+    }, 0, 2 * PI, true);
+
+    /* g) an oval — closed and never crosses itself */
+    var OVAL = plot(function (t) {
+      return [CX + 76 * Math.cos(t), CY + 44 * Math.sin(t)];
+    }, 0, 2 * PI, true);
+
+    /* h) a leaf — closed and never crosses itself */
+    var LEAF = plot(function (t) {
+      var r = 48 * (1 + Math.cos(t));
+      return [CX - 34 + r * Math.cos(t), CY + r * Math.sin(t) * 0.78];
+    }, 0, 2 * PI, true);
+
+    /* Spaces, full stops and capitals do not matter when the answer is checked. */
+    function tidy(v) {
+      return String(v == null ? '' : v)
+        .replace(/[\s.,;:!?'"()-]/g, '')
+        .toLowerCase();
+    }
+
+    var CC = { answer: 'CC', accept: ['cc', 'closed curve'] };
+    var SCC = { answer: 'SCC', accept: ['scc', 'simple closed curve'] };
+    var OC = { answer: 'OC', accept: ['oc', 'open curve'] };
+
+    var FIGURES = [
+      {
+        tag: 'a)',
+        image: '../assets/img/shape1.png',
+        key: CC,
+        note: 'a) is a closed curve, but it crosses over itself, so it is only CC.'
+      },
+      {
+        tag: 'b)',
+        image: '../assets/img/shape2.png',
+        key: OC,
+        note: 'b) has two loose ends, so it is an open curve.'
+      },
+      {
+        tag: 'c)',
+        image: '../assets/img/shape3.png',
+        key: OC,
+        note: 'c) is a single arc with two ends — an open curve.'
+      },
+      {
+        tag: 'd)',
+        image: '../assets/img/shape4.png',
+        key: OC,
+        note: 'd) never joins back up on itself, so it is an open curve.'
+      },
+      {
+        tag: 'e)',
+        image: '../assets/img/shape5.png',
+        key: CC,
+        note: 'e) is a figure of eight: it closes, but it crosses at the middle, so CC.'
+      },
+      {
+        tag: 'f)',
+        image: '../assets/img/shape6.png',
+        key: OC,
+        note: 'f) never joins back up on itself, so it is an open curve.'
+      },
+      {
+        tag: 'g)',
+        image: '../assets/img/shape7.png',
+        key: SCC,
+        note: 'g) closes and never crosses itself — a simple closed curve.'
+      },
+      {
+        tag: 'h)',
+        image: '../assets/img/shape8.png',
+        key: SCC,
+        note: 'h) closes and never crosses itself — a simple closed curve.'
+      }
+    ];
+
+    var ROWS = [FIGURES.slice(0, 4), FIGURES.slice(4, 8)];
+
+    Quiz.mount({
+      title: 'Open and Closed Curves',
+      hint: 'Write CC for a closed curve, SCC for a simple closed curve (one that never crosses itself) and OC for an open curve.',
+      questions: ROWS.map(function (figs, i) {
+        return {
+          short: i === 0 ? 'a) – d)' : 'e) – h)',
+          stem: 'Which of the following are Closed Curve(CC), Simple Closed Curve(SCC), Open Curve(OC)?',
+          praise: figs.map(function (f) { return f.note; }).join(' '),
+          build: function (host, Q) {
+            var row = Q.el('div', 'curve-row');
+
+            figs.forEach(function (f) {
+              var cell = Q.el('div', 'curve-cell');
+              cell.appendChild(Q.el('div', 'curve-tag', f.tag));
+
+              var art = Q.el('div', 'curve-art');
+
+              var img = document.createElement('img');
+              img.src = f.image;
+              img.alt = f.tag + ' curve';
+              img.draggable = false;
+
+              art.appendChild(img);
+              cell.appendChild(art);
+
+              var box = Q.blank(f.key.answer, { text: true, width: 6, label: f.tag + ' answer' });
+              box.placeholder = '';
+              box._f.correct = function () {
+                var typed = tidy(box.value);
+                return f.key.accept.some(function (ok) { return tidy(ok) === typed; });
+              };
+              cell.appendChild(box);
+
+              row.appendChild(cell);
+            });
+
+            host.appendChild(row);
+          }
+        };
+      })
+    });
+  </script>
+</body>
+
+</html>
