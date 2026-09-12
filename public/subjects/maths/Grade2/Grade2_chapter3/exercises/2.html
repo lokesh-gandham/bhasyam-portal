@@ -1034,9 +1034,7 @@
 
                 input.addEventListener("input", () => {
                     input.value = input.value.replace(/\D/g, "").slice(0, 2);
-                    if (input.value.length === String(count).length) {
-                        validatePart(input, i, count);
-                    }
+                    validatePart(input, i, count);
                 });
 
                 slot.appendChild(input);
@@ -1071,9 +1069,7 @@
 
             totalInput.addEventListener("input", () => {
                 totalInput.value = totalInput.value.replace(/\D/g, "").slice(0, 2);
-                if (totalInput.value.length >= String(q.answer).length) {
-                    validateTotal(totalInput, q.answer);
-                }
+                validateTotal(totalInput, q.answer);
             });
 
             totalSlot.appendChild(totalInput);
@@ -1085,39 +1081,55 @@
             prevBtn.disabled = current === 0;
             nextBtn.disabled = !st.done || current === total - 1;
         }
+
+        /* ---------------------------------------------------------
+           Digit-by-digit validation.
+           As soon as a typed digit does not match the expected
+           digit at that position, the input is flagged wrong,
+           the wrong popup shows, and the box clears - the user
+           does not have to finish typing the wrong number first.
+           --------------------------------------------------------- */
         function validatePart(input, index, expected) {
 
             if (input.disabled) return;
 
-            const n = Number(input.value);
+            const expectedStr = String(expected);
+            const val = input.value;
 
-            if (n === expected) {
+            if (val.length === 0) return;
 
-                state[current].values[index] = expected;
+            const matchesSoFar = expectedStr.startsWith(val);
 
-                input.disabled = true;
-                input.classList.remove("wrong");
-                input.classList.add("correct");
-                speak("correct");
-                // showPopup(true);
+            if (matchesSoFar) {
 
-                const inputs = questionCard.querySelectorAll(".answer-box:not(.total-box)");
-                const nextInput = inputs[index + 1];
+                if (val.length === expectedStr.length) {
 
-                if (nextInput) {
-                    setTimeout(() => {
-                        nextInput.focus();
-                    }, 300);
-                } else {
-                    setTimeout(() => {
-                        const totalInput = questionCard.querySelector(".total-box");
-                        if (totalInput) {
-                            totalInput.focus();
-                        }
-                    }, 300);
+                    state[current].values[index] = expected;
+
+                    input.disabled = true;
+                    input.classList.remove("wrong");
+                    input.classList.add("correct");
+                    speak("correct");
+
+                    const inputs = questionCard.querySelectorAll(".answer-box:not(.total-box)");
+                    const nextInput = inputs[index + 1];
+
+                    if (nextInput) {
+                        setTimeout(() => {
+                            nextInput.focus();
+                        }, 300);
+                    } else {
+                        setTimeout(() => {
+                            const totalInput = questionCard.querySelector(".total-box");
+                            if (totalInput) {
+                                totalInput.focus();
+                            }
+                        }, 300);
+                    }
                 }
+                // else: correct so far, still typing the second digit - do nothing yet
 
-            } else if (input.value.length >= String(expected).length) {
+            } else {
 
                 input.classList.remove("wrong");
 
@@ -1125,7 +1137,7 @@
                 void input.offsetWidth;
                 input.classList.add("wrong");
                 speak("Try again");
-                // showPopup(false);
+                showPopup(false);
 
                 // Clear the input AFTER the user can see the wrong number
                 setTimeout(() => {
@@ -1140,23 +1152,32 @@
 
             if (input.disabled) return;
 
-            const n = Number(input.value);
+            const expectedStr = String(expected);
+            const val = input.value;
 
-            if (n === expected && state[current].values.every(v => v !== null)) {
+            if (val.length === 0) return;
 
-                input.disabled = true;
-                input.classList.remove("wrong");
-                input.classList.add("correct");
+            const matchesSoFar = expectedStr.startsWith(val);
 
-                state[current].totalAnswer = expected;
-                state[current].done = true;
-                speak("correct");
-                showPopup(true);
-                smallConfetti();
+            if (matchesSoFar) {
 
-                nextBtn.disabled = current === total - 1;
+                if (val.length === expectedStr.length && state[current].values.every(v => v !== null)) {
 
-                if (current === total - 1) setTimeout(showFinal, 900);
+                    input.disabled = true;
+                    input.classList.remove("wrong");
+                    input.classList.add("correct");
+
+                    state[current].totalAnswer = expected;
+                    state[current].done = true;
+                    speak("correct");
+                    showPopup(true);
+                    smallConfetti();
+
+                    nextBtn.disabled = current === total - 1;
+
+                    if (current === total - 1) setTimeout(showFinal, 900);
+                }
+                // else: correct so far, still typing the second digit - do nothing yet
 
             } else {
 
@@ -1231,6 +1252,7 @@
             finalPopup.style.display = "none";
             for (const s of state) {
                 s.values = Array(s.values.length).fill(null);
+                s.totalAnswer = null;
                 s.done = false;
             }
             current = 0;

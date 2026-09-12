@@ -225,7 +225,7 @@
 
         .question-heading {
             display: flex;
-            align-items: baseline;
+            align-items: center;
             justify-content: center;
             gap: 10px;
             width: 100%;
@@ -1477,8 +1477,11 @@
                 <div class="question-heading">
                     <div class="question-number" id="questionNumber">Q1.</div>
                     <div class="question-text" id="questionText">
-                        <span id="questionEquation">2 × 4 =</span>
-                        <span class="question-answer-box" id="questionAnswer" aria-label="Selected answer"></span>
+                        <span id="partA"></span>
+                        <span>×</span>
+                        <span id="partB"></span>
+                        <span>=</span>
+                        <span id="partProduct"></span>
                     </div>
                 </div>
 
@@ -1519,76 +1522,35 @@
     </div>
 
     <script>
+        // NOTE: each item can optionally include a "blank" field to control
+        // where the missing box appears in the equation:
+        //   blank: "a"       -> [ ? ] × b = product   (blank is the first factor)
+        //   blank: "b"       -> a × [ ? ] = product    (blank is the second factor)
+        //   blank: "product" -> a × b = [ ? ]          (default, same as before)
         const data = [
             { a: 2, b: 1, answer: 2 },
 
             { a: 8, b: 0, answer: 0 },
 
-            { a: 8, b: 1, answer: 8 },
+            { a: 8, b: 1, answer: 8, blank: "a" },
 
-            { a: 7, b: 0, answer: 0 },
+            { a: 7, b: 0, answer: 0, blank: "b" },
 
-            { a: 5, b: 1, answer: 5 },
+            { a: 5, b: 1, answer: 5, blank: "b" },
 
-            { a: 0, b: 1, answer: 0 },
+            { a: 0, b: 1, answer: 0, blank: "b" },
 
-            { a: 9, b: 1, answer: 9 },
+            { a: 9, b: 1, answer: 9, blank: "b" },
 
-            { a: 10, b: 1, answer: 10 },
-
-            { a: 2, b: 4, answer: 8 },
-
-            { a: 4, b: 7, answer: 28 },
-
-            { a: 3, b: 7, answer: 21 },
-
-            { a: 6, b: 8, answer: 48 },
-
-            { a: 4, b: 8, answer: 32 },
-
-            { a: 3, b: 9, answer: 27 },
-
-            { a: 5, b: 9, answer: 45 },
-
-            { a: 7, b: 2, answer: 14 },
-
-            { a: 6, b: 6, answer: 36 },
-
-            { a: 7, b: 5, answer: 35 },
-            { a: 6, b: 8, answer: 48 },
-
-            { a: 7, b: 9, answer: 63 },
-
-            { a: 11, b: 4, answer: 44 },
-
-            { a: 12, b: 6, answer: 72 },
-
-            { a: 8, b: 7, answer: 56 },
-
-            { a: 9, b: 5, answer: 45 },
-
-            { a: 9, b: 4, answer: 36 },
-
-            { a: 8, b: 9, answer: 72 },
-
-            { a: 4, b: 8, answer: 32 },
-
-            { a: 9, b: 6, answer: 54 },
-
-            { a: 3, b: 7, answer: 21 },
-
-            { a: 5, b: 5, answer: 25 },
-
-            { a: 8, b: 4, answer: 32 },
-
-            { a: 6, b: 3, answer: 18 },
+            { a: 10, b: 1, answer: 10, blank: "a" },
         ]
 
 
         const qn = document.getElementById("questionNumber");
         const qt = document.getElementById("questionText");
-        const questionEquation = document.getElementById("questionEquation");
-        const questionAnswer = document.getElementById("questionAnswer");
+        const partA = document.getElementById("partA");
+        const partB = document.getElementById("partB");
+        const partProduct = document.getElementById("partProduct");
         const prev = document.getElementById("prevButton");
         const next = document.getElementById("nextButton");
         const fb = document.getElementById("feedback");
@@ -1600,12 +1562,21 @@
         const again = document.getElementById("playAgainButton");
         const stage = document.getElementById("answerStage");
 
+        // Single shared answer box element — moved into whichever slot
+        // (partA / partB / partProduct) is the blank for the current question.
+        const questionAnswer = document.createElement("span");
+        questionAnswer.className = "question-answer-box";
+        questionAnswer.id = "questionAnswer";
+        questionAnswer.setAttribute("aria-label", "Selected answer");
+
         let current = 0;
         let completed = Array(data.length).fill(false);
         let answers = Array(data.length).fill(null);
         let timer;
         let movingChoices = [];
         let animationFrame = null;
+        let currentCorrect = null;
+        let currentAnyCorrect = false; // true when any choice is valid (e.g. 0 × ? = 0)
 
         function speak(t) {
             try {
@@ -1644,9 +1615,37 @@
             stopChoices();
 
             const d = data[current];
+            const blankPos = d.blank || "product"; // "a" | "b" | "product"
+
+            currentCorrect = blankPos === "a" ? d.a : (blankPos === "b" ? d.b : d.answer);
+
+            // If the visible (non-blank) factor is 0, ANY number in the blank
+            // still makes the equation true (anything × 0 = 0), so every
+            // choice should be accepted as correct.
+            currentAnyCorrect =
+                (blankPos === "a" && d.b === 0) ||
+                (blankPos === "b" && d.a === 0);
 
             qn.textContent = `Q${current + 1}.`;
-            questionEquation.textContent = `${d.a} × ${d.b} =`;
+
+            partA.textContent = "";
+            partB.textContent = "";
+            partProduct.textContent = "";
+
+            if (blankPos === "a") {
+                partA.appendChild(questionAnswer);
+                partB.textContent = d.b;
+                partProduct.textContent = d.answer;
+            } else if (blankPos === "b") {
+                partA.textContent = d.a;
+                partB.appendChild(questionAnswer);
+                partProduct.textContent = d.answer;
+            } else {
+                partA.textContent = d.a;
+                partB.textContent = d.b;
+                partProduct.appendChild(questionAnswer);
+            }
+
             questionAnswer.textContent = answers[current] ?? "";
             questionAnswer.classList.toggle("has-value", answers[current] != null);
 
@@ -1655,7 +1654,7 @@
 
             stage.innerHTML = "";
 
-            const choices = makeChoices(d.answer);
+            const choices = makeChoices(currentCorrect);
             const stageWidth = stage.clientWidth;
             const stageHeight = stage.clientHeight;
 
@@ -1788,7 +1787,9 @@
             fb.className = "feedback show simple-hint";
             fe.textContent = "💡";
             ft.textContent = "Hint";
-            fx.textContent = `${d.a} groups of ${d.b}, or ${d.b} groups of ${d.a}.`;
+            fx.textContent = currentAnyCorrect
+                ? "Multiplying any number by 0 always gives 0 — any number works here!"
+                : `${d.a} groups of ${d.b}, or ${d.b} groups of ${d.a}.`;
             fb.setAttribute("aria-hidden", "false");
             timer = setTimeout(hide, 2600);
         }
@@ -1799,7 +1800,9 @@
             questionAnswer.textContent = value;
             questionAnswer.classList.add("has-value");
 
-            if (value !== data[current].answer) {
+            const isCorrect = currentAnyCorrect || value === currentCorrect;
+
+            if (!isCorrect) {
                 button.classList.remove("wrong");
                 void button.offsetWidth;
                 button.classList.add("wrong");
