@@ -334,6 +334,26 @@
   .start-btn:active{transform: scale(0.98);}
   .start-btn svg{width:14px;height:14px;}
 
+
+  /* ---------- Activity iframe view ---------- */
+  #quiz-view{display:none;position:fixed;inset:0;width:100%;height:100vh;background:var(--cream);z-index:1000;}
+  #quiz-view.active{display:block;}
+  #quiz-frame{display:block;width:100%;height:100%;border:0;background:white;}
+  .quiz-home-btn{
+    position:fixed;top:18px;left:18px;z-index:1100;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;
+    min-width:52px;height:46px;padding:0 16px;border:0;border-radius:999px;
+    background:#FFFFFF;color:var(--ink);font-family:'Livvic',sans-serif;
+    font-size:1rem;font-weight:400;cursor:pointer;
+    box-shadow:0 5px 0 rgba(35,67,111,.10),0 10px 22px rgba(35,67,111,.16);
+    transition:transform .15s ease,box-shadow .15s ease;
+  }
+  .quiz-home-btn:hover{transform:translateY(-2px);box-shadow:0 7px 0 rgba(35,67,111,.12),0 14px 26px rgba(35,67,111,.18);}
+  .quiz-home-btn:active{transform:translateY(1px);}
+  @media (max-width:600px){
+    .quiz-home-btn{top:12px;left:12px;min-width:46px;height:42px;padding:0 13px;font-size:.9rem;}
+  }
+
   .toast{
     position:fixed;
     bottom:28px;
@@ -556,6 +576,16 @@
 
 </div>
 
+
+<!-- ===================== ACTIVITY IFRAME VIEW ===================== -->
+<div id="quiz-view">
+  <button type="button" class="quiz-home-btn" id="quiz-home-btn"
+          aria-label="Back to selected category" title="Back to selected category">
+    🏠 Home
+  </button>
+  <iframe id="quiz-frame" title="Geometry Activity" src="about:blank" allow="fullscreen"></iframe>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -684,9 +714,17 @@ const quizGrid = document.getElementById('quiz-grid');
 const backBtn = document.getElementById('back-btn');
 const toast = document.getElementById('toast');
 
+const quizView = document.getElementById('quiz-view');
+const quizFrame = document.getElementById('quiz-frame');
+const quizHomeBtn = document.getElementById('quiz-home-btn');
+
+let currentCategoryKey = null;
+
 function openCategory(key){
   const cat = CATEGORIES.find(c => c.key === key);
   if (!cat) return;
+
+  currentCategoryKey = key;
 
   categoryView.style.setProperty('--accent-a', cat.accentA);
   categoryView.style.setProperty('--accent-b', cat.accentB);
@@ -729,6 +767,10 @@ function openCategory(key){
 }
 
 backBtn.addEventListener('click', () => {
+  quizFrame.src = 'about:blank';
+  quizView.classList.remove('active');
+  document.body.style.overflow = '';
+
   categoryView.classList.remove('active');
   homeView.classList.remove('hidden');
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -737,9 +779,29 @@ backBtn.addEventListener('click', () => {
 quizGrid.addEventListener('click', (e) => {
   const btn = e.target.closest('.start-btn');
   if (!btn) return;
+
   const link = btn.dataset.link;
-  if (link) {
-    window.location.href = link;
+  if (!link) return;
+
+  quizFrame.src = link;
+  homeView.classList.add('hidden');
+  categoryView.classList.remove('active');
+  quizView.classList.add('active');
+  document.body.style.overflow = 'hidden';
+});
+
+
+quizHomeBtn.addEventListener('click', () => {
+  quizFrame.src = 'about:blank';
+  quizView.classList.remove('active');
+  document.body.style.overflow = '';
+
+  if (currentCategoryKey) {
+    openCategory(currentCategoryKey);
+  } else {
+    categoryView.classList.remove('active');
+    homeView.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 });
 
