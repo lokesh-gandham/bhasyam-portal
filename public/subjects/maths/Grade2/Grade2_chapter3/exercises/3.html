@@ -90,6 +90,7 @@
             background: #6c5ce7 !important;
             border-radius: 14px !important;
             box-shadow: 0 4px 0 #5141b5, 0 7px 14px rgba(81, 65, 181, .25) !important;
+            visibility: hidden !important;
         }
 
         .icon-btn .icon-circle.hint {
@@ -197,8 +198,8 @@
             border-radius: 12px;
             background: #fff;
             color: #5b3597;
-            font-size: clamp(25px, 2.7vw, 39px);
-            font-weight: 700;
+            font-size: clamp(23px, 2.7vw, 30px);
+            font-weight: 400;
             box-shadow: inset 0 0 0 2px #fff, 0 3px 8px rgba(0, 0, 0, .09);
             cursor: pointer;
             transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
@@ -241,7 +242,7 @@
             justify-content: flex-end;
             color: #4b3a5f;
             font-size: clamp(20px, 2vw, 28px);
-            font-weight: 700;
+            font-weight: 400;
         }
 
         .keypad {
@@ -260,7 +261,7 @@
             background: linear-gradient(180deg, #ffffff 0%, #f5f1f9 100%);
             color: #34283f;
             font-size: clamp(21px, 2vw, 29px);
-            font-weight: 700;
+            font-weight: 400;
             cursor: pointer;
             box-shadow: 0 4px 0 #c9bfd6, 0 5px 10px rgba(0, 0, 0, .08);
             display: flex;
@@ -286,6 +287,10 @@
 
         .key.zero {
             grid-column: 2;
+        }
+
+        .key.zero-full {
+            grid-column: 1 / -1;
         }
 
         .key.selected {
@@ -330,7 +335,7 @@
             margin: 0 0 10px;
             color: #e08e00;
             font-size: clamp(24px, 3vw, 32px);
-            font-weight: 700;
+            font-weight: 400;
         }
 
         .hint-box p {
@@ -350,7 +355,7 @@
             color: #fff;
             font-family: "Livvic", sans-serif;
             font-size: 17px;
-            font-weight: 700;
+            font-weight: 400;
             cursor: pointer;
             box-shadow: 0 4px 0 #c17e00;
         }
@@ -673,11 +678,12 @@
             .blank {
                 width: 100px;
                 height: 72px;
-                font-size: 43px;
+                font-size: 35px;
             }
 
             .calculator {
                 width: 500px;
+                padding: 14px;
             }
 
             .keypad {
@@ -713,11 +719,12 @@
             .blank {
                 width: 108px;
                 height: 78px;
-                font-size: 39px;
+                font-size: 40px;
             }
 
             .calculator {
                 width: 520px;
+                padding: 16px;
             }
 
             .keypad {
@@ -810,7 +817,7 @@
     { label: "Q7.", equation: ["68", "+", "box0", "=", "19", "+", "box1"], answers: ["19", "68"], hint: "Choose numbers that make both sides equal: 68 + 19 = 19 + 68." },
     { label: "Q8.", equation: ["11", "+", "box0", "=", "28", "+", "box1"], answers: ["28", "11"], hint: "Choose numbers that make both sides equal: 11 + 28 = 28 + 11." },
     { label: "Q9.", equation: ["35", "+", "box0", "=", "57", "+", "box1"], answers: ["57", "35"], hint: "Choose numbers that make both sides equal: 35 + 57 = 57 + 35." },
-    { label: "Q10.", equation: ["40", "+", "box0", "-", "box1", "+", "40", "=", "40"], answers: ["0", "40"], hint: "Work from left to right. The boxes must keep the total equal to 40." }
+    { label: "Q10.", equation: ["40", "+", "box0", "=", "box1", "+", "40", "=", "40"], answers: ["0", "0"], hint: "Work from left to right. The boxes must keep the total equal to 40." }
 ];
 
 const total = QUESTIONS.length;
@@ -912,18 +919,62 @@ function renderEquation() {
             text.className = "eq-text"; text.textContent = part; equation.appendChild(text);
         }
     });
+
+    // Keep the keypad's key-length in sync with whichever box is active.
+    renderKeypad();
+}
+
+/**
+ * Build the candidate numbers (as strings) for the keypad, matching the
+ * digit-length of the expected answer.
+ * - Single-digit answers: fixed calculator/phone-keypad order —
+ *   7 8 9 / 4 5 6 / 1 2 3 / 0 (0 spans the full last row). This set
+ *   naturally covers every single digit, so the correct answer is
+ *   always present.
+ * - Multi-digit answers: 12 shuffled same-length numbers (4 full rows of
+ *   3 in the grid, no leftover partial row), always including the
+ *   correct answer plus random distractors.
+ */
+function generateKeyOptions(expected) {
+    const digitCount = expected.length;
+
+    if (digitCount <= 1) {
+        return ["7", "8", "9", "6", "5", "4", "1", "2", "3", "0"];
+    }
+
+    const options = new Set();
+    options.add(expected);
+    const min = Math.pow(10, digitCount - 1);
+    const max = Math.pow(10, digitCount) - 1;
+    while (options.size < 12) {
+        const rand = Math.floor(Math.random() * (max - min + 1)) + min;
+        options.add(String(rand));
+    }
+
+    const arr = Array.from(options);
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
 }
 
 function renderKeypad() {
+    const q = QUESTIONS[current];
+    const idx = (activeBox >= 0 && activeBox < q.answers.length) ? activeBox : 0;
+    const expected = q.answers[idx];
+    const options = generateKeyOptions(expected);
+
     keypad.innerHTML = "";
-    const order = [7, 8, 9, 4, 5, 6, 1, 2, 3, 10, 0];
-    order.forEach(n => {
+    options.forEach(value => {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "key" + (n === 10 ? " ten" : "") + (n === 0 ? " zero" : "");
-        button.textContent = n;
-        button.setAttribute("aria-label", `Number ${n}`);
-        button.addEventListener("click", () => enterNumber(String(n)));
+        let cls = "key ten";                        // same font-size for 1 and 2 digit keys
+        if (value === "0") cls += " zero-full";     // 0 takes the full last row
+        button.className = cls;
+        button.textContent = value;
+        button.setAttribute("aria-label", `Number ${value}`);
+        button.addEventListener("click", () => selectNumber(value, idx));
         keypad.appendChild(button);
     });
 }
@@ -946,66 +997,21 @@ function rejectWrongDigit(index) {
     renderEquation();
 }
 
-function enterNumber(token) {
-
+function selectNumber(value, idx) {
     if (answered[current]) return;
 
     const q = QUESTIONS[current];
-
-    let index = activeBox;
-    if (index < 0 || index >= q.answers.length) {
-        index = getNextEmptyBox();
-        if (index < 0) return;
-        activeBox = index;
-    }
-
+    const index = (idx !== undefined && idx !== null) ? idx : activeBox;
     const expected = q.answers[index];
-    const expectedLength = expected.length;
-    let currentValue = values[current][index] || "";
 
-    if (currentValue.length >= expectedLength) {
-        const nextEmpty = getNextEmptyBox();
-        if (nextEmpty === -1) return;
-        activeBox = nextEmpty;
-        index = nextEmpty;
-        currentValue = values[current][index] || "";
-    }
-
-    const nextValue = token === "10"
-        ? (currentValue ? currentValue + "0" : "10")
-        : currentValue + token;
-
-    const trimmedValue = nextValue.slice(0, expectedLength);
-
-    // Check the digit(s) just entered against the expected answer's prefix.
-    // If it doesn't match so far, reject immediately instead of waiting
-    // for the full length to be typed.
-    if (expected.slice(0, trimmedValue.length) !== trimmedValue) {
+    if (value !== expected) {
         rejectWrongDigit(index);
         return;
     }
 
-    values[current][index] = trimmedValue;
-    calculatorDisplay.textContent = trimmedValue || "—";
-    renderEquation();
-
-    if (trimmedValue.length === expectedLength) {
-        checkBox(index);
-    }
-}
-
-function checkBox(index) {
-    const q = QUESTIONS[current];
-
-    // Safety check (digit-level validation in enterNumber already guarantees
-    // this matches, but keep as a fallback).
-    if (values[current][index] !== q.answers[index]) {
-        rejectWrongDigit(index);
-        return;
-    }
-
-    // Mark this individual box as correct -> green border, no popup yet.
+    values[current][index] = value;
     boxCorrect[current][index] = true;
+    calculatorDisplay.textContent = value;
 
     const next = getNextEmptyBox();
 
@@ -1039,7 +1045,7 @@ function renderQuestion() {
     calculatorDisplay.textContent = values[current][activeBox] ? `Box: ${values[current][activeBox]}` : `Box ${activeBox + 1}`;
     activeBox = getNextEmptyBox();
     if (activeBox === -1) activeBox = 0;
-    renderEquation(); renderKeypad();
+    renderEquation();
     prevBtn.disabled = current === 0;
     nextBtn.disabled = !answered[current] || current === total - 1;
 }

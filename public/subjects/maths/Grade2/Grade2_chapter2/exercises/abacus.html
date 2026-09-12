@@ -95,6 +95,7 @@ button,input{
 .icon-circle.home{
     background:linear-gradient(145deg,#8b6fe0,#6f42c1);
     box-shadow:0 4px 0 #4f2e93;
+    visibility: hidden !important;
 }
 
 .icon-circle.hint{
@@ -1295,7 +1296,7 @@ button,input{
 }
 
 .draw-bead-zone::before{
-    content:"0";
+    content:attr(data-count);
 }
 
 .draw-bead-zone{
@@ -1633,9 +1634,51 @@ function createBead(type, questionIndex, rodIndex){
         states[questionIndex].counts[rodIndex]--;
 
         bead.remove();
+
+        const card = questionsContainer.querySelector(
+            `.question-card[data-question="${questionIndex}"]`
+        );
+
+        updateDrawZoneCount(card, rodIndex, states[questionIndex].counts[rodIndex]);
+        updateCheckButton(questionIndex);
     });
 
     return bead;
+}
+
+function updateDrawZoneCount(card, rodIndex, count){
+    if(!card) return;
+
+    const zone = card.querySelector(`.rod[data-rod="${rodIndex}"] .draw-bead-zone`);
+
+    if(zone){
+        zone.dataset.count = count;
+    }
+}
+
+function getQuestionTotal(state){
+    return state.counts.reduce((sum, value) => sum + value, 0);
+}
+
+function updateCheckButton(questionIndex){
+    const state = states[questionIndex];
+
+    const card = questionsContainer.querySelector(
+        `.question-card[data-question="${questionIndex}"]`
+    );
+
+    if(!card) return;
+
+    const checkBtn = card.querySelector(".check-btn");
+
+    if(!checkBtn) return;
+
+    if(state.checked){
+        checkBtn.disabled = true;
+        return;
+    }
+
+    checkBtn.disabled = getQuestionTotal(state) === 0;
 }
 
 function addBead(questionIndex, rodIndex){
@@ -1657,6 +1700,30 @@ function addBead(questionIndex, rodIndex){
     const types = ["hundred","ten","one"];
     stack.appendChild(createBead(types[rodIndex], questionIndex, rodIndex));
 
+    updateDrawZoneCount(card, rodIndex, state.counts[rodIndex]);
+    updateCheckButton(questionIndex);
+}
+
+function clearQuestionBeads(index){
+    const state = states[index];
+
+    const card = questionsContainer.querySelector(
+        `.question-card[data-question="${index}"]`
+    );
+
+    if(!card) return;
+
+    state.counts = [0,0,0];
+
+    card.querySelectorAll(".bead-stack").forEach(stack => {
+        stack.innerHTML = "";
+    });
+
+    card.querySelectorAll(".draw-bead-zone").forEach(zone => {
+        zone.dataset.count = "0";
+    });
+
+    updateCheckButton(index);
 }
 
 function renderCard(question, index){
@@ -1670,17 +1737,17 @@ function renderCard(question, index){
         <div class="abacus">
             <div class="rods">
                 <div class="rod" data-rod="0">
-                    <button class="draw-bead-zone" type="button" aria-label="Draw bead in Hundreds">DRAW BEAD</button>
+                    <button class="draw-bead-zone" type="button" data-count="0" aria-label="Draw bead in Hundreds">DRAW BEAD</button>
                     <div class="bead-stack" data-rod="0"></div>
                 </div>
 
                 <div class="rod" data-rod="1">
-                    <button class="draw-bead-zone" type="button" aria-label="Draw bead in Tens">DRAW BEAD</button>
+                    <button class="draw-bead-zone" type="button" data-count="0" aria-label="Draw bead in Tens">DRAW BEAD</button>
                     <div class="bead-stack" data-rod="1"></div>
                 </div>
 
                 <div class="rod" data-rod="2">
-                    <button class="draw-bead-zone" type="button" aria-label="Draw bead in Ones">DRAW BEAD</button>
+                    <button class="draw-bead-zone" type="button" data-count="0" aria-label="Draw bead in Ones">DRAW BEAD</button>
                     <div class="bead-stack" data-rod="2"></div>
                 </div>
             </div>
@@ -1700,7 +1767,7 @@ function renderCard(question, index){
                    aria-label="Target number ${question.number}">
         </div>
 
-        <button class="check-btn" type="button">Check</button>
+        <button class="check-btn" type="button" disabled>Check</button>
     `;
 
     card.querySelectorAll(".rod").forEach(rod => {
@@ -1757,6 +1824,13 @@ function validateQuestion(index){
         });
 
         playCorrect();
+         if(window.confetti){
+        confetti({
+            particleCount:150,
+            spread:100,
+            origin:{y:.5}
+        });
+    }
         showAnswerPopup(true, "You built the number correctly!");
 
         if(states.every(item => item.checked)){
@@ -1768,7 +1842,8 @@ function validateQuestion(index){
 
     playWrong();
 
-    const built = state.counts.join("");
+    clearQuestionBeads(index);
+
     showAnswerPopup(
         false,
         `Not quite. Build ${question.number} using the H, T and O rods.`
