@@ -146,11 +146,11 @@ const mathsHtmlPath = (grade: number, lesson: number): string | undefined => {
       5: "/subjects/maths/Grade1/Lesson5/newindex.html",
     },
     2: {
-      1: "/subjects/maths/Grade2/Grade2_chapter1/maths-fun-kids-menu.html",
-      2: "/subjects/maths/Grade2/Grade2_chapter2/maths-adventure-zone.html",
+      1: "/subjects/maths/Grade2/Grade2_chapter1/Grade2_chapter1.html",
+      2: "/subjects/maths/Grade2/Grade2_chapter2/Grade2_chapter2.html",
       3: "/subjects/maths/Grade2/Grade2_chapter3/Grade2_chapter3.html",
-      4: "/subjects/maths/Grade2/Grade2_chapter4/newindex.html",
-      5: "/subjects/maths/Grade2/Grade2_chapter5/multiply-and-conquer.html",
+      4: "/subjects/maths/Grade2/Grade2_chapter4/Grade2_chapter4.html",
+      5: "/subjects/maths/Grade2/Grade2_chapter5/Grade2_chapter5.html",
     },
     3: {
       1: "/subjects/maths/Grade3/Grade3_Lesson1/newindex.html",
