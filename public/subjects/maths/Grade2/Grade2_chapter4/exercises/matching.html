@@ -240,6 +240,7 @@
       left: 24px;
       background: linear-gradient(145deg, #ffbd2e, #f1780a);
       font-size: 30px;
+      visibility: hidden;
     }
 
     .sound-btn {
@@ -2598,7 +2599,15 @@
     const scoreEl = document.getElementById("score"), soundBtn = document.getElementById("soundBtn");
 
     let selectedLeft = null, matched = new Map(), score = 0, soundEnabled = true, audioCtx = null;
-
+function speak(t) {
+            speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(t);
+            msg.lang = "en-US";
+            msg.volume = 0.25;
+            msg.rate = 1;
+            msg.pitch = 1;
+            speechSynthesis.speak(msg);
+        }
     function render() {
       leftCol.innerHTML = ""; rightCol.innerHTML = ""; lines.innerHTML = "";
       PAIRS.forEach((p, i) => {
@@ -2634,7 +2643,8 @@
     function selectRight(id, card) {
       if (matched.has(id)) return;
       if (selectedLeft === null) {
-        playWrongSound();
+        // playWrongSound();
+        speak("Try again");
         flashWrong(card);
         return;
       }
@@ -2646,13 +2656,16 @@
         left.classList.remove("selected"); left.classList.add("matched", "good");
         right.classList.add("matched", "good");
         drawLine(left, right, id);
-        playCorrectSound(); launchConfetti(55);
+        // playCorrectSound(); 
+        speak("correct");
+        launchConfetti(55);
         selectedLeft = null;
         if (matched.size === PAIRS.length) setTimeout(showFinal, 700);
       } else {
         // Wrong pair: red light blink on both cards. Keep the left
         // card selected/active so the same left option can be retried.
-        playWrongSound();
+        // playWrongSound();
+        speak("Try again");
         flashWrong(left, right);
       }
     }
@@ -2688,6 +2701,7 @@
       finalOverlay.classList.add("show");
       finalOverlay.setAttribute("aria-hidden", "false");
       playCorrectSound();
+      // speak("correct");
       launchConfetti(110);
     }
 
