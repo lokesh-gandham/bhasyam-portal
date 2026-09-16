@@ -223,7 +223,7 @@ function selectAnswer(value, el) {
   } else {
     el.classList.add("shake");
     setTimeout(() => el.classList.remove("shake"), 450);
-    speak("wrong");
+  speak("Try again")
     // playSound(wrongSound);
     showPopup(false, q);
   }

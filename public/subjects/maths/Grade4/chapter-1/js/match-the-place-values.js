@@ -176,7 +176,7 @@ function matchQ(){
 
   return {
     prompt: 'Match every number with the place value that belongs to it.',
-    hint: '',
+    hint: 'Match each number with the correct option using the same colour.',
     render(stage, ready, saved){ ready0 = ready; build(stage, saved, !!saved); },
     renderLocked(stage, saved){
       const done = saved || (function(){
