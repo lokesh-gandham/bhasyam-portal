@@ -8,14 +8,24 @@ import { nitro } from "nitro/vite";
 export default defineConfig({
   plugins: [
     tanstackStart(),
+
     nitro({
       preset: "node-server",
       inlineDynamicImports: true,
     }),
+
     react(),
     tailwindcss(),
     tsConfigPaths(),
   ],
+
+  server: {
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
+  },
+
   environments: {
     ssr: {
       build: {

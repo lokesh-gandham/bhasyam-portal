@@ -815,9 +815,7 @@ button{
 
 .game-card{
   position:relative;
-
   min-width:0;
-
   background:#fff;
 
   padding:
@@ -826,6 +824,8 @@ button{
     clamp(20px, 2vw, 28px);
 
   text-align:center;
+
+  cursor:pointer;
 
   clip-path:polygon(
     24px 0,
@@ -1442,21 +1442,18 @@ const DATA = [
         icon:'➕',
         title:'Addition',
         desc:'Add numbers and solve the sum',
-        url:'exercise/addition.html'
       },
 
       {
         icon:'🧩',
         title:'Fill in the Box',
         desc:'Find the missing answer',
-        url:'exercise/fillinthebox.html'
       },
 
       {
         icon:'📝',
         title:'Fill in the Blanks',
         desc:'Complete every missing number',
-        url:'exercise/fillintheblanks.html'
       }
     ]
   },
@@ -1474,21 +1471,18 @@ const DATA = [
         icon:'🔢',
         title:'Number Line',
         desc:'Jump along numbers to solve',
-        url:'exercise/numberline.html'
       },
 
       {
         icon:'🧮',
         title:'Abacus Sum',
         desc:'Count beads and solve the sum',
-        url:'exercise/abacus_sum.html'
       },
 
       {
         icon:'📊',
         title:'Count Lines',
         desc:'Count the lines and answer',
-        url:'exercise/countlines.html'
       }
     ]
   },
@@ -1506,21 +1500,18 @@ const DATA = [
         icon:'✍️',
         title:'Draw Balloon',
         desc:'A fun balloon drawing challenge',
-        url:'exercise/drawballon.html'
       },
 
       {
         icon:'🟢',
         title:'Draw Beads',
         desc:'Create and count colorful beads',
-        url:'exercise/drawbeads.html'
       },
 
       {
         icon:'❔',
         title:'Number Required',
         desc:'Find which number is needed',
-        url:'exercise/number_required.html'
       }
     ]
   }
@@ -1686,7 +1677,18 @@ currentWorldId = id;
   catGrid.innerHTML = world.games.map(
     (game,index) => `
 
-      <div class="game-card">
+      <div
+  class="game-card"
+  onclick="startGame('${escapeJs(game.title)}')"
+  role="button"
+  tabindex="0"
+  onkeydown="
+    if(event.key==='Enter' || event.key===' '){
+      event.preventDefault();
+      startGame('${escapeJs(game.title)}');
+    }
+  "
+>
 
         <span class="game-num">
           ${String(index + 1).padStart(2,'0')}
@@ -1715,7 +1717,7 @@ currentWorldId = id;
           type="button"
           class="start-btn"
           style="background:${pastel.button};color:${pastel.text}"
-          onclick="startGame('${escapeJs(game.url)}')"
+         onclick="event.stopPropagation(); startGame('${escapeJs(game.title)}')"
         >
            Play  ▶
         </button>
@@ -1739,18 +1741,37 @@ currentWorldId = id;
 }
 
 
-/* =========================================================
+/* =========================================== ==============
    START GAME
 ========================================================= */
 let currentWorldId = null;
-function startGame(url){
+function getQuizUrl(title){
 
-  if(!url) return;
+  const known = {
+    "Addition":"./exercise/addition.html",
+    "Fill in the Box":"./exercise/fillinthebox.html",
+    "Fill in the Blanks":"./exercise/fillintheblanks.html",
 
-  // Build the HTML path relative to the deployed index.html
-  const gameUrl = new URL(url, window.location.href).href;
+    "Number Line":"./exercise/numberline.html",
+    "Abacus Sum":"./exercise/abacus_sum.html",
+    "Count Lines":"./exercise/countlines.html",
 
-  quizFrame.src = gameUrl;
+    "Draw Balloon":"./exercise/drawballon.html",
+    "Draw Beads":"./exercise/drawbeads.html",
+    "Number Required":"./exercise/number_required.html"
+  };
+
+  return known[title] || title.toLowerCase()
+    .replace(/&/g,"and")
+    .replace(/[^a-z0-9]+/g,"-")
+    .replace(/^-+|-+$/g,"") + ".html";
+}
+
+function startGame(title){
+
+  if(!title) return;
+
+  quizFrame.src = getQuizUrl(title);
 
   homeView.style.display = 'none';
   categoryView.style.display = 'none';
