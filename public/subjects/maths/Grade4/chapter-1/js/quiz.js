@@ -41,24 +41,24 @@
   }
 
   function soundCorrect(){
-    playTone(523, 0.12);
-    setTimeout(()=> playTone(659, 0.12), 100);
-    setTimeout(()=> playTone(784, 0.2), 200);
+    // playTone(523, 0.12);
+    // setTimeout(()=> playTone(659, 0.12), 100);
+    // setTimeout(()=> playTone(784, 0.2), 200);
     speak('Correct!');
   }
 
   function soundWrong(){
-    playTone(330, 0.25, 'square');
-    setTimeout(()=> playTone(262, 0.35, 'square'), 200);
+    // playTone(330, 0.25, 'square');
+    // setTimeout(()=> playTone(262, 0.35, 'square'), 200);
     speak('Try again!');
   }
 
   function soundCongrats(){
-    playTone(523, 0.12);
-    setTimeout(()=> playTone(659, 0.12), 120);
-    setTimeout(()=> playTone(784, 0.12), 240);
-    setTimeout(()=> playTone(1047, 0.35), 360);
-    speak('Congratulations!');
+    // playTone(523, 0.12);
+    // setTimeout(()=> playTone(659, 0.12), 120);
+    // setTimeout(()=> playTone(784, 0.12), 240);
+    // setTimeout(()=> playTone(1047, 0.35), 360);
+    // speak('Congratulations!');
   }
 
   /* ---------- POPUP (auto-close with timer bar) ---------- */
@@ -222,7 +222,7 @@
           <p class="popup-message">You did an amazing job!</p>
           <div class="popup-actions">
             <button class="btn btn-again" id="popup-again">Play Again</button>
-            <a class="btn btn-menu" href="../index.html">Menu</a>
+            <a class="btn btn-menu" href="../newindex.html">Menu</a>
           </div>
         </div>
       </section>`;
