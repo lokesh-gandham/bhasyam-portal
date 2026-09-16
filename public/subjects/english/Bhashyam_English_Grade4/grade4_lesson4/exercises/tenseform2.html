@@ -185,6 +185,20 @@
     border: 3px solid #4CAF50;
 }
 
+/* Red outside border marks the box that is wrong */
+.verb-box:has(.answer-input.wrong) {
+    border: 3px solid #E53935;
+    animation: wrongShake .35s ease;
+}
+.answer-input.wrong {
+    color: #E53935;
+}
+@keyframes wrongShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
 
         .question-wrap {
             display: flex;
@@ -1518,7 +1532,7 @@
     v1: "saw",
     v2: "sawed",
     v3: "sawed/sawn",
-    v4: "sawning",
+    v4: "sawing",
     given: ["v2"]
 }
 ];
@@ -1559,6 +1573,15 @@
 let activeIdx = null;
 let activeKey = null;
 let activeAnswer = "";
+// every blank shown on the current page, so one Check can judge them all
+let pageInputs = [];
+
+// Check is available once every remaining blank has something typed in it
+function updateCheckState() {
+    const pending = pageInputs.filter(item => !item.input.readOnly);
+    checkBtn.disabled = pending.length === 0 ||
+        pending.some(item => item.input.value.trim() === "");
+}
 
         const overlay = document.getElementById('popupOverlay');
         const popupBox = document.getElementById('popupBox');
@@ -1746,6 +1769,7 @@ verbImage.alt = data.v1;
             verbImage.alt = data.v1;
             answerGrid.innerHTML = '';
             activeInput = null;
+pageInputs = [];
 checkBtn.disabled = true;
             const missing = COLUMN_KEYS.filter(k => !given.has(k));
             let firstEditable = false;
@@ -1800,19 +1824,12 @@ if (answered[idx][k]) {
                 col.appendChild(wrap);
                 col.appendChild(label); 
                 answerGrid.appendChild(col);
+       pageInputs.push({ input: input, key: k, rowIdx: idx, answer: data[k] });
+
        input.addEventListener("input", function () {
 
-    // Clear every other editable input immediately
-    document.querySelectorAll(".answer-input").forEach(other => {
-        if (
-            other !== this &&
-            !other.readOnly &&
-            other.value.trim() !== ""
-        ) {
-            other.value = "";
-            other.classList.remove("wrong");
-        }
-    });
+    // a fresh attempt clears the previous "wrong" highlight on this box only
+    this.classList.remove("wrong");
 
     // Capitalize first letter
     if (this.value.length > 0) {
@@ -1826,7 +1843,7 @@ if (answered[idx][k]) {
     activeKey = k;
     activeAnswer = data[k];
 
-    checkBtn.disabled = this.value.trim() === "";
+    updateCheckState();
 });
             });
             updateNavButtons();
@@ -1836,60 +1853,70 @@ if (answered[idx][k]) {
 
 checkBtn.onclick = function () {
 
-    if (!activeInput) return;
+    const pending = pageInputs.filter(item => !item.input.readOnly);
+    if (pending.length === 0) return;
+    if (pending.some(item => item.input.value.trim() === "")) return;
 
-    const user = activeInput.value.trim().toLowerCase();
+    const wrongOnes = [];
 
-    const acceptedAnswers = activeAnswer
-        .toLowerCase()
-        .split("/")
-        .map(a => a.trim());
-    if (acceptedAnswers.includes(user)) {
+    pending.forEach(item => {
 
-        answered[activeIdx][activeKey] = true;
-        userAnswers[activeIdx][activeKey] = user;
+        const user = item.input.value.trim().toLowerCase();
 
-        activeInput.readOnly = true;
-        activeInput.classList.add("correct");
-       
-       
+        const acceptedAnswers = item.answer
+            .toLowerCase()
+            .split("/")
+            .map(a => a.trim());
 
-        score++;
+        if (acceptedAnswers.includes(user)) {
+
+            answered[item.rowIdx][item.key] = true;
+            userAnswers[item.rowIdx][item.key] = user;
+
+            item.input.readOnly = true;
+            item.input.classList.remove("wrong");
+            item.input.classList.add("correct");
+
+            score++;
+
+        } else {
+            // leave it on screen, highlighted, so the child can see which one is wrong
+            item.input.classList.add("wrong");
+            wrongOnes.push(item);
+        }
+    });
+
+    checkBtn.disabled = true;
+
+    if (wrongOnes.length === 0) {
 
         correctSound.play();
         showCorrectPopup();
-     
 
-        checkBtn.disabled = true;
-
-     
         updateNavButtons();
 
         if (checkAllAnswered()) {
             setTimeout(showFinalPopup, 1500);
         }
 
-        activeInput = null;
-
     } else {
-
-        activeInput.classList.add("wrong");
 
         wrongSound.play();
         showWrongPopup();
 
-        checkBtn.disabled = true;
-setTimeout(() => {
+        updateNavButtons();
 
-    activeInput.classList.remove("wrong");
-    activeInput.value = "";
-
- 
-
-    activeInput.focus();
-
-}, 700);
+        setTimeout(() => {
+            wrongOnes.forEach(item => {
+                item.input.classList.remove("wrong");
+                item.input.value = "";
+            });
+            wrongOnes[0].input.focus();
+            updateCheckState();
+        }, 900);
     }
+
+    activeInput = null;
 
 };
 
