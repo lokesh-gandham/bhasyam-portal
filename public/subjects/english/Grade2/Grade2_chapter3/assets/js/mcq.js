@@ -3,10 +3,10 @@ const quiz = [
 {
 q:"Q1. The little boy had to spend all day on his _______________.",
 options:[
-{text:"House",img:"../assets/images/house.png"},
-{text:"Room",img:"../assets/images/room.png"},
-{text:"Bed",img:"../assets/images/bed.png"},
-{text:"School",img:"../assets/images/school.png"}
+{text:"house",img:"../assets/images/house.png"},
+{text:"room",img:"../assets/images/room.png"},
+{text:"bed",img:"../assets/images/bed.png"},
+{text:"school",img:"../assets/images/school.png"}
 ],
 answer:2,
 img:"../assets/images/schoolBoy.png"
@@ -15,10 +15,10 @@ img:"../assets/images/schoolBoy.png"
 {
 q:"Q2. One day, he saw something _______________ outside the window.",
 options:[
-{text:"Circle",img:"../assets/images/circle.png"},
-{text:"Square",img:"../assets/images/square.png"},
-{text:"Triangle",img:"../assets/images/triangle.png"},
-{text:"Strange",img:"../assets/images/strange.png"}
+{text:"circle",img:"../assets/images/circle.png"},
+{text:"square",img:"../assets/images/square.png"},
+{text:"triangle",img:"../assets/images/triangle.png"},
+{text:"strange",img:"../assets/images/strange.png"}
 ],
 answer:3,
 img:"../assets/images/window.png"
@@ -27,10 +27,10 @@ img:"../assets/images/window.png"
 {
 q:"Q3. The boy saw a _______________ eating a sandwich.",
 options:[
-{text:"Monkey",img:"../assets/images/monkey.png"},
-{text:"Penguin",img:"../assets/images/penguin.png"},
-{text:"Pig",img:"../assets/images/pig.png"},
-{text:"Elephant",img:"../assets/images/elephant.png"}
+{text:"monkey",img:"../assets/images/monkey.png"},
+{text:"penguin",img:"../assets/images/penguin.png"},
+{text:"pig",img:"../assets/images/pig.png"},
+{text:"elephant",img:"../assets/images/elephant.png"}
 ],
 answer:1,
 img:"../assets/images/sandwich.png"
@@ -39,10 +39,10 @@ img:"../assets/images/sandwich.png"
 {
 q:"Q4. More and more _______________ appeared out of the window.",
 options:[
-{text:"Animals",img:"../assets/images/animals.png"},
-{text:"Birds",img:"../assets/images/birds.png"},
-{text:"Characters",img:"../assets/images/characters.png"},
-{text:"Children",img:"../assets/images/friend.png"}
+{text:"animals",img:"../assets/images/animals.png"},
+{text:"birds",img:"../assets/images/birds.png"},
+{text:"characters",img:"../assets/images/characters.png"},
+{text:"children",img:"../assets/images/friend.png"}
 ],
 answer:2,
 img:"../assets/images/mcq5.png"
