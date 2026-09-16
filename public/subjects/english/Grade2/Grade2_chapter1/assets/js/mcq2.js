@@ -96,86 +96,71 @@ function shuffle(arr) {
     return arr;
 }
 
-function removePopout() {
-    const existing = document.querySelector(".letter-popout");
-    if (existing) existing.remove();
-}
-
 function buildCircles(count) {
     circlesEl.innerHTML = "";
+    filledLetters = Array(count).fill(null);
     for (let i = 0; i < count; i++) {
-        const c = document.createElement("div");
-        c.className = "answer-circle";
-        c.dataset.index = i;
-        c.textContent = "";
-        c.onclick = () => onCircleClick(i);
-        circlesEl.appendChild(c);
-    }
-}
+        const box = document.createElement("input");
+        box.type = "text";
+        box.maxLength = 1;
+        box.className = "answer-circle";
+        box.dataset.index = i;
+        box.autocomplete = "off";
+        box.value = "";
 
-function onCircleClick(index) {
-    if (answered[current] === true) return;
-    const circle = circlesEl.children[index];
-    if (!circle) return;
+        box.addEventListener("input", function () {
+            if (answered[current] === true) return;
 
-    if (circle.textContent) {
-        removeLetterFromCircle(index);
-        return;
-    }
+            // one letter per box, always shown as a capital
+            const typed = box.value.replace(/[^A-Za-z]/g, "").toUpperCase();
+            box.value = typed.slice(-1);
+            box.dataset.letter = box.value.toLowerCase();
+            filledLetters[i] = box.value ? box.value.toLowerCase() : null;
+            box.classList.remove("wrong");
 
-    removePopout();
-
-    const q = quizData[current];
-    const correctLetter = q.plural[index].toLowerCase();
-    const alphabet = "abcdefghijklmnopqrstuvwxyz";
-    let wrongLetter;
-    do {
-        wrongLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
-    } while (wrongLetter === correctLetter);
-
-    const options = shuffle([correctLetter, wrongLetter]);
-
-    const popout = document.createElement("div");
-    popout.className = "letter-popout";
-
-    options.forEach(letter => {
-        const btn = document.createElement("div");
-        btn.className = "letter-popout-btn";
-        btn.textContent = letter.toUpperCase();
-        btn.onclick = (e) => {
-            e.stopPropagation();
-            circle.textContent = letter.toUpperCase();
-            circle.dataset.letter = letter;
-            filledLetters[index] = letter;
-            removePopout();
+            if (box.value) focusBox(i + 1);
             checkIfComplete();
-        };
-        popout.appendChild(btn);
-    });
+        });
 
-    circle.appendChild(popout);
+        box.addEventListener("keydown", function (e) {
+            if (answered[current] === true) { e.preventDefault(); return; }
+            if (e.key === "Backspace" && box.value === "") {
+                e.preventDefault();
+                focusBox(i - 1);
+            } else if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                focusBox(i - 1);
+            } else if (e.key === "ArrowRight") {
+                e.preventDefault();
+                focusBox(i + 1);
+            }
+        });
+
+        box.addEventListener("focus", function () { box.select(); });
+
+        circlesEl.appendChild(box);
+    }
 }
 
-function removeLetterFromCircle(index) {
-    if (answered[current] === true) return;
-    const circle = circlesEl.children[index];
-    if (!circle || !circle.textContent) return;
-    circle.textContent = "";
-    circle.dataset.letter = "";
-    filledLetters[index] = null;
+function focusBox(i) {
+    const box = circlesEl.children[i];
+    if (box && !box.disabled) {
+        box.focus();
+        box.select();
+    }
 }
 
 function checkIfComplete() {
-    const circles = [...circlesEl.children];
-    if (circles.every(c => c.textContent)) {
+    const boxes = [...circlesEl.children];
+    if (boxes.every(b => b.value)) {
         checkAnswer();
     }
 }
 
 function checkAnswer() {
     const q = quizData[current];
-    const circles = [...circlesEl.children];
-    const typed = circles.map(c => (c.dataset.letter || "").toLowerCase()).join("");
+    const boxes = [...circlesEl.children];
+    const typed = boxes.map(b => (b.value || "").toLowerCase()).join("");
 
     if (typed.length < q.plural.length) return;
 
@@ -183,10 +168,10 @@ function checkAnswer() {
         answered[current] = true;
         score++;
 
-        circles.forEach(c => {
-            c.classList.remove("wrong");
-            c.classList.add("correct");
-            c.onclick = null;
+        boxes.forEach(b => {
+            b.classList.remove("wrong");
+            b.classList.add("correct");
+            b.disabled = true;
         });
 
         smallConfetti();
@@ -199,18 +184,19 @@ function checkAnswer() {
             setTimeout(showFinal, 1600);
         }
     } else {
-        circles.forEach(c => c.classList.add("wrong"));
+        boxes.forEach(b => b.classList.add("wrong"));
         playWrongSound();
-        speak("try again");
+        speak("incorrect");
         showPopup(false);
 
         setTimeout(() => {
-            circles.forEach(c => {
-                c.classList.remove("wrong");
-                c.textContent = "";
-                c.dataset.letter = "";
+            boxes.forEach(b => {
+                b.classList.remove("wrong");
+                b.value = "";
+                b.dataset.letter = "";
             });
-            filledLetters = [];
+            filledLetters = Array(q.plural.length).fill(null);
+            focusBox(0);
         }, 600);
     }
 }
@@ -227,14 +213,14 @@ function renderQuestion() {
     hintText.classList.remove("show");
     hintBtn.innerHTML = '<i class="fa-regular fa-lightbulb"></i> Hint';
 
-    removePopout();
 
     if (answered[current] === true) {
         buildCircles(q.plural.length);
         const circles = [...circlesEl.children];
         q.plural.split("").forEach((ch, i) => {
-            circles[i].textContent = ch.toUpperCase();
+            circles[i].value = ch.toUpperCase();
             circles[i].classList.add("correct");
+            circles[i].disabled = true;
         });
         prevBtn.disabled = current === 0;
         nextBtn.disabled = current === quizData.length - 1;
@@ -243,6 +229,7 @@ function renderQuestion() {
 
     filledLetters = Array(q.plural.length).fill(null);
     buildCircles(q.plural.length);
+    focusBox(0);
 
     prevBtn.disabled = current === 0;
     nextBtn.disabled = true;
@@ -345,6 +332,5 @@ document.addEventListener('click', function(e) {
         hintBtn.innerHTML = '<i class="fa-regular fa-lightbulb"></i> Hint';
     }
     if (!e.target.closest('.answer-circle')) {
-        removePopout();
-    }
+        }
 });

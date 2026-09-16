@@ -11,6 +11,7 @@
     selectedKindWord: null,
     gridDragging: false,
     gridPointerMoved: false,
+    gridToggledOffKey: null,
     popupTimer: null,
     completionRunning: false
   };
@@ -59,11 +60,11 @@
     message.className = "message" + (type ? " " + type : "");
   }
 
-  function speakPopup(kind) {
+  function speakPopup(kind, title) {
     if (kind === "ok") {
       speak("Correct");
     } else if (kind === "bad") {
-      speak("Try again");
+      speak(title || "Try again");
     }
   }
 
@@ -170,7 +171,7 @@
   function showPopup(kind, title, body) {
     clearTimeout(state.popupTimer);
     document.querySelectorAll(".popout").forEach(item => item.remove());
-    speakPopup(kind);
+    speakPopup(kind, title);
     if (kind === "done") {
       showCompletionSequence(body);
       return;
@@ -362,12 +363,6 @@
     state.gridDragging = false;
     state.gridPointerMoved = false;
 
-    const clearGridSelection = () => {
-      state.selectedGridCells = [];
-      area.querySelectorAll(".opp-letter-cell.selected").forEach(cell => cell.classList.remove("selected"));
-    };
-
-
     const addGridCell = (cell, shouldToggle = false) => {
       if (!cell || state.answered[state.current]) return;
       const row = parseInt(cell.dataset.row);
@@ -379,9 +374,11 @@
         if (shouldToggle) {
           state.selectedGridCells.splice(selectedIndex, 1);
           cell.classList.remove("selected", "selected-again", "wrong");
+          state.gridToggledOffKey = key;
         }
         return;
       }
+      if (!shouldToggle && key === state.gridToggledOffKey) return;
       state.selectedGridCells.push({
         key,
         row,
@@ -437,10 +434,11 @@
         revealOppositeAnswer();
       } else {
         area.querySelectorAll(".opp-letter-cell.selected").forEach(cell => cell.classList.add("wrong"));
-        showPopup("bad", "Try again", "Select the opposite word letters beside each other.");
+        showPopup("bad", "Incorrect", "Tap the letters again to clear them, then try another word.");
         setTimeout(() => {
+          // Drop only the red flash -- the letters stay selected so the learner
+          // has to tap them off before choosing again.
           area.querySelectorAll(".opp-letter-cell.wrong").forEach(cell => cell.classList.remove("wrong"));
-          clearGridSelection();
         }, 600);
       }
     };
@@ -450,6 +448,7 @@
         event.preventDefault();
         state.gridDragging = true;
         state.gridPointerMoved = false;
+        state.gridToggledOffKey = null;
         cell.setPointerCapture(event.pointerId);
         addGridCell(cell, true);
       };
@@ -461,6 +460,7 @@
       };
       cell.onpointerup = () => {
         state.gridDragging = false;
+        state.gridToggledOffKey = null;
         evaluateGridSelection();
       };
     });
@@ -478,6 +478,7 @@
     area.onpointerup = () => {
       if (state.gridDragging) {
         state.gridDragging = false;
+        state.gridToggledOffKey = null;
         evaluateGridSelection();
       }
     };

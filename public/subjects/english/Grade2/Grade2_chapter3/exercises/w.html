@@ -210,6 +210,19 @@
         .badge-container { position: absolute; top: -8px; left: -8px; display: flex; gap: 3px; z-index: 5; }
         .inside-number.stacked { position: static; width: clamp(22px, 2.5vw, 30px) !important; height: clamp(22px, 2.5vw, 30px) !important; font-size: clamp(10px, 1.1vw, 14px) !important; }
 
+        .animal-card { cursor: pointer; }
+
+        .animal-card.active-card {
+            outline: 3px solid #333;
+            outline-offset: 2px;
+            transform: scale(1.03);
+        }
+
+        .animal-card.solved-card {
+            opacity: .55;
+            cursor: default;
+        }
+
         /* ===== WORDS TO FIND BANK ===== */
         .word-bank {
             position: relative;
@@ -536,7 +549,7 @@
 </head>
 <body>
     <header class="page-header">
-        <p>Find the Words in the Grid Using the Coloured Clues</p>
+        <p>Find the words in the grid that match the meanings.</p>
     </header>
 
     <div class="game-card">
@@ -553,11 +566,6 @@
             <div class="side-column" id="rightWords"></div>
         </div>
 
-        <!-- WORDS TO FIND -->
-        <div class="word-bank">
-            <div class="word-bank-title">Words to find</div>
-            <div class="word-pills" id="wordPills"></div>
-        </div>
     </div>
 
     <div id="answerPopup" class="kid-popup">
@@ -678,7 +686,6 @@
         const grid = document.getElementById('grid');
         const leftWordsEl = document.getElementById('leftWords');
         const rightWordsEl = document.getElementById('rightWords');
-        const wordPillsEl = document.getElementById('wordPills');
 
         let currentSelection = [];
         let solvedWords = 0;
@@ -1001,6 +1008,10 @@ function renderWords() {
             </div>
         `;
 
+        el.addEventListener('click', () => chooseClue(w.number));
+        if (solvedSet.has(w.number)) el.classList.add('solved-card');
+        if (activeClue === w.number) el.classList.add('active-card');
+
         leftWordsEl.appendChild(el);
     });
 
@@ -1029,36 +1040,27 @@ function renderWords() {
             </div>
         `;
 
+        el.addEventListener('click', () => chooseClue(w.number));
+        if (solvedSet.has(w.number)) el.classList.add('solved-card');
+        if (activeClue === w.number) el.classList.add('active-card');
+
         rightWordsEl.appendChild(el);
     });
 }
 
-        /* ===== RENDER WORDS TO FIND BANK ===== */
-        function renderWordBank() {
-          const order = [
-    "BUSY",
-    "CHARACTER",
-    "EXCEPT",
-    "SQUEEZE",
-    "BURSTOUT",
-    "STRANGE"
-];
+        /* ===== THE MEANING BEING HUNTED FOR ===== */
+        let activeClue = null;
 
-const allWords = order.map(word =>
-    [...gameData.meanings, ...gameData.clues]
-        .find(item => item.word === word)
-);
-            wordPillsEl.innerHTML = allWords.map(w => {
-                const solved = solvedSet.has(w.number);
-                const c = WORD_COLORS[w.number] || { fill: '#fff', border: '#ccc' };
-                const label = WORD_LABELS[w.word] || w.word;
-                return `
-                    <div class="word-pill ${solved ? 'solved' : ''}" data-number="${w.number}" style="--pill-fill:${c.fill};--pill-border:${c.border};">
-                        ${label}
-                        ${solved ? '<span class="word-pill-check">&#10003;</span>' : ''}
-                    </div>
-                `;
-            }).join('');
+        function wordFor(number) {
+            return [...gameData.meanings, ...gameData.clues]
+                .find(w => w.number === number);
+        }
+
+        function chooseClue(number) {
+            if (solvedSet.has(number)) return;
+            clearSelection();
+            activeClue = (activeClue === number) ? null : number;
+            renderWords();
         }
 
         /* ===== BUILD GRID ===== */
@@ -1087,6 +1089,12 @@ const allWords = order.map(word =>
         }
 
         function selectLetter(cell) {
+            // (iv) the child must say which meaning they are hunting for first
+            if (activeClue === null) {
+                showPopup(false, "Choose a meaning first!", "Tap a coloured meaning, then find its word.");
+                return;
+            }
+
             if (isSharedCell(cell)) {
                 if (sharedCellsAllSolved(cell)) return;
             } else if (cell.classList.contains('correct-predator') || cell.classList.contains('correct-prey')) {
@@ -1132,7 +1140,7 @@ const allWords = order.map(word =>
             currentSelection.push({ letter: cell.dataset.letter, element: cell });
             updateActiveHighlight();
 
-            if (currentSelection.length >= 2) checkWord();
+            checkWord();
         }
 
         function clearSelection() {
@@ -1144,64 +1152,54 @@ const allWords = order.map(word =>
 
         /* ===== CHECK WORD ===== */
         function checkWord() {
+            const wordData = wordFor(activeClue);
+            if (!wordData) return;
+
             const formedWord = currentSelection.map(x => x.letter).join('');
+
+            // wait until the child has picked as many letters as the word has
+            if (formedWord.length < wordData.word.length) return;
+
             const reversedWord = formedWord.split("").reverse().join("");
-            let matched = false;
-            const allWords = [...gameData.meanings, ...gameData.clues];
 
-            for (const wordData of allWords) {
-                if (solvedSet.has(wordData.number)) continue;
-                const path = answerPaths[wordData.word];
-                const pathMatch = pathMatches(currentSelection, path);
-                const reversePathMatch = pathMatches(currentSelection, [...path].reverse());
+            if (formedWord === wordData.word || reversedWord === wordData.word) {
+                solvedSet.add(wordData.number);
+                solvedWords++;
 
-                if (formedWord === wordData.word || reversedWord === wordData.word || pathMatch || reversePathMatch) {
-                    matched = true;
-                    solvedSet.add(wordData.number);
-                    solvedWords++;
+                const solvedCells = currentSelection.map(x => x.element);
+                const isLeft = wordData.group === "left";
 
-                    const solvedCells = currentSelection.map(x => x.element);
-                    const isLeft = wordData.group === "left";
+                currentSelection.forEach(x => {
+                    x.element.classList.remove('selected');
+                    x.element.classList.add(isLeft ? 'correct-predator' : 'correct-prey');
+                });
+                markSharedIntersections();
 
-                    currentSelection.forEach(x => {
-                        x.element.classList.remove('selected');
-                        x.element.classList.add(isLeft ? 'correct-predator' : 'correct-prey');
-                    });
-                    markSharedIntersections();
+                if (solvedCells.length > 0) addNumberBadge(solvedCells[0], wordData.number);
 
-                    // Add number badge on first cell (all words get a badge now;
-                    // shared-start words like BUSY/BURSTOUT get stacked badges)
-                    if (path && path.length > 0) {
-                        const firstCell = solvedCells[0];
-                        addNumberBadge(firstCell, wordData.number);
-                    }
+                clearActiveHighlight();
+                addSolvedHighlight(solvedCells, wordData.number);
 
-                    clearActiveHighlight();
-addSolvedHighlight(solvedCells, wordData.number);
-
-const card = document.getElementById(`card-${wordData.number}`);
-if (card) {
-    const c = WORD_COLORS[wordData.number];
-    card.style.background = c.fill;
-    card.style.borderColor = c.border;
-}
-
-renderWordBank();
-showPopup(true);
-                    speak("Correct");
-                    confetti({ particleCount: 40, spread: 60 });
-                    currentSelection = [];
-                    direction = null;
-
-                    if (solvedWords === totalWords) setTimeout(showFinal, 1000);
-                    break;
+                const card = document.getElementById(`card-${wordData.number}`);
+                if (card) {
+                    const c = WORD_COLORS[wordData.number];
+                    card.style.background = c.fill;
+                    card.style.borderColor = c.border;
                 }
-            }
 
-            if (!matched) {
-                const allW = [...gameData.meanings, ...gameData.clues];
-                const possible = allW.some(w => !solvedSet.has(w.number) && (w.word.startsWith(formedWord) || w.word.split("").reverse().join("").startsWith(formedWord)));
-                if (!possible && formedWord.length > 0) wrongSelection();
+                showPopup(true);
+                speak("Correct");
+                confetti({ particleCount: 40, spread: 60 });
+
+                currentSelection = [];
+                direction = null;
+                activeClue = null;
+                renderWords();
+
+                if (solvedWords === totalWords) setTimeout(showFinal, 1000);
+            } else {
+                // (i) say so, and clear the letters instead of leaving them lit
+                wrongSelection();
             }
         }
 
@@ -1211,16 +1209,19 @@ showPopup(true);
         }
 
         function wrongSelection() {
-            drawPill(activeLayer, currentSelection.map(x => getCellCenter(x.element)), { fill: "#FFCDD2", border: "#F44336" }, false);
-            currentSelection.forEach(x => {
-                x.element.classList.add('wrong');
-                setTimeout(() => x.element.classList.remove('wrong', 'selected'), 500);
-            });
+            const cells = currentSelection.map(x => x.element);
+            drawPill(activeLayer, cells.map(el => getCellCenter(el)), { fill: "#FFCDD2", border: "#F44336" }, false);
+            cells.forEach(el => el.classList.add('wrong'));
             showPopup(false);
-            speak("Try again");
-            setTimeout(clearActiveHighlight, 500);
+            speak("Incorrect");
+
             currentSelection = [];
             direction = null;
+
+            setTimeout(() => {
+                cells.forEach(el => el.classList.remove('wrong', 'selected'));
+                clearActiveHighlight();
+            }, 600);
         }
 
         /* ===== POPUPS ===== */
@@ -1231,7 +1232,7 @@ showPopup(true);
             speechSynthesis.speak(msg);
         }
 
-        function showPopup(isCorrect) {
+        function showPopup(isCorrect, customTitle, customMsg) {
             const popup = document.getElementById("answerPopup");
             const icon = document.getElementById("popupIcon");
             const title = document.getElementById("popupTitle");
@@ -1240,12 +1241,12 @@ showPopup(true);
             popup.style.display = "flex";
             if (isCorrect) {
                 icon.textContent = "🎉";
-                title.textContent = "Great Job!";
-                msg.textContent = "You got it right!";
+                title.textContent = customTitle || "Great Job!";
+                msg.textContent = customMsg || "You got it right!";
             } else {
                 icon.textContent = "🥲";
-                title.textContent = "Oops!";
-                msg.textContent = "Try again, you can do it!";
+                title.textContent = customTitle || "Oops!";
+                msg.textContent = customMsg || "Incorrect - try that one again.";
             }
             setTimeout(() => { popup.style.display = "none"; }, 1400);
         }
@@ -1260,8 +1261,7 @@ showPopup(true);
         /* ===== INIT ===== */
         buildGrid();
         renderWords();
-        renderWordBank();
-        markSharedIntersections();
+                markSharedIntersections();
     </script>
 </body>
 </html>

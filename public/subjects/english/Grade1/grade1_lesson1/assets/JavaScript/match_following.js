@@ -77,6 +77,19 @@ function shuffleArray(arr) {
   return arr;
 }
 
+// Shuffle `items` so that no item sits in the row where `avoid[row]` equals its
+// originalIndex. Keeps the answers from ever lining up in sequence with Column A.
+function shuffleUnaligned(items, avoid) {
+  if (items.length < 2) return items;
+  for (let attempt = 0; attempt < 60; attempt++) {
+    shuffleArray(items);
+    if (items.every((item, row) => item.originalIndex !== avoid[row])) return items;
+  }
+  // Fallback: rotating by one is always misaligned when every row currently matches.
+  items.push(items.shift());
+  return items;
+}
+
 function playSound(id) {
   const sound = document.getElementById(id);
   if (!sound) return;
@@ -99,8 +112,12 @@ function drawLines() {
     style="position:absolute;left:0;top:0;width:${width}px;height:${height}px;pointer-events:none;z-index:10;overflow:visible">`;
 
   matches.forEach((match) => {
-    const leftEl = document.querySelectorAll(".left-item")[match.left];
+    let leftEl = null;
     let rightEl = null;
+
+    document.querySelectorAll(".left-item").forEach((el) => {
+      if (parseInt(el.dataset.originalIndex, 10) === match.left) leftEl = el;
+    });
 
     document.querySelectorAll(".right-item").forEach((el) => {
       if (parseInt(el.dataset.originalIndex, 10) === match.right) rightEl = el;
@@ -144,18 +161,18 @@ function loadQuestion() {
   getHintEl().textContent = "Tap an item from Column A, then tap its match in Column B.";
   board.innerHTML = "";
 
-  const leftItems = q.pairs.map(p => ({
+  const leftItems = shuffleArray(q.pairs.map((p, i) => ({
     text: p.left,
-    img: p.leftImg || "",
+    originalIndex: i,
     matched: false,
-    pairIndex: -1,
-  }));
-  const rightItems = shuffleArray(q.pairs.map((p, i) => ({
+  })));
+  const leftOrder = leftItems.map(item => item.originalIndex);
+  const rightItems = shuffleUnaligned(q.pairs.map((p, i) => ({
     text: p.right,
     img: p.rightImg || "",
     originalIndex: i,
     matched: false,
-  })));
+  })), leftOrder);
 
   matches = [];
   selectedItem = null;
@@ -166,12 +183,12 @@ function loadQuestion() {
   const rightCol = document.createElement("div");
   rightCol.className = "match-column";
 
-  leftItems.forEach((item, idx) => {
+  leftItems.forEach((item) => {
     const el = document.createElement("div");
-    el.className = "match-item left-item";
-    el.innerHTML = `<div class="match-item-img">${item.img ? `<img src="${item.img}" alt="${item.text}">` : ""}</div><span>${item.text}</span>`;
-    el.dataset.index = idx;
-    el.onclick = () => selectLeft(el, idx);
+    el.className = "match-item left-item text-only";
+    el.innerHTML = `<span>${item.text}</span>`;
+    el.dataset.originalIndex = item.originalIndex;
+    el.onclick = () => selectLeft(el, item.originalIndex);
     leftCol.appendChild(el);
   });
 
@@ -192,19 +209,18 @@ function loadQuestion() {
     qPairs.forEach((pair, i) => {
       const colorIdx = i % PAIR_COLORS.length;
       const c = PAIR_COLORS[colorIdx];
-      leftEls[i].classList.add("matched");
-      leftEls[i].onclick = null;
-      leftEls[i].style.setProperty("--check-color", c.check);
-      leftEls[i].style.setProperty("--check-shadow", `rgba(${hexToRgb(c.check)}, 0.4)`);
-      leftEls[i].style.color = c.text;
+      const paint = (el) => {
+        el.classList.add("matched");
+        el.onclick = null;
+        el.style.setProperty("--check-color", c.check);
+        el.style.setProperty("--check-shadow", `rgba(${hexToRgb(c.check)}, 0.4)`);
+        el.style.color = c.text;
+      };
+      leftEls.forEach(el => {
+        if (parseInt(el.dataset.originalIndex, 10) === i) paint(el);
+      });
       rightEls.forEach(el => {
-        if (parseInt(el.dataset.originalIndex) === i) {
-          el.classList.add("matched");
-          el.onclick = null;
-          el.style.setProperty("--check-color", c.check);
-          el.style.setProperty("--check-shadow", `rgba(${hexToRgb(c.check)}, 0.4)`);
-          el.style.color = c.text;
-        }
+        if (parseInt(el.dataset.originalIndex, 10) === i) paint(el);
       });
       matches.push({ left: i, right: i });
     });
@@ -324,7 +340,20 @@ function showPopup(isCorrect) {
   }, 1500);
 }
 
+// When this exercise is one step of a multi-question set, the host page decides
+// what happens next -- it advances to the next question and owns the final popup.
+function notifyHostComplete() {
+  try {
+    if (window.parent !== window && typeof window.parent.exerciseFinished === "function") {
+      window.parent.exerciseFinished();
+      return true;
+    }
+  } catch (error) {}
+  return false;
+}
+
 function showFinal() {
+  if (notifyHostComplete()) return;
   const popup = document.getElementById("finalPopup");
   document.getElementById("finalScore").textContent =
     `Your Score: ${score} / ${quizData.reduce((s, q) => s + q.pairs.length, 0)}`;

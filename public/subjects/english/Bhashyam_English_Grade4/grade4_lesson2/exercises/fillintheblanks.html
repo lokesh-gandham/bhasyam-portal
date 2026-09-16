@@ -1056,11 +1056,12 @@ function loadQuestion() {
     btn.disabled = input.value.trim() === "";
 input.addEventListener("input", () => {
 
-    // Automatically capitalize the first letter while typing
+    // lower case while typing, unless the answer is a proper noun
     if (input.value.length > 0) {
-        input.value =
-            input.value.charAt(0).toUpperCase() +
-            input.value.slice(1);
+        const typed = input.value.toLowerCase();
+        input.value = needsCapital()
+            ? typed.charAt(0).toUpperCase() + typed.slice(1)
+            : typed;
     }
 
     btn.disabled = input.value.trim() === "";
@@ -1080,6 +1081,11 @@ input.addEventListener("input", () => {
   checkAllAnswered();
 }
 
+// only a proper noun (an answer written with a capital in the data) keeps its capital
+function needsCapital() {
+  return /^[A-Z]/.test(questions[index].a[0]);
+}
+
 function checkAnswer(input, btn, box, i) {
  const originalValue = input.value.trim();
 const value = originalValue.toLowerCase();
@@ -1094,10 +1100,14 @@ const answers = questions[index].a.map(a => a.trim().toLowerCase());
     btn.style.cursor = "not-allowed";
 
     state.used.push(value);
+   const shown = needsCapital()
+    ? value.charAt(0).toUpperCase() + value.slice(1)
+    : value;
    state.boxes[i] = {
-    value: originalValue.charAt(0).toUpperCase() + originalValue.slice(1),
+    value: shown,
     correct: true
 };
+   input.value = shown;
     speak("Correct");
     smallConfetti();
   showCorrectPopup();
