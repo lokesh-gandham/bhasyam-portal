@@ -1261,6 +1261,31 @@
             correct: "courts"
         }];
 
+        // The correct answer used to sit in slot A for five of the six questions.
+        // Spread the answers evenly over A/B/C and shuffle which question gets
+        // which slot, so the position is different every time the page loads.
+        (function randomiseAnswerPositions() {
+            const shuffle = (arr) => {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            };
+
+            const slotCount = QUESTIONS[0].options.length;
+            const slots = [];
+            for (let i = 0; i < QUESTIONS.length; i++) slots.push(i % slotCount);
+            shuffle(slots);
+
+            QUESTIONS.forEach((question, index) => {
+                const others = shuffle(question.options.filter(o => o !== question.correct));
+                const target = Math.min(slots[index], question.options.length - 1);
+                others.splice(target, 0, question.correct);
+                question.options = others;
+            });
+        })();
+
         // ================================================================
         //  STATE
         // ================================================================
