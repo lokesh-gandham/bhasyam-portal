@@ -957,8 +957,8 @@
 
     <div class="quiz">
         <div class="question-box" id="question">
-            Each word below is assigned a number. Write the number of the coloured word and the number of its antonym.
-            One is done for you.
+            Each word below is assigned a number. Write the number of a coloured word and the number of its antonym.
+            The words appear when the pair is correct. One is done for you.
         </div>
 
         <div class="words-grid">
@@ -1019,12 +1019,12 @@
                     </div>
 
                     <div class="row-word">
-                        <div class="cell-half fixed-text">huge</div>
-                        <div class="cell-half fixed-text">small</div>
+                        <div class="cell-half fixed-text word-slot" id="word-1-L"></div>
+                        <div class="cell-half fixed-text word-slot" id="word-1-R"></div>
                     </div>
 
                     <div class="check-btn-wrapper">
-                        <button class="check-btn" id="btn-1" onclick="verifyPair(1,'2','12')" disabled>Check</button>
+                        <button class="check-btn" id="btn-1" onclick="verifyPair(1)" disabled>Check</button>
                     </div>
                 </div>
 
@@ -1049,12 +1049,12 @@
                     </div>
 
                     <div class="row-word">
-                        <div class="cell-half fixed-text">difficult</div>
-                        <div class="cell-half fixed-text">easy</div>
+                        <div class="cell-half fixed-text word-slot" id="word-2-L"></div>
+                        <div class="cell-half fixed-text word-slot" id="word-2-R"></div>
                     </div>
 
                     <div class="check-btn-wrapper">
-                        <button class="check-btn" id="btn-2" onclick="verifyPair(2,'3','7')" disabled>Check</button>
+                        <button class="check-btn" id="btn-2" onclick="verifyPair(2)" disabled>Check</button>
                     </div>
                 </div>
 
@@ -1072,12 +1072,12 @@
                     </div>
 
                     <div class="row-word">
-                        <div class="cell-half fixed-text">soft</div>
-                        <div class="cell-half fixed-text">hard</div>
+                        <div class="cell-half fixed-text word-slot" id="word-3-L"></div>
+                        <div class="cell-half fixed-text word-slot" id="word-3-R"></div>
                     </div>
 
                     <div class="check-btn-wrapper">
-                        <button class="check-btn" id="btn-3" onclick="verifyPair(3,'4','11')" disabled>Check</button>
+                        <button class="check-btn" id="btn-3" onclick="verifyPair(3)" disabled>Check</button>
                     </div>
                 </div>
 
@@ -1102,12 +1102,12 @@
                     </div>
 
                     <div class="row-word">
-                        <div class="cell-half fixed-text">brave</div>
-                        <div class="cell-half fixed-text">timid</div>
+                        <div class="cell-half fixed-text word-slot" id="word-4-L"></div>
+                        <div class="cell-half fixed-text word-slot" id="word-4-R"></div>
                     </div>
 
                     <div class="check-btn-wrapper">
-                        <button class="check-btn" id="btn-4" onclick="verifyPair(4,'5','9')" disabled>Check</button>
+                        <button class="check-btn" id="btn-4" onclick="verifyPair(4)" disabled>Check</button>
                     </div>
                 </div>
 
@@ -1125,12 +1125,12 @@
                     </div>
 
                     <div class="row-word">
-                        <div class="cell-half fixed-text">sadness</div>
-                        <div class="cell-half fixed-text">happiness</div>
+                        <div class="cell-half fixed-text word-slot" id="word-5-L"></div>
+                        <div class="cell-half fixed-text word-slot" id="word-5-R"></div>
                     </div>
 
                     <div class="check-btn-wrapper">
-                        <button class="check-btn" id="btn-5" onclick="verifyPair(5,'6','10')" disabled>Check</button>
+                        <button class="check-btn" id="btn-5" onclick="verifyPair(5)" disabled>Check</button>
                     </div>
                 </div>
 
@@ -1299,23 +1299,47 @@
                 });
             }
 
-            // ----- VERIFY PAIR (marks pair solved, updates nav) -----
-            window.verifyPair = function (id, targetLeft, targetRight) {
+            // ----- THE NUMBERED WORD LIST AND ITS ANTONYM PAIRS -----
+            const WORDS = {
+                '1': 'rare', '2': 'huge', '3': 'difficult', '4': 'soft',
+                '5': 'brave', '6': 'sadness', '7': 'easy', '8': 'common',
+                '9': 'timid', '10': 'happiness', '11': 'hard', '12': 'small'
+            };
+
+            // 1-8 (rare / common) is the worked example, so it is already used
+            const ANTONYM_PAIRS = [
+                ['2', '12'], ['3', '7'], ['4', '11'], ['5', '9'], ['6', '10']
+            ];
+            const usedPairs = new Set();
+
+            function findPair(a, b) {
+                return ANTONYM_PAIRS.find(p =>
+                    (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a));
+            }
+
+            // ----- VERIFY PAIR (any correct, unused antonym pair reveals its words) -----
+            window.verifyPair = function (id) {
                 // if already solved, ignore
                 if (solvedPairs.has(id)) return;
 
                 const inputL = document.getElementById(`input-${id}-L`);
                 const inputR = document.getElementById(`input-${id}-R`);
                 const btnElement = document.getElementById(`btn-${id}`);
+                const wordL = document.getElementById(`word-${id}-L`);
+                const wordR = document.getElementById(`word-${id}-R`);
 
-                const userAnsL = inputL.value.trim().toLowerCase();
-                const userAnsR = inputR.value.trim().toLowerCase();
+                const userAnsL = inputL.value.trim();
+                const userAnsR = inputR.value.trim();
 
-                const isCorrectL = (userAnsL === targetLeft.toLowerCase());
-                const isCorrectR = (userAnsR === targetRight.toLowerCase());
+                const pair = findPair(userAnsL, userAnsR);
+                const alreadyUsed = pair && usedPairs.has(pair.join('-'));
 
-                if (isCorrectL && isCorrectR) {
-                    // correct: disable inputs, btn, mark solved
+                if (pair && !alreadyUsed) {
+                    // correct: show the two words, lock the card
+                    usedPairs.add(pair.join('-'));
+
+                    wordL.textContent = WORDS[userAnsL];
+                    wordR.textContent = WORDS[userAnsR];
                     inputL.disabled = true;
                     inputR.disabled = true;
                     btnElement.disabled = true;
@@ -1331,30 +1355,17 @@
                         setTimeout(showFinalPopup, 1600);
                     }
                 } else {
-                    // wrong: show popup, handle partial correct
+                    // wrong, or a pair that has already been used somewhere else
                     showPopup(false);
 
-                    // left side
-                    if (isCorrectL && !inputL.disabled) {
-                        inputL.disabled = true;
-                    } else if (!inputL.disabled) {
-                        inputL.value = "";
-                        inputL.classList.add("wrong");
-                        setTimeout(() => inputL.classList.remove("wrong"), 700);
-                    }
-
-                    // right side
-                    if (isCorrectR && !inputR.disabled) {
-                        inputR.disabled = true;
-                    } else if (!inputR.disabled) {
-                        inputR.value = "";
-                        inputR.classList.add("wrong");
-                        setTimeout(() => inputR.classList.remove("wrong"), 700);
-                    }
+                    [inputL, inputR].forEach(field => {
+                        field.value = "";
+                        field.classList.add("wrong");
+                        setTimeout(() => field.classList.remove("wrong"), 700);
+                    });
 
                     // disable check button so user must refill both
                     btnElement.disabled = true;
-                    // but we do NOT mark solved
                 }
             };
 
