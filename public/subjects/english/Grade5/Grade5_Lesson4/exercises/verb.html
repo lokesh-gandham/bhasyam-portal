@@ -317,7 +317,8 @@
             font-size: 24px;
             font-weight: 700;
             font-family: "CCSyntroman";
-            cursor: pointer;
+            cursor: default;
+            pointer-events: none;
             box-shadow: 0 10px 26px rgba(255, 179, 0, .35);
             transition: all .2s ease;
         }
@@ -1245,7 +1246,7 @@
                     <div class="orbit-dot dot-c"></div>
                     <div id="orbitSlots"></div>
                     <div class="orbit-center">
-                        <button class="check-btn" id="checkBtn" disabled>Check</button>
+                        <button class="check-btn" id="checkBtn" disabled aria-hidden="true"></button>
                     </div>
                 </div>
             </div>
@@ -1467,6 +1468,13 @@
                     try { this.setSelectionRange(start, end); } catch (e) { }
                     lockOtherInputs(this);
                     checkBtn.disabled = this.value.trim().length === 0;
+
+                    // a correct answer is taken straight away - no need to press Check
+                    const typed = this.value.trim().toLowerCase();
+                    const expected = quizData[this.dataset.row][this.dataset.col].toLowerCase();
+                    if (typed && typed === expected) {
+                        acceptAnswer(this);
+                    }
                 });
 
                 input.addEventListener('keydown', function (e) {
@@ -1509,6 +1517,54 @@
             });
         }
 
+        // marks one blank correct, locks it and moves on
+        function acceptAnswer(input) {
+            if (!input || input.disabled) return;
+
+            const rowIdx = parseInt(input.dataset.row);
+            const colKey = input.dataset.col;
+            const correct = quizData[rowIdx][colKey];
+            const box = input.closest('.form-box');
+
+            answered[rowIdx][colKey] = true;
+            const formattedAnswer = correct.charAt(0).toUpperCase() + correct.slice(1).toLowerCase();
+            userAnswers[rowIdx][colKey] = formattedAnswer;
+
+            input.value = formattedAnswer;
+            input.disabled = true;
+            score++;
+
+            box.classList.add('correct-input');
+            box.classList.remove('locked');
+
+            // Make the pill above green as well
+            const pill = box.previousElementSibling;
+            if (pill && pill.classList.contains('form-pill')) {
+                pill.classList.add('correct-pill');
+            }
+
+            unlockAllInputs();
+            activeInput = null;
+            checkBtn.disabled = true;
+
+            updateNavButtons();
+
+            if (allRowsAnswered()) {
+                showCorrectPopup();
+                setTimeout(() => {
+                    overlay.classList.remove('show');
+                    showFinalPopup();
+                }, 1600);
+            } else {
+                showCorrectPopup();
+                const nextInput = document.querySelector('.orbit-slot input:not(:disabled)');
+                if (nextInput) {
+                    setTimeout(() => nextInput.focus(), 50);
+                }
+            }
+        }
+
+        // Check is now only needed to be told an answer is wrong
         checkBtn.addEventListener('click', function () {
             if (!activeInput || activeInput.disabled) return;
             const guess = activeInput.value.trim();
@@ -1520,49 +1576,15 @@
             const box = activeInput.closest('.form-box');
 
             if (guess.toLowerCase() === correct.toLowerCase()) {
-                answered[rowIdx][colKey] = true;
-                const formattedAnswer = correct.charAt(0).toUpperCase() + correct.slice(1).toLowerCase();
-                userAnswers[rowIdx][colKey] = formattedAnswer;
-
-                activeInput.value = formattedAnswer;
-                activeInput.disabled = true;
-                score++;
-
-                box.classList.add('correct-input');
-                box.classList.remove('locked');
-
-                // Make the pill above green as well
-                const pill = box.previousElementSibling;
-                if (pill && pill.classList.contains('form-pill')) {
-                    pill.classList.add('correct-pill');
-                }
-
-                unlockAllInputs();
-                activeInput = null;
-                checkBtn.disabled = true;
-
-                updateNavButtons();
-
-                if (allRowsAnswered()) {
-                    showCorrectPopup();
-                    setTimeout(() => {
-                        overlay.classList.remove('show');
-                        showFinalPopup();
-                    }, 1600);
-                } else {
-                    showCorrectPopup();
-                    const nextInput = document.querySelector('.orbit-slot input:not(:disabled)');
-                    if (nextInput) {
-                        setTimeout(() => nextInput.focus(), 50);
-                    }
-                }
+                acceptAnswer(activeInput);
             } else {
+                const wrongInput = activeInput;
                 box.classList.add('wrong-input');
                 showWrongPopup();
                 setTimeout(() => {
                     box.classList.remove('wrong-input');
-                    activeInput.value = '';
-                    activeInput.focus();
+                    wrongInput.value = '';
+                    wrongInput.focus();
                     unlockAllInputs();
                     checkBtn.disabled = true;
                 }, 500);
