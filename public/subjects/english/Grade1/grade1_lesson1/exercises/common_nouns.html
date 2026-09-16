@@ -7,41 +7,93 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Digital Assessments</title>
   <link rel="icon" type="image/svg+xml" href="/iconsa1.png">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <link rel="stylesheet" href="../assets/CSS/noun_drag.css?v=lesson1fix14">
   <link rel="stylesheet" href="../../grade1-typography.css?v=grade1font1">
-  </head>
+  <link rel="stylesheet" href="../assets/CSS/mcq.css?v=lesson1fix13">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      display: block;
+      overflow: hidden;
+      background: transparent !important;
+      /* The one and only blurred surface for this tab. The embedded questions
+         switch their own off, so there is no edge between two blurred regions. */
+      backdrop-filter: blur(4px);
+    }
+    .qset {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .qset-step {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px 16px 2px;
+      background: transparent;
+    }
+    .qset-step-label {
+      color: #4a3a6a;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .qset-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .qset-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: rgba(124, 92, 191, 0.25);
+      transition: background 0.25s ease, transform 0.25s ease;
+    }
+    .qset-dot.done {
+      background: #55c090;
+    }
+    .qset-dot.current {
+      background: #7c5cbf;
+      transform: scale(1.25);
+    }
+    .qset-frame {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      border: 0;
+      display: block;
+      background: transparent;
+    }
+    @media (max-width: 860px) {
+      .qset-step { padding: 8px 12px 2px; gap: 8px; }
+      .qset-step-label { font-size: 17px; }
+      .qset-dot { width: 10px; height: 10px; }
+    }
+    @media (min-width: 1025px) and (max-width: 1440px) {
+      .qset-step-label { font-size: 22px; }
+    }
+    @media (min-width: 1441px) {
+      .qset-step-label { font-size: 26px; }
+      .qset-dot { width: 13px; height: 13px; }
+    }
+  </style>
+</head>
 
 <body>
-  <div class="noun-container">
-    <div class="noun-header">
-      <h2>Read the words in the box and drag them in the correct columns.</h2>
+  <div class="qset">
+    <div class="qset-step" aria-live="polite">
+      <span class="qset-step-label" id="qsetLabel">Question 1 of 2</span>
+      <span class="qset-dots" id="qsetDots" aria-hidden="true"></span>
     </div>
 
-    <div class="source-section">
-      <div class="source-words" id="sourceWords"></div>
-    </div>
-
-    <div class="target-section">
-      <div class="target-column">
-        <div class="drop-zone common-drop" id="commonDropZone" data-category="common"></div>
-        <div class="column-header common-header">Common Nouns</div>
-      </div>
-
-      <div class="target-column">
-        <div class="drop-zone proper-drop" id="properDropZone" data-category="proper"></div>
-        <div class="column-header proper-header">Proper Nouns</div>
-      </div>
-    </div>
-  </div>
-
-  <div id="answerPopup" class="kid-popup">
-    <div class="kid-card">
-      <div class="kid-icon" id="popupIcon"></div>
-      <h3 id="popupTitle"></h3>
-      <p id="popupMsg"></p>
-    </div>
+    <iframe class="qset-frame" id="qsetFrame" title="Question"
+            src="./common_nouns_q1.html?v=lesson1words1"></iframe>
   </div>
 
   <div id="finalPopup">
@@ -49,14 +101,73 @@
       <h2>&#127881; Congratulations!</h2>
       <p id="finalScore"></p>
       <div id="stars"></div>
-      <button class="playAgain-btn" onclick="location.reload()">Play Again</button>
+      <button class="playAgain-btn" type="button" onclick="restartSet()">Play Again</button>
     </div>
   </div>
 
-  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
-  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+  <script>
+    const QUESTIONS = [
+      "./common_nouns_q1.html?v=lesson1words1",
+      "./match_following.html?v=lesson1words1"
+    ];
 
-  <script src="../assets/JavaScript/common_nouns.js?v=lesson1water4"></script>
-  <script src="../../shared/answer-frame.js?v=grade1frame5"></script>
+    const qsetFrame = document.getElementById("qsetFrame");
+    const qsetLabel = document.getElementById("qsetLabel");
+    const qsetDots = document.getElementById("qsetDots");
+    let currentQuestion = 0;
+
+    function updateStepIndicator() {
+      qsetLabel.textContent = `Question ${currentQuestion + 1} of ${QUESTIONS.length}`;
+      qsetDots.innerHTML = "";
+      QUESTIONS.forEach((page, i) => {
+        const dot = document.createElement("span");
+        dot.className = "qset-dot";
+        if (i < currentQuestion) dot.classList.add("done");
+        else if (i === currentQuestion) dot.classList.add("current");
+        qsetDots.appendChild(dot);
+      });
+    }
+
+    // Called by each embedded exercise when the learner completes it, in place of
+    // that exercise showing its own final popup.
+    function exerciseFinished() {
+      if (currentQuestion < QUESTIONS.length - 1) {
+        currentQuestion++;
+        loadQuestionPage(currentQuestion);
+        updateStepIndicator();
+        return;
+      }
+      showSetFinal();
+    }
+
+    function showSetFinal() {
+      document.getElementById("finalScore").textContent =
+        `You finished all ${QUESTIONS.length} questions.`;
+      document.getElementById("stars").textContent = "⭐".repeat(3);
+      document.getElementById("finalPopup").style.display = "flex";
+      if (typeof confetti === "function") {
+        confetti({ particleCount: 90, spread: 90, origin: { y: 0.68 } });
+      }
+    }
+
+    function restartSet() {
+      document.getElementById("finalPopup").style.display = "none";
+      currentQuestion = 0;
+      loadQuestionPage(0);
+      updateStepIndicator();
+    }
+
+    // The host paints the tinted, blurred surface for this tab. Without this the
+    // embedded question would tint and blur it a second time, leaving a visible
+    // seam between the step strip and the question below it.
+    function loadQuestionPage(index) {
+      qsetFrame.src = QUESTIONS[index];
+    }
+
+    updateStepIndicator();
+
+    window.exerciseFinished = exerciseFinished;
+    window.restartSet = restartSet;
+  </script>
 </body>
 </html>

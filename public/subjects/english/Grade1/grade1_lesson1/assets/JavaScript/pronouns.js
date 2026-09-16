@@ -234,8 +234,6 @@ const targetWords = {
 };
 
 const REQUIRED_WORDS = 6;
-const longestTargetLength = Math.max(...Object.values(targetWords).map((path) => path.length));
-const shortestTargetLength = Math.min(...Object.values(targetWords).map((path) => path.length));
 const gridEl = document.getElementById("familyGrid");
 const foundCountEl = document.getElementById("foundCount");
 const clueCards = [...document.querySelectorAll(".clue-card[data-word]")];
@@ -423,7 +421,7 @@ function handleCellClick(cell) {
   }
 
   addCellToSelection(cell);
-  evaluateClickSelection();
+  updateCheckButton();
 }
 
 function findSelectedWord() {
@@ -433,25 +431,16 @@ function findSelectedWord() {
   });
 }
 
-function canStillBecomeLongWord() {
-  if (selectedCells.length >= longestTargetLength) return false;
-  return Object.entries(targetWords).some(([word, path]) => {
-    if (foundWords.has(word) || path.length <= selectedCells.length) return false;
-    return selectedCells.every(([row, col]) =>
-      path.some(([targetRow, targetCol]) => targetRow === row && targetCol === col)
-    );
-  });
+const checkBtn = document.getElementById("checkBtn");
+
+function updateCheckButton() {
+  if (checkBtn) checkBtn.disabled = completed || selectedCells.length === 0;
 }
 
-function evaluateClickSelection() {
-  if (!selectedCells.length || completed) return;
-  if (findSelectedWord()) {
-    finishSelection();
-    return;
-  }
-  if (selectedCells.length >= shortestTargetLength && !canStillBecomeLongWord()) {
-    finishSelection();
-  }
+// The verdict is only ever given when the learner presses Check.
+function checkSelection() {
+  if (completed || !selectedCells.length) return;
+  finishSelection();
 }
 
 function finishSelection() {
@@ -474,12 +463,6 @@ function finishSelection() {
       completed = true;
       setTimeout(showFinal, 1700);
     }
-  } else if (selectedCells.length < shortestTargetLength || canStillBecomeLongWord()) {
-    isSelecting = false;
-    wasDragged = false;
-    pointerStartPos = null;
-    pointerStartCell = null;
-    return;
   } else {
     selectedCells.forEach(([row, col]) => getCell(row, col)?.classList.add("wrong"));
     speak("Wrong");
@@ -493,6 +476,7 @@ function finishSelection() {
   wasDragged = false;
   pointerStartPos = null;
   pointerStartCell = null;
+  updateCheckButton();
 }
 
 function renderGrid() {
@@ -536,11 +520,8 @@ function renderGrid() {
           return;
         }
 
-        if (wasDragged) {
-          finishSelection();
-        } else {
-          isSelecting = false;
-        }
+        isSelecting = false;
+        updateCheckButton();
       });
 
       gridEl.appendChild(cell);
@@ -577,18 +558,21 @@ function resetFamilyGrid() {
   completed = false;
   renderGrid();
   updateFoundCount();
+  updateCheckButton();
   const answerPopup = document.getElementById("answerPopup");
   if (answerPopup) answerPopup.style.display = "none";
   document.getElementById("finalPopup").style.display = "none";
 }
 
 window.resetFamilyGrid = resetFamilyGrid;
+window.checkSelection = checkSelection;
 
 document.addEventListener("pointermove", handlePointerMove);
 document.addEventListener("pointerup", (event) => {
   if (isSelecting) {
     if (wasDragged) {
-      finishSelection();
+      isSelecting = false;
+      updateCheckButton();
       return;
     }
     isSelecting = false;
@@ -598,6 +582,7 @@ document.addEventListener("pointerup", (event) => {
         selectedCells = [];
         clearActive();
         pointerStartCell = null;
+        updateCheckButton();
       }
     }
   }

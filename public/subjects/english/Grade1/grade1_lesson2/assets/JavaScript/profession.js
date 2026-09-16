@@ -51,13 +51,6 @@ const quizData = [
 
 let current = 0;
 let answered = Array(quizData.length).fill(null);
-const professionImages = {
-  Teacher: "../assets/images/teacher-removebg-preview.png",
-  Doctor: "../assets/images/doctorcart-removebg-preview.png",
-  Driver: "../assets/images/driver-removebg-preview.png",
-  Chef: "../assets/images/chef-removebg-preview.png",
-  Florist: "../assets/images/florist-removebg-preview.png",
-};
 
 const qEl = document.getElementById("question");
 const imgEl = document.getElementById("questionImg");
@@ -110,8 +103,7 @@ function loadQuestion() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "prof-choice";
-    const choiceImg = professionImages[choice] || "";
-    button.innerHTML = `${choiceImg ? `<img src="${choiceImg}" alt="${choice}">` : ""}<span>${choice}</span>`;
+    button.innerHTML = `<span>${choice}</span>`;
     button.setAttribute("aria-label", choice);
     button.dataset.choice = choice;
     button.onclick = () => chooseAnswer(choice, button);
