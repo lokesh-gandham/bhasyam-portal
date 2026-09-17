@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --brand:#7C3AED;     --brand-dark:#6D28D9;  --brand-light:#F5F3FF;
+ --brand:#A8C7A0;     --brand-dark:#6F8F72;  --brand-light:#EEF6EC;
   --emerald:#10B981;   --orange:#FF7A00;       --yellow:#FFD000;    --pink:#FF2E93;
   --ink:#2D241E;       --ink-soft:#5C4D42;
   --good:#10B981;      --good-light:#ECFDF5;
@@ -52,8 +52,9 @@ body{
   display:inline-flex; align-items:center; gap:7px;
   padding:9px 16px; border-radius:12px;
   border:2px solid var(--brand-dark);
-  background:linear-gradient(160deg,#8B5CF6,var(--brand));
-  color:#fff; font-size:15px; line-height:1; text-decoration:none;
+    background:linear-gradient(160deg,#f7fff5,#f7fff5);
+
+  color:#313030; font-size:15px; line-height:1; text-decoration:none;
   box-shadow:0 3px 0 var(--brand-dark),0 6px 14px rgba(124,58,237,.25);
   transition:transform .15s ease, box-shadow .15s ease;
 }
@@ -290,6 +291,21 @@ body{
   .left-controls{ width:320px; min-width:320px; }
   .cartoon-num-wrapper svg, .cartoon-num-wrapper .tf-img{ max-height:clamp(220px, 32vh, 330px); }
 }
+
+/* FINAL POPUP FIX */
+.finish-overlay {
+  z-index: 9999 !important;
+}
+.finish-overlay.show {
+  display: grid !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+.finish-card {
+  position: relative;
+  z-index: 10000;
+}
+
 </style>
 </head>
 <body>
@@ -502,9 +518,13 @@ body{
     var synth = window.speechSynthesis;
     if (!synth) return;
     synth.cancel();
-    var u = new SpeechSynthesisUtterance(text);
-    u.rate = 1;
-    synth.speak(u);
+   
+    var msg = new SpeechSynthesisUtterance(text);
+   msg.lang = "en-US";
+      msg.volume = 0.25;
+      msg.rate = 1;
+      msg.pitch = 1;
+    synth.speak(msg);
   }
 
   function playTone(freq, dur, type){
@@ -520,16 +540,16 @@ body{
   }
 
   function soundCorrectVoice() {
-    playTone(523, 0.12);
-    setTimeout(function(){ playTone(659, 0.12); }, 100);
-    setTimeout(function(){ playTone(784, 0.2); }, 200);
+    // playTone(523, 0.12);
+    // setTimeout(function(){ playTone(659, 0.12); }, 100);
+    // setTimeout(function(){ playTone(784, 0.2); }, 200);
     speak('Correct!');
     window.confetti.burst({ count: 80 });
   }
 
   function soundWrongVoice() {
-    playTone(330, 0.25, 'square');
-    setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
+    // playTone(330, 0.25, 'square');
+    // setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
     speak('Try again!');
   }
 
@@ -742,6 +762,30 @@ body{
       }, 2000);
     } else {
       s.clean = false;
+
+      /* After a wrong answer, remove every wrong click.
+         Keep only cells that are BOTH:
+         1) a required multiple, and
+         2) coloured with the correct colour. */
+      for (var n = 1; n <= 100; n++) {
+        var cell = gridCells[n];
+        var keep = false;
+
+        if (at === 0) {
+          keep = (n % 3 === 0) && cell.classList.contains('c-yellow');
+        } else if (at === 1) {
+          keep = (n % 7 === 0) && cell.classList.contains('c-orange');
+        } else if (at === 2) {
+          keep = (n % 9 === 0) && cell.classList.contains('c-pink');
+        } else if (at === 3) {
+          keep = (n % 2 === 0) && cell.classList.contains('c-green');
+        }
+
+        if (!keep) {
+          cell.className = 'cell';
+        }
+      }
+
       var overlayErr = document.getElementById('popup-incorrect-overlay');
       overlayErr.classList.remove('show');
       void overlayErr.offsetWidth;
@@ -755,17 +799,38 @@ body{
   }
 
   function showFinish() {
-    document.getElementById('finish-overlay').classList.add('show');
-    window.confetti.rain();
-    playTone(523, 0.12); setTimeout(function(){ playTone(659, 0.12); }, 120); setTimeout(function(){ playTone(784, 0.12); }, 240); setTimeout(function(){ playTone(1047, 0.35); }, 360);
-    speak('Congratulations!');
+    /* Close any answer popup first, then show the final popup. */
+    if (popupTimer) {
+      clearTimeout(popupTimer);
+      popupTimer = null;
+    }
+
+    document.getElementById('popup-correct-overlay').classList.remove('show');
+    document.getElementById('popup-incorrect-overlay').classList.remove('show');
+
+    var finish = document.getElementById('finish-overlay');
+    finish.classList.remove('show');
+
+    /* Force a fresh animation every time the final popup opens. */
+    void finish.offsetWidth;
+    finish.classList.add('show');
+
+    if (window.confetti && typeof window.confetti.burst === 'function') {
+      window.confetti.burst({ count: 120 });
+    }
+
+    // speak('Congratulations! You finished this activity!');
   }
 
   document.getElementById('check-btn').onclick = check;
   document.getElementById('prev-btn').onclick = function () { if (at > 0) { at--; draw(); } };
   document.getElementById('next-btn').onclick = function () {
-    if (at < ITEMS.length - 1) { at++; draw(); }
-    else showFinish();
+    if (at < ITEMS.length - 1) {
+      at++;
+      draw();
+    } else if (ITEMS.every(function (it, i) { return state[i].solved; })) {
+      showFinish();
+    }
   };
   document.getElementById('again-btn').onclick = function () {
     document.getElementById('finish-overlay').classList.remove('show');
