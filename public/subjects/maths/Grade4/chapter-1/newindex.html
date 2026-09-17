@@ -447,6 +447,12 @@ body::after{
   }
 
 }
+
+/* Full activity card is clickable */
+.card.card-clickable{cursor:pointer;}
+.card.card-clickable:focus{outline:3px solid rgba(168,199,160,.65);outline-offset:4px;}
+.card.card-clickable .preview,.card.card-clickable .card-body{cursor:pointer;}
+.card.card-clickable .play{cursor:pointer;}
 </style>
 </head>
 <body>
@@ -828,6 +834,33 @@ function openPack(packId){
   }).join('');
 
   sectionsRoot.innerHTML = cards;
+
+  /* Make the entire activity card clickable. */
+  sectionsRoot.querySelectorAll('.card').forEach(card => {
+    card.classList.add('card-clickable');
+    card.setAttribute('role','link');
+    card.setAttribute('tabindex','0');
+    const playBtn = card.querySelector('.play');
+    if (!playBtn) return;
+    const openActivity = () => {
+      if (playBtn.dataset.ready === '1') {
+        sessionStorage.setItem('scrollToCard', playBtn.dataset.id);
+        location.href = `html/${playBtn.dataset.id}.html`;
+      } else {
+        showToast(`${playBtn.dataset.title} — activity coming soon`);
+      }
+    };
+    card.addEventListener('click', e => {
+      if (e.target.closest('.play')) return;
+      openActivity();
+    });
+    card.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      openActivity();
+    });
+  });
+
   window.scrollTo({top:0, behavior:'smooth'});
 }
 

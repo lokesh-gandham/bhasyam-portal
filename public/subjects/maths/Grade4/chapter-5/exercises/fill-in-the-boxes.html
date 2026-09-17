@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --brand:#7C3AED;     --brand-dark:#6D28D9;  --brand-light:#F5F3FF;
+ --brand:#A8C7A0;     --brand-dark:#6F8F72;  --brand-light:#EEF6EC;
   --emerald:#10B981;   --orange:#FF7A00;       --yellow:#FFD000;    --pink:#FF2E93;
   --ink:#2D241E;       --ink-soft:#5C4D42;
   --good:#10B981;      --good-light:#ECFDF5;
@@ -52,8 +52,8 @@ body{
   display:inline-flex; align-items:center; gap:7px;
   padding:9px 16px; border-radius:12px;
   border:2px solid var(--brand-dark);
-  background:linear-gradient(160deg,#8B5CF6,var(--brand));
-  color:#fff; font-size:15px; line-height:1; text-decoration:none;
+  background:linear-gradient(160deg,#fdfdfd,#fdfdfd);
+   color:#313030; font-size:15px; line-height:1; text-decoration:none;
   box-shadow:0 3px 0 var(--brand-dark),0 6px 14px rgba(124,58,237,.25);
   transition:transform .15s ease, box-shadow .15s ease;
 }
@@ -104,10 +104,8 @@ body{
   box-shadow:0 24px 54px rgba(180,83,9,0.08);
   display:flex; flex-direction:column; align-items:center; justify-content:safe center;
   width:100%; max-width:1060px; height:100%; max-height:82vh;
-  gap:clamp(12px, 1.8vh, 22px);
-  /* the longest question (many boxes + many letter tiles) can outgrow the
-     card on short laptops — let it scroll instead of clipping the tiles */
-  overflow-y:auto; overscroll-behavior:contain;
+  gap:clamp(6px, 1.2vh, 14px);
+  overflow:hidden;
 }
 
 /* Question Prompt Line: 30px on Laptops, 40px on Monitors */
@@ -120,6 +118,24 @@ body{
   .single-q-text{ font-size:40px !important; }
 }
 .single-q-num{ font-weight:400 !important; color:var(--brand-dark); }
+
+.question-image-wrap{
+  width:100%;
+  height:clamp(100px, 20vh, 220px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 1 auto;
+  min-height:0;
+}
+.question-image{
+  display:block;
+  width:auto;
+  height:100%;
+  max-width:min(100%, 520px);
+  object-fit:contain;
+  border-radius:14px;
+}
 
 /* Filled Slot Boxes Row (Pink rounded boxes matching screenshot reference) */
 .slots-row-wrap{
@@ -154,13 +170,13 @@ body{
 
 .tile-btn{
   width:clamp(38px, 3.4vw, 52px); height:clamp(38px, 3.4vw, 52px); border-radius:15px;
-  background:linear-gradient(160deg, #FBBF24, #F59E0B); border:2.5px solid #D97706;
-  color:#FFFFFF; font-size:clamp(19px, 2.3vw, 27px); font-weight:400; cursor:pointer;
+  background:linear-gradient(160deg, #DDEBF7, #BFD9EE); border:2.5px solid #9FC1DC;
+  color:#315B78; font-size:clamp(19px, 2.3vw, 27px); font-weight:400; cursor:pointer;
   display:inline-flex; align-items:center; justify-content:center;
-  box-shadow:0 5px 0 #B45309, 0 8px 16px rgba(245,158,11,0.25);
+  box-shadow:0 5px 0 #91B5D0, 0 8px 16px rgba(91,139,176,0.2);
   transition:all .15s cubic-bezier(.22,1.3,.36,1); user-select:none; outline:none;
 }
-.tile-btn:hover{ transform:translateY(-3px) scale(1.06); background:linear-gradient(160deg, #FCD34D, #F59E0B); }
+.tile-btn:hover{ transform:translateY(-3px) scale(1.06); background:linear-gradient(160deg, #EAF3FA, #CFE3F2); }
 .tile-btn:active{ transform:scale(0.94); }
 .tile-btn.used{ opacity:0.25; pointer-events:none; transform:scale(0.88); box-shadow:none; }
 
@@ -191,9 +207,9 @@ body{
 .btn-check-answer:hover{ transform:translateY(-2px); box-shadow:0 6px 0 #047857; }
 
 .btn-nav{
-  width:100%; background:#7C3AED; color:#fff; border:2.5px solid #6D28D9; box-shadow:0 4px 0 #6D28D9;
+  width:100%;   background:#D9C7EA; color:#563B70; border:2.5px solid #B99BCF; box-shadow:0 4px 0 #A886BF;
 }
-.btn-nav:hover{ transform:translateY(-2px); box-shadow:0 6px 0 #6D28D9; }
+.btn-nav:hover{ transform:translateY(-2px); background:#E8DDF2; box-shadow:0 6px 0 #A886BF; }
 .btn-nav:disabled{ opacity:.4; cursor:not-allowed; transform:none; box-shadow:none; }
 
 .btn-prev-style{
@@ -310,6 +326,10 @@ body{
       <!-- TOP: QUESTION PROMPT & INPUT SLOTS -->
       <div class="single-q-text" id="single-q-container">
         <!-- Rendered via JS -->
+      </div>
+
+      <div class="question-image-wrap">
+        <img class="question-image" id="question-image" alt="">
       </div>
 
       <!-- MIDDLE: PINK SLOT BOXES -->
@@ -507,27 +527,27 @@ body{
   }
 
   function soundCorrectVoice() {
-    playTone(523, 0.12); setTimeout(function(){ playTone(659, 0.12); }, 100); setTimeout(function(){ playTone(784, 0.2); }, 200);
+    // playTone(523, 0.12); setTimeout(function(){ playTone(659, 0.12); }, 100); setTimeout(function(){ playTone(784, 0.2); }, 200);
     speak('Correct!');
     window.confetti.burst({ count: 80 });
   }
 
   function soundWrongVoice() {
-    playTone(330, 0.25, 'square'); setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
+    // playTone(330, 0.25, 'square'); setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
     speak('Try again!');
   }
 
   /* Exact Answer Key from Textbook Image */
   var QUESTIONS = [
-    { num: 1, pre: 'Counting numbers are called', post: '.', target: 'NATURAL NUMBERS', decoys: ['X', 'K'], ans: ['natural numbers', 'natural', 'natural number'] },
-    { num: 2, pre: 'The smallest natural number is', post: '.', target: '1', decoys: ['0', '2', '9'], ans: ['1', 'one'] },
-    { num: 3, pre: 'Whole numbers are denoted by', post: '.', target: 'W', decoys: ['N', 'X', 'Z'], ans: ['w'] },
-    { num: 4, pre: 'Natural numbers along with 0 are called', post: '.', target: 'WHOLE NUMBERS', decoys: ['P', 'Q'], ans: ['whole numbers', 'whole', 'whole number'] },
-    { num: 5, pre: 'Numbers that are not divisible by 2 are called', post: '.', target: 'ODD NUMBERS', decoys: ['E', 'X'], ans: ['odd numbers', 'odd', 'odd number'] },
-    { num: 6, pre: 'Natural numbers are denoted by', post: '.', target: 'N', decoys: ['W', 'M', 'R'], ans: ['n'] },
-    { num: 7, pre: 'Numbers that are divisible by 2 are called', post: '.', target: 'EVEN NUMBERS', decoys: ['O', 'Z'], ans: ['even numbers', 'even', 'even number'] },
-    { num: 8, pre: 'Numbers are', post: '.', target: 'INFINITE', decoys: ['S', 'B'], ans: ['infinite'] },
-    { num: 9, pre: 'Numbers that follow each other in a sequence, from the smallest to the largest are called', post: '.', target: 'CONSECUTIVE NUMBERS', decoys: ['P', 'K'], ans: ['consecutive numbers', 'consecutive', 'consecutive number'] }
+    { num: 1, image: '../assets/q1.png', pre: 'Counting numbers are called', post: '.', target: 'NATURAL NUMBERS', decoys: ['X', 'K'], ans: ['natural numbers', 'natural', 'natural number'] },
+    { num: 2, image: '../assets/q2.png', pre: 'The smallest natural number is', post: '.', target: '1', decoys: ['0', '2', '9'], ans: ['1', 'one'] },
+    { num: 3, image: '../assets/q3.png', pre: 'Whole numbers are denoted by', post: '.', target: 'W', decoys: ['N', 'X', 'Z'], ans: ['w'] },
+    { num: 4, image: '../assets/q4.png', pre: 'Natural numbers along with 0 are called', post: '.', target: 'WHOLE NUMBERS', decoys: ['P', 'Q'], ans: ['whole numbers', 'whole', 'whole number'] },
+    { num: 5, image: '../assets/q5.png', pre: 'Numbers that are not divisible by 2 are called', post: '.', target: 'ODD NUMBERS', decoys: ['E', 'X'], ans: ['odd numbers', 'odd', 'odd number'] },
+    { num: 6, image: '../assets/q6.png', pre: 'Natural numbers are denoted by', post: '.', target: 'N', decoys: ['W', 'M', 'R'], ans: ['n'] },
+    { num: 7, image: '../assets/q7.png', pre: 'Numbers that are divisible by 2 are called', post: '.', target: 'EVEN NUMBERS', decoys: ['O', 'Z'], ans: ['even numbers', 'even', 'even number'] },
+    { num: 8, image: '../assets/q8.png', pre: 'Numbers are', post: '.', target: 'INFINITE', decoys: ['S', 'B'], ans: ['infinite'] },
+    { num: 9, image: '../assets/q9.png', pre: 'Numbers that follow each other in a sequence, from the smallest to the largest are called', post: '.', target: 'CONSECUTIVE NUMBERS', decoys: ['P', 'K'], ans: ['consecutive numbers', 'consecutive', 'consecutive number'] }
   ];
 
   var at = 0;
@@ -673,6 +693,9 @@ body{
     /* Render Prompt Text Line */
     var singleCard = document.getElementById('single-q-container');
     singleCard.innerHTML = '<span><span class="single-q-num">' + q.num + ')</span> ' + q.pre + '</span>';
+    var questionImage = document.getElementById('question-image');
+    questionImage.src = q.image;
+    questionImage.alt = 'Illustration for question ' + q.num;
 
     /* Render Pink Slot Boxes */
     var slotsContainer = document.getElementById('slots-container');
@@ -722,8 +745,8 @@ body{
   function showFinish() {
     document.getElementById('finish-overlay').classList.add('show');
     window.confetti.rain();
-    playTone(523, 0.12); setTimeout(function(){ playTone(659, 0.12); }, 120); setTimeout(function(){ playTone(784, 0.12); }, 240); setTimeout(function(){ playTone(1047, 0.35); }, 360);
-    speak('Congratulations!');
+    // playTone(523, 0.12); setTimeout(function(){ playTone(659, 0.12); }, 120); setTimeout(function(){ playTone(784, 0.12); }, 240); setTimeout(function(){ playTone(1047, 0.35); }, 360);
+    // speak('Congratulations!');
   }
 
   document.getElementById('prev-btn').onclick = function () { if (at > 0) { at--; draw(); } };

@@ -27,10 +27,12 @@
     var synth = window.speechSynthesis;
     if(!synth) return;
     synth.cancel();
-    var u = new SpeechSynthesisUtterance(text);
-    u.rate = 1;
-    u.pitch = 1.1;
-    synth.speak(u);
+    var msg = new SpeechSynthesisUtterance(text);
+   msg.lang = "en-US";
+      msg.volume = 0.25;
+      msg.rate = 1;
+      msg.pitch = 1;
+    synth.speak(msg);
   }
 
   function playTone(freq, dur, type){
@@ -51,24 +53,24 @@
   }
 
   function soundCorrect(){
-    playTone(523, 0.12);
-    setTimeout(function(){ playTone(659, 0.12); }, 100);
-    setTimeout(function(){ playTone(784, 0.2); }, 200);
+    // playTone(523, 0.12);
+    // setTimeout(function(){ playTone(659, 0.12); }, 100);
+    // setTimeout(function(){ playTone(784, 0.2); }, 200);
     speak('Correct!');
   }
 
   function soundWrong(){
-    playTone(330, 0.25, 'square');
-    setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
+    // playTone(330, 0.25, 'square');
+    // setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
     speak('Try again!');
   }
 
   function soundCongrats(){
-    playTone(523, 0.12);
-    setTimeout(function(){ playTone(659, 0.12); }, 120);
-    setTimeout(function(){ playTone(784, 0.12); }, 240);
-    setTimeout(function(){ playTone(1047, 0.35); }, 360);
-    speak('Congratulations!');
+    // playTone(523, 0.12);
+    // setTimeout(function(){ playTone(659, 0.12); }, 120);
+    // setTimeout(function(){ playTone(784, 0.12); }, 240);
+    // setTimeout(function(){ playTone(1047, 0.35); }, 360);
+    // speak('Congratulations!');
   }
 
   function norm(v) {
