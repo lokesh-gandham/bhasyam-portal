@@ -180,6 +180,61 @@
       font-size: 18px;
     }
 
+    /* ===== ALL FOUR SENTENCES ON ONE SCREEN ===== */
+    .match-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 1000px;
+      margin: 8px auto 4px;
+    }
+
+    .match-row {
+      display: grid;
+      grid-template-columns: 64px 1fr 190px;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 14px;
+      border: 2px solid #e5efee;
+      border-radius: 16px;
+      background: #ffffff;
+    }
+
+    .match-row.correct {
+      border-color: #22c55e;
+      background: #f2fdf6;
+    }
+
+    .match-row.wrong {
+      border-color: #ef5350;
+      background: #fff5f5;
+      animation: rowShake .4s ease;
+    }
+
+    @keyframes rowShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .match-row img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+    }
+
+    .row-text {
+      font-size: 20px;
+      color: #2f4f4f;
+      line-height: 1.4;
+    }
+
+    .match-row .dropzone {
+      min-height: 46px;
+      margin: 0;
+    }
+
     /* IMAGE + CLUE side by side */
     .stage-row {
       display: grid;
@@ -957,31 +1012,10 @@
         </div>
       </div>
 
-      <div class="question-wrapper">
-        <div class="question" id="qText"></div>
-      </div>
-
-      <div class="stage-row">
-        <div class="image-wrap">
-          <div class="image-circle">
-            <img id="qImg" src="" alt="Question image"  draggable="false">
-          </div>
-        </div>
-
-        <div class="input-wrap">
-          <div class="input-box" id="inputBox">
-            <div class="clue-label">Clue box — drop the meaning of the underlined word</div>
-            <div class="clue-actions">
-              <div class="dropzone empty" id="dropZone"></div>
-              <button id="checkBtn" disabled>Submit</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="match-list" id="matchList"></div>
 
       <div class="nav">
-        <button class="prev" id="prevBtn" disabled>← Prev</button>
-        <button class="next" id="nextBtn" disabled>Next →</button>
+        <button class="next" id="checkBtn" disabled>Submit</button>
       </div>
     </div>
   </div>
@@ -1012,43 +1046,39 @@
     // Question data with underlined word and correct answer
     const questions = [{
       q: "Q1. Vivek was a very",
-      underline: "Clever",
+      underline: "clever",
       qEnd: "child.",
-      answer: "Brilliant",
+      answer: "brilliant",
       img: "../assets/images/schoolBoy.png"
     }, {
       q: "Q2. He was spending more time on a",
-      underline: "Small computer",
+      underline: "small computer",
       qEnd: ".",
-      answer: "Tab",
+      answer: "tab",
       img: "../assets/images/meanings2.png"
     }, {
       q: "Q3. Vivek followed his uncle's",
-      underline: "Suggestion",
+      underline: "suggestion",
       qEnd: ".",
-      answer: "Advice",
+      answer: "advice",
       img: "../assets/images/uncleNboy.png"
     }, {
       q: "Q4. They ate a",
-      underline: "Tasty",
-      qEnd: "Cake.",
-      answer: "Yummy",
+      underline: "tasty",
+      qEnd: "cake.",
+      answer: "yummy",
       img: "../assets/images/cake.png"
     }];
 
-    let index = 0,
-      score = 0;
-    const answers = Array(questions.length).fill(null);
-    const solvedWords = new Set();
+    let score = 0;
+    // which word is sitting in each sentence's box, and which rows are already right
+    const placed = Array(questions.length).fill(null);
+    const solvedRows = new Set();
+    let selectedChip = null;
 
-    const qText = document.getElementById("qText");
-    const qImg = document.getElementById("qImg");
-    const dropZone = document.getElementById("dropZone");
+    const matchList = document.getElementById("matchList");
     const wordBank = document.getElementById("wordBank");
     const check = document.getElementById("checkBtn");
-    const prev = document.getElementById("prevBtn");
-    const next = document.getElementById("nextBtn");
-    const inputBox = document.getElementById("inputBox");
 
     function speak(t) {
       speechSynthesis.cancel();
@@ -1069,33 +1099,81 @@
       return a;
     }
 
+    function zoneFor(i) {
+      return matchList.querySelector('.dropzone[data-i="' + i + '"]');
+    }
+
+    function rowFor(i) {
+      return matchList.querySelector('.match-row[data-i="' + i + '"]');
+    }
+
+    // ---------- the four sentences, all on one screen ----------
+    function buildRows() {
+      matchList.innerHTML = '';
+      questions.forEach(function (q, i) {
+        const row = document.createElement("div");
+        row.className = "match-row";
+        row.dataset.i = i;
+        row.innerHTML =
+          '<img src="' + q.img + '" alt="" draggable="false">' +
+          '<div class="row-text">' + q.q +
+          ' <span class="underlined-blank">' + q.underline + '</span> ' + q.qEnd + '</div>' +
+          '<div class="dropzone empty" data-i="' + i + '"></div>';
+
+        const zone = row.querySelector(".dropzone");
+
+        zone.addEventListener("dragover", function (e) {
+          if (solvedRows.has(i)) return;
+          e.preventDefault();
+          zone.classList.add("dragover");
+        });
+        zone.addEventListener("dragleave", function () {
+          zone.classList.remove("dragover");
+        });
+        zone.addEventListener("drop", function (e) {
+          e.preventDefault();
+          zone.classList.remove("dragover");
+          const word = e.dataTransfer.getData("text/plain");
+          if (word) placeWord(word, i);
+        });
+
+        // tap a word then tap a box - works without dragging too
+        zone.addEventListener("click", function () {
+          if (solvedRows.has(i)) return;
+          if (selectedChip) {
+            placeWord(selectedChip, i);
+          } else if (placed[i]) {
+            returnWord(i);
+          }
+        });
+
+        matchList.appendChild(row);
+      });
+    }
+
+    // ---------- the word bank: all four meanings stay on screen ----------
     function buildWordBank() {
       wordBank.innerHTML = '';
-      const words = shuffle(questions.map((q) => q.answer));
-      words.forEach((word) => {
+      shuffle(questions.map(function (q) { return q.answer; })).forEach(function (word) {
         const chip = document.createElement("div");
         chip.className = "word-chip";
         chip.textContent = word;
         chip.draggable = true;
         chip.dataset.word = word;
 
-        chip.addEventListener("dragstart", (e) => {
-          if (chip.classList.contains("disabled")) {
-            e.preventDefault();
-            return;
-          }
+        chip.addEventListener("dragstart", function (e) {
+          if (chip.classList.contains("disabled")) { e.preventDefault(); return; }
           e.dataTransfer.setData("text/plain", word);
           chip.classList.add("dragging");
         });
-
-        chip.addEventListener("dragend", () => {
+        chip.addEventListener("dragend", function () {
           chip.classList.remove("dragging");
         });
 
-        chip.addEventListener("click", () => {
+        chip.addEventListener("click", function () {
           if (chip.classList.contains("disabled")) return;
-          if (answers[index] !== null) return;
-          placeWordInDropzone(word);
+          selectedChip = (selectedChip === word) ? null : word;
+          highlightSelection();
         });
 
         wordBank.appendChild(chip);
@@ -1103,91 +1181,113 @@
       refreshWordBankState();
     }
 
-    function refreshWordBankState() {
-      document.querySelectorAll(".word-chip").forEach((chip) => {
-        chip.classList.toggle("disabled", solvedWords.has(chip.dataset.word));
+    function highlightSelection() {
+      document.querySelectorAll(".word-chip").forEach(function (c) {
+        c.classList.toggle("dragging", c.dataset.word === selectedChip);
       });
     }
 
-    function placeWordInDropzone(word) {
-      if (answers[index] !== null) return;
-      dropZone.textContent = word;
-      dropZone.dataset.current = word;
-      dropZone.classList.remove("empty");
-      check.disabled = false;
-    }
+    function placeWord(word, i) {
+      if (solvedRows.has(i)) return;
 
-    function clearDropzone() {
-      dropZone.textContent = "";
-      dropZone.dataset.current = "";
-      dropZone.classList.add("empty");
-      check.disabled = true;
-    }
-
-    dropZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      if (answers[index] === null) dropZone.classList.add("dragover");
-    });
-
-    dropZone.addEventListener("dragleave", () => {
-      dropZone.classList.remove("dragover");
-    });
-
-    dropZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("dragover");
-      if (answers[index] !== null) return;
-      const word = e.dataTransfer.getData("text/plain");
-      if (word) placeWordInDropzone(word);
-    });
-
-    function load() {
-      const q = questions[index];
-
-      // Build question with underlined blank space
-      let questionHTML = '';
-      if (q.q) {
-        questionHTML += q.q + ' ';
+      // a word can only sit in one sentence at a time
+      const previous = placed.indexOf(word);
+      if (previous !== -1 && previous !== i) {
+        if (solvedRows.has(previous)) return;
+        clearZone(previous);
       }
-      
-      // Create the underlined blank space
-      const isFilled = answers[index] !== null;
-      const blankText = isFilled ? answers[index] : '______';
-      const blankClass = isFilled ? 'underlined-blank filled' : 'underlined-blank';
-      
-questionHTML += `
-<span class="underlined-blank ${isFilled ? 'filled' : ''}" id="blankSlot">
-    ${q.underline}
-</span>`;
-      
-      if (q.qEnd) {
-        questionHTML += ' ' + q.qEnd;
-      }
+      if (placed[i]) clearZone(i);
 
-      qText.innerHTML = questionHTML;
+      placed[i] = word;
+      const zone = zoneFor(i);
+      zone.textContent = word;
+      zone.classList.remove("empty");
 
-      // Set image
-      qImg.src = q.img;
-      qImg.alt = q.underline || "Question image";
-
-      // Handle dropzone state
-      if (answers[index] !== null) {
-        dropZone.textContent = answers[index];
-        dropZone.dataset.current = answers[index];
-        dropZone.classList.remove("empty");
-        check.disabled = true;
-        inputBox.classList.add("correct");
-      } else {
-        clearDropzone();
-        inputBox.classList.remove("correct");
-      }
-
-      // Button states
-      prev.disabled = index === 0;
-      next.disabled = answers[index] === null;
-
+      selectedChip = null;
       refreshWordBankState();
+      refreshSubmitState();
     }
+
+    function clearZone(i) {
+      placed[i] = null;
+      const zone = zoneFor(i);
+      zone.textContent = "";
+      zone.classList.add("empty");
+    }
+
+    function returnWord(i) {
+      clearZone(i);
+      refreshWordBankState();
+      refreshSubmitState();
+    }
+
+    // a word in use is dimmed rather than removed, so the full set stays visible
+    function refreshWordBankState() {
+      document.querySelectorAll(".word-chip").forEach(function (chip) {
+        chip.classList.toggle("disabled", placed.indexOf(chip.dataset.word) !== -1);
+      });
+      highlightSelection();
+    }
+
+    function pendingRows() {
+      return questions
+        .map(function (_, i) { return i; })
+        .filter(function (i) { return !solvedRows.has(i); });
+    }
+
+    function refreshSubmitState() {
+      const pending = pendingRows();
+      check.disabled = pending.length === 0 ||
+        pending.some(function (i) { return !placed[i]; });
+    }
+
+    // ---------- one Submit judges all four ----------
+    check.onclick = function () {
+      const pending = pendingRows();
+      if (pending.length === 0) return;
+      if (pending.some(function (i) { return !placed[i]; })) return;
+
+      const wrongRows = [];
+
+      pending.forEach(function (i) {
+        const row = rowFor(i);
+        if (placed[i] === questions[i].answer) {
+          solvedRows.add(i);
+          score++;
+          row.classList.add("correct");
+        } else {
+          row.classList.add("wrong");
+          wrongRows.push(i);
+        }
+      });
+
+      check.disabled = true;
+
+      if (wrongRows.length === 0) {
+        speak("Correct");
+        showPopup(true);
+        const correctSound = document.getElementById("correctSound");
+        if (correctSound) correctSound.play();
+        if (typeof confetti !== 'undefined') {
+          confetti({ particleCount: 35, spread: 70, origin: { y: 0.7 }, scalar: 0.8 });
+        }
+        if (solvedRows.size === questions.length) setTimeout(showFinal, 1600);
+      } else {
+        speak("Try again");
+        showPopup(false);
+        const wrongSound = document.getElementById("wrongSound");
+        if (wrongSound) wrongSound.play();
+
+        setTimeout(function () {
+          wrongRows.forEach(function (i) {
+            rowFor(i).classList.remove("wrong");
+            clearZone(i);
+          });
+          refreshWordBankState();
+          refreshSubmitState();
+        }, 900);
+      }
+    };
 
     // ========== POPUP FUNCTIONS (MATCHED WITH MCQ) ==========
     
@@ -1256,77 +1356,10 @@ if (window.innerWidth >= 769) {
       }
     }
 
-    // ========== CHECK ANSWER ==========
-    
-    check.onclick = () => {
-      const word = (dropZone.dataset.current || "").trim().toLowerCase();
-      if (!word) return;
-
-      const correctAnswer = questions[index].answer.toLowerCase();
-
-      if (word === correctAnswer) {
-answers[index] = questions[index].answer.charAt(0).toUpperCase() + questions[index].answer.slice(1);
-        solvedWords.add(questions[index].answer);
-        score++;
-        speak("Correct");
-        showPopup(true);
-        inputBox.classList.add("correct");
-        check.disabled = true;
-        refreshWordBankState();
-
-        // Play correct sound
-        const correctSound = document.getElementById("correctSound");
-        if (correctSound) correctSound.play();
-
-        // Small confetti
-        if (typeof confetti !== 'undefined') {
-          confetti({
-            particleCount: 35,
-            spread: 70,
-            origin: { y: 0.7 },
-            scalar: 0.8
-          });
-        }
-
-        if (index === questions.length - 1) {
-          setTimeout(showFinal, 1600);
-        }
-        next.disabled = false;
-        load();
-      } else {
-        speak("Wrong");
-        showPopup(false);
-        const wrongSound = document.getElementById("wrongSound");
-        if (wrongSound) wrongSound.play();
-        
-        // Shake the dropzone
-        dropZone.classList.add("error");
-        setTimeout(() => {
-          dropZone.classList.remove("error");
-        }, 400);
-        
-        clearDropzone();
-        load();
-      }
-    };
-
-    prev.onclick = () => {
-      if (index > 0) {
-        index--;
-        load();
-      }
-    };
-
-    next.onclick = () => {
-      if (index < questions.length - 1) {
-        index++;
-        load();
-      }
-    };
-
     // Initialize
+    buildRows();
     buildWordBank();
-    load();
+    refreshSubmitState();
   </script>
 
 </body>

@@ -1148,7 +1148,7 @@
   <div class="main">
 
     <!-- INSTRUCTION - fixed at top -->
-    <div class="header-subtitle">Read the clues and fill in the crossword puzzle</div>
+    <div class="header-subtitle">Read the clues and complete in the crossword puzzle</div>
 
     <div class="content">
 
@@ -1200,7 +1200,7 @@
   </div>
 
   <!-- WORD SELECTION POPUP -->
-  <div id="wordSelectPopup" style="display:none; position:fixed; z-index:3500;">
+  <div id="wordSelectPopup" style="display:none; position:fixed; z-index:3500;" hidden>
     <div class="word-select-card">
       <div class="ws-options" id="wsOptions"></div>
     </div>
@@ -1270,7 +1270,6 @@
       }
     };
 
-    const wrongLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const gridContainer = document.getElementById("crosswordGrid");
     const cellMapping = {};
     let activeWordKey = null;
@@ -1305,7 +1304,7 @@
           input.dataset.col = c;
           input.dataset.words = cellData.words.join(",");
           input.dataset.correctLetter = cellData.letter;
-          input.readOnly = true;
+          input.autocomplete = "off";
           cellData.inputElement = input;
 
           if (r === 4 && c === 0) {
@@ -1331,8 +1330,28 @@
           container.appendChild(input);
 
           container.addEventListener("click", () => {
-            if (input.classList.contains("correct")) return;
-            showLetterPopup(r, c);
+            if (input.disabled) return;
+            focusCell(r, c);
+          });
+
+          input.addEventListener("focus", () => {
+            const wordsHere = cellData.words.filter(wk => !completedWords.includes(wk));
+            selectWord(wordsHere[0] || cellData.words[0]);
+          });
+
+          input.addEventListener("input", () => handleTyping(r, c));
+
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace" && input.value === "") {
+              e.preventDefault();
+              stepCell(r, c, -1);
+            } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+              e.preventDefault();
+              stepCell(r, c, 1);
+            } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+              e.preventDefault();
+              stepCell(r, c, -1);
+            }
           });
         } else {
           container.className = "cell-container cell-empty";
@@ -1372,91 +1391,102 @@
       if (activeClue) activeClue.classList.add("active");
     }
 
-    function getWrongLetter(correctLetter) {
-      let wrong;
-      do {
-        wrong = wrongLetters[Math.floor(Math.random() * 26)];
-      } while (wrong === correctLetter);
-      return wrong;
+    // ---- typing helpers: the child spells the word out, letter by letter ----
+    function focusCell(r, c) {
+      const input = getCellInput(r, c);
+      if (!input || input.disabled) return;
+      input.focus();
+      input.select();
     }
 
-    function showLetterPopup(row, col) {
-      const cellData = cellMapping[`${row},${col}`];
-      if (!cellData) return;
-      const correct = cellData.letter;
-      const wrong = getWrongLetter(correct);
-      const options = [correct, wrong].sort(() => Math.random() - 0.5);
-
-      const popup = document.getElementById("wordSelectPopup");
-      const optionsEl = document.getElementById("wsOptions");
-
-      optionsEl.innerHTML = '';
-      options.forEach(opt => {
-        const btn = document.createElement("button");
-        btn.className = "ws-letter-btn";
-        btn.textContent = opt;
-        btn.addEventListener("click", () => {
-          popup.style.display = "none";
-          const input = getCellInput(row, col);
-          if (opt === correct) {
-            input.value = correct;
-            input.classList.remove("wrong", "highlighted");
-            input.classList.add("correct");
-            input.disabled = true;
-            speak("Correct");
-
-            const associatedWords = cellData.words;
-            associatedWords.forEach(wk => {
-              const w = words[wk];
-              const allDone = w.cells.every(c => {
-                const inp = getCellInput(c.r, c.c);
-                return inp && inp.classList.contains("correct");
-              });
-              if (allDone && !completedWords.includes(wk)) {
-                completedWords.push(wk);
-                const clueItem = document.getElementById(w.clueId);
-                if (clueItem) {
-                  clueItem.classList.add("completed");
-                  const numEl = clueItem.querySelector(".clue-num");
-                  if (numEl) numEl.textContent = "✓";
-                }
-                showPopup(true);
-              }
-            });
-
-            if (completedWords.length === Object.keys(words).length) {
-              setTimeout(() => showFinal(), 1200);
-            }
-          } else {
-            input.classList.add("wrong");
-            speak("Wrong");
-            setTimeout(() => input.classList.remove("wrong"), 600);
-          }
-        });
-        optionsEl.appendChild(btn);
-      });
-
-      const input = getCellInput(row, col);
-      if (input) {
-        const rect = input.getBoundingClientRect();
-        popup.style.left = (rect.left - 10) + "px";
-        popup.style.top = (rect.top - 55) + "px";
-
-        requestAnimationFrame(() => {
-          const popRect = popup.getBoundingClientRect();
-          if (popRect.right > window.innerWidth - 10) {
-            popup.style.left = (window.innerWidth - popRect.width - 10) + "px";
-          }
-          if (popRect.left < 10) {
-            popup.style.left = "10px";
-          }
-          if (popRect.top < 10) {
-            popup.style.top = (rect.bottom + 4) + "px";
-          }
-        });
+    // the cells of the word being worked on, in order
+    function activeCellsFor(r, c) {
+      const cellData = cellMapping[`${r},${c}`];
+      if (!cellData) return [];
+      let wordKey = activeWordKey;
+      if (!wordKey || !cellData.words.includes(wordKey)) {
+        wordKey = cellData.words.find(wk => !completedWords.includes(wk)) || cellData.words[0];
       }
+      return words[wordKey].cells;
+    }
 
-      popup.style.display = "flex";
+    // move one cell forwards / backwards along the current word
+    function stepCell(r, c, dir) {
+      const cells = activeCellsFor(r, c);
+      const idx = cells.findIndex(cell => cell.r === r && cell.c === c);
+      if (idx === -1) return;
+      for (let i = idx + dir; i >= 0 && i < cells.length; i += dir) {
+        const next = getCellInput(cells[i].r, cells[i].c);
+        if (next && !next.disabled) {
+          next.focus();
+          next.select();
+          return;
+        }
+      }
+    }
+
+    function handleTyping(r, c) {
+      const input = getCellInput(r, c);
+      if (!input) return;
+
+      // one letter per box, always shown as a capital
+      const typed = input.value.replace(/[^A-Za-z]/g, "").toUpperCase();
+      input.value = typed.slice(-1);
+      input.classList.remove("wrong");
+
+      if (input.value) stepCell(r, c, 1);
+
+      // only judge a word once every one of its letters has been written
+      const cellData = cellMapping[`${r},${c}`];
+      cellData.words.forEach(wk => checkWord(wk));
+    }
+
+    function checkWord(wordKey) {
+      if (completedWords.includes(wordKey)) return;
+
+      const word = words[wordKey];
+      const inputs = word.cells.map(cell => getCellInput(cell.r, cell.c));
+      if (inputs.some(inp => !inp || inp.value === "")) return;
+
+      const spelling = inputs.map(inp => inp.value).join("");
+
+      if (spelling === word.answer) {
+        completedWords.push(wordKey);
+
+        inputs.forEach(inp => {
+          inp.classList.remove("wrong", "highlighted");
+          inp.classList.add("correct");
+          inp.disabled = true;
+        });
+
+        const clueItem = document.getElementById(word.clueId);
+        if (clueItem) {
+          clueItem.classList.add("completed");
+          const numEl = clueItem.querySelector(".clue-num");
+          if (numEl) numEl.textContent = "✓";
+        }
+
+        speak("Correct");
+        showPopup(true);
+
+        if (completedWords.length === Object.keys(words).length) {
+          setTimeout(() => showFinal(), 1200);
+        }
+      } else {
+        // wrong spelling: flash the word and clear the letters that are not already locked
+        inputs.forEach(inp => inp.classList.add("wrong"));
+        speak("Try again");
+        showPopup(false);
+
+        setTimeout(() => {
+          inputs.forEach(inp => {
+            inp.classList.remove("wrong");
+            if (!inp.disabled) inp.value = "";
+          });
+          const first = inputs.find(inp => !inp.disabled);
+          if (first) first.focus();
+        }, 700);
+      }
     }
 
     function showPopup(isCorrect) {
@@ -1513,10 +1543,11 @@
         const wordKey = item.dataset.word;
         if (completedWords.includes(wordKey)) return;
         const word = words[wordKey];
+        selectWord(wordKey);
         for (const cell of word.cells) {
           const inp = getCellInput(cell.r, cell.c);
-          if (inp && !inp.classList.contains("correct")) {
-            showLetterPopup(cell.r, cell.c);
+          if (inp && !inp.disabled) {
+            focusCell(cell.r, cell.c);
             break;
           }
         }
@@ -1586,7 +1617,7 @@
     window.addEventListener("load", () => {
       fitCrosswordCells();
       selectWord("dew");
-      setTimeout(() => showLetterPopup(4, 0), 500);
+      setTimeout(() => focusCell(4, 0), 500);
     });
 
     /* Fit immediately so first paint isn't tiny */

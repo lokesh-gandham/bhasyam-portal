@@ -428,7 +428,20 @@ function showPopup(isCorrect) {
   }, 1500);
 }
 
+// When this exercise is one step of a multi-question set, the host page decides
+// what happens next -- it advances to the next question and owns the final popup.
+function notifyHostComplete() {
+  try {
+    if (window.parent !== window && typeof window.parent.exerciseFinished === "function") {
+      window.parent.exerciseFinished();
+      return true;
+    }
+  } catch (error) {}
+  return false;
+}
+
 function showFinal() {
+  if (notifyHostComplete()) return;
   const popup = document.getElementById("finalPopup");
   document.getElementById("finalScore").textContent =
     "All 8 nouns are in the correct columns.";
