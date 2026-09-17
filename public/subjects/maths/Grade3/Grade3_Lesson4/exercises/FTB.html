@@ -289,6 +289,13 @@
             color: #16885b
         }
 
+        .property-box.active {
+            border-color: #6847e8;
+            background: #f0edff;
+            box-shadow: 0 0 0 4px rgba(104, 71, 232, .14);
+            transform: scale(1.04);
+        }
+
         /* Options */
         .answer-area {
             width: 100%;
@@ -308,6 +315,18 @@
             align-items: center;
             flex-direction: column;
             gap: 20px;
+            transition: opacity .2s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+
+        /* Active/disabled panel states based on which blank is currently being answered */
+        .answer-panel.panel-active {
+            border-color: #6847e8;
+            box-shadow: 0 0 0 3px rgba(104, 71, 232, .16), 0 12px 26px rgba(104, 71, 232, .14);
+        }
+
+        .answer-panel.panel-disabled {
+            opacity: .4;
+            pointer-events: none;
         }
 
         .panel-title {
@@ -336,12 +355,13 @@
             font-size:22px;
             font-weight: 400;
             cursor: pointer;
-            box-shadow: 0 5px 10px #26334d0a;
-            transition: transform .15s, opacity .15s
+            box-shadow: 0 8px 18px rgba(38, 51, 77, .14);
+            transition: transform .15s, opacity .15s, box-shadow .15s
         }
 
         .option:hover:not(:disabled) {
             transform: translateY(-5px);
+            box-shadow: 0 12px 22px rgba(38, 51, 77, .2);
             /* border-color: #927af2 */
         }
 
@@ -490,7 +510,7 @@
             margin-top: 8px
         }
 
-        /* Emoji popup — same reference */
+        /* ================= SAME EMOJI / POPUP ================= */
         .emoji-pop {
             position: fixed;
             left: 50%;
@@ -499,23 +519,23 @@
             font-size: 82px;
             pointer-events: none;
             z-index: 9999;
-            animation: emojiPop 1.1s ease-out forwards
+            animation: emojiPop 1.1s ease-out forwards;
         }
 
         @keyframes emojiPop {
             0% {
                 opacity: 0;
-                transform: translate(-50%, -50%) scale(.35)
+                transform: translate(-50%, -50%) scale(.35);
             }
 
             22% {
                 opacity: 1;
-                transform: translate(-50%, -50%) scale(1.18)
+                transform: translate(-50%, -50%) scale(1.18);
             }
 
             100% {
                 opacity: 0;
-                transform: translate(-50%, -75%) scale(.82)
+                transform: translate(-50%, -75%) scale(.82);
             }
         }
 
@@ -802,7 +822,7 @@
    LARGE MONITOR RESPONSIVE LAYOUT
    1600px - 1920px
    ========================================================= */
-        @media screen and (min-width:1500px) and (max-width:1920px) {
+        @media screen and (min-width:1600px) and (max-width:1920px) {
 
             .app {
                 width: min(1380px, 90vw);
@@ -1166,11 +1186,11 @@
             </section>
 
             <section class="answer-area">
-                <div class="answer-panel">
+                <div class="answer-panel" id="digitPanel">
                     <div class="panel-title">🔢 Choose a Option</div>
                     <div class="options" id="digitOptions"></div>
                 </div>
-                <div class="answer-panel">
+                <div class="answer-panel" id="propertyPanel">
                     <div class="panel-title">⚡ Choose the Property</div>
                     <div class="options" id="propertyOptions"></div>
                 </div>
@@ -1192,559 +1212,1839 @@
 
     <div class="reward" id="reward">🎉 Great job!</div>
 
-    <script>        function speak(t) {
-            speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(t);
-            msg.lang = "en-US";
-            msg.volume = 0.25;
-            msg.rate = 1;
-            msg.pitch = 1;
-            speechSynthesis.speak(msg);
-        }
-        (() => {
-            const childImage = "../assets/images/FTB.png"
-            const questions = [
-                {
-                    mission: "Use the same factors in a different order.",
-                    parts: ["35 × 8 = 8 × ", { blank: 35 }],
-                    correct: [35], property: "Commutative",
-                    digits: [35, 53, 30], properties: ["Commutative", "Associative"]
-                },
-                {
-                    mission: "Use the identity number to keep the value unchanged.",
-                    parts: [{ blank: 1 }, " × 29 = 29 × 1 = ", { blank: 29 }],
-                    correct: [1, 29], property: "Identity",
-                    digits: [1, 29, 9], properties: ["Identity", "Zero"]
-                },
-                {
-                    mission: "Change the grouping of the factors.",
-                    parts: ["19 × (", { blank: 46 }, " × 32) = (46 × ", { blank: 19 }, ") × ", { blank: 32 }],
-                    correct: [46, 19, 32], property: "Associative",
-                    digits: [46, 19, 32], properties: ["Associative", "Commutative"]
-                },
-                {
-                    mission: "Use zero to make the product zero.",
-                    parts: [{ blank: 0 }, " × 67 = 0"],
-                    correct: [0], property: "Zero",
-                    digits: [0, 67, 1], properties: ["Zero", "Identity"]
-                }
-            ];
+   <script>
+    function speak(t) {
+        speechSynthesis.cancel();
 
-            const content = {
-                // level:document.getElementById("level"),
-                questionNumber: document.getElementById("questionNumber"),
-                mission: document.getElementById("mission"),
-                equation: document.getElementById("equation"),
-                propertyBox: document.getElementById("propertyBox"),
-                digitOptions: document.getElementById("digitOptions"),
-                propertyOptions: document.getElementById("propertyOptions"),
-                // feedback: document.getElementById("feedback"),
-                prevBtn: document.getElementById("prevBtn"),
-                nextBtn: document.getElementById("nextBtn"),
-                navProgress: document.getElementById("navProgress"),
-                progressText: document.getElementById("progressText"),
-                percent: document.getElementById("percent"),
-                progressFill: document.getElementById("progressFill"),
-                score: document.getElementById("score"),
-                // lockText: document.getElementById("lockText"),
-                reward: document.getElementById("reward")
-            };
+        const msg = new SpeechSynthesisUtterance(t);
+        msg.lang = "en-US";
+        msg.volume = 0.25;
+        msg.rate = 1;
+        msg.pitch = 1;
 
-            document.getElementById("childrenImage").src = childImage;
+        speechSynthesis.speak(msg);
+    }
 
-            let current = 0;
-            let xp = 0;
-            let audioCtx = null;
+    (() => {
 
-            const state = questions.map(() => ({
-                answers: [],
-                property: "",
-                completed: false,
-                attempts: 0,
-                activeBox: 0
-            }));
+        const childImage = "../assets/images/FTB.png";
 
-            function getCtx() {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === "suspended") audioCtx.resume();
-                return audioCtx;
+        const questions = [
+            {
+                mission: "Use the same factors in a different order.",
+                parts: [
+                    "35 × 8 = 8 × ",
+                    { blank: 35 }
+                ],
+                correct: [35],
+                property: "Commutative",
+                digits: [35, 53, 30],
+                properties: ["Commutative", "Associative"]
+            },
+
+            {
+                mission: "Use the identity number to keep the value unchanged.",
+                parts: [
+                    { blank: 1 },
+                    " × 29 = 29 × ",
+                    { blank: 29 }
+                ],
+                correct: [1, 29],
+                property: "Identity",
+                digits: [1, 29, 9],
+                properties: ["Identity", "Zero"]
+            },
+
+            {
+                mission: "Change the grouping of the factors.",
+                parts: [
+                    "19 × (",
+                    { blank: 46 },
+                    " × 32) = (46 × ",
+                    { blank: 19 },
+                    ") × ",
+                    { blank: 32 }
+                ],
+                correct: [46, 19, 32],
+                property: "Associative",
+                digits: [46, 19, 32],
+                properties: ["Associative", "Commutative"]
+            },
+
+            {
+                mission: "Use zero to make the product zero.",
+                parts: [
+                    { blank: 0 },
+                    " × 67 = 0"
+                ],
+                correct: [0],
+                property: "Zero",
+                digits: [0, 67, 1],
+                properties: ["Zero", "Identity"]
+            }
+        ];
+
+
+        /* =========================================================
+           DOM REFERENCES
+        ========================================================= */
+
+        const content = {
+
+            questionNumber:
+                document.getElementById("questionNumber"),
+
+            mission:
+                document.getElementById("mission"),
+
+            equation:
+                document.getElementById("equation"),
+
+            propertyBox:
+                document.getElementById("propertyBox"),
+
+            digitPanel:
+                document.getElementById("digitPanel"),
+
+            propertyPanel:
+                document.getElementById("propertyPanel"),
+
+            digitOptions:
+                document.getElementById("digitOptions"),
+
+            propertyOptions:
+                document.getElementById("propertyOptions"),
+
+            prevBtn:
+                document.getElementById("prevBtn"),
+
+            nextBtn:
+                document.getElementById("nextBtn"),
+
+            navProgress:
+                document.getElementById("navProgress"),
+
+            progressText:
+                document.getElementById("progressText"),
+
+            percent:
+                document.getElementById("percent"),
+
+            progressFill:
+                document.getElementById("progressFill"),
+
+            score:
+                document.getElementById("score"),
+
+            reward:
+                document.getElementById("reward")
+        };
+
+
+        document.getElementById("childrenImage").src = childImage;
+
+
+        /* =========================================================
+           GAME STATE
+        ========================================================= */
+
+        let current = 0;
+        let xp = 0;
+        let audioCtx = null;
+
+
+        const state = questions.map(() => ({
+            answers: [],
+            property: "",
+            completed: false,
+            attempts: 0,
+            activeBox: 0,
+            propertySelected: false
+        }));
+
+
+        /* =========================================================
+           AUDIO
+        ========================================================= */
+
+        function getCtx() {
+
+            if (!audioCtx) {
+                audioCtx =
+                    new (window.AudioContext ||
+                        window.webkitAudioContext)();
             }
 
-            /* SAME SOUND PATTERN AS REFERENCE CODE */
-            function beep(frequency, duration, type = "sine") {
-                try {
-                    const ctx = getCtx();
-                    const oscillator = ctx.createOscillator();
-                    const gain = ctx.createGain();
+            if (audioCtx.state === "suspended") {
+                audioCtx.resume();
+            }
 
-                    oscillator.type = type;
-                    oscillator.frequency.value = frequency;
-                    oscillator.connect(gain);
-                    gain.connect(ctx.destination);
+            return audioCtx;
+        }
 
-                    gain.gain.setValueAtTime(.15, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(
-                        .0001, ctx.currentTime + duration / 1000
+
+        function beep(
+            frequency,
+            duration,
+            type = "sine"
+        ) {
+
+            try {
+
+                const ctx = getCtx();
+
+                const oscillator =
+                    ctx.createOscillator();
+
+                const gain =
+                    ctx.createGain();
+
+
+                oscillator.type = type;
+
+                oscillator.frequency.value =
+                    frequency;
+
+
+                oscillator.connect(gain);
+
+                gain.connect(ctx.destination);
+
+
+                gain.gain.setValueAtTime(
+                    .15,
+                    ctx.currentTime
+                );
+
+                gain.gain.exponentialRampToValueAtTime(
+                    .0001,
+                    ctx.currentTime +
+                    duration / 1000
+                );
+
+
+                oscillator.start();
+
+                oscillator.stop(
+                    ctx.currentTime +
+                    duration / 1000
+                );
+
+            } catch (e) {
+                // Audio is optional
+            }
+        }
+
+
+        const sound = {
+
+            correct() {
+
+                beep(660, 110);
+
+                setTimeout(
+                    () => beep(880, 160),
+                    110
+                );
+            },
+
+
+            wrong() {
+
+                beep(
+                    180,
+                    220,
+                    "sawtooth"
+                );
+            },
+
+
+            finish() {
+
+                [523, 659, 784, 1047]
+                    .forEach((frequency, index) => {
+
+                        setTimeout(
+                            () => beep(
+                                frequency,
+                                150
+                            ),
+                            index * 130
+                        );
+
+                    });
+            },
+
+
+            click() {
+
+                beep(430, 80);
+            }
+        };
+
+
+        /* =========================================================
+           SMALL EMOJI POPUP
+           ONLY USED FOR COMPLETE QUESTION
+        ========================================================= */
+
+        function showEmoji(emoji) {
+
+            const element =
+                document.createElement("div");
+
+            element.className =
+                "emoji-pop";
+
+            element.textContent =
+                emoji;
+
+            document.body.appendChild(element);
+
+
+            setTimeout(
+                () => element.remove(),
+                1600
+            );
+        }
+
+
+        /* =========================================================
+           OPTIONAL SMALL REWARD
+        ========================================================= */
+
+        function showReward() {
+
+            content.reward.classList.remove("show");
+
+            void content.reward.offsetWidth;
+
+            content.reward.classList.add("show");
+        }
+
+
+        /* =========================================================
+           CENTER CONFETTI
+           ALWAYS BURSTS FROM SCREEN CENTER
+        ========================================================= */
+
+        function burstConfetti() {
+
+            if (typeof confetti !== "function") {
+                return;
+            }
+
+
+            confetti({
+
+                particleCount: 90,
+
+                spread: 100,
+
+                startVelocity: 28,
+
+                origin: {
+                    x: 0.5,
+                    y: 0.5
+                },
+
+                colors: [
+                    "#6635dc",
+                    "#ff4e83",
+                    "#4e8ff0",
+                    "#76b93b",
+                    "#f4ae25",
+                    "#4ecdc4"
+                ]
+
+            });
+        }
+
+
+        /* =========================================================
+           CHECK ALL NUMBER ANSWERS
+        ========================================================= */
+
+        function allNumbersCorrect(q, s) {
+
+            return (
+
+                q.correct.length ===
+                s.answers.length
+
+                &&
+
+                q.correct.every(
+                    (value, index) =>
+                        s.answers[index] === value
+                )
+            );
+        }
+
+
+        /* =========================================================
+           UPDATE ACTIVE ANSWER PANELS
+        ========================================================= */
+
+        function updatePanelStates(q, s) {
+
+            const allNumbersFilled =
+                s.answers.filter(
+                    v => v !== undefined
+                ).length >= q.correct.length;
+
+
+            const propertyDone =
+                !!s.property;
+
+
+            content.digitPanel.classList.remove(
+                "panel-active",
+                "panel-disabled"
+            );
+
+            content.propertyPanel.classList.remove(
+                "panel-active",
+                "panel-disabled"
+            );
+
+
+            /* Question completely finished */
+
+            if (
+                s.completed ||
+                (allNumbersFilled && propertyDone)
+            ) {
+
+                content.digitPanel.classList.add(
+                    "panel-disabled"
+                );
+
+                content.propertyPanel.classList.add(
+                    "panel-disabled"
+                );
+
+            }
+
+            /* Number answers are complete */
+
+            else if (
+                s.propertySelected ||
+                allNumbersFilled
+            ) {
+
+                content.propertyPanel.classList.add(
+                    "panel-active"
+                );
+
+                content.digitPanel.classList.add(
+                    "panel-disabled"
+                );
+
+            }
+
+            /* Still answering number boxes */
+
+            else {
+
+                content.digitPanel.classList.add(
+                    "panel-active"
+                );
+
+                content.propertyPanel.classList.add(
+                    "panel-disabled"
+                );
+            }
+        }
+
+
+        /* =========================================================
+           RENDER QUESTION
+        ========================================================= */
+
+        function renderQuestion(index) {
+
+            current = index;
+
+            const q =
+                questions[index];
+
+            const s =
+                state[index];
+
+
+            /* Question number */
+
+            content.questionNumber.textContent =
+                "QUESTION " + (index + 1);
+
+
+            /* Mission */
+
+            content.mission.textContent =
+                q.mission;
+
+
+            /* Progress */
+
+            const percent =
+                Math.round(
+                    ((index + 1) /
+                        questions.length) *
+                    100
+                );
+
+
+            content.progressText.textContent =
+                `Question ${index + 1} of ${questions.length}`;
+
+
+            content.percent.textContent =
+                percent + "%";
+
+
+            content.progressFill.style.width =
+                percent + "%";
+
+
+            content.navProgress.textContent =
+                `${index + 1}/${questions.length}`;
+
+
+            content.score.textContent =
+                state.filter(
+                    x => x.completed
+                ).length;
+
+
+            /* =====================================================
+               KEEP ACTIVE NUMBER BOX VALID
+            ===================================================== */
+
+            if (!s.propertySelected) {
+
+                const firstEmpty =
+                    q.correct.findIndex(
+                        (_, i) =>
+                            s.answers[i] === undefined
                     );
 
-                    oscillator.start();
-                    oscillator.stop(ctx.currentTime + duration / 1000);
-                } catch (e) { }
-            }
 
-            const sound = {
-                correct() {
-                    beep(660, 110);
-                    setTimeout(() => beep(880, 160), 110);
-                },
-                wrong() {
-                    beep(180, 220, "sawtooth");
-                },
-                finish() {
-                    [523, 659, 784, 1047].forEach((frequency, index) => {
-                        setTimeout(() => beep(frequency, 150), index * 130);
-                    });
-                },
-                click() {
-                    beep(430, 80);
-                }
-            };
+                if (
+                    s.activeBox === undefined ||
 
-            function showEmoji(emoji) {
-                const element = document.createElement("div");
-                element.className = "emoji-pop";
-                element.textContent = emoji;
-                document.body.appendChild(element);
-                setTimeout(() => element.remove(), 1100);
-            }
+                    s.activeBox < 0 ||
 
-            function showReward() {
-                content.reward.classList.remove("show");
-                void content.reward.offsetWidth;
-                content.reward.classList.add("show");
-            }
+                    s.activeBox >=
+                    q.correct.length ||
 
-            function burstConfetti(element) {
-                const rect = element.getBoundingClientRect();
-                if (typeof confetti === "function") {
-                    confetti({
-                        particleCount: 34,
-                        spread: 70,
-                        startVelocity: 22,
-                        origin: {
-                            x: (rect.left + rect.width / 2) / innerWidth,
-                            y: (rect.top + rect.height / 2) / innerHeight
-                        },
-                        colors: ["#6635dc", "#ff4e83", "#4e8ff0", "#76b93b", "#f4ae25", "#4ecdc4"]
-                    });
+                    s.answers[s.activeBox] !==
+                    undefined
+                ) {
+
+                    s.activeBox =
+                        firstEmpty >= 0
+                            ? firstEmpty
+                            : -1;
                 }
             }
 
-            function loadConfetti() {
-                if (document.getElementById("confettiLib")) return;
-                const script = document.createElement("script");
-                script.id = "confettiLib";
-                script.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js";
-                document.head.appendChild(script);
-            }
 
-            loadConfetti();
+            /* =====================================================
+               RENDER EQUATION
+            ===================================================== */
 
-            function allNumbersCorrect(q, s) {
-                return q.correct.length === s.answers.length &&
-                    q.correct.every((value, index) => s.answers[index] === value);
-            }
+            content.equation.innerHTML = "";
 
-            function renderQuestion(index) {
-                current = index;
-                const q = questions[index];
-                const s = state[index];
+            let blankIndex = 0;
 
-                content.questionNumber.textContent = "QUESTION " + (index + 1);
-                content.mission.textContent = q.mission;
 
-                const percent = Math.round(((index + 1) / questions.length) * 100);
-                content.progressText.textContent = `Question ${index + 1} of ${questions.length}`;
-                content.percent.textContent = percent + "%";
-                content.progressFill.style.width = percent + "%";
-                content.navProgress.textContent = `${index + 1}/${questions.length}`;
-                content.score.textContent = state.filter(x => x.completed).length;
+            q.parts.forEach(part => {
 
-                /* Keep activeBox valid. It can be ANY empty number box. */
-                const firstEmpty = q.correct.findIndex((_, i) => s.answers[i] === undefined);
-                if (s.activeBox === undefined || s.activeBox < 0 || s.activeBox >= q.correct.length || s.answers[s.activeBox] !== undefined) {
-                    s.activeBox = firstEmpty >= 0 ? firstEmpty : -1;
+                /* Normal text */
+
+                if (typeof part === "string") {
+
+                    content.equation.append(
+                        document.createTextNode(part)
+                    );
+
                 }
 
-                /* Equation / number boxes */
-                content.equation.innerHTML = "";
-                let blankIndex = 0;
+                /* Number blank */
 
-                q.parts.forEach(part => {
-                    if (typeof part === "string") {
-                        content.equation.append(document.createTextNode(part));
-                    } else {
-                        const box = document.createElement("span");
-                        const targetIndex = blankIndex;
-                        box.className = "blank";
+                else {
 
-                        if (s.answers[targetIndex] !== undefined) {
-                            box.textContent = s.answers[targetIndex];
-                            box.classList.add("filled", "correct");
-                        } else if (!s.completed && s.activeBox === targetIndex) {
-                            box.classList.add("active");
-                        }
+                    const box =
+                        document.createElement("span");
 
-                        /* CLICK ANY EMPTY BOX = MAKE THAT BOX ACTIVE */
-                        box.addEventListener("click", () => {
-                            if (s.completed || s.answers[targetIndex] !== undefined) return;
-                            s.activeBox = targetIndex;
-                            renderQuestion(current);
-                            sound.click();
-                        });
 
-                        /* DRAG A NUMBER TO ANY BOX */
-                        box.addEventListener("dragover", event => {
-                            if (s.completed || s.answers[targetIndex] !== undefined) return;
-                            event.preventDefault();
-                            event.dataTransfer.dropEffect = "copy";
-                            box.classList.add("drag-over");
-                        });
+                    const targetIndex =
+                        blankIndex;
 
-                        box.addEventListener("dragleave", () => {
-                            box.classList.remove("drag-over");
-                        });
 
-                        box.addEventListener("drop", event => {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            box.classList.remove("drag-over");
+                    box.className =
+                        "blank";
 
-                            if (s.completed || s.answers[targetIndex] !== undefined) return;
 
-                            let raw = event.dataTransfer.getData("application/x-math-number") ||
-                                event.dataTransfer.getData("text/plain");
-                            let data;
-                            try { data = JSON.parse(raw); } catch (e) {
-                                const n = Number(raw);
-                                if (Number.isFinite(n)) data = { type: "number", value: n };
-                            }
-                            if (!data || data.type !== "number") return;
+                    /* Already answered */
 
-                            /* DROP IS VALID FOR ANY BOX — CHECK THAT BOX'S OWN ANSWER */
-                            if (Number(data.value) !== Number(q.correct[targetIndex])) {
-                                // sound.wrong();
-                                speak("Wrong!");
-                                showEmoji("😔");
-                                box.classList.remove("wrong-choice");
-                                void box.offsetWidth;
-                                box.classList.add("wrong-choice");
-                                setTimeout(() => box.classList.remove("wrong-choice"), 520);
+                    if (
+                        s.answers[targetIndex] !==
+                        undefined
+                    ) {
+
+                        box.textContent =
+                            s.answers[targetIndex];
+
+                        box.classList.add(
+                            "filled",
+                            "correct"
+                        );
+                    }
+
+
+                    /* Active empty box */
+
+                    else if (
+                        !s.completed &&
+                        s.activeBox ===
+                        targetIndex
+                    ) {
+
+                        box.classList.add(
+                            "active"
+                        );
+                    }
+
+
+                    /* Click empty box */
+
+                    box.addEventListener(
+                        "click",
+                        () => {
+
+                            if (
+                                s.completed ||
+                                s.answers[targetIndex] !==
+                                undefined
+                            ) {
                                 return;
                             }
 
-                            s.answers[targetIndex] = Number(data.value);
-                            s.activeBox = q.correct.findIndex((_, i) => s.answers[i] === undefined);
-                            // sound.correct();
-                            speak("Correct!");
-                            showEmoji("🥳");
 
-                            if (s.answers.filter(v => v !== undefined).length === q.correct.length) {
-                                checkQuestion();
-                            } else {
-                                renderQuestion(current);
+                            s.activeBox =
+                                targetIndex;
+
+                            s.propertySelected =
+                                false;
+
+
+                            renderQuestion(
+                                current
+                            );
+                        }
+                    );
+
+
+                    /* =================================================
+                       DRAG OVER NUMBER BOX
+                    ================================================= */
+
+                    box.addEventListener(
+                        "dragover",
+                        event => {
+
+                            if (
+                                s.completed ||
+                                s.answers[targetIndex] !==
+                                undefined
+                            ) {
+                                return;
                             }
-                        });
 
-                        content.equation.append(box);
-                        blankIndex++;
-                    }
-                });
 
-                /* Property */
-                content.propertyBox.textContent = s.property || "";
-                content.propertyBox.className = "property-box" + (s.property ? " filled" : "");
-                if (s.completed) content.propertyBox.classList.add("correct");
+                            event.preventDefault();
 
-                content.propertyBox.addEventListener("dragover", event => {
-                    if (s.completed || s.property) return;
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = "copy";
-                    content.propertyBox.classList.add("drag-over");
-                });
-                content.propertyBox.addEventListener("dragleave", () => content.propertyBox.classList.remove("drag-over"));
-                content.propertyBox.addEventListener("drop", event => {
-                    event.preventDefault();
-                    content.propertyBox.classList.remove("drag-over");
-                    if (s.completed || s.property) return;
+                            event.dataTransfer.dropEffect =
+                                "copy";
 
-                    let data;
-                    try { data = JSON.parse(event.dataTransfer.getData("text/plain")); } catch (e) { return; }
-                    if (!data || data.type !== "property") return;
 
-                    if (data.value !== q.property) {
-                        // sound.wrong();
-                        speak("Wrong!");
-                        showEmoji("😔");
-                        content.propertyBox.classList.remove("wrong-choice");
-                        void content.propertyBox.offsetWidth;
-                        content.propertyBox.classList.add("wrong-choice");
-                        setTimeout(() => content.propertyBox.classList.remove("wrong-choice"), 520);
+                            box.classList.add(
+                                "drag-over"
+                            );
+                        }
+                    );
+
+
+                    box.addEventListener(
+                        "dragleave",
+                        () => {
+
+                            box.classList.remove(
+                                "drag-over"
+                            );
+                        }
+                    );
+
+
+                    /* =================================================
+                       DROP NUMBER
+                    ================================================= */
+
+                    box.addEventListener(
+                        "drop",
+                        event => {
+
+                            event.preventDefault();
+
+                            event.stopPropagation();
+
+                            box.classList.remove(
+                                "drag-over"
+                            );
+
+
+                            if (
+                                s.completed ||
+                                s.answers[targetIndex] !==
+                                undefined
+                            ) {
+                                return;
+                            }
+
+
+                            let raw =
+                                event.dataTransfer
+                                    .getData(
+                                        "application/x-math-number"
+                                    ) ||
+
+                                event.dataTransfer
+                                    .getData(
+                                        "text/plain"
+                                    );
+
+
+                            let data;
+
+
+                            try {
+
+                                data =
+                                    JSON.parse(raw);
+
+                            } catch (e) {
+
+                                const n =
+                                    Number(raw);
+
+                                if (
+                                    Number.isFinite(n)
+                                ) {
+
+                                    data = {
+                                        type: "number",
+                                        value: n
+                                    };
+                                }
+                            }
+
+
+                            if (
+                                !data ||
+                                data.type !==
+                                "number"
+                            ) {
+                                return;
+                            }
+
+
+                            /* Check this specific box */
+
+                            if (
+                                Number(data.value) !==
+                                Number(
+                                    q.correct[
+                                        targetIndex
+                                    ]
+                                )
+                            ) {
+
+                                speak("Wrong!");
+
+                                showEmoji("😔");
+
+
+                                box.classList.remove(
+                                    "wrong-choice"
+                                );
+
+                                void box.offsetWidth;
+
+
+                                box.classList.add(
+                                    "wrong-choice"
+                                );
+
+
+                                setTimeout(
+                                    () =>
+                                        box.classList.remove(
+                                            "wrong-choice"
+                                        ),
+                                    520
+                                );
+
+
+                                return;
+                            }
+
+
+                            /* Correct number */
+
+                            s.answers[targetIndex] =
+                                Number(data.value);
+
+
+                            s.activeBox =
+                                q.correct.findIndex(
+                                    (_, i) =>
+                                        s.answers[i] ===
+                                        undefined
+                                );
+
+
+                            /* DO NOT celebrate here */
+
+
+                            /* All number boxes filled */
+
+                            if (
+                                s.answers.filter(
+                                    v =>
+                                        v !==
+                                        undefined
+                                ).length ===
+                                q.correct.length
+                            ) {
+
+                                checkQuestion();
+
+                            } else {
+
+                                renderQuestion(
+                                    current
+                                );
+                            }
+
+                        }
+                    );
+
+
+                    content.equation.append(box);
+
+                    blankIndex++;
+                }
+
+            });
+
+
+            /* =====================================================
+               PROPERTY BOX
+            ===================================================== */
+
+            content.propertyBox.textContent =
+                s.property || "";
+
+
+            content.propertyBox.className =
+                "property-box" +
+                (
+                    s.property
+                        ? " filled"
+                        : ""
+                );
+
+
+            if (s.completed) {
+
+                content.propertyBox.classList.add(
+                    "correct"
+                );
+            }
+
+
+            const numbersDoneForActive =
+                s.answers.filter(
+                    v => v !== undefined
+                ).length >=
+                q.correct.length;
+
+
+            if (
+                !s.completed &&
+                !s.property &&
+                (
+                    numbersDoneForActive ||
+                    s.propertySelected
+                )
+            ) {
+
+                content.propertyBox.classList.add(
+                    "active"
+                );
+            }
+
+
+            /* =====================================================
+               CLICK PROPERTY BOX
+            ===================================================== */
+
+            content.propertyBox.addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        s.completed ||
+                        s.property
+                    ) {
                         return;
                     }
 
-                    s.property = data.value;
-                    // sound.correct();
-                    speak("Correct!");
-                    showEmoji("🥳");
+
+                    s.propertySelected =
+                        true;
+
+                    s.activeBox = -1;
+
+
+                    renderQuestion(
+                        current
+                    );
+                }
+            );
+
+
+            /* =====================================================
+               DRAG OVER PROPERTY BOX
+            ===================================================== */
+
+            content.propertyBox.addEventListener(
+                "dragover",
+                event => {
+
+                    if (
+                        s.completed ||
+                        s.property
+                    ) {
+                        return;
+                    }
+
+
+                    event.preventDefault();
+
+                    event.dataTransfer.dropEffect =
+                        "copy";
+
+
+                    content.propertyBox.classList.add(
+                        "drag-over"
+                    );
+                }
+            );
+
+
+            content.propertyBox.addEventListener(
+                "dragleave",
+                () => {
+
+                    content.propertyBox.classList.remove(
+                        "drag-over"
+                    );
+                }
+            );
+
+
+            /* =====================================================
+               DROP PROPERTY
+            ===================================================== */
+
+            content.propertyBox.addEventListener(
+                "drop",
+                event => {
+
+                    event.preventDefault();
+
+                    content.propertyBox.classList.remove(
+                        "drag-over"
+                    );
+
+
+                    if (
+                        s.completed ||
+                        s.property
+                    ) {
+                        return;
+                    }
+
+
+                    let data;
+
+
+                    try {
+
+                        data =
+                            JSON.parse(
+                                event.dataTransfer
+                                    .getData(
+                                        "text/plain"
+                                    )
+                            );
+
+                    } catch (e) {
+
+                        return;
+                    }
+
+
+                    if (
+                        !data ||
+                        data.type !==
+                        "property"
+                    ) {
+                        return;
+                    }
+
+
+                    /* Wrong property */
+
+                    if (
+                        data.value !==
+                        q.property
+                    ) {
+
+                        speak("Wrong!");
+
+                        showEmoji("😔");
+
+
+                        content.propertyBox.classList.remove(
+                            "wrong-choice"
+                        );
+
+                        void content.propertyBox.offsetWidth;
+
+
+                        content.propertyBox.classList.add(
+                            "wrong-choice"
+                        );
+
+
+                        setTimeout(
+                            () =>
+                                content.propertyBox.classList.remove(
+                                    "wrong-choice"
+                                ),
+                            520
+                        );
+
+
+                        return;
+                    }
+
+
+                    /* Correct property */
+
+                    s.property =
+                        data.value;
+
+
+                    /* DO NOT celebrate here */
+
                     checkQuestion();
-                });
+                }
+            );
 
-                /* NUMBER OPTIONS */
-                content.digitOptions.innerHTML = "";
-                q.digits.forEach(number => {
-                    const button = document.createElement("button");
-                    button.type = "button";
-                    button.className = "option";
-                    button.textContent = number;
-                    button.draggable = !s.completed;
-                    button.dataset.number = number;
 
-                    const allNumberBoxesFilled = s.answers.filter(v => v !== undefined).length >= q.correct.length;
-                    const requiredCount = q.correct.filter(x => x === number).length;
-                    const usedCount = s.answers.filter(x => x === number).length;
+            /* =====================================================
+               NUMBER OPTIONS
+            ===================================================== */
 
-                    if (allNumberBoxesFilled || (requiredCount > 0 && usedCount >= requiredCount)) {
-                        button.classList.add("used");
-                        button.disabled = true;
-                    }
+            content.digitOptions.innerHTML =
+                "";
 
-                    button.addEventListener("dragstart", event => {
-                        if (button.disabled || s.completed) {
+
+            q.digits.forEach(number => {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                button.type =
+                    "button";
+
+
+                button.className =
+                    "option";
+
+
+                button.textContent =
+                    number;
+
+
+                button.draggable =
+                    !s.completed;
+
+
+                button.dataset.number =
+                    number;
+
+
+                button.disabled = false;
+button.classList.remove("used");
+
+
+                /* =================================================
+                   DRAG NUMBER
+                ================================================= */
+
+                button.addEventListener(
+                    "dragstart",
+                    event => {
+
+                        if (
+                            button.disabled ||
+                            s.completed
+                        ) {
+
                             event.preventDefault();
+
                             return;
                         }
-                        const payload = JSON.stringify({ type: "number", value: number });
-                        event.dataTransfer.setData("application/x-math-number", payload);
-                        event.dataTransfer.setData("text/plain", payload);
-                        event.dataTransfer.effectAllowed = "copy";
-                    });
 
-                    /* CLICK OPTION -> FILL THE CURRENTLY ACTIVE BOX */
-                    button.addEventListener("click", () => {
-                        if (s.completed || button.disabled) return;
 
-                        let targetIndex = s.activeBox;
-                        if (targetIndex < 0 || targetIndex >= q.correct.length || s.answers[targetIndex] !== undefined) {
-                            targetIndex = q.correct.findIndex((_, i) => s.answers[i] === undefined);
+                        const payload =
+                            JSON.stringify({
+                                type: "number",
+                                value: number
+                            });
+
+
+                        event.dataTransfer.setData(
+                            "application/x-math-number",
+                            payload
+                        );
+
+
+                        event.dataTransfer.setData(
+                            "text/plain",
+                            payload
+                        );
+
+
+                        event.dataTransfer.effectAllowed =
+                            "copy";
+                    }
+                );
+
+
+                /* =================================================
+                   CLICK NUMBER
+                ================================================= */
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        if (
+                            s.completed ||
+                            button.disabled
+                        ) {
+                            return;
                         }
-                        if (targetIndex < 0) return;
 
-                        if (Number(number) !== Number(q.correct[targetIndex])) {
+
+                        let targetIndex =
+                            s.activeBox;
+
+
+                        if (
+                            targetIndex < 0 ||
+
+                            targetIndex >=
+                            q.correct.length ||
+
+                            s.answers[targetIndex] !==
+                            undefined
+                        ) {
+
+                            targetIndex =
+                                q.correct.findIndex(
+                                    (_, i) =>
+                                        s.answers[i] ===
+                                        undefined
+                                );
+                        }
+
+
+                        if (
+                            targetIndex < 0
+                        ) {
+                            return;
+                        }
+
+
+                        /* Wrong answer */
+
+                        if (
+                            Number(number) !==
+                            Number(
+                                q.correct[
+                                    targetIndex
+                                ]
+                            )
+                        ) {
+
                             s.attempts++;
-                            // sound.wrong();
+
+
                             speak("Wrong!");
+
                             showEmoji("😔");
-                            button.classList.remove("wrong-choice");
+
+
+                            button.classList.remove(
+                                "wrong-choice"
+                            );
+
                             void button.offsetWidth;
-                            button.classList.add("wrong-choice");
-                            setTimeout(() => button.classList.remove("wrong-choice"), 520);
+
+
+                            button.classList.add(
+                                "wrong-choice"
+                            );
+
+
+                            setTimeout(
+                                () =>
+                                    button.classList.remove(
+                                        "wrong-choice"
+                                    ),
+                                520
+                            );
+
+
                             return;
                         }
 
-                        s.answers[targetIndex] = number;
-                        s.activeBox = q.correct.findIndex((_, i) => s.answers[i] === undefined);
-                        // sound.correct();
-                        speak("Correct!");
-                        showEmoji("🥳");
 
-                        if (s.answers.filter(v => v !== undefined).length === q.correct.length) {
-                            checkQuestion();
-                        } else {
-                            renderQuestion(current);
-                        }
-                    });
+                        /* Correct number */
 
-                    content.digitOptions.appendChild(button);
-                });
+                        s.answers[targetIndex] =
+                            number;
 
-                /* PROPERTY OPTIONS */
-                content.propertyOptions.innerHTML = "";
-                q.properties.forEach(property => {
-                    const button = document.createElement("button");
-                    button.type = "button";
-                    button.className = "option property-option";
-                    button.textContent = property + " property";
-                    button.draggable = !s.property && !s.completed;
-
-                    if (s.property) {
-                        button.disabled = true;
-                        button.classList.add("used");
-                    }
-
-                    button.addEventListener("dragstart", event => {
-                        if (button.disabled || s.completed || s.property) {
-                            event.preventDefault();
-                            return;
-                        }
-                        event.dataTransfer.setData("text/plain", JSON.stringify({ type: "property", value: property }));
-                        event.dataTransfer.effectAllowed = "copy";
-                    });
-
-                    button.addEventListener("click", () => {
-                        if (s.completed || s.property) return;
-
-                        if (property !== q.property) {
-                            s.attempts++;
-                            // sound.wrong();
                             speak("Correct!");
-                            showEmoji("😔");
-                            button.classList.remove("wrong-choice");
-                            void button.offsetWidth;
-                            button.classList.add("wrong-choice");
-                            setTimeout(() => button.classList.remove("wrong-choice"), 520);
+
+
+                        s.activeBox =
+                            q.correct.findIndex(
+                                (_, i) =>
+                                    s.answers[i] ===
+                                    undefined
+                            );
+
+
+                        /*
+                         * IMPORTANT:
+                         * No success popup here.
+                         * No confetti here.
+                         */
+
+
+                        if (
+                            s.answers.filter(
+                                v =>
+                                    v !==
+                                    undefined
+                            ).length ===
+                            q.correct.length
+                        ) {
+
+                            checkQuestion();
+
+                        } else {
+
+                            renderQuestion(
+                                current
+                            );
+                        }
+
+                    }
+                );
+
+
+                content.digitOptions.appendChild(
+                    button
+                );
+
+            });
+
+
+            /* =====================================================
+               PROPERTY OPTIONS
+            ===================================================== */
+
+            content.propertyOptions.innerHTML =
+                "";
+
+
+            q.properties.forEach(property => {
+
+                const button =
+                    document.createElement(
+                        "button"
+                    );
+
+
+                button.type =
+                    "button";
+
+
+                button.className =
+                    "option property-option";
+
+
+                button.textContent =
+                    property +
+                    " property";
+
+
+                button.draggable =
+                    !s.property &&
+                    !s.completed;
+
+
+                if (s.property) {
+
+                    button.disabled =
+                        true;
+
+                    button.classList.add(
+                        "used"
+                    );
+                }
+
+
+                /* =================================================
+                   DRAG PROPERTY
+                ================================================= */
+
+                button.addEventListener(
+                    "dragstart",
+                    event => {
+
+                        if (
+                            button.disabled ||
+                            s.completed ||
+                            s.property
+                        ) {
+
+                            event.preventDefault();
+
                             return;
                         }
 
-                        s.property = property;
-                        button.classList.add("correct-choice");
-                        // sound.correct();
-                        speak("Correct!");
-                        showEmoji("🥳");
+
+                        event.dataTransfer.setData(
+                            "text/plain",
+                            JSON.stringify({
+                                type: "property",
+                                value: property
+                            })
+                        );
+
+
+                        event.dataTransfer.effectAllowed =
+                            "copy";
+                    }
+                );
+
+
+                /* =================================================
+                   CLICK PROPERTY
+                ================================================= */
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        if (
+                            s.completed ||
+                            s.property
+                        ) {
+                            return;
+                        }
+
+
+                        /* Wrong property */
+
+                        if (
+                            property !==
+                            q.property
+                        ) {
+
+                            s.attempts++;
+
+
+                            speak("Wrong!");
+
+                            showEmoji("😔");
+
+
+                            button.classList.remove(
+                                "wrong-choice"
+                            );
+
+                            void button.offsetWidth;
+
+
+                            button.classList.add(
+                                "wrong-choice"
+                            );
+
+
+                            setTimeout(
+                                () =>
+                                    button.classList.remove(
+                                        "wrong-choice"
+                                    ),
+                                520
+                            );
+
+
+                            return;
+                        }
+
+
+                        /* Correct property */
+
+                        s.property =
+                            property;
+
+
+                        button.classList.add(
+                            "correct-choice"
+                        );
+
+
+                        /*
+                         * No success popup here.
+                         * checkQuestion() decides whether
+                         * the ENTIRE question is complete.
+                         */
+
                         checkQuestion();
-                    });
 
-                    content.propertyOptions.appendChild(button);
-                });
+                    }
+                );
 
-                content.prevBtn.disabled = index === 0;
-                content.nextBtn.disabled = !s.completed;
-                content.nextBtn.style.display = "block";
-                content.nextBtn.textContent = "Next";
+
+                content.propertyOptions.appendChild(
+                    button
+                );
+
+            });
+
+
+            /* =====================================================
+               NAVIGATION
+            ===================================================== */
+
+            content.prevBtn.disabled =
+                index === 0;
+
+
+            content.nextBtn.disabled =
+                !s.completed;
+
+
+            content.nextBtn.style.display =
+                "block";
+
+
+            content.nextBtn.textContent =
+                "Next";
+
+
+            /* Panel states */
+
+            updatePanelStates(
+                q,
+                s
+            );
+        }
+
+
+        /* =========================================================
+           CHECK COMPLETE QUESTION
+        ========================================================= */
+
+        function checkQuestion() {
+
+            const q =
+                questions[current];
+
+            const s =
+                state[current];
+
+
+            const numbersCorrect =
+                allNumbersCorrect(
+                    q,
+                    s
+                );
+
+
+            const propertyCorrect =
+                s.property ===
+                q.property;
+
+
+            /*
+             * ONLY THIS CONDITION
+             * can trigger success.
+             *
+             * ALL number boxes must be correct
+             * AND
+             * property must be correct.
+             */
+
+            if (
+                numbersCorrect &&
+                propertyCorrect
+            ) {
+
+                /* Prevent duplicate celebration */
+
+                if (!s.completed) {
+
+                    s.completed =
+                        true;
+
+                    xp += 100;
+
+
+                    /* Success sound */
+
+                    speak("Correct!");
+
+
+                    /* ONE success emoji */
+
+                    showEmoji("🥳");
+
+
+                    /* CENTER CONFETTI */
+
+                    burstConfetti();
+                }
+
+
+                /* Unlock Next */
+
+                content.nextBtn.disabled =
+                    false;
+
+
+                /* Refresh UI */
+
+                renderQuestion(
+                    current
+                );
+
+
+                /*
+                 * FINAL QUESTION
+                 *
+                 * Wait 1600ms after the COMPLETE
+                 * question is answered.
+                 */
+
+                if (
+                    current ===
+                    questions.length - 1
+                ) {
+
+                    content.nextBtn.disabled =
+                        true;
+
+
+                    setTimeout(
+                        () => {
+                            finishQuiz();
+                        },
+                        1600
+                    );
+                }
+
+
+                return;
             }
 
-            function checkQuestion() {
-                const q = questions[current];
-                const s = state[current];
 
-                const numbersCorrect = allNumbersCorrect(q, s);
-                const propertyCorrect = s.property === q.property;
+            /*
+             * Question is NOT completely correct.
+             *
+             * Therefore:
+             * - no success popup
+             * - no confetti
+             * - Next stays locked
+             */
 
-                if (numbersCorrect && propertyCorrect) {
-                    if (!s.completed) {
-                        s.completed = true;
-                        xp += 100;
-                        // sound.correct();
-                        speak("Correct!");
-                        showEmoji("🥳");
-                        // showReward();
-                        burstConfetti(content.nextBtn);
+            s.completed =
+                false;
+
+
+            content.nextBtn.disabled =
+                true;
+
+
+            renderQuestion(
+                current
+            );
+        }
+
+
+        /* =========================================================
+           FINISH QUIZ
+        ========================================================= */
+
+        function finishQuiz() {
+
+            sound.finish();
+
+            showFinalPopup();
+        }
+
+
+        /* =========================================================
+           FINAL POPUP
+        ========================================================= */
+
+        function showFinalPopup() {
+
+            /*
+             * Prevent duplicate popup
+             */
+
+            if (
+                document.querySelector(
+                    ".final-overlay"
+                )
+            ) {
+                return;
+            }
+
+
+            const overlay =
+                document.createElement(
+                    "div"
+                );
+
+
+            const modal =
+                document.createElement(
+                    "div"
+                );
+
+
+            overlay.className =
+                "final-overlay";
+
+
+            modal.className =
+                "final-modal";
+
+
+            const total =
+                state.filter(
+                    s => s.completed
+                ).length;
+
+
+            modal.innerHTML = `
+
+                <span class="icon-big">
+                    🎉
+                </span>
+
+                <h2>
+                    All Done!
+                </h2>
+
+                <p>
+                    Amazing! You got them all right!
+                </p>
+
+                <button class="btn-playagain">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    Play again
+                </button>
+
+            `;
+
+
+            overlay.appendChild(
+                modal
+            );
+
+
+            document.body.appendChild(
+                overlay
+            );
+
+
+            /*
+             * Final popup confetti:
+             * centered on the modal/screen.
+             */
+
+            setTimeout(
+                () => burstConfetti(),
+                80
+            );
+
+
+            setTimeout(
+                () => burstConfetti(),
+                350
+            );
+
+
+            setTimeout(
+                () => burstConfetti(),
+                650
+            );
+
+
+            /* =====================================================
+               PLAY AGAIN
+            ===================================================== */
+
+            modal
+                .querySelector(
+                    ".btn-playagain"
+                )
+                .addEventListener(
+                    "click",
+                    () => {
+
+                        overlay.remove();
+
+
+                        state.forEach(
+                            s => {
+
+                                s.answers =
+                                    [];
+
+                                s.property =
+                                    "";
+
+                                s.completed =
+                                    false;
+
+                                s.attempts =
+                                    0;
+
+                                s.activeBox =
+                                    0;
+
+                                s.propertySelected =
+                                    false;
+                            }
+                        );
+
+
+                        current =
+                            0;
+
+                        xp =
+                            0;
+
+
+                        renderQuestion(
+                            0
+                        );
                     }
+                );
+        }
 
-                    // content.feedback.className = "feedback good";
-                    // content.feedback.textContent = "Great job!";
-                    content.nextBtn.disabled = false;
-                    // content.lockText.textContent = "🔓 Question complete! Next is unlocked.";
 
-                    renderQuestion(current);
+        /* =========================================================
+           PREVIOUS BUTTON
+        ========================================================= */
 
-                    /* Automatically open the final popup after the last question is correct. */
-                    if (current === questions.length - 1) {
-                        setTimeout(() => finishQuiz(), 1600);
-                    }
+        content.prevBtn.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    current > 0
+                ) {
+
+                    renderQuestion(
+                        current - 1
+                    );
+                }
+            }
+        );
+
+
+        /* =========================================================
+           NEXT BUTTON
+        ========================================================= */
+
+        content.nextBtn.addEventListener(
+            "click",
+            () => {
+
+                /*
+                 * Don't move unless question
+                 * is completely completed.
+                 */
+
+                if (
+                    !state[current].completed
+                ) {
                     return;
                 }
 
-                s.completed = false;
-                content.nextBtn.disabled = true;
 
-                // if (numbersCorrect && !propertyCorrect) {
-                //     content.feedback.className = "feedback bad";
-                //     content.feedback.textContent = "Numbers are correct. Choose the correct property.";
-                // } else if (propertyCorrect && !numbersCorrect) {
-                //     content.feedback.className = "feedback bad";
-                //     content.feedback.textContent = "Property is correct. Check the number boxes.";
-                // } else {
-                //     content.feedback.className = "feedback";
-                //     content.feedback.textContent = "Keep going! Complete both parts.";
-                // }
+                if (
+                    current <
+                    questions.length - 1
+                ) {
 
-                renderQuestion(current);
-            }
-
-            function finishQuiz() {
-                sound.finish();
-                showFinalPopup();
-            }
-
-            /* SAME FINAL POPUP STRUCTURE / BEHAVIOR AS REFERENCE */
-            function showFinalPopup() {
-                if (document.querySelector(".final-overlay")) return;
-
-                const overlay = document.createElement("div");
-                const modal = document.createElement("div");
-
-                overlay.className = "final-overlay";
-                modal.className = "final-modal";
-
-                const total = state.filter(s => s.completed).length;
-
-                modal.innerHTML = `
-      <span class="icon-big">🎉</span>
-      <h2>All Done!</h2>
-      <p>Amazing! You got them all right!</p>
-      <button class="btn-playagain"> <i class="fa-solid fa-rotate-right"></i> Play again</button>
-    `;
-
-                overlay.appendChild(modal);
-                document.body.appendChild(overlay);
-
-                setTimeout(() => burstConfetti(modal), 80);
-                setTimeout(() => burstConfetti(modal), 350);
-                setTimeout(() => burstConfetti(modal), 650);
-
-                modal.querySelector(".btn-playagain").addEventListener("click", () => {
-                    overlay.remove();
-
-                    state.forEach(s => {
-                        s.answers = [];
-                        s.property = "";
-                        s.completed = false;
-                        s.attempts = 0;
-                        s.activeBox = 0;
-                    });
-
-                    current = 0;
-                    xp = 0;
-                    renderQuestion(0);
-                });
-            }
-
-            /* SAME PREV / NEXT LOGIC AS REFERENCE */
-            content.prevBtn.addEventListener("click", () => {
-                if (current > 0) {
-                    renderQuestion(current - 1);
-                    sound.click();
+                    renderQuestion(
+                        current + 1
+                    );
                 }
-            });
+            }
+        );
 
-            content.nextBtn.addEventListener("click", () => {
-                if (!state[current].completed) return;
 
-                if (current < questions.length - 1) {
-                    renderQuestion(current + 1);
-                    sound.click();
-                } else {
-                    /* Last-question text button remains Next; popup is normally automatic. */
-                    finishQuiz();
-                }
-            });
+        /* =========================================================
+           START GAME
+        ========================================================= */
 
-            renderQuestion(0);
-        })();
-    </script>
+        renderQuestion(0);
+
+    })();
+</script>
     <script src="../../shared/quiz-ui.js"></script>
 </body>
 

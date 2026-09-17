@@ -143,7 +143,7 @@
 
     .drop-hint span {
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 400;
       letter-spacing: .02em;
     }
 
@@ -267,9 +267,10 @@
       box-shadow: 0 8px 20px rgba(255, 155, 47, .25);
     }
 
-    .picture-frame svg {
+    .picture-frame img {
       width: 100%;
       height: 100%;
+      object-fit: contain;
       display: block;
     }
 
@@ -537,6 +538,10 @@
         border-radius: clamp(18px, 1vw, 24px);
       }
 
+      .drop-hint span {
+        font-size: 18px;
+      }
+
       .shape-options-row {
         width: 100%;
         gap: clamp(30px, 2.2vw, 46px);
@@ -617,6 +622,10 @@
         height: clamp(230px, 11.5vw, 300px);
         padding: clamp(16px, 1vw, 24px);
         border-radius: clamp(20px, 1vw, 28px);
+      }
+
+      .drop-hint span {
+        font-size: 18px;
       }
 
       .shape-options-row {
@@ -851,53 +860,13 @@
     }
     (() => {
 
-      /* ============== SHAPE ICON LIBRARY (inline SVG, no external assets) ============== */
-      /* Restyled to match the reference key: red Triangle, blue Square,
-         soft pearl Circle, and a glossy orange Oval. */
+      /* ============== SHAPE OPTION IMAGES (real image paths) ============== */
 
-      const shapeIcons = {
-        triangle: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="triGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#ff7a7a"/>
-                        <stop offset="100%" stop-color="#e0313f"/>
-                      </linearGradient>
-                    </defs>
-                    <polygon points="50,10 92,88 8,88" fill="url(#triGrad)" stroke="#c02532" stroke-width="4" stroke-linejoin="round"/>
-                    <polygon points="50,10 68,44 32,44" fill="#ffffff" opacity=".18"/>
-                  </svg>`,
-        square: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="sqGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#6fa8ff"/>
-                        <stop offset="100%" stop-color="#3169d6"/>
-                      </linearGradient>
-                    </defs>
-                    <rect x="10" y="10" width="80" height="80" rx="12" fill="url(#sqGrad)" stroke="#274f9e" stroke-width="4"/>
-                    <rect x="20" y="20" width="28" height="12" rx="6" fill="#ffffff" opacity=".25"/>
-                  </svg>`,
-        circle: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <radialGradient id="circGrad" cx="36%" cy="30%" r="72%">
-                        <stop offset="0%" stop-color="#fbf8ff"/>
-                        <stop offset="55%" stop-color="#e3d9ff"/>
-                        <stop offset="100%" stop-color="#bdaaf0"/>
-                      </radialGradient>
-                    </defs>
-                    <circle cx="50" cy="50" r="42" fill="url(#circGrad)" stroke="#a693e0" stroke-width="3"/>
-                    <ellipse cx="50" cy="88" rx="26" ry="5" fill="#12265d" opacity=".08"/>
-                  </svg>`,
-        oval: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <radialGradient id="ovalGrad" cx="36%" cy="30%" r="75%">
-                        <stop offset="0%" stop-color="#ffdca3"/>
-                        <stop offset="55%" stop-color="#ffb347"/>
-                        <stop offset="100%" stop-color="#e07b17"/>
-                      </radialGradient>
-                    </defs>
-                    <ellipse cx="50" cy="50" rx="44" ry="34" fill="url(#ovalGrad)" stroke="#c9660f" stroke-width="3"/>
-                    <ellipse cx="50" cy="80" rx="24" ry="4.5" fill="#12265d" opacity=".08"/>
-                  </svg>`
+      const optionImages = {
+        triangle: "../assets/images/triangle.png",
+        square: "../assets/images/square.png",
+        circle: "../assets/images/circle.png",
+        oval: "../assets/images/oval.png"
       };
 
       /* ============== QUESTIONS ============== */
@@ -1051,7 +1020,13 @@
 
           const frame = document.createElement("div");
           frame.className = "picture-frame";
-          frame.innerHTML = shapeIcons[shapeName];
+
+          const optionImg = document.createElement("img");
+          optionImg.src = optionImages[shapeName];
+          optionImg.alt = `${shapeName} option`;
+          optionImg.draggable = false;
+          frame.appendChild(optionImg);
+
           pictureItem.appendChild(frame);
 
           optionItems.push(pictureItem);
@@ -1132,7 +1107,12 @@
             showEmoji("🥳");
 
             dropBox.textContent = "";
-            dropBox.innerHTML = shapeIcons[shapeName];
+            dropBox.innerHTML = "";
+            const droppedImg = document.createElement("img");
+            droppedImg.src = optionImages[shapeName];
+            droppedImg.alt = shapeName;
+            droppedImg.draggable = false;
+            dropBox.appendChild(droppedImg);
             dropBox.classList.add("correct-locked");
             burstConfetti(dropBox);
 
@@ -1156,10 +1136,11 @@
             startX = e.clientX;
             startY = e.clientY;
 
-            const shape = pictureItem.querySelector("svg");
+            const shape = pictureItem.querySelector("img");
             const rect = shape.getBoundingClientRect();
             ghost = shape.cloneNode(true);
             ghost.classList.add("drag-ghost", "dragging");
+            ghost.style.objectFit = "contain";
             ghost.style.left = rect.left + "px";
             ghost.style.top = rect.top + "px";
             ghost.style.width = rect.width + "px";
@@ -1179,7 +1160,12 @@
 
         if (completed[index]) {
           dropBox.textContent = "";
-          dropBox.innerHTML = shapeIcons[q.answer];
+          dropBox.innerHTML = "";
+          const savedImg = document.createElement("img");
+          savedImg.src = optionImages[q.answer];
+          savedImg.alt = q.answer;
+          savedImg.draggable = false;
+          dropBox.appendChild(savedImg);
           dropBox.classList.add("correct-locked");
           optionItems.forEach(item => item.classList.add("locked"));
         }
