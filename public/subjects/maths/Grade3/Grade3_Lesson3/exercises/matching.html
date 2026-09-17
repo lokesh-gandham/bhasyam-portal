@@ -124,7 +124,7 @@
     .item:nth-child(8) {
       animation-delay: .28s;
     }
-
+/* 
     .item::before {
       content: "";
       position: absolute;
@@ -136,7 +136,7 @@
       transform: skewX(-20deg);
       transition: left .6s ease;
       pointer-events: none;
-    }
+    } */
 
     .item:hover:not(.matched) {
       transform: translateY(-4px) scale(1.012);
@@ -548,6 +548,185 @@
         font-size: 25px;
       }
     }
+
+    /* --- Kids-friendly matching option finish --- */
+    .item {
+      overflow: visible;
+      position: relative;
+      isolation: isolate;
+      text-align: center;
+    }
+
+    .item > span:last-child {
+      flex: 1 1 auto;
+      min-width: 0;
+      line-height: 1.15;
+      text-align: center;
+      display: block;
+    }
+
+    .left .item > span:last-child {
+      padding-right: 34px;
+    }
+
+    .right .item {
+      padding-left: 22px;
+      padding-right: 22px;
+    }
+
+    .right .item > span:last-child {
+      padding: 0 8px;
+    }
+
+    /* Keep the number badge on the left, but remove the letter badge on the right. */
+    .right .letter {
+      display: none;
+    }
+
+    .number {
+      position: relative;
+      z-index: 3;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      margin-right: 12px;
+      border: 0;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ff5a8d 0%, #f23f78 100%);
+      color: #fff;
+      font-weight: 700;
+      box-shadow:
+        0 4px 0 rgba(210, 54, 105, .18),
+        0 5px 10px rgba(55, 65, 81, .12);
+    }
+
+    /* .left .item::after,
+    .right .item::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      transform: translateY(-50%);
+      background: #fff;
+      pointer-events: none;
+      z-index: 5;
+      box-sizing: border-box;
+    } */
+
+    .left .item::after {
+      right: -10px;
+      border: 4px solid #ff4e83;
+    }
+
+    .right .item::after {
+      left: -10px;
+      border: 4px solid #0ea5e9;
+    }
+
+    .item.active::after {
+      transform: translateY(-50%) scale(1.08);
+    }
+
+    .item.matched::after {
+      border-color: #22c55e !important;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, .10);
+    }
+
+    .item.error::after {
+      border-color: #ef4444;
+    }
+
+    /* Let the existing shine stay inside each card after overflow becomes visible. */
+    .item::before {
+      z-index: 1;
+      border-radius: inherit;
+    }
+
+    .item > span {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Connector paths: clean, rounded, playful dashed curves. */
+    #line-canvas {
+      overflow: visible;
+      z-index: 10;
+    }
+
+    #line-canvas path {
+      fill: none;
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 9 7;
+      vector-effect: non-scaling-stroke;
+      opacity: .96;
+    }
+
+    @keyframes matchingLineFlow {
+      to { stroke-dashoffset: -32; }
+    }
+
+    #line-canvas path {
+      animation: matchingLineFlow 1.15s linear infinite;
+    }
+
+    @media (max-width: 768px) {
+      .number {
+        width: 29px;
+        height: 29px;
+        flex-basis: 29px;
+        margin-right: 8px;
+      }
+
+      .left .item > span:last-child {
+        padding-right: 20px;
+      }
+
+      .left .item::after {
+        right: -8px;
+        width: 15px;
+        height: 15px;
+        border-width: 3px;
+      }
+
+      .right .item::after {
+        left: -8px;
+        width: 15px;
+        height: 15px;
+        border-width: 3px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .left .item > span:last-child {
+        padding-right: 12px;
+      }
+
+      .right .item {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .right .item > span:last-child {
+        padding: 0 3px;
+      }
+
+      .left .item::after {
+        right: -7px;
+        width: 14px;
+        height: 14px;
+      }
+
+      .right .item::after {
+        left: -7px;
+        width: 14px;
+        height: 14px;
+      }
+    }
+
   </style>
   <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -757,7 +936,7 @@
       });
 
       rightData.forEach(item => {
-        const div = createItem(item.text, item.match + ")", "right", item.match);
+        const div = createItem(item.text, "", "right", item.match);
         div.dataset.id = item.match;
 
         div.onclick = () => {
@@ -766,7 +945,8 @@
           if (selectedLeft.dataset.match === div.dataset.id) {
             handleMatch(selectedLeft, div);
           } else {
-            sound.wrong();
+            // sound.wrong();
+            speak("Wrong!");
             showEmoji("😔");
             div.classList.remove("error");
             void div.offsetWidth;
@@ -790,7 +970,8 @@
       leftEl.classList.remove("active");
       selectedLeft = null;
 
-      sound.correct();
+      // sound.correct();
+      speak("Correct!");
       showEmoji("🥳");
       burstConfetti(rightEl);
 
@@ -801,7 +982,7 @@
         setTimeout(() => {
           sound.finish();
           showFinalPopup();
-        }, 700);
+        }, 1600);
       }
     }
 
@@ -823,29 +1004,44 @@
       const rect1 = el1.getBoundingClientRect();
       const rect2 = el2.getBoundingClientRect();
 
+      // Start/end at the centers of the small edge circles.
       const x1 = rect1.right - containerRect.left;
       const y1 = rect1.top + rect1.height / 2 - containerRect.top;
 
       const x2 = rect2.left - containerRect.left;
       const y2 = rect2.top + rect2.height / 2 - containerRect.top;
 
-      const offset = Math.max(25, (x2 - x1) * 0.35);
+      const distance = Math.max(70, x2 - x1);
+      const bend = Math.min(150, Math.max(45, distance * 0.30));
 
       const d = `
         M ${x1},${y1}
-        C ${x1 + offset},${y1}
-          ${x2 - offset},${y2}
+        C ${x1 + bend},${y1}
+          ${x2 - bend},${y2}
           ${x2},${y2}
       `;
 
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", d);
-      path.setAttribute("fill", "none");
-      path.setAttribute("stroke", "#22c55e");
+
+      const lineColors = {
+        a: "#2f6fdb",
+        b: "#ff4e83",
+        c: "#ff8a00",
+        d: "#22c55e",
+        e: "#00a99d",
+        f: "#8b5cf6",
+        g: "#ff4e83",
+        h: "#0ea5e9"
+      };
+
+      const color = lineColors[el2.dataset.id] || "#2f6fdb";
+      path.setAttribute("stroke", color);
       path.setAttribute("stroke-width", "4");
       path.setAttribute("stroke-linecap", "round");
-      path.setAttribute("stroke-dasharray", "8 6");
-      path.style.filter = "drop-shadow(0 2px 3px rgba(34,197,94,.18))";
+      path.setAttribute("stroke-linejoin", "round");
+      path.setAttribute("stroke-dasharray", "9 7");
+      path.style.filter = "drop-shadow(0 2px 3px rgba(55,65,81,.14))";
 
       svg.appendChild(path);
     }

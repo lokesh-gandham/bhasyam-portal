@@ -1,6 +1,34 @@
 const AUTH_STORAGE_KEY = "bhasyam_auth_session";
-const VALID_USERNAME = "admin";
-const VALID_PASSWORD = "#Passw0rd@2026#";
+
+function getEnvValue(name: string): string | undefined {
+  if (typeof import.meta !== "undefined" && import.meta.env) {
+    const envValue = import.meta.env[name];
+    if (typeof envValue === "string" && envValue.trim()) return envValue;
+  }
+
+  const globalProcess = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process;
+  const processValue = globalProcess?.env?.[name];
+  if (typeof processValue === "string" && processValue.trim()) {
+    return processValue;
+  }
+
+  return undefined;
+}
+
+const VALID_USERNAME = getEnvValue("VITE_BHASYAM_USERNAME") ?? "admin";
+const VALID_PASSWORD = getEnvValue("VITE_BHASYAM_PASSWORD") ?? "#Passw0rd@2026#";
+
+function encodeBase64(value: string): string {
+  if (typeof btoa === "function") {
+    return btoa(value);
+  }
+
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(value, "utf8").toString("base64");
+  }
+
+  throw new Error("Base64 encoding is not available in this environment.");
+}
 
 function generateToken(username: string): string {
   const timestamp = Date.now();
@@ -10,7 +38,7 @@ function generateToken(username: string): string {
     const char = payload.charCodeAt(i);
     hash = ((hash << 5) - hash + char) | 0;
   }
-  return btoa(`${payload}:${Math.abs(hash).toString(36)}`);
+  return encodeBase64(`${payload}:${Math.abs(hash).toString(36)}`);
 }
 
 export interface AuthSession {
@@ -20,7 +48,7 @@ export interface AuthSession {
 }
 
 export function validateCredentials(username: string, password: string): boolean {
-  return username === VALID_USERNAME && password === VALID_PASSWORD;
+  return username.trim() === VALID_USERNAME && password === VALID_PASSWORD;
 }
 
 export function createSession(username: string): AuthSession {
@@ -40,9 +68,15 @@ export function getSession(): AuthSession | null {
   try {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     if (!raw) return null;
-    const session: AuthSession = JSON.parse(raw);
-    if (!session.token || !session.username || !session.loginTime) return null;
-    return session;
+    const session = JSON.parse(raw) as Partial<AuthSession>;
+    if (!session.token || !session.username || typeof session.loginTime !== "number" || !Number.isFinite(session.loginTime)) {
+      return null;
+    }
+    return {
+      token: session.token,
+      username: session.username,
+      loginTime: session.loginTime,
+    };
   } catch {
     localStorage.removeItem(AUTH_STORAGE_KEY);
     return null;
