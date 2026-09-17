@@ -20,8 +20,10 @@
     try {
       synth.cancel();
       var u = new SpeechSynthesisUtterance(text);
-      u.rate = 1;
-      u.pitch = 1.1;
+      u.rate = .9;
+      u.pitch = .5;
+       u.lang = "en-US";
+            u.volume = 0.25;
       synth.speak(u);
     } catch(e){}
   }
@@ -45,24 +47,24 @@
   }
 
   function soundCorrect(){
-    playTone(523.25, 0.12); // C5
-    setTimeout(function(){ playTone(659.25, 0.12); }, 90); // E5
-    setTimeout(function(){ playTone(783.99, 0.22); }, 180); // G5
+    // playTone(523.25, 0.12); // C5
+    // setTimeout(function(){ playTone(659.25, 0.12); }, 90); // E5
+    // setTimeout(function(){ playTone(783.99, 0.22); }, 180); // G5
     speak('Correct!');
   }
 
   function soundWrong(){
-    playTone(330, 0.2, 'triangle');
-    setTimeout(function(){ playTone(261.63, 0.3, 'triangle'); }, 150);
+    // playTone(330, 0.2, 'triangle');
+    // setTimeout(function(){ playTone(261.63, 0.3, 'triangle'); }, 150);
     speak('Try again!');
   }
 
   function soundCongrats(){
-    playTone(523.25, 0.12);
-    setTimeout(function(){ playTone(659.25, 0.12); }, 100);
-    setTimeout(function(){ playTone(783.99, 0.12); }, 200);
-    setTimeout(function(){ playTone(1046.50, 0.4); }, 300);
-    speak('Superb work!');
+    // playTone(523.25, 0.12);
+    // setTimeout(function(){ playTone(659.25, 0.12); }, 100);
+    // setTimeout(function(){ playTone(783.99, 0.12); }, 200);
+    // setTimeout(function(){ playTone(1046.50, 0.4); }, 300);
+    // speak('Superb work!');
   }
 
   var popupHideTimer = null;

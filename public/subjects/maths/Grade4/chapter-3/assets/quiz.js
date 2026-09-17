@@ -37,10 +37,13 @@
     var synth = window.speechSynthesis;
     if(!synth) return;
     synth.cancel();
-    var u = new SpeechSynthesisUtterance(text);
-    u.rate = 1;
-    u.pitch = 1.1;
-    synth.speak(u);
+    var msg = new SpeechSynthesisUtterance(text);
+   msg.lang = "en-US";
+      msg.volume = 0.25;
+      msg.rate = 1;
+      msg.pitch = 1;
+            
+    synth.speak(msg);
   }
 
   function playTone(freq, dur, type){
@@ -59,24 +62,24 @@
   }
 
   function soundCorrect(){
-    playTone(523, 0.12);
-    setTimeout(function(){ playTone(659, 0.12); }, 100);
-    setTimeout(function(){ playTone(784, 0.2); }, 200);
+    // playTone(523, 0.12);
+    // setTimeout(function(){ playTone(659, 0.12); }, 100);
+    // setTimeout(function(){ playTone(784, 0.2); }, 200);
     speak('Correct!');
   }
 
   function soundWrong(){
-    playTone(330, 0.25, 'square');
-    setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
+    // playTone(330, 0.25, 'square');
+    // setTimeout(function(){ playTone(262, 0.35, 'square'); }, 200);
     speak('Try again!');
   }
 
   function soundCongrats(){
-    playTone(523, 0.12);
-    setTimeout(function(){ playTone(659, 0.12); }, 120);
-    setTimeout(function(){ playTone(784, 0.12); }, 240);
-    setTimeout(function(){ playTone(1047, 0.35); }, 360);
-    speak('Congratulations!');
+    // playTone(523, 0.12);
+    // setTimeout(function(){ playTone(659, 0.12); }, 120);
+    // setTimeout(function(){ playTone(784, 0.12); }, 240);
+    // setTimeout(function(){ playTone(1047, 0.35); }, 360);
+    // speak('Congratulations!');
   }
 
   /* ---------- answer normalisation ----------
@@ -290,7 +293,7 @@
       /* ---- shell ---- */
       document.title = cfg.title + ' · Chapter 3';
       var home = el('a', 'home',
-        '<svg viewBox="0 0 16 16"><path d="M8 1.2 1 7h2v6h3.6V9.2h2.8V13H13V7h2L8 1.2z"/></svg> Home');
+        '🏠 Home');
       home.href = cfg.home || '../index.html';
 
       var stage = el('main', 'stage');
@@ -311,14 +314,11 @@
 
       var nav = el('nav', 'nav');
       var prev = el('button', 'btn ghost', '← Prev');
-      var help = el('button', 'btn ghost', 'Show me');
       var checkBtn = el('button', 'btn primary', 'Check answer');
       var nextBtn = el('button', 'btn primary', 'Next →');
       nextBtn.disabled = true;
-      [prev, help, checkBtn, nextBtn].forEach(function (b) { b.type = 'button'; });
-      help.style.minWidth = '120px';
+      [prev, checkBtn, nextBtn].forEach(function (b) { b.type = 'button'; });
       nav.appendChild(prev);
-      nav.appendChild(help);
       nav.appendChild(checkBtn);
       nav.appendChild(nextBtn);
 
@@ -431,7 +431,6 @@
         }
 
         prev.disabled = at === 0;
-        help.hidden = s.solved || s.tries < 2;
         checkBtn.disabled = s.solved;
         nextBtn.disabled = !s.solved || at === qs.length - 1;
         nextBtn.textContent = 'Next →';
@@ -462,7 +461,12 @@
         if (wrong.length) {
           s.tries++;
           s.clean = false;
-          help.hidden = s.tries < 2;
+
+          fs.forEach(function (n) {
+  n._f.setValue('');
+  n._f.mark('');
+});
+
           pop.className = 'pop wrong';
           popIcon.textContent = '🤔';
           popTitle.textContent = 'Not quite yet';
@@ -530,20 +534,6 @@
       prev.onclick = function () { if (at > 0) { save(); at--; draw(); } };
       checkBtn.onclick = check;
       nextBtn.onclick = function () { if (!nextBtn.disabled) advance(); };
-      help.onclick = function () {
-        var s = state[at];
-        s.clean = false;
-        fields().forEach(function (n) { n._f.reveal(); n._f.mark('good'); n._f.lock(); });
-        s.solved = true;
-        save();
-        msg.className = 'msg good';
-        msg.textContent = 'Here is the worked answer — try the next one on your own.';
-        help.hidden = true;
-        checkBtn.disabled = true;
-        nextBtn.disabled = at === qs.length - 1;
-        nextBtn.textContent = 'Next →';
-        drawDots();
-      };
       again.onclick = function () {
         at = 0;
         state = qs.map(function () { return { solved: false, tries: 0, clean: true, saved: null }; });

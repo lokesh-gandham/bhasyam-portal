@@ -45,10 +45,12 @@
     if (!synth) return;
     try {
       synth.cancel();
-      var u = new SpeechSynthesisUtterance(text);
-      u.rate = 1.0;
-      u.pitch = 1.1;
-      synth.speak(u);
+      var msg = new SpeechSynthesisUtterance(text);
+     msg.lang = "en-US";
+      msg.volume = 0.25;
+      msg.rate = 1;
+      msg.pitch = 1;
+      synth.speak(msg);
     } catch (e) {}
   }
 
@@ -71,24 +73,24 @@
   }
 
   function soundCorrect() {
-    playTone(523, 0.12);
-    setTimeout(function () { playTone(659, 0.12); }, 100);
-    setTimeout(function () { playTone(784, 0.2); }, 200);
+    // playTone(523, 0.12);
+    // setTimeout(function () { playTone(659, 0.12); }, 100);
+    // setTimeout(function () { playTone(784, 0.2); }, 200);
     speak('Correct!');
   }
 
   function soundWrong() {
-    playTone(330, 0.25, 'square');
-    setTimeout(function () { playTone(262, 0.35, 'square'); }, 200);
+    // playTone(330, 0.25, 'square');
+    // setTimeout(function () { playTone(262, 0.35, 'square'); }, 200);
     speak('Try again!');
   }
 
   function soundCongrats() {
-    playTone(523, 0.12);
-    setTimeout(function () { playTone(659, 0.12); }, 120);
-    setTimeout(function () { playTone(784, 0.12); }, 240);
-    setTimeout(function () { playTone(1047, 0.35); }, 360);
-    speak('Congratulations!');
+    // playTone(523, 0.12);
+    // setTimeout(function () { playTone(659, 0.12); }, 120);
+    // setTimeout(function () { playTone(784, 0.12); }, 240);
+    // setTimeout(function () { playTone(1047, 0.35); }, 360);
+    // speak('Congratulations!');
   }
 
   function buzz(ms) {
@@ -429,12 +431,10 @@
 
       /* Separate buttons on bottom navigation bar */
       var prev = el('button', 'btn ghost', '← Previous');
-      var help = el('button', 'btn ghost', 'Show me');
       var checkBtn = el('button', 'btn primary', 'Check answer');
       var nextBtn = el('button', 'btn primary', 'Next →');
-      [prev, help, checkBtn, nextBtn].forEach(function (b) { b.type = 'button'; });
+      [prev, checkBtn, nextBtn].forEach(function (b) { b.type = 'button'; });
       ui.navLeft.appendChild(prev);
-      ui.navLeft.appendChild(help);
       ui.navCenter.appendChild(checkBtn);
       ui.navRight.appendChild(nextBtn);
 
@@ -508,7 +508,6 @@
         }
 
         prev.disabled = at === 0;
-        help.hidden = s.solved || s.tries < 2;
         updateCheck();
         nextBtn.disabled = !s.solved || at === qs.length - 1;
         nextBtn.style.visibility = (at === qs.length - 1) ? 'hidden' : 'visible';
@@ -545,7 +544,7 @@
         var stillEmpty = fs.filter(function (n) { return !n._f.filled(); }).length;
 
         if (wrong.length || stillEmpty) {
-          if (wrong.length) { s.tries++; s.clean = false; help.hidden = s.tries < 2; }
+          if (wrong.length) { s.tries++; s.clean = false; }
           save();                        /* remember the locked-in right answers */
 
           if (wrong.length) {
@@ -638,20 +637,6 @@ popTimer = setTimeout(function () {
       prev.onclick = function () { if (at > 0) { save(); at--; draw(); } };
       checkBtn.onclick = check;
       nextBtn.onclick = function () { if (!nextBtn.disabled) advance(); };
-      help.onclick = function () {
-        var s = state[at];
-        s.clean = false;
-        s.solved = true;
-        fields().forEach(function (n) { n._f.reveal(); n._f.mark('good'); n._f.lock(); });
-        save();
-        ui.msg.className = 'msg good';
-        ui.msg.textContent = 'Here is the answer — try the next one on your own.';
-        help.hidden = true;
-        checkBtn.disabled = true;
-        nextBtn.disabled = at === qs.length - 1;
-        paintDots();
-        soundCorrect();
-      };
       ui.again.onclick = function () {
         at = 0;
         state = qs.map(function () { return { solved: false, tries: 0, clean: true, saved: null }; });
