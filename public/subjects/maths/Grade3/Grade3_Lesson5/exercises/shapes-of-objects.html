@@ -127,7 +127,7 @@
 
     .questions-grid {
       width: 100%;
-      max-width: 1080px;
+      max-width: 1480px;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px 20px;
@@ -135,12 +135,43 @@
 
     .answer-question {
       min-width: 0;
-      padding: 16px 18px;
+      padding: 0 !important;
       /* border: 2px solid #e1e5ee; */
       border-radius: 18px;
       background: #fff;
       box-shadow: 0 5px 0 rgba(18, 38, 93, .06),
         0 9px 18px rgba(18, 38, 93, .06);
+      display: grid;
+      grid-template-columns: 35% 65%;
+      overflow: hidden;
+      min-height: 150px;
+    }
+
+    .answer-image-wrap {
+      width: 70%;
+      height: 70%;
+      min-width: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: auto;
+    }
+
+    .answer-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .answer-question-content {
+      min-width: 0;
+      min-height: 0;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .answer-question:nth-child(1) {
@@ -180,7 +211,7 @@
     }
 
     .answer-input {
-      width: 62%;
+      width: 100%;
       min-width: 0;
       height: 52px;
       box-sizing: border-box;
@@ -1232,9 +1263,30 @@
         let correctCount = 0;
         const savedRows = [];
 
-        rows.forEach(rowData => {
+        rows.forEach((rowData, rowIndex) => {
           const card = document.createElement("div");
           card.className = "answer-question";
+
+          const answerImageWrap = document.createElement("div");
+          answerImageWrap.className = "answer-image-wrap";
+
+          const answerImage = document.createElement("img");
+          answerImage.className = "answer-image";
+          answerImage.src = `../assets/images/img${rowIndex + 1}(+).png`;
+          answerImage.alt = "";
+          answerImage.draggable = false;
+
+          answerImage.onerror = () => {
+            if (!answerImage.dataset.fallback) {
+              answerImage.dataset.fallback = "true";
+              answerImage.src = `../assets/images/img${rowIndex + 1}.png`;
+            }
+          };
+
+          answerImageWrap.appendChild(answerImage);
+
+          const answerQuestionContent = document.createElement("div");
+          answerQuestionContent.className = "answer-question-content";
 
           const label = document.createElement("div");
           label.className = "answer-question-label";
@@ -1371,8 +1423,12 @@
 
           entry.appendChild(input);
           entry.appendChild(check);
-          card.appendChild(label);
-          card.appendChild(entry);
+
+          answerQuestionContent.appendChild(label);
+          answerQuestionContent.appendChild(entry);
+
+          card.appendChild(answerImageWrap);
+          card.appendChild(answerQuestionContent);
           questionsGrid.appendChild(card);
 
           savedRows.push({ input, check, rowData });
