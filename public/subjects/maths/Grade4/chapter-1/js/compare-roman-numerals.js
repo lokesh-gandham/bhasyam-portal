@@ -62,15 +62,29 @@ function romanCompare(left, right){
       gap.classList.add('filled');
       revealValues();
     },
-    check(){
-      const ok = opts.value() === correct;
-      opts.mark(correct);
-      gap.innerHTML = SYMS[correct];
-      revealValues();
-      return { ok, answer: opts.value(),
-        msg: ok ? `Right — ${left} (${a}) ${NAMES[correct]} ${right} (${b}).`
-                : `${left} is ${a} and ${right} is ${b}, so ${left} ${NAMES[correct]} ${right}.` };
-    }
+   check() {
+  const userAnswer = opts.value();
+  const ok = userAnswer === correct;
+
+  opts.mark(correct);
+
+  if (ok) {
+    // Show the correct symbol
+    gap.innerHTML = SYMS[correct];
+    gap.classList.add('filled');
+
+    // Reveal digits ONLY for a correct answer
+    revealValues();
+  }
+
+  return {
+    ok,
+    answer: userAnswer,
+    msg: ok
+      ? `Right — ${left} (${a}) ${NAMES[correct]} ${right} (${b}).`
+      : `${left} is ${a} and ${right} is ${b}, so ${left} ${NAMES[correct]} ${right}.`
+  };
+}
   };
 }
 

@@ -39,16 +39,22 @@
     var circleBtn = document.createElement('button');
     circleBtn.className = 'eo-tool-btn circle-tool active';
     circleBtn.type = 'button';
+    circleBtn.draggable = false;
+    circleBtn.setAttribute('aria-label', 'Drag the circle to an even number');
     circleBtn.setAttribute('aria-pressed', 'true');
-    circleBtn.innerHTML = '<span class="eo-tool-symbol">○</span> Circle Even';
+    circleBtn.innerHTML = '<span class="eo-tool-symbol" aria-hidden="true">○</span> Drag Circle to Even';
     circleBtn.addEventListener('click', function () { setTool('circle'); });
+    addDragHandlers(circleBtn.querySelector('.eo-tool-symbol'), 'circle');
 
     var crossBtn = document.createElement('button');
     crossBtn.className = 'eo-tool-btn cross-tool';
     crossBtn.type = 'button';
+    crossBtn.draggable = false;
+    crossBtn.setAttribute('aria-label', 'Drag the line to an odd number');
     crossBtn.setAttribute('aria-pressed', 'false');
-    crossBtn.innerHTML = '<span class="eo-tool-symbol">╱</span> Cross Out Odd';
+    crossBtn.innerHTML = '<span class="eo-tool-symbol" aria-hidden="true">╱</span> Drag Line to Odd';
     crossBtn.addEventListener('click', function () { setTool('cross'); });
+    addDragHandlers(crossBtn.querySelector('.eo-tool-symbol'), 'cross');
 
     selector.appendChild(circleBtn);
     selector.appendChild(crossBtn);
@@ -57,6 +63,33 @@
 
     circleTool = circleBtn;
     crossTool = crossBtn;
+  }
+
+  function addDragHandlers(toolSymbol, tool) {
+    toolSymbol.draggable = true;
+    toolSymbol.addEventListener('dragstart', function (event) {
+      event.dataTransfer.effectAllowed = 'copy';
+      event.dataTransfer.setData('text/plain', tool);
+      setTool(tool);
+      toolSymbol.classList.add('dragging');
+
+      var dragPreview = toolSymbol.cloneNode(true);
+      dragPreview.classList.add('eo-drag-preview');
+      document.body.appendChild(dragPreview);
+      event.dataTransfer.setDragImage(dragPreview, 20, 20);
+      toolSymbol._dragPreview = dragPreview;
+    });
+
+    toolSymbol.addEventListener('dragend', function () {
+      toolSymbol.classList.remove('dragging');
+      if (toolSymbol._dragPreview) {
+        toolSymbol._dragPreview.remove();
+        toolSymbol._dragPreview = null;
+      }
+      numberItems.forEach(function (item) {
+        item.classList.remove('drop-ready');
+      });
+    });
   }
 
   function buildBoard() {
@@ -84,7 +117,16 @@
         btn.className = 'eo-num';
         btn.dataset.number = num;
         btn.textContent = num;
-        btn.addEventListener('click', createClickHandler(btn));
+        btn.setAttribute('aria-label', 'Drop a circle or line on ' + num);
+        btn.addEventListener('dragover', function (event) {
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'copy';
+          btn.classList.add('drop-ready');
+        });
+        btn.addEventListener('dragleave', function () {
+          btn.classList.remove('drop-ready');
+        });
+        btn.addEventListener('drop', createDropHandler(btn));
         numsWrap.appendChild(btn);
         numberItems.push(btn);
       }
@@ -96,9 +138,15 @@
     stage.appendChild(board);
   }
 
-  function createClickHandler(item) {
-    return function () {
-      markNumber(item);
+  function createDropHandler(item) {
+    return function (event) {
+      event.preventDefault();
+      item.classList.remove('drop-ready');
+      var droppedTool = event.dataTransfer.getData('text/plain');
+      if (droppedTool === 'circle' || droppedTool === 'cross') {
+        setTool(droppedTool);
+        markNumber(item, droppedTool);
+      }
     };
   }
 
@@ -119,15 +167,15 @@
     return number % 2 === 0 ? 'circle' : 'cross';
   }
 
-  function markNumber(item) {
+  function markNumber(item, tool) {
     if (item.classList.contains('answer-correct')) {
       return;
     }
 
     var number = Number(item.dataset.number);
     var correctMark = expectedMark(number);
-    var isCorrect = (activeTool === 'circle' && correctMark === 'circle') ||
-                    (activeTool === 'cross' && correctMark === 'cross');
+    var selectedTool = tool || activeTool;
+    var isCorrect = selectedTool === correctMark;
 
     item.classList.remove('marked-circle', 'marked-cross', 'answer-correct', 'answer-wrong');
 
@@ -145,8 +193,8 @@
         Quiz.showPopout('correct', msg);
       }
     } else {
-      item.classList.add(activeTool === 'circle' ? 'marked-circle' : 'marked-cross');
-      item.setAttribute('data-mark', activeTool);
+      item.classList.add(selectedTool === 'circle' ? 'marked-circle' : 'marked-cross');
+      item.setAttribute('data-mark', selectedTool);
       item.classList.add('answer-wrong');
       Quiz.showPopout('wrong', number + ' is ' + (correctMark === 'circle' ? 'even' : 'odd') + ' — try again!');
       setTimeout(function () {
