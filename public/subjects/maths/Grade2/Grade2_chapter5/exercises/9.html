@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fill in the boxes to get the given product</title>
- <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Livvic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Shared project styles: Home, Hint, Previous/Next, feedback popups and final popup -->
     <link rel="stylesheet" href="../assets/css/reuse.css">
 
@@ -449,7 +449,8 @@
             color: #2f4f4f;
             font-size: clamp(19px, 1.8vw, 28px);
             line-height: 1;
-            margin: 0 0 2px
+            margin: 0 0 2px;
+            display: none;
         }
 
         .activity-board {
@@ -509,6 +510,14 @@
         .answer-box.drop-target {
             stroke: #f0a52f;
             stroke-width: 3
+        }
+
+        .drop-placeholder {
+            fill: #9a8fa8;
+            font-size: 16px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
         }
 
         .product-text,
@@ -583,9 +592,9 @@
             content: "";
             position: absolute;
             width: 40px;
-            height: 35px;
+            height: 40px;
             left: 50%;
-            top: 11px;
+            top: 7px;
             transform: translateX(-50%);
             border-radius: 48% 48% 45% 45%;
             background: #ef5350;
@@ -1056,9 +1065,9 @@
             }
 
             .apple-choice::before {
-                width: 46px;
-                height: 41px;
-                top: 13px
+                width: 65px;
+                height: 65px;
+                top: 9px
             }
 
             .apple-choice::after {
@@ -1067,7 +1076,7 @@
             }
 
             .apple-choice span {
-                font-size: 19px
+                font-size: 24px
             }
         }
     </style>
@@ -1222,24 +1231,62 @@
         }
         function addDropBox(parent, x, y, value, rowIndex, side) {
             const g = svgEl("g");
-            const rect = svgEl("rect", { x, y, width: 92, height: 52, rx: 9, class: "answer-box" + (value !== null ? " filled" : "") });
+
+            const rect = svgEl("rect", {
+                x,
+                y,
+                width: 130,
+                height: 60,
+                rx: 9,
+                class: "answer-box" + (value !== null ? " filled" : "")
+            });
+
             g.appendChild(rect);
-            if (value !== null) addText(g, x + 46, y + 27, value, "tree-answer");
+
+            if (value !== null) {
+                addText(g, x + 65, y + 30, value, "tree-answer");
+            } else {
+                // Placeholder text
+                addText(g, x + 65, y + 30, "Drag & Drop", "drop-placeholder");
+            }
+
             if (value === null && !completed[current]) {
                 rect.style.cursor = "pointer";
-                rect.addEventListener("dragover", e => { e.preventDefault(); rect.classList.add("drop-target") });
-                rect.addEventListener("dragleave", () => rect.classList.remove("drop-target"));
-                rect.addEventListener("drop", e => { e.preventDefault(); rect.classList.remove("drop-target"); const v = e.dataTransfer.getData("text/plain"); if (v) placeValue(rowIndex, side, v) });
-                rect.addEventListener("click", () => { if (selectedApple) { placeValue(rowIndex, side, selectedApple); selectedApple = null; clearSelection() } });
+
+                rect.addEventListener("dragover", e => {
+                    e.preventDefault();
+                    rect.classList.add("drop-target");
+                });
+
+                rect.addEventListener("dragleave", () => {
+                    rect.classList.remove("drop-target");
+                });
+
+                rect.addEventListener("drop", e => {
+                    e.preventDefault();
+                    rect.classList.remove("drop-target");
+                    const v = e.dataTransfer.getData("text/plain");
+                    if (v) placeValue(rowIndex, side, v);
+                });
+
+                rect.addEventListener("click", () => {
+                    if (selectedApple) {
+                        placeValue(rowIndex, side, selectedApple);
+                        selectedApple = null;
+                        clearSelection();
+                    }
+                });
             }
-            parent.appendChild(g); return rect;
+
+            parent.appendChild(g);
+            return rect;
         }
         function createTree() {
             const q = data[current]; svg.innerHTML = "";
             const productX = 80, productY = 188, productW = 116;
             svg.appendChild(svgEl("rect", { x: productX, y: productY, width: productW, height: 54, rx: 9, class: "product-node" }));
             addText(svg, productX + productW / 2, productY + 28, String(q.product), "product-text");
-            const boxX = 360, rightX = 510, firstY = 25, gap = 78;
+            const boxX = 340, rightX = 530, firstY = 25, gap = 78;
             q.rows.forEach((row, i) => {
                 const y = firstY + i * gap;
                 drawBranch(svg, productX + productW, productY, 270, y, boxX);

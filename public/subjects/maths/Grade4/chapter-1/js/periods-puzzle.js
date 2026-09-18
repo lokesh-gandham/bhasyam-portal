@@ -32,7 +32,10 @@ function zeroOutQ(source, kill, answer, words){
 
     const title = document.createElement('p');
     title.className = 'pp-lead';
-    title.innerHTML = `Tap the <strong>${kill.join('</strong> and the <strong>')}</strong> in ${source} to knock them down to zero.`;
+    title.innerHTML = `
+      <strong>a)</strong> If 4 and 9 are replaced by zeros in the number 39480.
+      Write the number formed in numerals and in words.
+    `;
     stage.appendChild(title);
 
     tilesEl = document.createElement('div');
@@ -124,8 +127,10 @@ function periodsQ(chunks){
 
     const title = document.createElement('p');
     title.className = 'pp-lead';
-    title.innerHTML = chunks.map(c =>
-      `<strong>${c.value}</strong> in the ${c.period.toLowerCase()} period`).join(', ') + '.';
+    title.innerHTML = `
+      <strong>b)</strong> Write 7 in lakhs period,
+      67 in thousands period, 893 in ones period.
+    `;
     stage.appendChild(title);
 
     boardEl = document.createElement('div');
