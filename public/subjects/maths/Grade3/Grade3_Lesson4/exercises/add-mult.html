@@ -74,6 +74,7 @@
       font-size: 22px;
       font-weight: 800;
       /* margin-bottom: 50px; */
+      display: none;
     }
 
     .question-content {
@@ -278,6 +279,13 @@
       background: #f2fbf1 !important;
       box-shadow: 0 0 0 4px rgba(85, 180, 73, .13) !important;
       cursor: default;
+    }
+
+
+    /* Picture-count boxes are intentionally blank until the child counts the items. */
+    .addend-input.picture-linked:not([readonly]) {
+      background: #fffdf5;
+      border-color: #e0b453;
     }
 
     /* ================= CHECK BUTTON ================= */
@@ -1415,16 +1423,21 @@
          =================================================================== */
       function checkBoxes(boxes, index) {
         let anyWrong = false;
+        let newlyCorrect = false;
 
-        boxes.forEach(({ input, expected }) => {
+        boxes.forEach(({ input, expected, accept }) => {
           if (input.classList.contains("correct-locked")) return;
 
           const raw = input.value.trim();
+          const numeric = raw === "" ? NaN : Number(raw);
+          const isCorrect = typeof accept === "function" ? accept(numeric) : numeric === expected;
 
-          if (raw !== "" && Number(raw) === expected) {
+          if (raw !== "" && isCorrect) {
+            input.classList.remove("wrong-shake");
             input.classList.add("correct-locked");
             input.readOnly = true;
-          } else {
+            newlyCorrect = true;
+          } else if (raw !== "") {
             anyWrong = true;
             input.classList.remove("wrong-shake");
             void input.offsetWidth;
@@ -1440,18 +1453,16 @@
 
         if (allDone) {
           completed[index] = true;
-          // sound.correct();
-          speak("Correct!")
+          speak("Correct!");
           showEmoji("🥳");
           burstConfetti(boxes[boxes.length - 1].input);
           nextBtn.disabled = false;
-
-          if (index === QUESTIONS.length - 1) {
-            setTimeout(finishQuiz, 1600);
-          }
+          if (index === QUESTIONS.length - 1) setTimeout(finishQuiz, 1600);
+        } else if (newlyCorrect) {
+          speak("Correct!");
+          showEmoji("😊");
         } else if (anyWrong) {
-          // sound.wrong();
-          speak("Try Again!")
+          speak("Try Again!");
           showEmoji("😔");
         }
 
@@ -1482,15 +1493,25 @@
       }
 
       function renderPictureQuestion(q, sum, index) {
-        // Single merged row: each group is one column with its picture
-        // on top and its number box directly below it, so the box is
-        // always centered under its own image. The "+" / "=" symbols
-        // and the sum box are also their own columns, each with an
-        // invisible spacer matching the picture height, so they still
-        // line up on the same baseline as the number boxes below the
-        // pictures.
+        /*
+          PICTURE QUESTIONS
+          -----------------
+          • Every picture group now has a BLANK box underneath it.
+          • The child must count the items in that picture and enter q.each.
+          • The final addition answer is also blank.
+          • In multiplication, BOTH factors are editable.
+          • The two factor boxes accept either order:
+                groups × each
+                OR
+                each × groups
+            If groups and each are the same number, the same number can
+            correctly be entered in both boxes.
+        */
+
         const row = document.createElement("div");
         row.className = "picture-addend-row";
+
+        const pictureBoxes = [];
 
         for (let i = 0; i < q.groups; i++) {
           const col = document.createElement("div");
@@ -1505,13 +1526,31 @@
           frame.appendChild(img);
           col.appendChild(frame);
 
+          // BLANK under every picture.
+          // Expected answer = number of items inside ONE picture group.
           const addend = document.createElement("input");
           addend.className = "addend-input picture-linked";
           addend.type = "text";
-          addend.value = q.each;
-          addend.readOnly = true;
-          addend.tabIndex = -1;
+          addend.inputMode = "numeric";
+          addend.autocomplete = "off";
+          addend.maxLength = 3;
+          addend.placeholder = "?";
           col.appendChild(addend);
+
+          pictureBoxes.push({
+            input: addend,
+            expected: q.each
+          });
+
+          // Picture count is checked automatically.
+          // No Check button is required for these boxes.
+          addend.addEventListener("input", () => {
+            if (addend.readOnly) return;
+
+            addend.value = addend.value.replace(/\D/g, "").slice(0, 3);
+            autoCheckPictureCount(addend, q.each);
+            refreshCheckState();
+          });
 
           row.appendChild(col);
 
@@ -1532,6 +1571,7 @@
           }
         }
 
+        // Final addition answer.
         const eqCol = document.createElement("div");
         eqCol.className = "group-col";
 
@@ -1539,10 +1579,10 @@
         eqSpacer.className = "mini-picture-frame spacer";
         eqCol.appendChild(eqSpacer);
 
-        const eq1 = document.createElement("div");
-        eq1.className = "symbol";
-        eq1.textContent = "=";
-        eqCol.appendChild(eq1);
+        const eq = document.createElement("div");
+        eq.className = "symbol";
+        eq.textContent = "=";
+        eqCol.appendChild(eq);
 
         row.appendChild(eqCol);
 
@@ -1564,17 +1604,19 @@
 
         row.appendChild(sumCol);
 
-        // Multiplication row: auto-filled factors (read-only) + editable
-        // product — unchanged from your original code.
+        // ============================================================
+        // MULTIPLICATION ROW
+        // ============================================================
         const multRow = document.createElement("div");
         multRow.className = "total-row";
 
         const factor1 = document.createElement("input");
         factor1.className = "addend-input picture-linked";
         factor1.type = "text";
-        factor1.value = q.each;
-        factor1.readOnly = true;
-        factor1.tabIndex = -1;
+        factor1.inputMode = "numeric";
+        factor1.autocomplete = "off";
+        factor1.maxLength = 3;
+        factor1.placeholder = "?";
 
         const times = document.createElement("div");
         times.className = "symbol";
@@ -1583,9 +1625,10 @@
         const factor2 = document.createElement("input");
         factor2.className = "addend-input picture-linked";
         factor2.type = "text";
-        factor2.value = q.each;
-        factor2.readOnly = true;
-        factor2.tabIndex = -1;
+        factor2.inputMode = "numeric";
+        factor2.autocomplete = "off";
+        factor2.maxLength = 3;
+        factor2.placeholder = "?";
 
         const eq2 = document.createElement("span");
         eq2.className = "equals";
@@ -1605,6 +1648,9 @@
         multRow.appendChild(eq2);
         multRow.appendChild(productInput);
 
+        // ============================================================
+        // CHECK BUTTON
+        // ============================================================
         const checkBtnRow = document.createElement("div");
         checkBtnRow.className = "check-btn-row";
 
@@ -1620,36 +1666,340 @@
         content.appendChild(multRow);
         content.appendChild(checkBtnRow);
 
-        const boxes = [
-          { input: sumInput, expected: sum },
-          { input: productInput, expected: q.each * q.each }
+        /*
+          ONE-BY-ONE CHECKING
+          -------------------
+          • The child can enter one answer at a time.
+          • Check becomes enabled as soon as ANY editable box contains a value.
+          • Only boxes that currently contain an answer are checked.
+          • Correct answer -> green + locked + "Correct!"
+          • Wrong answer -> cleared + "Try Again!" and can be entered again.
+          • Empty boxes are left untouched.
+        */
+        const answerBoxes = [
+          ...pictureBoxes,
+          { input: sumInput, expected: sum }
         ];
 
-        function refreshCheckState() {
-          checkBtn.disabled = boxes.some(b =>
-            !b.input.classList.contains("correct-locked") &&
-            b.input.value.trim().length === 0
-          );
+        const multiplicationBoxes = [
+          { input: factor1 },
+          { input: factor2 },
+          { input: productInput, expected: sum }
+        ];
+
+        const allInputs = [
+          ...answerBoxes.map(b => b.input),
+          factor1,
+          factor2,
+          productInput
+        ];
+
+        function getValue(input) {
+          const value = input.value.trim();
+          return value === "" ? null : Number(value);
         }
 
-        boxes.forEach(({ input }) => {
+        function shakeAndClear(input) {
+          input.classList.remove("wrong-shake");
+          void input.offsetWidth;
+          input.classList.add("wrong-shake");
+
+          // Remove the wrong answer after the shake starts.
+          input.value = "";
+
+          input.addEventListener("animationend", () => {
+            input.classList.remove("wrong-shake");
+          }, { once: true });
+        }
+
+        function lockCorrect(input) {
+          input.classList.remove("wrong-shake");
+          input.classList.add("correct-locked");
+          input.readOnly = true;
+        }
+
+        /*
+          Factor rule:
+          If the first factor is already correct, the second factor must
+          be the OTHER number. This prevents entering the same "type"
+          twice.
+
+          Example: 6 groups of 2
+            6 x 2  -> accepted
+            2 x 6  -> accepted
+            6 x 6  -> rejected
+            2 x 2  -> rejected
+
+          If groups === each, the same number in both boxes is allowed.
+        */
+        function factorIsAllowed(input, value) {
+          if (value === null) return false;
+
+          const groups = q.groups;
+          const each = q.each;
+
+          // When both factors are the same, both boxes may contain
+          // that same number.
+          if (groups === each) {
+            return value === groups;
+          }
+
+          // The first multiplication box may contain EITHER:
+          //   groups OR each
+          // The second box must then contain the OTHER value.
+          //
+          // This means:
+          //   6 × 2  -> accepted
+          //   2 × 6  -> accepted
+          //   6 × 6  -> rejected
+          //   2 × 2  -> rejected
+          if (input === factor1) {
+            if (factor2.classList.contains("correct-locked")) {
+              const second = getValue(factor2);
+              return second === groups
+                ? value === each
+                : second === each
+                  ? value === groups
+                  : false;
+            }
+
+            return value === groups || value === each;
+          }
+
+          if (input === factor2) {
+            if (factor1.classList.contains("correct-locked")) {
+              const first = getValue(factor1);
+              return first === groups
+                ? value === each
+                : first === each
+                  ? value === groups
+                  : false;
+            }
+
+            return value === groups || value === each;
+          }
+
+          return false;
+        }
+
+        function refreshCheckState() {
+          // Picture counts and multiplication factors are checked
+          // automatically. Check is ONLY for the final + and × answers.
+          if (completed[index]) {
+            checkBtn.disabled = true;
+            return;
+          }
+
+          const additionFilled = sumInput.value.trim().length > 0;
+          const multiplicationFilled = productInput.value.trim().length > 0;
+
+          // BOTH final answers must be filled.
+          checkBtn.disabled = !(additionFilled && multiplicationFilled);
+        }
+
+        function autoCheckPictureCount(input, expected) {
+          const value = getValue(input);
+
+          if (value === null) return;
+
+          if (value === expected) {
+            lockCorrect(input);
+            speak("Correct!");
+            showEmoji("😊");
+          } else {
+            shakeAndClear(input);
+            speak("Try Again!");
+            showEmoji("😔");
+          }
+        }
+
+        function checkForCompletion() {
+          const allDone = allInputs.every(input =>
+            input.classList.contains("correct-locked")
+          );
+
+          if (!allDone) return false;
+
+          completed[index] = true;
+          speak("Correct!");
+          showEmoji("🥳");
+          burstConfetti(productInput);
+          nextBtn.disabled = false;
+          checkBtn.disabled = true;
+
+          if (index === QUESTIONS.length - 1) {
+            setTimeout(finishQuiz, 1600);
+          }
+
+          return true;
+        }
+
+        // Only the final addition and multiplication answers update
+        // the Check button. Picture-count boxes have their own
+        // automatic checker above.
+        [sumInput, productInput].forEach(input => {
+          const updateCheckButton = () => {
+            if (input.readOnly) return;
+
+            input.value = input.value
+              .replace(/\\D/g, "")
+              .slice(0, 3);
+
+            refreshCheckState();
+
+            // Ensures Check is enabled after the browser finishes
+            // updating the input value.
+            setTimeout(refreshCheckState, 0);
+          };
+
+          input.addEventListener("input", updateCheckButton);
+          input.addEventListener("change", updateCheckButton);
+          input.addEventListener("keyup", updateCheckButton);
+          input.addEventListener("blur", updateCheckButton);
+          input.addEventListener("paste", () => {
+            setTimeout(updateCheckButton, 0);
+          });
+        });
+
+        // Set the correct initial state.
+        refreshCheckState();
+
+        // Multiplication factors are checked automatically.
+        // The child may put the group count OR item count in either box,
+        // but once one factor is correct, the same value cannot be used
+        // in the other box (unless both factors are actually equal).
+        [factor1, factor2].forEach(input => {
           input.addEventListener("input", () => {
-            input.value = input.value.replace(/\D/g, "").slice(0, 3);
+            if (input.readOnly) return;
+
+            input.value = input.value
+              .replace(/\D/g, "")
+              .slice(0, 3);
+
+            const value = getValue(input);
+            if (value === null) {
+              refreshCheckState();
+              return;
+            }
+
+            if (factorIsAllowed(input, value)) {
+              lockCorrect(input);
+              speak("Correct!");
+              showEmoji("😊");
+              checkForCompletion();
+            } else {
+              shakeAndClear(input);
+              speak("Try Again!");
+              showEmoji("😔");
+            }
+
             refreshCheckState();
           });
         });
 
         checkBtn.addEventListener("click", () => {
-          checkBoxes(boxes, index);
-          checkBtn.disabled = true;
+          let anyWrong = false;
+          let anyCorrect = false;
+
+          // Picture-count boxes are already checked automatically.
+          // The Check button is only for the final addition and
+          // multiplication answers.
+
+          // ----------------------------------------------------------
+          // 1. Check addition total.
+          // ----------------------------------------------------------
+          if (!sumInput.readOnly) {
+            const value = getValue(sumInput);
+
+            if (value !== null) {
+              if (value === sum) {
+                lockCorrect(sumInput);
+                anyCorrect = true;
+              } else {
+                shakeAndClear(sumInput);
+                anyWrong = true;
+              }
+            }
+          }
+
+          // ----------------------------------------------------------
+          // Multiplication factors are NOT checked by this button.
+          // They are checked automatically when the child types them.
+          // The Check button is ONLY for:
+          //   1. Addition (+) answer
+          //   2. Multiplication (×) product answer
+          // ----------------------------------------------------------
+
+          // ----------------------------------------------------------
+          // Check multiplication product.
+          // ----------------------------------------------------------
+          if (!productInput.readOnly) {
+            const value = getValue(productInput);
+
+            if (value !== null) {
+              if (value === sum) {
+                lockCorrect(productInput);
+                anyCorrect = true;
+              } else {
+                shakeAndClear(productInput);
+                anyWrong = true;
+              }
+            }
+          }
+
+          // ----------------------------------------------------------
+          // Speak feedback for this check.
+          // ----------------------------------------------------------
+          if (anyWrong) {
+            speak("Try Again!");
+            showEmoji("😔");
+          } else if (anyCorrect) {
+            speak("Correct!");
+            showEmoji("😊");
+          }
+
+          // ----------------------------------------------------------
+          // Complete question only when EVERY required box is green.
+          // ----------------------------------------------------------
+          if (!checkForCompletion()) {
+            // If either final answer was wrong, it was cleared.
+            // Therefore Check stays disabled until BOTH answers are
+            // filled again.
+            if (anyWrong) {
+              checkBtn.disabled = true;
+            } else {
+              refreshCheckState();
+            }
+          }
         });
 
         if (completed[index]) {
-          boxes.forEach(b => {
-            b.input.value = b.expected;
-            b.input.classList.add("correct-locked");
-            b.input.readOnly = true;
+          pictureBoxes.forEach(({ input, expected }) => {
+            input.value = expected;
+            input.classList.add("correct-locked");
+            input.readOnly = true;
           });
+
+          sumInput.value = sum;
+          sumInput.classList.add("correct-locked");
+          sumInput.readOnly = true;
+
+          /*
+            When revisiting a completed question, show the normal
+            multiplication order: groups × each.
+          */
+          factor1.value = q.groups;
+          factor2.value = q.each;
+
+          factor1.classList.add("correct-locked");
+          factor2.classList.add("correct-locked");
+          factor1.readOnly = true;
+          factor2.readOnly = true;
+
+          productInput.value = sum;
+          productInput.classList.add("correct-locked");
+          productInput.readOnly = true;
+
           checkBtn.disabled = true;
         }
       }
