@@ -673,7 +673,16 @@ popTimer = setTimeout(function () {
 
       var restart = el('button', 'btn danger small', 'Start again');
       restart.type = 'button';
-      ui.navCenter.appendChild(restart);
+      if (!cfg.roundNavigation) ui.navCenter.appendChild(restart);
+      var prevRound = null, nextRound = null;
+      if (cfg.roundNavigation) {
+        prevRound = el('button', 'btn ghost small', '← Previous');
+        nextRound = el('button', 'btn primary small', 'Next →');
+        prevRound.type = nextRound.type = 'button';
+        prevRound.style.minWidth = nextRound.style.minWidth = '170px';
+        ui.navLeft.appendChild(prevRound);
+        ui.navRight.appendChild(nextRound);
+      }
 
       var dotButtons = [];
       for (var i = 0; i < total; i++) {
@@ -686,6 +695,7 @@ popTimer = setTimeout(function () {
       }
 
       var roundAt, picked, doneHere, doneAll, misses;
+      var roundDone = rounds.map(function () { return []; });
       var NS = 'http://www.w3.org/2000/svg';
       var matchEl = null, wires = null, wired = [];
 
@@ -753,6 +763,7 @@ popTimer = setTimeout(function () {
         roundAt = 0;
         doneAll = 0;
         misses = 0;
+        roundDone = rounds.map(function () { return []; });
         dotButtons.forEach(function (d) { d.className = 'dot'; });
         build();
       }
@@ -760,7 +771,7 @@ popTimer = setTimeout(function () {
       function build() {
         var round = rounds[roundAt];
         picked = null;
-        doneHere = 0;
+        doneHere = roundDone[roundAt].length;
         wired = [];
         ui.board.innerHTML = '';
         ui.board.className = 'board fill';
@@ -794,7 +805,22 @@ popTimer = setTimeout(function () {
         match.appendChild(left);
         match.appendChild(right);
         ui.board.appendChild(match);
+        roundDone[roundAt].forEach(function (key) {
+          var leftTile = left.querySelector('[data-key="' + key + '"]');
+          var rightTile = right.querySelector('[data-key="' + key + '"]');
+          if (!leftTile || !rightTile) return;
+          [leftTile, rightTile].forEach(function (tile) {
+            tile.classList.add('done');
+            tile.disabled = true;
+          });
+          wired.push({ top: leftTile, bottom: rightTile });
+        });
         tally();
+        drawWires();
+        if (cfg.roundNavigation) {
+          prevRound.disabled = roundAt === 0;
+          nextRound.disabled = doneHere !== round.pairs.length || roundAt === rounds.length - 1;
+        }
       }
 
       function tally() {
@@ -841,6 +867,7 @@ popTimer = setTimeout(function () {
             top:    a.dataset.side === 'left' ? a : b,
             bottom: a.dataset.side === 'left' ? b : a
           });
+          roundDone[roundAt].push(Number(a.dataset.key));
           drawWires();
           setTimeout(drawWires, 200);
           confetti.at(b, { count: 55 });
@@ -850,7 +877,14 @@ popTimer = setTimeout(function () {
           tally();
           soundCorrect();
           if (doneHere === rounds[roundAt].pairs.length) {
-            setTimeout(roundAt < rounds.length - 1 ? askNext : result, 550);
+            setTimeout(function () {
+              if (roundAt === rounds.length - 1) result();
+              else if (cfg.roundNavigation) {
+                nextRound.disabled = false;
+              } else {
+                askNext();
+              }
+            }, 550);
           }
         } else {
           /* wrong pair — just a shake and a buzz */
@@ -908,6 +942,20 @@ popTimer = setTimeout(function () {
 
       restart.onclick = deal;
       ui.again.onclick = function () { ui.finish.classList.remove('show'); deal(); };
+      if (cfg.roundNavigation) {
+        prevRound.onclick = function () {
+          if (roundAt > 0) {
+            roundAt--;
+            build();
+          }
+        };
+        nextRound.onclick = function () {
+          if (!nextRound.disabled) {
+            roundAt++;
+            build();
+          }
+        };
+      }
 
       deal();
     }
