@@ -1157,7 +1157,8 @@
       { a: 680, b: 10, c: "6800", o: ["6800", "680", "8600"] },
       { a: 99, b: 100, c: "9900", o: ["9900", "9090", "9000"] },
       { a: 64, b: 20, c: "1280", o: ["1240", "1280", "1380"] },
-      { a: 41, b: 30, c: "1230", o: ["1203", "1230", "1320"] }
+      { a: 41, b: 30, c: "1230", o: ["1203", "1230", "1320"] },
+     { a: 13, b: 20, c: "260", o: ["260", "206", "620"] }
     ];
     let i = 0, done = Array(Q.length).fill(false), drag = null, visited = Array(Q.length).fill(false);
     let animating = false;
@@ -1259,28 +1260,45 @@
       setTimeout(() => element.remove(), 1600);
     }
 
-    function answer(v) {
-      if (done[i] || !v) return;
+   function answer(v) {
+  if (done[i] || !v || animating) return;
 
-      if (v === Q[i].c) {
-        done[i] = true;
-        render();
+  if (v === Q[i].c) {
+    done[i] = true;
 
-        // sound.correct();
-        speak("Correct!");
-        showEmoji("🥳");
-        burstConfetti($("drop"));
+    speak("Correct!");
+    showEmoji("🥳");
+    burstConfetti($("drop"));
 
-      } else {
-        // sound.wrong();
-        speak("Try Again!");
-        showEmoji("😔");
-        $("drop").classList.add("wrong");
-        setTimeout(() => {
-          $("drop").classList.remove("wrong");
-        }, 350);
-      }
+    // Last question → show final popup automatically
+    if (i === Q.length - 1) {
+      render();
+
+      setTimeout(() => {
+        finalWin();
+      }, 1000);
+
+      return;
     }
+
+    // Other questions → automatically go to next question
+    render();
+
+    setTimeout(() => {
+      nextQuestion();
+    }, 1000);
+
+  } else {
+    speak("Try Again!");
+    showEmoji("😔");
+
+    $("drop").classList.add("wrong");
+
+    setTimeout(() => {
+      $("drop").classList.remove("wrong");
+    }, 350);
+  }
+}
 
     function finishQuiz() {
       sound.finish();
