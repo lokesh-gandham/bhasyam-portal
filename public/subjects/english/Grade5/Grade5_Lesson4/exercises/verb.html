@@ -1433,6 +1433,7 @@
                         <div class="form-box answer-box key-${key} ${isAnswered ? 'correct-input' : ''}" data-row="${rowIdx}" data-col="${key}">
                             <input type="text" id="input_${key}" data-row="${rowIdx}" data-col="${key}"
                                 autocomplete="off" spellcheck="false" placeholder="Write here..."
+                                maxlength="${data[key].length}"
                                 ${isAnswered ? 'disabled' : ''} value="${val}" />
                         </div>
                     </div>
@@ -1469,11 +1470,14 @@
                     lockOtherInputs(this);
                     checkBtn.disabled = this.value.trim().length === 0;
 
-                    // a correct answer is taken straight away - no need to press Check
+                    // a correct answer is taken straight away - no need to press Check,
+                    // and a full-length wrong one is called out the same way
                     const typed = this.value.trim().toLowerCase();
                     const expected = quizData[this.dataset.row][this.dataset.col].toLowerCase();
                     if (typed && typed === expected) {
                         acceptAnswer(this);
+                    } else if (typed.length >= expected.length) {
+                        rejectAnswer(this);
                     }
                 });
 
@@ -1515,6 +1519,21 @@
             document.querySelectorAll('.orbit-slot .form-box').forEach(box => {
                 box.classList.remove('locked');
             });
+        }
+
+        // the box is full but the word is wrong: say so, clear it and let them retype
+        function rejectAnswer(input) {
+            if (!input || input.disabled) return;
+            const box = input.closest('.form-box');
+            box.classList.add('wrong-input');
+            showWrongPopup();
+            setTimeout(() => {
+                box.classList.remove('wrong-input');
+                input.value = '';
+                if (!input.disabled) input.focus();
+                unlockAllInputs();
+                checkBtn.disabled = true;
+            }, 500);
         }
 
         // marks one blank correct, locks it and moves on
@@ -1578,16 +1597,7 @@
             if (guess.toLowerCase() === correct.toLowerCase()) {
                 acceptAnswer(activeInput);
             } else {
-                const wrongInput = activeInput;
-                box.classList.add('wrong-input');
-                showWrongPopup();
-                setTimeout(() => {
-                    box.classList.remove('wrong-input');
-                    wrongInput.value = '';
-                    wrongInput.focus();
-                    unlockAllInputs();
-                    checkBtn.disabled = true;
-                }, 500);
+                rejectAnswer(activeInput);
             }
         });
 

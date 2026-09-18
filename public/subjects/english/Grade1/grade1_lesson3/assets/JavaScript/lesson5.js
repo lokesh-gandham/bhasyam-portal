@@ -545,6 +545,9 @@
     const cols = config.cols || 10;
     const cells = new Map();
     if (!state.crosswordLetters || Array.isArray(state.crosswordLetters)) state.crosswordLetters = {};
+    // Squares belonging to a word that already passed a check: they stay put while
+    // the learner spells a crossing word.
+    if (!state.crosswordLocked || Array.isArray(state.crosswordLocked)) state.crosswordLocked = {};
 
     words.forEach((word, wordIndex) => {
       const given = new Set(word.given || []);
@@ -596,13 +599,14 @@
         if (!cell) return `<span class="cw-blank" aria-hidden="true"></span>`;
         const starts = cell.starts.map(num => `<span>${num}</span>`).join("");
         const key = `${row}-${col}`;
-        const value = state.crosswordLetters[key] ? cell.letter.toUpperCase() : "";
-        const solved = value ? " solved" : "";
+        const value = (state.crosswordLetters[key] || "").toUpperCase();
+        const filled = value ? " filled" : "";
+        const locked = state.crosswordLocked[key] ? " solved locked" : "";
         const given = cell.given ? " given" : "";
         const start = cell.startIndexes.length ? " start" : "";
         const fillable = !value && !cell.given ? " fillable" : "";
         return `
-          <button class="cw-cell${solved}${given}${start}${fillable}" type="button"
+          <button class="cw-cell${filled}${locked}${given}${start}${fillable}" type="button"
             data-key="${key}" data-letter="${cell.letter}" data-words="${cell.words.join(",")}" data-starts="${cell.startIndexes.join(",")}">
             <span class="cw-number">${starts}</span>
             <span class="cw-letter">${value}</span>
@@ -645,147 +649,340 @@
           </aside>
         </div>
         <div class="crossword-actions">
+          <button class="word-btn check-crossword" id="checkCrosswordBtn" type="button"><i class="fa-solid fa-circle-check"></i> Check</button>
           <button class="word-btn reset-crossword" id="resetCrosswordBtn" type="button"><i class="fa-solid fa-rotate-left"></i> Reset</button>
         </div>
       </section>`;
 
     const resetBtn = document.getElementById("resetCrosswordBtn");
+    const checkBtn = document.getElementById("checkCrosswordBtn");
     const crosswordCells = [...optionsEl.querySelectorAll(".cw-cell")];
     const clueItems = [...optionsEl.querySelectorAll(".clue-item")];
     const gridEl = optionsEl.querySelector(".crossword-grid");
     const stageEl = optionsEl.querySelector(".crossword-stage");
     resetBtn.disabled = state.crosswordComplete || state.finalShown;
+    checkBtn.disabled = state.crosswordComplete || state.finalShown;
 
-    let activePopup = null;
+    let activeKey = null;
+    let activeWordIndex = null;
 
-    function closeActivePopup() {
-      if (activePopup) {
-        activePopup.remove();
-        activePopup = null;
-      }
+    const typingInput = document.createElement("input");
+    typingInput.type = "text";
+    typingInput.className = "cw-typing-input";
+    typingInput.autocomplete = "off";
+    typingInput.spellcheck = false;
+    typingInput.setAttribute("autocorrect", "off");
+    typingInput.setAttribute("autocapitalize", "characters");
+    typingInput.setAttribute("aria-label", "Type the letter for the selected square");
+    typingInput.style.display = "none";
+    (stageEl || gridEl).appendChild(typingInput);
+
+    function cellElFor(key) {
+      return crosswordCells.find(item => item.dataset.key === key) || null;
+    }
+
+    // Drops the selection but leaves the typing box mounted and focused: hiding it
+    // mid-word would blur it and swallow the next keystroke.
+    function deselectCurrent() {
+      if (activeKey) cellElFor(activeKey)?.classList.remove("selected");
+      activeKey = null;
+      activeWordIndex = null;
       clueItems.forEach(item => item.classList.remove("highlight"));
     }
 
-    function completeIfReady() {
-      if (fillableKeys.every(key => state.crosswordLetters[key])) {
+    function clearActiveCell() {
+      deselectCurrent();
+      typingInput.value = "";
+      typingInput.style.display = "none";
+    }
+
+    // Nothing is judged while the learner types: marks only appear on "Check".
+    function isLocked(key) {
+      return Boolean(state.crosswordLocked[key]);
+    }
+
+    function isEditable(key) {
+      const cell = cells.get(key);
+      return Boolean(cell) && !cell.given && !isLocked(key);
+    }
+
+    function clearCheckMarks() {
+      crosswordCells.forEach(item => {
+        if (isLocked(item.dataset.key)) return;
+        item.classList.remove("solved", "incorrect");
+      });
+      clueItems.forEach(item => {
+        if (item.classList.contains("locked")) return;
+        item.classList.remove("solved");
+      });
+    }
+
+    function wordKeys(word) {
+      return word.answer.split("").map((letter, offset) => cellKeyFor(word, offset));
+    }
+
+    function isWordFilled(word) {
+      return wordKeys(word).every(key => state.crosswordLetters[key] || cells.get(key)?.given);
+    }
+
+    // Checks whatever the learner has finished so far: a single word is enough,
+    // half-typed words are simply left alone until they come back to them.
+    function checkAnswers() {
+      if (state.crosswordComplete || state.finalShown) return;
+      clearActiveCell();
+      clearCheckMarks();
+
+      let checkedWords = 0;
+      let wrongWords = 0;
+
+      words.forEach((word, wordIndex) => {
+        if (!isWordFilled(word)) return;
+        checkedWords++;
+
+        const solved = isWordSolved(word);
+        if (!solved) wrongWords++;
+
+        wordKeys(word).forEach(key => {
+          const cellEl = cellElFor(key);
+          const cell = cells.get(key);
+          if (!cellEl || !cell || cell.given) return;
+          const typed = (state.crosswordLetters[key] || "").toLowerCase();
+          if (typed === cell.letter.toLowerCase()) cellEl.classList.add("solved");
+          else cellEl.classList.add("incorrect");
+        });
+
+        if (solved) {
+          wordKeys(word).forEach(key => {
+            state.crosswordLocked[key] = true;
+            cellElFor(key)?.classList.add("locked");
+          });
+          const ci = clueItems.find(item => Number(item.dataset.clue) === wordIndex);
+          if (ci) ci.classList.add("solved", "locked");
+        }
+      });
+
+      if (!checkedWords) {
+        playSound("wrong");
+        speak("Finish a word first");
+        showPopup("wrong", "Finish a word first", "", "Finish a word first", { duration: 1400 });
+        return;
+      }
+
+      if (wrongWords) {
+        playSound("wrong");
+        speak("Try again");
+        showPopup("wrong", "Try again", "", "Try again", { duration: 1400 });
+        return;
+      }
+
+      playSound("correct");
+      speak("Correct");
+      smallConfetti();
+      showPopup("correct", "Correct!", "", "Correct", { duration: 1400 });
+
+      if (words.every(isWordSolved)) {
         state.crosswordComplete = true;
+        checkBtn.disabled = true;
         resetBtn.disabled = true;
-        smallConfetti();
         showFinal(1600);
       }
     }
 
-    function showLetterChoicePopup(key, cell, cellEl) {
-      closeActivePopup();
+    function offsetInWord(word, cell) {
+      return word.dir === "down" ? cell.row - word.row : cell.col - word.col;
+    }
 
-      if (state.crosswordLetters[key] || cell.given) return;
+    function pickWordFor(cell) {
+      if (!cell.words.length) return null;
+      const startsHere = cell.words.find(wi => offsetInWord(words[wi], cell) === 0);
+      return startsHere !== undefined ? startsHere : cell.words[0];
+    }
 
-      const correctLetter = cell.letter.toLowerCase();
+    function focusCell(key, wordIndex) {
+      const cell = cells.get(key);
+      const cellEl = cellElFor(key);
+      if (!cell || !cellEl) return;
+      if (state.crosswordComplete || state.finalShown) return;
+      if (cell.given) return;
 
-      const allLetters = new Set();
-      cell.words.forEach(wi => {
-        words[wi].answer.split("").forEach(l => allLetters.add(l.toLowerCase()));
-      });
-      const wrongPool = [...allLetters].filter(l => l !== correctLetter);
-      const fallbackAlpha = "abcdefghijklmnopqrstuvwxyz".split("").filter(l => l !== correctLetter);
-      const pool = wrongPool.length > 0 ? wrongPool : fallbackAlpha;
-      const wrongLetter = pool[Math.floor(Math.random() * pool.length)];
-
-      const pair = [correctLetter, wrongLetter];
-      for (let i = pair.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [pair[i], pair[j]] = [pair[j], pair[i]];
-      }
-
-      const popup = document.createElement("div");
-      popup.className = "letter-choice-popup";
-
-      pair.forEach(letter => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "letter-choice-btn";
-        btn.textContent = letter.toUpperCase();
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          if (letter === correctLetter) {
-            state.crosswordLetters[key] = letter;
-            closeActivePopup();
-
-            const cwLetter = cellEl.querySelector(".cw-letter");
-            if (cwLetter) cwLetter.textContent = letter.toUpperCase();
-            cellEl.classList.add("solved");
-            cellEl.classList.remove("fillable");
-
-            let wordJustCompleted = false;
-            cell.words.forEach(wi => {
-              if (isWordSolved(words[wi])) {
-                const ci = clueItems.find(c => Number(c.dataset.clue) === wi);
-                if (ci) ci.classList.add("solved");
-                if (!state._shownWords) state._shownWords = {};
-                if (!state._shownWords[wi]) {
-                  state._shownWords[wi] = true;
-                  wordJustCompleted = true;
-                }
-              }
-            });
-
-            if (wordJustCompleted) {
-              playSound("correct");
-              speak("Correct");
-              smallConfetti();
-              showPopup("correct", "Correct!", "", "Correct", { duration: 1400 });
-            }
-            completeIfReady();
-          } else {
-            playSound("wrong");
-            speak("Try again");
-            showPopup("wrong", "Try again", "", "Try again", { duration: 1200 });
-          }
-        });
-        popup.appendChild(btn);
-      });
+      deselectCurrent();
+      activeKey = key;
+      activeWordIndex = wordIndex !== undefined && wordIndex !== null ? wordIndex : pickWordFor(cell);
+      cellEl.classList.add("selected");
 
       const stageRect = (stageEl || gridEl).getBoundingClientRect();
       const cellRect = cellEl.getBoundingClientRect();
-      const [, colValue] = key.split("-").map(Number);
-      const openLeft = colValue >= cols - 3;
-      popup.classList.toggle("popup-left", openLeft);
-      popup.style.left = ((openLeft ? cellRect.left : cellRect.right) - stageRect.left) + "px";
-      popup.style.top = (cellRect.top + cellRect.height / 2 - stageRect.top) + "px";
+      typingInput.style.display = "block";
+      typingInput.style.left = (cellRect.left - stageRect.left) + "px";
+      typingInput.style.top = (cellRect.top - stageRect.top) + "px";
+      typingInput.style.width = cellRect.width + "px";
+      typingInput.style.height = cellRect.height + "px";
+      typingInput.classList.toggle("over-locked", isLocked(key));
+      if (typingInput.value) typingInput.value = "";
+      if (document.activeElement !== typingInput) typingInput.focus({ preventScroll: true });
 
-      (stageEl || gridEl).appendChild(popup);
-      activePopup = popup;
-
-      cell.words.forEach(wi => {
-        const ci = clueItems.find(c => Number(c.dataset.clue) === wi);
-        if (ci && !isWordSolved(words[wi])) ci.classList.add("highlight");
-      });
+      if (activeWordIndex !== null && activeWordIndex !== undefined) {
+        const ci = clueItems.find(c => Number(c.dataset.clue) === activeWordIndex);
+        if (ci) ci.classList.add("highlight");
+      }
     }
 
+    // Stay inside the word the learner is spelling: step along that same word so a
+    // whole answer can be typed straight through, and never hop onto a crossing word.
+    function stepKey(fromKey, direction) {
+      const cell = cells.get(fromKey);
+      if (!cell || activeWordIndex === null || activeWordIndex === undefined) return null;
+      const word = words[activeWordIndex];
+      if (!word) return null;
+      const offset = offsetInWord(word, cell) + direction;
+      if (offset < 0 || offset >= word.answer.length) return null;
+      const key = cellKeyFor(word, offset);
+      return cells.get(key)?.given ? stepKey(key, direction) : key;
+    }
+
+    function nextOpenKey(fromKey) {
+      return stepKey(fromKey, 1);
+    }
+
+    function writeLetter(rawLetter) {
+      if (!activeKey || state.crosswordComplete || state.finalShown) return;
+      const key = activeKey;
+      const cellEl = cellElFor(key);
+      if (!cellEl) return;
+
+      const letter = String(rawLetter || "").toLowerCase();
+      if (!/^[a-z]$/.test(letter)) return;
+
+      if (isLocked(key)) {
+        const skipKey = nextOpenKey(key);
+        if (skipKey) focusCell(skipKey, activeWordIndex);
+        else clearActiveCell();
+        return;
+      }
+
+      state.crosswordLetters[key] = letter;
+      const cwLetter = cellEl.querySelector(".cw-letter");
+      if (cwLetter) cwLetter.textContent = letter.toUpperCase();
+      cellEl.classList.add("filled");
+      cellEl.classList.remove("fillable", "solved", "incorrect");
+
+      const nextKey = nextOpenKey(key);
+      const wordIndex = activeWordIndex;
+      if (!nextKey) {
+        clearActiveCell();
+        return;
+      }
+      // Move on straight away so a child typing a whole word never loses a keystroke.
+      focusCell(nextKey, wordIndex);
+    }
+
+    function eraseLetter() {
+      if (!activeKey || state.crosswordComplete || state.finalShown) return;
+      const key = activeKey;
+      const cellEl = cellElFor(key);
+      const wordIndex = activeWordIndex;
+
+      if (isLocked(key)) {
+        const prevKey = stepKey(key, -1);
+        if (!prevKey) return;
+        focusCell(prevKey, wordIndex);
+        eraseLetter();
+        return;
+      }
+
+      if (state.crosswordLetters[key]) {
+        delete state.crosswordLetters[key];
+        if (cellEl) {
+          const cwLetter = cellEl.querySelector(".cw-letter");
+          if (cwLetter) cwLetter.textContent = "";
+          cellEl.classList.remove("filled", "solved", "incorrect");
+          cellEl.classList.add("fillable");
+        }
+        return;
+      }
+
+      const prevKey = stepKey(key, -1);
+      if (!prevKey) return;
+      focusCell(prevKey, wordIndex);
+      eraseLetter();
+    }
+
+    typingInput.addEventListener("input", () => {
+      // A fast typist (or a paste) can deliver several letters in one event, so
+      // feed them to the board one at a time instead of keeping only the last.
+      const typed = typingInput.value.replace(/[^a-z]/gi, "");
+      typingInput.value = "";
+      for (const character of typed) {
+        if (!activeKey) break;
+        writeLetter(character);
+      }
+    });
+
+    typingInput.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        clearActiveCell();
+        return;
+      }
+      if (event.key === "Backspace" || event.key === "Delete") {
+        event.preventDefault();
+        eraseLetter();
+        return;
+      }
+      if (event.key === "Enter") {
+        event.preventDefault();
+        checkAnswers();
+        return;
+      }
+      if (event.key === "Tab") {
+        event.preventDefault();
+        const nextKey = activeKey ? nextOpenKey(activeKey) : null;
+        if (nextKey) focusCell(nextKey, activeWordIndex);
+        else clearActiveCell();
+        return;
+      }
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+        event.preventDefault();
+        const nextKey = activeKey ? stepKey(activeKey, 1) : null;
+        if (nextKey) focusCell(nextKey, activeWordIndex);
+        return;
+      }
+      if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        event.preventDefault();
+        const prevKey = activeKey ? stepKey(activeKey, -1) : null;
+        if (prevKey) focusCell(prevKey, activeWordIndex);
+      }
+    });
+
+    typingInput.addEventListener("blur", () => {
+      window.setTimeout(() => {
+        if (document.activeElement !== typingInput) clearActiveCell();
+      }, 120);
+    });
+
     crosswordCells.forEach(cell => {
-      cell.addEventListener("click", (e) => {
-        e.stopPropagation();
+      cell.addEventListener("click", (event) => {
+        event.stopPropagation();
         if (state.crosswordComplete || state.finalShown) return;
-        const key = cell.dataset.key;
-        const cellData = cells.get(key);
-        if (!cellData) return;
-        if (state.crosswordLetters[key] || cellData.given) return;
-        showLetterChoicePopup(key, cellData, cell);
+        if (!isEditable(cell.dataset.key)) return;
+        focusCell(cell.dataset.key);
       });
     });
 
-    document.addEventListener("click", (e) => {
-      if (activePopup && !activePopup.contains(e.target) && !e.target.closest(".cw-cell")) {
-        closeActivePopup();
+    document.addEventListener("click", (event) => {
+      if (activeKey && event.target !== typingInput && !event.target.closest(".cw-cell")) {
+        clearActiveCell();
       }
     });
+
+    checkBtn.onclick = () => checkAnswers();
 
     resetBtn.onclick = () => {
       if (state.crosswordComplete || state.finalShown) return;
       state.crosswordComplete = false;
       state.crosswordLetters = {};
+      state.crosswordLocked = {};
       state._shownWords = {};
-      closeActivePopup();
+      clearActiveCell();
       renderCrossword();
     };
   }
