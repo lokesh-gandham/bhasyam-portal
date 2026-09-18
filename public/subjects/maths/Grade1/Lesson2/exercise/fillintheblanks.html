@@ -1470,50 +1470,26 @@
            SPIN DIAL
         ========================= */
 
-        function spinDial(direction) {
+     function spinDial(direction) {
 
-            if (isPaused) return;
+    if (isPaused) return;
 
+    if (unlockedQuestions[currentRound]) return;
 
-            rollSound();
+    rollSound();
 
+    currentDialIndex += direction;
 
-            if (
-                'vibrate' in navigator
-            ) {
+    if (currentDialIndex < 0) {
+        currentDialIndex = dialOptions.length - 1;
+    }
 
-                navigator.vibrate(20);
+    if (currentDialIndex >= dialOptions.length) {
+        currentDialIndex = 0;
+    }
 
-            }
-
-
-            currentDialIndex += direction;
-
-
-            if (currentDialIndex < 0) {
-
-                currentDialIndex =
-
-                    dialOptions.length - 1;
-
-            }
-
-
-            else if (
-
-                currentDialIndex >=
-                dialOptions.length
-
-            ) {
-
-                currentDialIndex = 0;
-
-            }
-
-
-            updateDialVisuals();
-
-        }
+    updateDialVisuals();
+}
 
 
         /* =========================
@@ -1634,67 +1610,44 @@
                CORRECT
             ========================== */
 
-            if (selectedAnswer === data.ans) {
+          if (selectedAnswer === data.ans) {
 
-                unlockedQuestions[currentRound] = true;
+    unlockedQuestions[currentRound] = true;
 
-                speak("Correct");
-                // playAudioTone(true);
+    // Permanently lock this question
+    isPaused = true;
 
-                updateNavigation();
+    // Lock the controls
+    document.querySelector('.control-panel').classList.add('question-locked');
 
+    updateNavigation();
 
-                showSmallConfetti(false);
+    showPopup(
+        'correct',
+        '🌟',
+        'Amazing!',
+        'You got it right! ✨',
+        false
+    );
 
-                /* Show Correct Popup */
+    clearTimeout(popupTimer);
 
-                showPopup(
-                    'correct',
-                    '🌟',
-                    'Amazing!',
-                    'You got it right! ✨',
-                    false
-                );
+    if (currentRound === quizData.length - 1) {
+        popupTimer = setTimeout(() => {
+            closePopup();
+            isPaused = true;
+            showSmallConfetti(true);
 
+            showPopup(
+                'complete',
+                '🏆',
+                'Congratulations!',
+                'Great job! You completed it! 🎉',
+                true
+            );
+        }, 1800);
+    }
 
-                /* =========================
-                   NEXT / FINAL POPUP FLOW
-                ========================== */
-
-                clearTimeout(popupTimer);
-
-                /*
-                   Normal questions:
-                   - Correct popup closes automatically.
-                   - User must click NEXT.
-        
-                   Last question:
-                   - Correct popup closes automatically.
-                   - Final Congratulations popup appears automatically.
-                   - No NEXT click is required.
-                */
-
-                if (currentRound === quizData.length - 1) {
-
-                    popupTimer = setTimeout(() => {
-
-                        closePopup();
-
-                        isPaused = true;
-
-                        showSmallConfetti(true);
-
-                        showPopup(
-                            'complete',
-                            '🏆',
-                            'Congratulations!',
-                            'Great job! You completed it! 🎉',
-                            true
-                        );
-
-                    }, 1800);
-
-                }
                 else {
 
                     popupTimer = setTimeout(() => {
@@ -1887,17 +1840,20 @@
            CLOSE POPUP
         ========================= */
 
-        function closePopup() {
+       function closePopup() {
 
-            document
-                .getElementById('popup')
-                .classList
-                .remove('active');
+    document
+        .getElementById('popup')
+        .classList
+        .remove('active');
 
-
-            isPaused = false;
-
-        }
+    // Keep completed question locked
+    if (unlockedQuestions[currentRound]) {
+        isPaused = true;
+    } else {
+        isPaused = false;
+    }
+}
 
 
         /* =========================
