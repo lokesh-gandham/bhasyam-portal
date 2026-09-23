@@ -472,6 +472,8 @@ body{
 
 const IMG_SRC = {
   balloon:"../assets/images/ballon.png",
+  balloon2:"../assets/images/ballon2.png",
+  balloon3:"../assets/images/ballon3.png",
   frog:"../assets/images/frog.png",
   apple:"../assets/images/apple.png",
    icecream:"../assets/images/ice-cream.png"
@@ -493,6 +495,7 @@ const QUESTIONS = [
     right:3,
     answer:6,
     image:IMG_SRC.balloon,
+    images:[IMG_SRC.balloon,IMG_SRC.balloon2,IMG_SRC.balloon3],
     alt:"Balloon",
     hint:"Count the 3 balloons in each group. Add them together."
   },
@@ -638,11 +641,13 @@ function fireBigConfetti(){
 }
 
 function makePictures(container,count,imageSrc,alt,isSmall=false){
+  const isPattern = Array.isArray(imageSrc);
+
   for(let i=0;i<count;i++){
     const img = document.createElement("img");
 
     img.className = "picture" + (isSmall ? " small" : "");
-    img.src = imageSrc;
+    img.src = isPattern ? imageSrc[i % imageSrc.length] : imageSrc;
     img.alt = alt;
     img.draggable = false;
 
@@ -660,7 +665,7 @@ function createGroup(count,q,isSmall=false){
   makePictures(
     pictures,
     count,
-    q.image,
+    q.images || q.image,
     q.alt,
     isSmall
   );
@@ -728,14 +733,13 @@ function createInput(index,expected,locked,value){
 
     state[current][stateKey] = true;
 
-    // Answer box celebration is handled once in updateQuestionState
-    if(index !== 2){
-      correctSound.currentTime = 0;
-      correctSound.play().catch(() => {});
+    // Every box — including the answer box — gets its own
+    // correct sound + popup as soon as it's right.
+    correctSound.currentTime = 0;
+    correctSound.play().catch(() => {});
 
-      speak("Correct!");
-      showPopup(true,"Correct!","That number is correct.");
-    }
+    speak("Correct!");
+    showPopup(true,"Correct!","That number is correct.");
 
     updateQuestionState();
 
@@ -754,10 +758,12 @@ function createInput(index,expected,locked,value){
       index === 2 ? "Add the two numbers again." : "Count the pictures again."
     );
 
+    // Clear the wrong value so the box is empty for another try.
     setTimeout(() => {
       if(!input.disabled){
         input.classList.remove("wrong");
-        input.select();
+        input.value = "";
+        input.focus();
       }
     },350);
   }
@@ -780,6 +786,16 @@ function renderQuestion(){
   const q = QUESTIONS[current];
   const st = state[current];
 
+  // If the question was left half-finished (not all three boxes
+  // correct), wipe that partial progress so every box starts
+  // empty and unlocked again. Only a fully answered question
+  // keeps its boxes locked/filled when you come back to it.
+  if(!st.answered){
+    st.first = false;
+    st.second = false;
+    st.third = false;
+  }
+
   qLabel.textContent = q.label;
   questionText.textContent = q.text;
 
@@ -798,7 +814,7 @@ function renderQuestion(){
   makePictures(
     resultPictures,
     q.answer,
-    q.image,
+    q.images || q.image,
     q.alt,
     q.answer >= 6
   );
@@ -868,7 +884,7 @@ function updateQuestionState(){
       correctSound.currentTime = 0;
       correctSound.play().catch(() => {});
 
-      speak("Correct!");
+      // speak("Correct!");
       showPopup(true,"Correct!","The answer is " + q.answer + ".");
       fireConfetti();
 
