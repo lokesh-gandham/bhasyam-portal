@@ -186,62 +186,65 @@
             }
         }
 
-        /* Arcade Lever Button */
-        .arcade-lever {
-            width: clamp(50px, 4vw, 80px);
-            height: 40px;
-            background: linear-gradient(180deg, #4fddca 0%, #29cab5 100%);
-            border: none;
-            border-radius: 8px 8px 12px 12px;
-            cursor: pointer;
-            z-index: 10;
-            margin-top: 4px;
-            box-shadow: 0 4px 0 #099986, 0 6px 12px rgba(0, 0, 0, 0.15);
-            transition: transform 0.1s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .arcade-lever::after {
-            content: '🕹️';
-            font-size: 24px;
-        }
-
-        .arcade-lever:active:not(:disabled) {
-            transform: translateY(3px);
-            box-shadow: 0 1px 0 #701a75;
-        }
-
-        .arcade-lever:disabled {
-            background: #cbd5e1;
-            box-shadow: 0 4px 0 #94a3b8;
-            cursor: not-allowed;
-        }
-
-        .arcade-lever:disabled::after {
-            content: '👍';
-        }
-
-        /* Labels (T & O) */
-        .pod-labels {
-            display: flex;
-            gap: clamp(12px, 2vw, 24px);
-        }
-
-        .label-tag {
-            font-size: clamp(0.9rem, 1.2vw, 1.1rem);
-            font-weight: 900;
+        /* Clickable T / O labels replace the arcade lever.
+           The label stays in the exact lever position. */
+        .arcade-lever.label-tag {
+            font-size: clamp(1.2rem, 1.2vw, 1.5rem);
+            font-weight: 600;
             color: #ffffff;
             background: #c026d3;
-            width: 36px;
-            height: 26px;
+            width: 46px;
+            height: 36px;
+            padding: 0;
+            border: none;
             display: flex;
             justify-content: center;
             align-items: center;
             border-radius: 6px;
             box-shadow: 0 3px 0 #86198f;
-            display: none;
+            cursor: pointer;
+            z-index: 10;
+            margin-top: 4px;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.15s ease;
+        }
+
+        .arcade-lever.label-tag:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 5px 0 #86198f;
+        }
+
+        .arcade-lever.label-tag:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #86198f;
+        }
+
+        .arcade-lever.label-tag:disabled {
+            background: #cbd5e1;
+            box-shadow: 0 3px 0 #94a3b8;
+            cursor: not-allowed;
+            opacity: 0.9;
+        }
+
+        /* Invisible click targets in the former lever position */
+        .abacus-click-target {
+            width: clamp(50px, 4vw, 80px);
+            height: 40px;
+            margin-top: 4px;
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            cursor: pointer;
+            display: block;
+            padding: 0;
+            color: transparent;
+            font-size: 0;
+        }
+
+        @media screen and (min-width: 1600px) {
+            .abacus-click-target {
+                width: clamp(80px, 6vw, 100px);
+                height: 60px;
+            }
         }
 
         /* Preset Given Number Display Boxes */
@@ -618,14 +621,11 @@
                 font-weight: 400;
             }
 
-            .arcade-lever {
+            .arcade-lever.label-tag {
                 width: clamp(80px, 6vw, 100px);
                 height: 60px;
-            }
-
-            .arcade-lever::after {
-                content: '🕹️';
-                font-size: 35px;
+                font-size: 40px;
+                border-radius: 10px;
             }
 
             .preset-box {
@@ -741,7 +741,7 @@
 
     <header>
         <h1>Draw the beads on the abacus and subtract accordingly</h1>
-        <div class="instruction-badge">Pull arcade levers to drop beads onto belts, then solve!</div>
+        <div class="instruction-badge">Click the T and O labels to drop beads onto the belts, then solve!</div>
     </header>
 
     <main class="game-stage" id="stage">
@@ -928,7 +928,7 @@
                     html += `<span class="candy ${sizeClassT}" data-group="${groupIdx}" data-type="t">🔵</span>`;
                 }
                 html += `</div>`;
-                html += `<button class="arcade-lever" data-group="${groupIdx}" data-type="t" ${state.isSolved ? 'disabled' : ''}></button>`;
+                html += `<button type="button" class="arcade-lever label-tag" data-group="${groupIdx}" data-type="t" ${state.isSolved ? 'disabled' : ''}>T</button>`;
                 html += `</div>`;
             }
 
@@ -941,16 +941,10 @@
                     html += `<span class="candy ${sizeClassO}" data-group="${groupIdx}" data-type="o">🔵</span>`;
                 }
                 html += `</div>`;
-                html += `<button class="arcade-lever" data-group="${groupIdx}" data-type="o" ${state.isSolved ? 'disabled' : ''}></button>`;
+                html += `<button type="button" class="arcade-lever label-tag" data-group="${groupIdx}" data-type="o" ${state.isSolved ? 'disabled' : ''}>O</button>`;
                 html += `</div>`;
             }
 
-            html += `</div>`;
-
-            // Labels Area
-            html += `<div class="pod-labels">`;
-            if (groupData.showT) html += `<div class="label-tag">T</div>`;
-            if (groupData.showO) html += `<div class="label-tag">O</div>`;
             html += `</div>`;
 
             html += `</div>`;
@@ -986,7 +980,7 @@
 
             const inputEl = document.getElementById("finalInput");
 
-            // Arcade Lever Event Listeners
+            // T / O Label Click Event Listeners
             document.querySelectorAll('.arcade-lever').forEach(btn => {
                 btn.addEventListener('click', function () {
                     if (state.isSolved) return;
