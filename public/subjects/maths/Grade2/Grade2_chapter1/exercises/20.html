@@ -104,9 +104,9 @@
     }
 
     .content-col {
-      min-width: 0;
+      min-width: 600px;
       min-height: 0;
-      flex: 1 1 auto;
+      /* flex: 1 1 auto; */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -119,6 +119,7 @@
 
     .blackboard {
       /* width:100%; */
+      min-width: 100%;
       height: 300px;
       flex: 0 0 auto;
       display: flex;
@@ -187,6 +188,17 @@
       justify-content: center;
     }
 
+    /* Only the term that WRAPS the dropzone grows to fit "Drop here" on one
+       line. It sizes itself to its own content (min-width + auto), so it
+       never forces the other number/operator terms to change, and it never
+       needs to be wider than the text actually requires — which is what
+       keeps it from overlapping the teacher image or anything else. */
+    .term.term-drop {
+      width: auto;
+      min-width: clamp(100px, 13vw, 130px);
+      padding: 0 4px;
+    }
+
     .term-num {
       width: 100%;
       height: 100%;
@@ -200,6 +212,7 @@
 
     .dropzone {
       width: 100%;
+      min-height: 60px;
       height: 100%;
       display: flex;
       align-items: center;
@@ -209,7 +222,19 @@
       color: #f7f2e2;
       /* font-family: "Architects Daughter", cursive; */
       font-size: clamp(24px, 2.5vw, 36px);
+      white-space: nowrap;
+      padding: 0 8px;
       transition: border-color .15s ease, background .15s ease, transform .15s ease;
+    }
+
+    /* Smaller, single-line "Drop here" label — only used before it's filled.
+       Once a number is dropped in, the box goes back to the normal big
+       digit size (see .dropzone.filled below), so this only affects the
+       empty placeholder text. */
+    .dropzone.placeholder {
+      font-size: clamp(14px, 1.5vw, 18px);
+      font-weight: 400;
+      letter-spacing: 0.2px;
     }
 
     .dropzone.drag-over {
@@ -324,6 +349,7 @@
       justify-content: center;
       height: 100%;
       min-width: 0;
+      transform: rotateY(-194deg);
     }
 
     .teacher-img {
@@ -828,7 +854,7 @@
       </div>
     </div>
 
-    <p class="heading">Fill in the box.</p>
+    <p class="heading">Drop the answer into the box.</p>
 
     <div class="main-row">
 
@@ -1074,14 +1100,15 @@
 
     function makeDropzoneTerm(filledValue) {
       const wrap = document.createElement("div");
-      wrap.className = "term";
+      wrap.className = "term term-drop";
 
       const zone = document.createElement("div");
       zone.className = "dropzone";
       zone.id = "dropZone";
 
       if (filledValue === undefined || filledValue === null) {
-        zone.textContent = "?";
+        zone.textContent = "Drop here";
+        zone.classList.add("placeholder");
       }
 
       if (filledValue !== undefined && filledValue !== null) {
@@ -1206,65 +1233,71 @@
       chip.addEventListener("pointercancel", onPointerUp);
     }
 
-    function renderQuestion(resetTeacher = true) {
-      const q = QUESTIONS[current];
-      const st = state[current];
-      const expected = expectedValue(q);
+    function renderQuestion() {
+  const q = QUESTIONS[current];
+  const st = state[current];
+  const expected = expectedValue(q);
 
-      qLabel.textContent = q.label;
-      questionText.textContent = q.op === "+" ? "Find the sum." : "Find the difference.";
+  qLabel.textContent = q.label;
+  questionText.textContent =
+    q.op === "+" ? "Find the sum." : "Find the difference.";
 
-      equationBoard.innerHTML = "";
+  equationBoard.innerHTML = "";
 
-      const leftTerm = q.blank === "left"
-        ? makeDropzoneTerm(st.answered ? q.left : undefined)
-        : makeNumTerm(q.left);
+  const leftTerm = q.blank === "left"
+    ? makeDropzoneTerm(st.answered ? q.left : undefined)
+    : makeNumTerm(q.left);
 
-      const rightTerm = q.blank === "right"
-        ? makeDropzoneTerm(st.answered ? q.right : undefined)
-        : makeNumTerm(q.right);
+  const rightTerm = q.blank === "right"
+    ? makeDropzoneTerm(st.answered ? q.right : undefined)
+    : makeNumTerm(q.right);
 
-      const resultTerm = q.blank === "result"
-        ? makeDropzoneTerm(st.answered ? q.result : undefined)
-        : makeNumTerm(q.result);
+  const resultTerm = q.blank === "result"
+    ? makeDropzoneTerm(st.answered ? q.result : undefined)
+    : makeNumTerm(q.result);
 
-      const opSign = document.createElement("div");
-      opSign.className = "operator";
-      opSign.textContent = q.op;
+  const opSign = document.createElement("div");
+  opSign.className = "operator";
+  opSign.textContent = q.op;
 
-      const equalsSign = document.createElement("div");
-      equalsSign.className = "operator";
-      equalsSign.textContent = "=";
+  const equalsSign = document.createElement("div");
+  equalsSign.className = "operator";
+  equalsSign.textContent = "=";
 
-      equationBoard.appendChild(leftTerm);
-      equationBoard.appendChild(opSign);
-      equationBoard.appendChild(rightTerm);
-      equationBoard.appendChild(equalsSign);
-      equationBoard.appendChild(resultTerm);
+  equationBoard.appendChild(leftTerm);
+  equationBoard.appendChild(opSign);
+  equationBoard.appendChild(rightTerm);
+  equationBoard.appendChild(equalsSign);
+  equationBoard.appendChild(resultTerm);
 
-      optionsRow.innerHTML = "";
+  optionsRow.innerHTML = "";
 
-      if (!st.answered) {
-        const dropZone = equationBoard.querySelector("#dropZone");
-        const choices = shuffle([expected, ...q.distractors]);
+  if (!st.answered) {
+    const dropZone = equationBoard.querySelector("#dropZone");
+    const choices = shuffle([expected, ...q.distractors]);
 
-        choices.forEach(value => {
-          const chip = document.createElement("div");
-          chip.className = "option-chip";
-          chip.textContent = value;
-          optionsRow.appendChild(chip);
+    choices.forEach(value => {
+      const chip = document.createElement("div");
+      chip.className = "option-chip";
+      chip.textContent = value;
 
-          attachDrag(chip, value, expected, dropZone);
-        });
-      }
+      optionsRow.appendChild(chip);
 
-      if (resetTeacher) {
-        teacherReset();
-      }
+      attachDrag(chip, value, expected, dropZone);
+    });
+  }
 
-      prevBtn.disabled = current === 0;
-      nextBtn.disabled = !st.answered || current === total - 1;
-    }
+  // ⭐ IMPORTANT: restore teacher according to this question's state
+  if (st.answered) {
+    teacherImg.classList.remove("shake", "pop");
+    teacherImg.src = TEACHER_CLAP;
+  } else {
+    teacherReset();
+  }
+
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = !st.answered || current === total - 1;
+}
 
     function showFinal() {
       const finalPopup = document.getElementById("finalPopup");
