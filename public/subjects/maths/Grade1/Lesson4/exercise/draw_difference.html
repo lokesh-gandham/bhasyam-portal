@@ -152,6 +152,36 @@
       outline: none;
     }
 
+    .count-input.correct {
+      border: 3px solid #00b894 !important;
+      background: #e9fff7 !important;
+      color: #008f72 !important;
+      box-shadow: 0 0 0 3px rgba(0,184,148,.15) !important;
+    }
+
+    .count-input.wrong {
+      border: 3px solid #ff6b7a !important;
+      background: #fff0f2 !important;
+      color: #d33847 !important;
+      animation: wrongShake .25s ease;
+    }
+
+    .count-input:disabled {
+      cursor: not-allowed;
+      opacity: 1 !important;
+      color: #008f72 !important;
+      -webkit-text-fill-color: #008f72 !important;
+      background: #e9fff7 !important;
+      border: 3px solid #00b894 !important;
+      font-weight: 700 !important;
+    }
+
+    @keyframes wrongShake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
     .count-input:focus {
       border-color: #00b894;
       box-shadow: 0 0 0 3px rgba(0, 184, 148, .12)
@@ -1249,8 +1279,16 @@
       { label: 'd)', title: 'Beach Balls', countA: 13, countB: 6, image: '../images/beach-ball.png' }
     ];
 
+    const balloonColors = [
+      '../images/balloon-red.png',
+      '../images/balloon-blue.png',
+      '../images/balloon-yellow.png',
+      '../images/balloon-green.png',
+      '../images/balloon.png'
+    ];
+
     let currentIndex = 0;
-    let states = quizItems.map(() => ({ drawn: 0, value: '', unlocked: false }));
+    let states = quizItems.map(() => ({ drawn: 0, value: '', unlocked: false, countA: '', countB: '', countACorrect: false, countBCorrect: false }));
     let popupTimer = null;
 
     const stage = document.getElementById('gameStage');
@@ -1278,14 +1316,14 @@
       <div class="worksheet">
         <div class="visual-group">
           <div class="object-box"><div class="items-grid" id="boxA"></div></div>
-          <div class="count-line"><input class="count-input" value="${q.countA}" readonly aria-label="First count"></div>
+          <div class="count-line"><input type="number" min="0" class="count-input count-answer" id="countInputA" value="${s.countA}" ${s.countACorrect ? 'disabled' : ''} aria-label="First count" autocomplete="off"></div>
         </div>
 
         <div class="operator">−</div>
 
         <div class="visual-group">
           <div class="object-box"><div class="items-grid" id="boxB"></div></div>
-          <div class="count-line"><input class="count-input" value="${q.countB}" readonly aria-label="Second count"></div>
+          <div class="count-line"><input type="number" min="0" class="count-input count-answer" id="countInputB" value="${s.countB}" ${s.countBCorrect ? 'disabled' : ''} aria-label="Second count" autocomplete="off"></div>
         </div>
 
         <div class="operator">=</div>
@@ -1294,11 +1332,13 @@
           <div class="object-box answer-box"><div class="items-grid" id="boxC"></div></div>
           <div class="count-line">
             <input type="number" min="0" max="99" class="count-input" id="answerInput"
-              value="${s.value}" ${s.unlocked ? 'disabled' : ''} aria-label="Difference answer">
+              value="${s.value}"
+              ${(!s.countACorrect || !s.countBCorrect || s.unlocked) ? 'disabled' : ''}
+              aria-label="Difference answer">
           </div>
           <div class="draw-tools">
-            <button class="draw-btn" id="addBtn" ${s.unlocked ? 'disabled' : ''}>Draw</button>
-            <button class="draw-btn undo" id="undoBtn" ${s.unlocked ? 'disabled' : ''}>Undo</button>
+            <button class="draw-btn" id="addBtn" ${(!s.countACorrect || !s.countBCorrect || s.unlocked) ? 'disabled' : ''}>Draw</button>
+            <button class="draw-btn undo" id="undoBtn" ${(!s.countACorrect || !s.countBCorrect || s.unlocked) ? 'disabled' : ''}>Undo</button>
           </div>
         </div>
       </div>
@@ -1307,10 +1347,108 @@
       const boxA = document.getElementById('boxA');
       const boxB = document.getElementById('boxB');
       const boxC = document.getElementById('boxC');
+      const countInputA = document.getElementById('countInputA');
+      const countInputB = document.getElementById('countInputB');
 
-      for (let i = 0; i < q.countA; i++) boxA.insertAdjacentHTML('beforeend', itemHTML(q.image, q.title));
-      for (let i = 0; i < q.countB; i++) boxB.insertAdjacentHTML('beforeend', itemHTML(q.image, q.title));
-      for (let i = 0; i < s.drawn; i++) boxC.insertAdjacentHTML('beforeend', itemHTML(q.image, q.title));
+      // Check automatically while typing.
+      // For multi-digit answers (for example 20), do not check after
+      // the first digit. Check as soon as the entered value has enough
+      // digits to represent the expected answer.
+      let countATimer = null;
+      let countBTimer = null;
+
+      function handleCountTyping(input, correctAnswer, type, timerName) {
+        const s = states[currentIndex];
+        if ((type === 'A' && s.countACorrect) ||
+            (type === 'B' && s.countBCorrect)) {
+          return;
+        }
+
+        const value = input.value;
+        if (type === 'A') s.countA = value;
+        else s.countB = value;
+
+        input.classList.remove('wrong');
+
+        if (value === '') {
+          return;
+        }
+
+        const expectedDigits = String(correctAnswer).length;
+        const enteredDigits = value.replace(/^0+/, '').length || 1;
+
+        // If the correct answer has more than one digit, wait until
+        // the user has entered enough digits. This prevents 20 from
+        // being checked incorrectly as 2.
+        if (enteredDigits < expectedDigits) {
+          return;
+        }
+
+        clearTimeout(timerName === 'A' ? countATimer : countBTimer);
+
+        const timer = setTimeout(() => {
+          if (type === 'A') {
+            if (!states[currentIndex].countACorrect &&
+                countInputA.value !== '') {
+              checkCountInput(countInputA, q.countA, 'A');
+            }
+          } else {
+            if (!states[currentIndex].countBCorrect &&
+                countInputB.value !== '') {
+              checkCountInput(countInputB, q.countB, 'B');
+            }
+          }
+        }, 80);
+
+        if (timerName === 'A') countATimer = timer;
+        else countBTimer = timer;
+      }
+
+      countInputA.addEventListener('input', () => {
+        handleCountTyping(countInputA, q.countA, 'A', 'A');
+      });
+
+      countInputB.addEventListener('input', () => {
+        handleCountTyping(countInputB, q.countB, 'B', 'B');
+      });
+
+      // Enter checks immediately.
+      countInputA.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          clearTimeout(countATimer);
+
+          if (!states[currentIndex].countACorrect &&
+              countInputA.value !== '') {
+            checkCountInput(countInputA, q.countA, 'A');
+          }
+        }
+      });
+
+      countInputB.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          clearTimeout(countBTimer);
+
+          if (!states[currentIndex].countBCorrect &&
+              countInputB.value !== '') {
+            checkCountInput(countInputB, q.countB, 'B');
+          }
+        }
+      });
+
+      for (let i = 0; i < q.countA; i++) {
+        const img = q.title === 'Balloons' ? balloonColors[i % balloonColors.length] : q.image;
+        boxA.insertAdjacentHTML('beforeend', itemHTML(img, q.title));
+      }
+      for (let i = 0; i < q.countB; i++) {
+        const img = q.title === 'Balloons' ? balloonColors[i % balloonColors.length] : q.image;
+        boxB.insertAdjacentHTML('beforeend', itemHTML(img, q.title));
+      }
+      for (let i = 0; i < s.drawn; i++) {
+        const img = q.title === 'Balloons' ? balloonColors[i % balloonColors.length] : q.image;
+        boxC.insertAdjacentHTML('beforeend', itemHTML(img, q.title));
+      }
 
       document.getElementById('addBtn').addEventListener('click', addVisual);
       document.getElementById('undoBtn').addEventListener('click', removeVisual);
@@ -1323,8 +1461,65 @@
         updateSubmitState();
       });
 
+      updateAnswerInputAvailability();
       updateNavButtons();
       updateSubmitState();
+    }
+
+    function checkCountInput(input, correctAnswer, type) {
+      const s = states[currentIndex];
+      const userAnswer = parseInt(input.value, 10);
+
+      if (Number.isNaN(userAnswer)) return;
+
+      if (userAnswer === correctAnswer) {
+        // Keep the correct answer visible.
+        input.value = String(correctAnswer);
+
+        // Save the correct answer before locking the input.
+        if (type === 'A') {
+          s.countA = String(correctAnswer);
+          s.countACorrect = true;
+        } else {
+          s.countB = String(correctAnswer);
+          s.countBCorrect = true;
+        }
+
+        input.classList.remove('wrong');
+        input.classList.add('correct');
+
+        // Correct sound only. No popup for count inputs.
+        speak('Correct!');
+
+        // Lock the correct input so it cannot be edited.
+        input.disabled = true;
+
+        // Enable the difference-answer area only after BOTH count
+        // inputs have been answered correctly.
+        updateAnswerInputAvailability();
+        updateSubmitState();
+        updateNavButtons();
+
+      } else {
+        input.classList.remove('correct');
+        input.classList.add('wrong');
+
+        // Wrong count: sound only, then clear and allow another try.
+        speak('Try again');
+
+        setTimeout(() => {
+          input.value = '';
+          input.classList.remove('wrong');
+
+          if (type === 'A') {
+            s.countA = '';
+          } else {
+            s.countB = '';
+          }
+
+          input.focus();
+        }, 500);
+      }
     }
 
     function syncVisuals(target) {
@@ -1332,7 +1527,10 @@
       const boxC = document.getElementById('boxC');
       states[currentIndex].drawn = target;
       boxC.innerHTML = '';
-      for (let i = 0; i < target; i++) boxC.insertAdjacentHTML('beforeend', itemHTML(q.image, q.title, 'pop-in'));
+      for (let i = 0; i < target; i++) {
+      const img = q.title === 'Balloons' ? balloonColors[i % balloonColors.length] : q.image;
+      boxC.insertAdjacentHTML('beforeend', itemHTML(img, q.title, 'pop-in'));
+    }
     }
 
     function addVisual() {
@@ -1355,16 +1553,48 @@
       updateSubmitState();
     }
 
+    function updateAnswerInputAvailability() {
+      const s = states[currentIndex];
+      const countsComplete = s.countACorrect && s.countBCorrect;
+      const answerInput = document.getElementById('answerInput');
+      const addBtn = document.getElementById('addBtn');
+      const undoBtn = document.getElementById('undoBtn');
+
+      if (answerInput) {
+        answerInput.disabled = !countsComplete || s.unlocked;
+      }
+
+      if (addBtn) {
+        addBtn.disabled = !countsComplete || s.unlocked;
+      }
+
+      if (undoBtn) {
+        undoBtn.disabled = !countsComplete || s.unlocked;
+      }
+    }
+
     function updateNavButtons() {
+      const s = states[currentIndex];
+      const allInputsCorrect =
+        s.countACorrect &&
+        s.countBCorrect &&
+        s.unlocked;
+
       prevBtn.disabled = currentIndex === 0;
-      nextBtn.disabled = currentIndex === quizItems.length - 1 || !states[currentIndex].unlocked;
+      nextBtn.disabled =
+        currentIndex === quizItems.length - 1 || !allInputsCorrect;
     }
 
     function updateSubmitState() {
       const s = states[currentIndex];
       const answerInput = document.getElementById('answerInput');
+      const countsComplete = s.countACorrect && s.countBCorrect;
       const isEmpty = !answerInput || answerInput.value === '';
-      submitBtn.disabled = s.unlocked || isEmpty;
+
+      submitBtn.disabled =
+        s.unlocked ||
+        !countsComplete ||
+        isEmpty;
     }
 
     function speak(t) {
@@ -1542,7 +1772,9 @@
         s.drawn = 0; s.value = '';
         document.getElementById('answerInput').value = '';
         syncVisuals(0);
+        updateAnswerInputAvailability();
         updateSubmitState();
+        updateNavButtons();
       }
     }
 
@@ -1557,7 +1789,7 @@
     submitBtn.addEventListener('click', checkAnswer);
     playAgainBtn.addEventListener('click', () => {
       closePopup();
-      states = quizItems.map(() => ({ drawn: 0, value: '', unlocked: false }));
+      states = quizItems.map(() => ({ drawn: 0, value: '', unlocked: false, countA: '', countB: '', countACorrect: false, countBCorrect: false }));
       currentIndex = 0; renderQuestion();
     });
 
